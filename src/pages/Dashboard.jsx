@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
 import { Search, MessageCircle, ChevronRight, X, Check, Upload } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import CustomizeModal from '@/components/CustomizeModal';
@@ -59,6 +60,7 @@ const patternStyle = (pattern, bgColor, bgImage) => {
 };
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [time, setTime] = useState(getTime());
   const [search, setSearch] = useState('');
@@ -98,7 +100,7 @@ export default function Dashboard() {
 
       {/* Header row */}
       <div className="flex items-center gap-3 px-4 pt-2 pb-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-sm font-bold overflow-hidden flex-shrink-0">
+        <div onClick={() => navigate('/avatar')} className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-sm font-bold overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition">
           {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="avatar" /> : firstName[0]}
         </div>
         <span className="text-white font-semibold text-sm">{time}</span>
