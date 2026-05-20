@@ -13,6 +13,8 @@ export default function Avatar() {
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [photoUnsaved, setPhotoUnsaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedMsg, setSavedMsg] = useState('');
   const [zoom, setZoom] = useState(1);
   const lastPinchDist = useRef(null);
   const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 });
@@ -103,26 +105,24 @@ export default function Avatar() {
     setIsDragging(false);
   };
 
-  const savePhoto = async () => {
-    if (profile) {
-      await base44.entities.UserProfile.update(profile.id, { avatar_url: avatarUrl, avatar_offset_x: imgOffset.x, avatar_offset_y: imgOffset.y, avatar_zoom: zoom });
-      setPhotoUnsaved(false);
-    } else if (user) {
-      const newProfile = await base44.entities.UserProfile.create({ user_email: user.email, avatar_url: avatarUrl, avatar_offset_x: 0, avatar_offset_y: 0, avatar_zoom: 1 });
-      setProfile(newProfile);
-      setPhotoUnsaved(false);
-    }
+  const showSaved = (msg) => {
+    setSavedMsg(msg);
+    setTimeout(() => setSavedMsg(''), 2500);
   };
 
-  const savePosition = async () => {
+  const saveAll = async () => {
+    if (!avatarUrl) return;
+    setSaving(true);
+    const data = { avatar_url: avatarUrl, avatar_offset_x: imgOffset.x, avatar_offset_y: imgOffset.y, avatar_zoom: zoom };
     if (profile) {
-      await base44.entities.UserProfile.update(profile.id, { avatar_offset_x: imgOffset.x, avatar_offset_y: imgOffset.y, avatar_zoom: zoom });
-      setPositionChanged(false);
+      await base44.entities.UserProfile.update(profile.id, data);
     } else if (user) {
-      const newProfile = await base44.entities.UserProfile.create({ user_email: user.email, avatar_url: avatarUrl, avatar_offset_x: imgOffset.x, avatar_offset_y: imgOffset.y, avatar_zoom: zoom });
+      const newProfile = await base44.entities.UserProfile.create({ user_email: user.email, ...data });
       setProfile(newProfile);
-      setPositionChanged(false);
     }
+    setPositionChanged(false);
+    setSaving(false);
+    showSaved('✅ Saved!');
   };
 
   const firstName = user?.full_name?.split(' ')[0] || 'You';
@@ -196,12 +196,14 @@ export default function Avatar() {
           ) : (
             <p className="text-xs text-gray-400 mb-2">No photo uploaded yet</p>
           )}
-          {avatarUrl && (
-            <div className="flex gap-2 mb-4">
-              <button onClick={savePhoto} className="px-5 py-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-semibold hover:opacity-90 transition">💾 Save Photo</button>
-              <button onClick={savePosition} className="px-5 py-2 rounded-full bg-gray-700 text-white text-xs font-semibold hover:bg-gray-600 transition">Save Position</button>
-            </div>
-          )}
+          <button
+            onClick={saveAll}
+            disabled={saving || !avatarUrl}
+            className="px-8 py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-sm mb-4 hover:opacity-90 transition disabled:opacity-40 flex items-center gap-2"
+          >
+            {saving ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving...</> : '💾 Save Photo'}
+          </button>
+          {savedMsg && <p className="text-green-400 text-sm font-semibold mb-3">{savedMsg}</p>}
 
           {/* Upload card */}
           <div className="w-full max-w-sm bg-[#1e1020] border border-gray-700/50 rounded-2xl p-5 mb-4 text-center">
