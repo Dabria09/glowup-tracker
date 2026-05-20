@@ -197,7 +197,10 @@ export default function Avatar() {
             <p className="text-xs text-gray-400 mb-2">No photo uploaded yet</p>
           )}
           {avatarUrl && (
-            <button onClick={savePosition} className="px-5 py-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-semibold hover:opacity-90 transition mb-4">💾 Save Position &amp; Zoom</button>
+            <div className="flex gap-2 mb-4">
+              <button onClick={savePhoto} className="px-5 py-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-semibold hover:opacity-90 transition">💾 Save Photo</button>
+              <button onClick={savePosition} className="px-5 py-2 rounded-full bg-gray-700 text-white text-xs font-semibold hover:bg-gray-600 transition">Save Position</button>
+            </div>
           )}
 
           {/* Upload card */}
