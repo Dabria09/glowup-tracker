@@ -13,7 +13,16 @@ import Onboarding from './pages/Onboarding';
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
+  // Always allow the home/sign-in page to render
+  if (window.location.pathname === '/') {
+    return (
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    );
+  }
+
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -22,23 +31,17 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Allow Home page to render for unauthenticated users (it has its own sign-in UI)
-      if (window.location.pathname !== '/') {
-        navigateToLogin();
-        return null;
-      }
+      navigateToLogin();
+      return null;
     }
   }
 
-  // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
       <Route path="/" element={<Home />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/onboarding" element={<Onboarding />} />
