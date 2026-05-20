@@ -24,19 +24,29 @@ const AGE_GROUP_INFO = {
 
 export default function StepDOB({ data, update, onNext }) {
   const [dob, setDob] = useState(data.date_of_birth || '');
+  const [ageInput, setAgeInput] = useState(data.age ? String(data.age) : '');
+  const [mode, setMode] = useState('calendar'); // 'calendar' | 'age'
   const [error, setError] = useState('');
 
   const handleNext = () => {
-    if (!dob) return setError('Please enter your date of birth.');
-    const age = calcAge(dob);
-    const group = getAgeGroup(age);
-    if (age < 10) return setError('You must be at least 10 years old to join.');
-    update({ date_of_birth: dob, age, age_group: group });
+    if (mode === 'calendar') {
+      if (!dob) return setError('Please enter your date of birth.');
+      const age = calcAge(dob);
+      const group = getAgeGroup(age);
+      if (age < 10) return setError('You must be at least 10 years old to join.');
+      update({ date_of_birth: dob, age, age_group: group });
+    } else {
+      const age = parseInt(ageInput, 10);
+      if (!ageInput || isNaN(age)) return setError('Please enter your age.');
+      if (age < 10) return setError('You must be at least 10 years old to join.');
+      const group = getAgeGroup(age);
+      update({ age, age_group: group });
+    }
     onNext();
   };
 
-  const preview = dob ? calcAge(dob) : null;
-  const group = preview !== null ? getAgeGroup(preview) : null;
+  const preview = mode === 'calendar' && dob ? calcAge(dob) : (ageInput ? parseInt(ageInput, 10) : null);
+  const group = preview !== null && !isNaN(preview) ? getAgeGroup(preview) : null;
 
   return (
     <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
@@ -46,13 +56,31 @@ export default function StepDOB({ data, update, onNext }) {
         <p className="text-gray-400 text-sm">We use this to keep your experience age-appropriate and safe. GGU is for ages 10 and up.</p>
       </div>
 
-      <input
-        type="date"
-        value={dob}
-        onChange={e => { setDob(e.target.value); setError(''); }}
-        max={new Date().toISOString().split('T')[0]}
-        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition mb-3"
-      />
+      {/* Toggle */}
+      <div className="flex rounded-full bg-gray-800 p-1 mb-4">
+        <button onClick={() => { setMode('calendar'); setError(''); }} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${mode === 'calendar' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>📅 Birthday</button>
+        <button onClick={() => { setMode('age'); setError(''); }} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${mode === 'age' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>🔢 Enter Age</button>
+      </div>
+
+      {mode === 'calendar' ? (
+        <input
+          type="date"
+          value={dob}
+          onChange={e => { setDob(e.target.value); setError(''); }}
+          max={new Date().toISOString().split('T')[0]}
+          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition mb-3"
+        />
+      ) : (
+        <input
+          type="number"
+          value={ageInput}
+          onChange={e => { setAgeInput(e.target.value); setError(''); }}
+          placeholder="Enter your age"
+          min="10"
+          max="120"
+          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition mb-3"
+        />
+      )}
 
       {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
 
