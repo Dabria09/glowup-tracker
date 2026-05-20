@@ -1,0 +1,68 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "username": {
+      "type": "string",
+      "title": "Username"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "title": "Date of Birth"
+    },
+    "age_group": {
+      "type": "string",
+      "title": "Age Group",
+      "enum": [
+        "glow_girls",
+        "glow_teens",
+        "glow_women"
+      ]
+    },
+    "age": {
+      "type": "number",
+      "title": "Age"
+    },
+    "parent_email": {
+      "type": "string",
+      "title": "Parent Email"
+    },
+    "parent_name": {
+      "type": "string",
+      "title": "Parent Name"
+    },
+    "parental_consent_sent": {
+      "type": "boolean",
+      "title": "Parental Consent Email Sent"
+    },
+    "parental_consent_given": {
+      "type": "boolean",
+      "title": "Parental Consent Given"
+    },
+    "agreed_to_tos": {
+      "type": "boolean",
+      "title": "Agreed to Terms of Service"
+    },
+    "agreed_to_privacy": {
+      "type": "boolean",
+      "title": "Agreed to Privacy Policy"
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "title": "Onboarding Complete"
+    },
+    "stage": {
+      "type": "string",
+      "title": "Stage (Girl/Mom/Sis)"
+    },
+    "avatar_url": {
+      "type": "string",
+      "title": "Avatar URL"
+    }
+  },
+  "required": []
+}
