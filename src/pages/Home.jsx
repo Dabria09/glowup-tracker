@@ -51,7 +51,7 @@ export default function Home() {
           onClick={handleSignIn}
           className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm mb-3 hover:opacity-90 transition"
         >
-          ✨ Sign In with Google
+          {tab === 'create' ? '✨ Create Account with Google' : '✨ Sign In with Google'}
         </button>
 
         <p className="text-gray-500 text-xs text-center mb-3">
