@@ -12,6 +12,8 @@ export default function Avatar() {
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [photoUnsaved, setPhotoUnsaved] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const lastPinchDist = useRef(null);
   const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [positionChanged, setPositionChanged] = useState(false);
@@ -26,6 +28,7 @@ export default function Avatar() {
         setProfile(profiles[0]);
         setAvatarUrl(profiles[0].avatar_url || null);
         setImgOffset({ x: profiles[0].avatar_offset_x || 0, y: profiles[0].avatar_offset_y || 0 });
+        setZoom(profiles[0].avatar_zoom || 1);
       }
     }).catch(() => navigate('/'));
   }, []);
@@ -41,6 +44,7 @@ export default function Avatar() {
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     setAvatarUrl(file_url);
     setImgOffset({ x: 0, y: 0 });
+    setZoom(1);
     setPositionChanged(false);
     setPhotoUnsaved(true);
     setUploading(false);
@@ -55,6 +59,7 @@ export default function Avatar() {
   };
 
   const handleDragStart = (e) => {
+    if (e.touches && e.touches.length === 2) return; // let pinch handle it
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     dragStart.current = { x: clientX - imgOffset.x, y: clientY - imgOffset.y };
@@ -63,6 +68,20 @@ export default function Avatar() {
   };
 
   const handleDragMove = useCallback((e) => {
+    if (e.touches && e.touches.length === 2) {
+      // pinch zoom
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (lastPinchDist.current !== null) {
+        const delta = (dist - lastPinchDist.current) / 100;
+        setZoom(z => Math.min(4, Math.max(0.5, z + delta)));
+        setPositionChanged(true);
+      }
+      lastPinchDist.current = dist;
+      return;
+    }
+    lastPinchDist.current = null;
     if (!dragStart.current) return;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -72,6 +91,7 @@ export default function Avatar() {
 
   const handleDragEnd = () => {
     dragStart.current = null;
+    lastPinchDist.current = null;
     setIsDragging(false);
   };
 
@@ -84,7 +104,7 @@ export default function Avatar() {
 
   const savePosition = async () => {
     if (profile) {
-      await base44.entities.UserProfile.update(profile.id, { avatar_offset_x: imgOffset.x, avatar_offset_y: imgOffset.y });
+      await base44.entities.UserProfile.update(profile.id, { avatar_offset_x: imgOffset.x, avatar_offset_y: imgOffset.y, avatar_zoom: zoom });
       setPositionChanged(false);
     }
   };
@@ -138,7 +158,7 @@ export default function Avatar() {
                 draggable={false}
                 onMouseDown={handleDragStart}
                 onTouchStart={handleDragStart}
-                style={{ transform: `translate(${imgOffset.x}px, ${imgOffset.y}px)`, cursor: isDragging ? 'grabbing' : 'grab' }}
+                style={{ transform: `translate(${imgOffset.x}px, ${imgOffset.y}px) scale(${zoom})`, cursor: isDragging ? 'grabbing' : 'grab', transformOrigin: 'center' }}
                 className="w-full h-full object-contain absolute inset-0"
               />
             ) : (
@@ -148,8 +168,15 @@ export default function Avatar() {
               </div>
             )}
           </div>
+          {avatarUrl && (
+            <div className="flex items-center gap-3 mb-2">
+              <button onClick={() => { setZoom(z => Math.max(0.5, +(z - 0.1).toFixed(1))); setPositionChanged(true); }} className="w-8 h-8 rounded-full bg-gray-700 text-white text-lg flex items-center justify-center hover:bg-gray-600 transition">−</button>
+              <span className="text-xs text-gray-400">{Math.round(zoom * 100)}%</span>
+              <button onClick={() => { setZoom(z => Math.min(4, +(z + 0.1).toFixed(1))); setPositionChanged(true); }} className="w-8 h-8 rounded-full bg-gray-700 text-white text-lg flex items-center justify-center hover:bg-gray-600 transition">+</button>
+            </div>
+          )}
           {avatarUrl ? (
-            <p className="text-xs text-gray-400 mb-2">Drag to reposition • <span className="text-purple-400">tap &amp; drag inside circle</span></p>
+            <p className="text-xs text-gray-400 mb-2">Drag to reposition · pinch or +/− to zoom</p>
           ) : (
             <p className="text-xs text-gray-400 mb-2">No photo uploaded yet</p>
           )}

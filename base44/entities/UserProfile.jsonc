@@ -70,6 +70,10 @@
     "avatar_offset_y": {
       "type": "number",
       "title": "Avatar Offset Y"
+    },
+    "avatar_zoom": {
+      "type": "number",
+      "title": "Avatar Zoom"
     }
   },
   "required": []
