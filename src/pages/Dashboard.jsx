@@ -62,6 +62,7 @@ const patternStyle = (pattern, bgColor, bgImage) => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [time, setTime] = useState(getTime());
   const [search, setSearch] = useState('');
   const [showCustomize, setShowCustomize] = useState(false);
@@ -71,7 +72,11 @@ export default function Dashboard() {
   const [quickAccess, setQuickAccess] = useState(['grow', 'know', 'safety', 'glowboard']);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(async (u) => {
+      setUser(u);
+      const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+      if (profiles.length && profiles[0].avatar_url) setAvatarUrl(profiles[0].avatar_url);
+    }).catch(() => {});
     const timer = setInterval(() => setTime(getTime()), 30000);
     return () => clearInterval(timer);
   }, []);
@@ -101,7 +106,7 @@ export default function Dashboard() {
       {/* Header row */}
       <div className="flex items-center gap-3 px-4 pt-2 pb-3">
         <div onClick={() => navigate('/avatar')} className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-sm font-bold overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition">
-          {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="avatar" /> : firstName[0]}
+          {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" alt="avatar" /> : firstName[0]}
         </div>
         <span className="text-white font-semibold text-sm">{time}</span>
         <button className="ml-1 text-gray-300 hover:text-white"><MessageCircle size={20} /></button>
