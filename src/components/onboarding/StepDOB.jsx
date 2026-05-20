@@ -10,16 +10,16 @@ function calcAge(dob) {
 }
 
 function getAgeGroup(age) {
-  if (age >= 5 && age <= 12) return 'glow_girls';
+  if (age >= 10 && age <= 12) return 'glow_girls';
   if (age >= 13 && age <= 18) return 'glow_teens';
-  if (age >= 19 && age <= 26) return 'glow_women';
+  if (age >= 19) return 'glow_women';
   return null;
 }
 
 const AGE_GROUP_INFO = {
-  glow_girls: { label: '🌱 Glow Girl', desc: 'Ages 5–12', color: 'text-green-400' },
+  glow_girls: { label: '🌱 Glow Girl', desc: 'Ages 10–12', color: 'text-green-400' },
   glow_teens: { label: '🌸 Glow Teen', desc: 'Ages 13–18', color: 'text-pink-400' },
-  glow_women: { label: '👑 Glow Woman', desc: 'Ages 19–26', color: 'text-purple-400' },
+  glow_women: { label: '👑 Glow Woman', desc: 'Ages 19+', color: 'text-purple-400' },
 };
 
 export default function StepDOB({ data, update, onNext }) {
@@ -30,8 +30,7 @@ export default function StepDOB({ data, update, onNext }) {
     if (!dob) return setError('Please enter your date of birth.');
     const age = calcAge(dob);
     const group = getAgeGroup(age);
-    if (age < 5) return setError('You must be at least 5 years old to join.');
-    if (age > 26) return setError('GGU is designed for girls ages 5–26.');
+    if (age < 10) return setError('You must be at least 10 years old to join.');
     update({ date_of_birth: dob, age, age_group: group });
     onNext();
   };
@@ -44,7 +43,7 @@ export default function StepDOB({ data, update, onNext }) {
       <div className="text-center mb-6">
         <div className="text-4xl mb-2">🎂</div>
         <h2 className="text-2xl font-bold mb-1">When's your birthday?</h2>
-        <p className="text-gray-400 text-sm">We use this to keep your experience age-appropriate and safe.</p>
+        <p className="text-gray-400 text-sm">We use this to keep your experience age-appropriate and safe. GGU is for ages 10 and up.</p>
       </div>
 
       <input
