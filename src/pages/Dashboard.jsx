@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, MessageCircle, ChevronRight, X, Check, Upload } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import CustomizeModal from '@/components/CustomizeModal';
+import AvatarPreview from '@/components/avatar/AvatarPreview';
 
 const WORLD_APPS = [
   { id: 'grow', icon: '⭐', label: 'Grow', bg: 'bg-green-900', route: '/grow' },
@@ -63,6 +64,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const [avatarConfig, setAvatarConfig] = useState(null);
   const [time, setTime] = useState(getTime());
   const [search, setSearch] = useState('');
   const [showCustomize, setShowCustomize] = useState(false);
@@ -75,7 +77,15 @@ export default function Dashboard() {
     base44.auth.me().then(async (u) => {
       setUser(u);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
-      if (profiles.length && profiles[0].avatar_url) setAvatarUrl(profiles[0].avatar_url);
+      if (profiles.length) {
+        const profile = profiles[0];
+        if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+        if (profile.avatar_builder_config) {
+          try {
+            setAvatarConfig(JSON.parse(profile.avatar_builder_config));
+          } catch {}
+        }
+      }
     }).catch(() => {});
     const timer = setInterval(() => setTime(getTime()), 30000);
     return () => clearInterval(timer);
@@ -106,7 +116,13 @@ export default function Dashboard() {
       {/* Header row */}
       <div className="flex items-center gap-3 px-4 pt-2 pb-3">
         <div onClick={() => navigate('/avatar')} className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-base font-bold overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition">
-          {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" alt="avatar" /> : firstName[0]}
+          {avatarUrl ? (
+            <img src={avatarUrl} className="w-full h-full object-cover" alt="avatar" />
+          ) : avatarConfig ? (
+            <AvatarPreview config={avatarConfig} size={56} />
+          ) : (
+            firstName[0]
+          )}
         </div>
         <span className="text-white font-semibold text-sm">{time}</span>
         <button className="ml-1 text-gray-300 hover:text-white"><MessageCircle size={20} /></button>

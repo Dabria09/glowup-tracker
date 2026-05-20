@@ -140,6 +140,11 @@ export default function Avatar() {
         </div>
       </div>
 
+      {/* Info banner */}
+      <div className="mx-4 mt-2 mb-4 bg-gradient-to-r from-pink-900/40 to-purple-900/40 border border-pink-700/30 rounded-xl p-3">
+        <p className="text-xs text-pink-200">✨ Create your unique Roblox-style avatar! Mix and match hundreds of styles.</p>
+      </div>
+
       {/* Tabs */}
       <div className="flex rounded-full bg-gray-800/60 p-1 mx-4 mt-3 mb-6">
         <button
