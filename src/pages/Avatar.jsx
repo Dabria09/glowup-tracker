@@ -11,6 +11,7 @@ export default function Avatar() {
   const [profile, setProfile] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [photoUnsaved, setPhotoUnsaved] = useState(false);
   const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [positionChanged, setPositionChanged] = useState(false);
@@ -39,11 +40,9 @@ export default function Avatar() {
     setUploading(true);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     setAvatarUrl(file_url);
-    if (profile) {
-      await base44.entities.UserProfile.update(profile.id, { avatar_url: file_url });
-    }
     setImgOffset({ x: 0, y: 0 });
     setPositionChanged(false);
+    setPhotoUnsaved(true);
     setUploading(false);
   };
 
@@ -74,6 +73,13 @@ export default function Avatar() {
   const handleDragEnd = () => {
     dragStart.current = null;
     setIsDragging(false);
+  };
+
+  const savePhoto = async () => {
+    if (profile) {
+      await base44.entities.UserProfile.update(profile.id, { avatar_url: avatarUrl });
+      setPhotoUnsaved(false);
+    }
   };
 
   const savePosition = async () => {
@@ -147,10 +153,14 @@ export default function Avatar() {
           ) : (
             <p className="text-xs text-gray-400 mb-2">No photo uploaded yet</p>
           )}
-          {positionChanged && (
-            <button onClick={savePosition} className="mb-4 px-5 py-1.5 rounded-full bg-pink-500 text-white text-xs font-semibold hover:bg-pink-600 transition">Save Position</button>
-          )}
-          {!positionChanged && <div className="mb-4" />}
+          <div className="flex gap-2 mb-4">
+            {photoUnsaved && (
+              <button onClick={savePhoto} className="px-5 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-semibold hover:opacity-90 transition">💾 Save Photo</button>
+            )}
+            {positionChanged && (
+              <button onClick={savePosition} className="px-5 py-1.5 rounded-full bg-pink-500 text-white text-xs font-semibold hover:bg-pink-600 transition">Save Position</button>
+            )}
+          </div>
 
           {/* Upload card */}
           <div className="w-full max-w-sm bg-[#1e1020] border border-gray-700/50 rounded-2xl p-5 mb-4 text-center">
