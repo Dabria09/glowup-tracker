@@ -5,21 +5,28 @@ import { base44 } from '@/api/base44Client';
 export default function Home() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('signin');
+  const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    base44.auth.isAuthenticated().then(async (authed) => {
-      if (!authed) return;
-      const profiles = await base44.entities.UserProfile.filter({ user_email: (await base44.auth.me()).email });
+    base44.auth.isAuthenticated().then(async (isAuthed) => {
+      if (!isAuthed) return;
+      setAuthed(true);
+      // If already fully onboarded, go straight to dashboard
+      const me = await base44.auth.me();
+      const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
       if (profiles.length && profiles[0].onboarding_complete) {
         navigate('/dashboard');
-      } else {
-        navigate('/onboarding');
       }
+      // Otherwise stay on Home so user sees the landing page
     });
   }, []);
 
   const handleSignIn = () => {
-    base44.auth.redirectToLogin(window.location.href);
+    if (authed) {
+      navigate('/onboarding');
+    } else {
+      base44.auth.redirectToLogin(window.location.href);
+    }
   };
 
   return (
@@ -65,7 +72,7 @@ export default function Home() {
           onClick={handleSignIn}
           className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm mb-3 hover:opacity-90 transition"
         >
-          {tab === 'create' ? '✨ Create Account with Google' : '✨ Sign In with Google'}
+          {authed ? '✨ Continue to GGU →' : tab === 'create' ? '✨ Create Account with Google' : '✨ Sign In with Google'}
         </button>
 
         <p className="text-gray-500 text-xs text-center mb-3">
