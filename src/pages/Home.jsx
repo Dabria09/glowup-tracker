@@ -1,8 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
 export default function Home() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState('signin');
+
+  useEffect(() => {
+    base44.auth.isAuthenticated().then(async (authed) => {
+      if (!authed) return;
+      const profiles = await base44.entities.UserProfile.filter({ user_email: (await base44.auth.me()).email });
+      if (profiles.length && profiles[0].onboarding_complete) {
+        navigate('/dashboard');
+      } else {
+        navigate('/onboarding');
+      }
+    });
+  }, []);
 
   const handleSignIn = () => {
     base44.auth.redirectToLogin(window.location.href);
