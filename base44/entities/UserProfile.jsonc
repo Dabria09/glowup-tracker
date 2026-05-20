@@ -74,6 +74,10 @@
     "avatar_zoom": {
       "type": "number",
       "title": "Avatar Zoom"
+    },
+    "avatar_builder_config": {
+      "type": "string",
+      "title": "Avatar Builder Config (JSON)"
     }
   },
   "required": []

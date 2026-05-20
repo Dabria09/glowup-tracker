@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Camera, Upload, Trash2 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import AvatarBuilder from '@/components/avatar/AvatarBuilder';
 
 export default function Avatar() {
   const navigate = useNavigate();
@@ -230,19 +231,7 @@ export default function Avatar() {
           <p className="text-xs text-gray-600">Max file size: 5 MB · Supported: JPG, PNG, WEBP, GIF</p>
         </div>
       ) : (
-        <div className="flex flex-col items-center px-4">
-          <div className="w-full max-w-sm bg-[#1e1020] border border-gray-700/50 rounded-2xl p-8 text-center">
-            <div className="text-5xl mb-4">✨</div>
-            <h2 className="text-lg font-bold mb-2">Build Your Avatar</h2>
-            <p className="text-gray-400 text-sm">Custom avatar builder coming soon! For now, upload a real photo to personalize your profile.</p>
-            <button
-              onClick={() => setTab('photo')}
-              className="mt-5 px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm font-semibold"
-            >
-              Upload a Photo Instead
-            </button>
-          </div>
-        </div>
+        <AvatarBuilder profile={profile} setProfile={setProfile} user={user} />
       )}
 
       <BottomNav active="me" />
