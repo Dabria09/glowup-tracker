@@ -100,7 +100,7 @@ export default function Avatar() {
           </div>
 
           {/* Buttons */}
-          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleFileChange} />
+          <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" className="hidden" onChange={handleFileChange} />
 
           <button
             onClick={() => fileRef.current.click()}
