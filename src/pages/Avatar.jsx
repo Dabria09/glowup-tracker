@@ -139,7 +139,7 @@ export default function Avatar() {
                 onMouseDown={handleDragStart}
                 onTouchStart={handleDragStart}
                 style={{ transform: `translate(${imgOffset.x}px, ${imgOffset.y}px)`, cursor: isDragging ? 'grabbing' : 'grab' }}
-                className="w-full h-full object-cover absolute inset-0"
+                className="w-full h-full object-contain absolute inset-0"
               />
             ) : (
               <div className="flex flex-col items-center gap-2 text-gray-500">
