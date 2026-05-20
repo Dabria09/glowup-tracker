@@ -47,7 +47,14 @@ export default function Avatar() {
     setImgOffset({ x: 0, y: 0 });
     setZoom(1);
     setPositionChanged(false);
-    setPhotoUnsaved(true);
+    // Auto-save immediately after upload
+    if (profile) {
+      await base44.entities.UserProfile.update(profile.id, { avatar_url: file_url, avatar_offset_x: 0, avatar_offset_y: 0, avatar_zoom: 1 });
+    } else if (user) {
+      const newProfile = await base44.entities.UserProfile.create({ user_email: user.email, avatar_url: file_url, avatar_offset_x: 0, avatar_offset_y: 0, avatar_zoom: 1 });
+      setProfile(newProfile);
+    }
+    setPhotoUnsaved(false);
     setUploading(false);
   };
 
@@ -190,11 +197,8 @@ export default function Avatar() {
             <p className="text-xs text-gray-400 mb-2">No photo uploaded yet</p>
           )}
           <div className="flex gap-2 mb-4">
-            {photoUnsaved && (
-              <button onClick={savePhoto} className="px-5 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-semibold hover:opacity-90 transition">💾 Save Photo</button>
-            )}
             {positionChanged && (
-              <button onClick={savePosition} className="px-5 py-1.5 rounded-full bg-pink-500 text-white text-xs font-semibold hover:bg-pink-600 transition">Save Position</button>
+              <button onClick={savePosition} className="px-5 py-1.5 rounded-full bg-pink-500 text-white text-xs font-semibold hover:bg-pink-600 transition">💾 Save Position</button>
             )}
           </div>
 
