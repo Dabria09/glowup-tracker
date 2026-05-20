@@ -93,7 +93,7 @@ export default function StepDOB({ data, update, onNext }) {
         </div>
       )}
 
-      <button onClick={handleNext} disabled={!dob} className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm disabled:opacity-40 transition">
+      <button onClick={handleNext} disabled={mode === 'calendar' ? !dob : !ageInput} className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm disabled:opacity-40 transition">
         Continue →
       </button>
     </div>
