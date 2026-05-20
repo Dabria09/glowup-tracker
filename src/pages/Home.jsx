@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 
 export default function Home() {
+  const [tab, setTab] = useState('signin');
+
   const handleSignIn = () => {
     base44.auth.redirectToLogin(window.location.href);
   };
@@ -24,16 +27,25 @@ export default function Home() {
       <div className="w-full max-w-sm bg-gray-900 rounded-2xl p-6 mb-6 border border-gray-800">
         {/* Tabs */}
         <div className="flex rounded-full bg-gray-800 p-1 mb-5">
-          <button className="flex-1 py-2 rounded-full bg-pink-500 text-white text-sm font-semibold">
+          <button onClick={() => setTab('signin')} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${tab === 'signin' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>
             Sign In
           </button>
-          <button className="flex-1 py-2 rounded-full text-gray-400 text-sm font-semibold">
+          <button onClick={() => setTab('create')} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${tab === 'create' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>
             Create Account
           </button>
         </div>
 
-        <h2 className="text-xl font-bold text-center mb-1">Welcome Back ✨</h2>
-        <p className="text-gray-400 text-sm text-center mb-5">Your glow up journey continues here</p>
+        {tab === 'signin' ? (
+          <>
+            <h2 className="text-xl font-bold text-center mb-1">Welcome Back ✨</h2>
+            <p className="text-gray-400 text-sm text-center mb-5">Your glow up journey continues here</p>
+          </>
+        ) : (
+          <>
+            <h2 className="text-xl font-bold text-center mb-1">Join GGU ✨</h2>
+            <p className="text-gray-400 text-sm text-center mb-5">Start your glow up journey today</p>
+          </>
+        )}
 
         <button
           onClick={handleSignIn}
