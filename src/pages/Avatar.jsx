@@ -97,7 +97,11 @@ export default function Avatar() {
 
   const savePhoto = async () => {
     if (profile) {
-      await base44.entities.UserProfile.update(profile.id, { avatar_url: avatarUrl });
+      await base44.entities.UserProfile.update(profile.id, { avatar_url: avatarUrl, avatar_offset_x: imgOffset.x, avatar_offset_y: imgOffset.y, avatar_zoom: zoom });
+      setPhotoUnsaved(false);
+    } else if (user) {
+      const newProfile = await base44.entities.UserProfile.create({ user_email: user.email, avatar_url: avatarUrl, avatar_offset_x: 0, avatar_offset_y: 0, avatar_zoom: 1 });
+      setProfile(newProfile);
       setPhotoUnsaved(false);
     }
   };
@@ -105,6 +109,10 @@ export default function Avatar() {
   const savePosition = async () => {
     if (profile) {
       await base44.entities.UserProfile.update(profile.id, { avatar_offset_x: imgOffset.x, avatar_offset_y: imgOffset.y, avatar_zoom: zoom });
+      setPositionChanged(false);
+    } else if (user) {
+      const newProfile = await base44.entities.UserProfile.create({ user_email: user.email, avatar_url: avatarUrl, avatar_offset_x: imgOffset.x, avatar_offset_y: imgOffset.y, avatar_zoom: zoom });
+      setProfile(newProfile);
       setPositionChanged(false);
     }
   };
