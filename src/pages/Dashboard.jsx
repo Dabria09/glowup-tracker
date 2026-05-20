@@ -115,7 +115,7 @@ export default function Dashboard() {
 
       {/* Header row */}
       <div className="flex items-center gap-3 px-4 pt-2 pb-3">
-        <div onClick={() => navigate('/avatar')} className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-base font-bold overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition">
+        <div onClick={() => navigate('/avatar')} className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-lg font-bold overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition">
           {avatarUrl ? (
             <img src={avatarUrl} className="w-full h-full object-cover" alt="avatar" />
           ) : avatarConfig ? (
