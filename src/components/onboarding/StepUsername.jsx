@@ -56,17 +56,10 @@ export default function StepUsername({ data, update, onNext, onBack }) {
 
       <p className="text-xs text-gray-600 mb-5">3–20 characters · letters, numbers, underscores only</p>
 
-      <button
-        onClick={handleNext}
-        disabled={!isValid || available === false || checking}
-        className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm disabled:opacity-40 transition"
-      >
+      <button onClick={handleNext} disabled={!isValid || available === false || checking} className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm disabled:opacity-40 transition">
         Continue →
       </button>
-
-      <button onClick={onBack} className="w-full py-3 text-gray-500 text-sm mt-2 hover:text-gray-300 transition">
-        ← Back
-      </button>
+      <button onClick={onBack} className="w-full py-3 text-gray-500 text-sm mt-2 hover:text-gray-300 transition">← Back</button>
     </div>
   );
 }

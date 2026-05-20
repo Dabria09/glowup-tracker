@@ -62,17 +62,11 @@ export default function StepDOB({ data, update, onNext }) {
           <p className="text-xs text-gray-400 mb-1">You'll join as</p>
           <p className={`font-bold text-lg ${AGE_GROUP_INFO[group].color}`}>{AGE_GROUP_INFO[group].label}</p>
           <p className="text-xs text-gray-500">{AGE_GROUP_INFO[group].desc}</p>
-          {preview < 13 && (
-            <p className="text-xs text-yellow-400 mt-2">⚠️ Parental consent required for under-13</p>
-          )}
+          {preview < 13 && <p className="text-xs text-yellow-400 mt-2">⚠️ Parental consent required for under-13</p>}
         </div>
       )}
 
-      <button
-        onClick={handleNext}
-        disabled={!dob}
-        className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm disabled:opacity-40 transition"
-      >
+      <button onClick={handleNext} disabled={!dob} className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm disabled:opacity-40 transition">
         Continue →
       </button>
     </div>
