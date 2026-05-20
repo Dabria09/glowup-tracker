@@ -62,6 +62,14 @@
     "avatar_url": {
       "type": "string",
       "title": "Avatar URL"
+    },
+    "avatar_offset_x": {
+      "type": "number",
+      "title": "Avatar Offset X"
+    },
+    "avatar_offset_y": {
+      "type": "number",
+      "title": "Avatar Offset Y"
     }
   },
   "required": []

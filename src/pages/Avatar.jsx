@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Camera, Upload, Trash2 } from 'lucide-react';
@@ -11,6 +11,10 @@ export default function Avatar() {
   const [profile, setProfile] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [positionChanged, setPositionChanged] = useState(false);
+  const dragStart = useRef(null);
   const fileRef = useRef();
 
   useEffect(() => {
@@ -20,6 +24,7 @@ export default function Avatar() {
       if (profiles.length) {
         setProfile(profiles[0]);
         setAvatarUrl(profiles[0].avatar_url || null);
+        setImgOffset({ x: profiles[0].avatar_offset_x || 0, y: profiles[0].avatar_offset_y || 0 });
       }
     }).catch(() => navigate('/'));
   }, []);
@@ -37,13 +42,44 @@ export default function Avatar() {
     if (profile) {
       await base44.entities.UserProfile.update(profile.id, { avatar_url: file_url });
     }
+    setImgOffset({ x: 0, y: 0 });
+    setPositionChanged(false);
     setUploading(false);
   };
 
   const handleRemove = async () => {
     setAvatarUrl(null);
+    setImgOffset({ x: 0, y: 0 });
     if (profile) {
-      await base44.entities.UserProfile.update(profile.id, { avatar_url: null });
+      await base44.entities.UserProfile.update(profile.id, { avatar_url: null, avatar_offset_x: 0, avatar_offset_y: 0 });
+    }
+  };
+
+  const handleDragStart = (e) => {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    dragStart.current = { x: clientX - imgOffset.x, y: clientY - imgOffset.y };
+    setIsDragging(true);
+    e.preventDefault();
+  };
+
+  const handleDragMove = useCallback((e) => {
+    if (!dragStart.current) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    setImgOffset({ x: clientX - dragStart.current.x, y: clientY - dragStart.current.y });
+    setPositionChanged(true);
+  }, []);
+
+  const handleDragEnd = () => {
+    dragStart.current = null;
+    setIsDragging(false);
+  };
+
+  const savePosition = async () => {
+    if (profile) {
+      await base44.entities.UserProfile.update(profile.id, { avatar_offset_x: imgOffset.x, avatar_offset_y: imgOffset.y });
+      setPositionChanged(false);
     }
   };
 
@@ -81,9 +117,24 @@ export default function Avatar() {
       {tab === 'photo' ? (
         <div className="flex flex-col items-center px-4">
           {/* Circle photo */}
-          <div className="w-44 h-44 rounded-full border-4 border-purple-600/60 overflow-hidden bg-gray-800 flex items-center justify-center mb-3">
+          <div
+            className="w-44 h-44 rounded-full border-4 border-purple-600/60 overflow-hidden bg-gray-800 flex items-center justify-center mb-3 relative select-none"
+            onMouseMove={avatarUrl ? handleDragMove : undefined}
+            onMouseUp={avatarUrl ? handleDragEnd : undefined}
+            onMouseLeave={avatarUrl ? handleDragEnd : undefined}
+            onTouchMove={avatarUrl ? handleDragMove : undefined}
+            onTouchEnd={avatarUrl ? handleDragEnd : undefined}
+          >
             {avatarUrl ? (
-              <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+              <img
+                src={avatarUrl}
+                alt="avatar"
+                draggable={false}
+                onMouseDown={handleDragStart}
+                onTouchStart={handleDragStart}
+                style={{ transform: `translate(${imgOffset.x}px, ${imgOffset.y}px)`, cursor: isDragging ? 'grabbing' : 'grab' }}
+                className="w-full h-full object-cover absolute inset-0"
+              />
             ) : (
               <div className="flex flex-col items-center gap-2 text-gray-500">
                 <Camera size={32} />
@@ -91,7 +142,15 @@ export default function Avatar() {
               </div>
             )}
           </div>
-          <p className="text-xs text-gray-400 mb-6">Your current profile photo</p>
+          {avatarUrl ? (
+            <p className="text-xs text-gray-400 mb-2">Drag to reposition • <span className="text-purple-400">tap &amp; drag inside circle</span></p>
+          ) : (
+            <p className="text-xs text-gray-400 mb-2">No photo uploaded yet</p>
+          )}
+          {positionChanged && (
+            <button onClick={savePosition} className="mb-4 px-5 py-1.5 rounded-full bg-pink-500 text-white text-xs font-semibold hover:bg-pink-600 transition">Save Position</button>
+          )}
+          {!positionChanged && <div className="mb-4" />}
 
           {/* Upload card */}
           <div className="w-full max-w-sm bg-[#1e1020] border border-gray-700/50 rounded-2xl p-5 mb-4 text-center">
