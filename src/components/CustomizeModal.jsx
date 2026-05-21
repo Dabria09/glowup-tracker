@@ -175,21 +175,21 @@ export default function CustomizeModal({
                 <button
                   key={theme.id}
                   onClick={() => { setSelectedTheme(theme.id); setBgColor(theme.color); }}
-                  className={`p-4 rounded-2xl border-2 transition text-left relative overflow-hidden ${
+                  className={`p-4 rounded-2xl border-2 transition text-left relative overflow-hidden backdrop-blur-md ${
                     selectedTheme === theme.id
-                      ? 'border-pink-500 bg-pink-500/10'
-                      : 'border-gray-700 hover:border-gray-600'
+                      ? 'border-pink-500'
+                      : 'border-white/10 hover:border-white/20'
                   }`}
-                  style={{ backgroundColor: theme.color + '22' }}
+                  style={{ backgroundColor: theme.color + '18' }}
                 >
                   {selectedTheme === theme.id && (
                     <span className="absolute top-2 right-2 w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center text-white text-xs">✓</span>
                   )}
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full border-2 border-white/20" style={{ backgroundColor: theme.color }} />
+                    <div className="w-8 h-8 rounded-full shadow-lg" style={{ backgroundColor: theme.color }} />
                     <span className="font-semibold text-white text-sm">{theme.emoji} {theme.name}</span>
                   </div>
-                  <p className="text-xs text-gray-400">{theme.desc}</p>
+                  <p className="text-xs text-white/50">{theme.desc}</p>
                 </button>
               ))}
             </div>
