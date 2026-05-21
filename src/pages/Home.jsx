@@ -13,60 +13,28 @@ export default function Home() {
     const checkAuth = async () => {
       try {
         const isAuthed = await base44.auth.isAuthenticated();
-        console.log('Auth check - isAuthed:', isAuthed);
-        setAuthed(isAuthed);
-        
         if (isAuthed) {
-          await new Promise(resolve => setTimeout(resolve, 800));
           const me = await base44.auth.me();
-          console.log('Auth check - user email:', me.email);
-          
           const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
-          console.log('Auth check - profiles:', profiles.length, 'onboarding_complete:', profiles[0]?.onboarding_complete);
           
           if (profiles.length > 0 && profiles[0]?.onboarding_complete === true) {
-            console.log('Redirecting to dashboard');
             navigate('/dashboard');
           } else if (profiles.length > 0) {
-            console.log('Has profile but onboarding incomplete - redirecting to dashboard');
             navigate('/dashboard');
           } else {
-            console.log('New user - redirecting to onboarding');
             navigate('/onboarding');
           }
           return;
         }
       } catch (err) {
         console.error('Auth check failed:', err);
-        setAuthed(false);
       } finally {
         setIsLoading(false);
       }
     };
     
     checkAuth();
-    
-    let pollCount = 0;
-    const maxPolls = 12;
-    const pollInterval = setInterval(async () => {
-      pollCount++;
-      if (pollCount >= maxPolls) {
-        clearInterval(pollInterval);
-        return;
-      }
-      const isAuthed = await base44.auth.isAuthenticated();
-      if (isAuthed && !authed) {
-        clearInterval(pollInterval);
-        checkAuth();
-      }
-    }, 500);
-    
-    window.addEventListener('focus', checkAuth);
-    return () => {
-      clearInterval(pollInterval);
-      window.removeEventListener('focus', checkAuth);
-    };
-  }, [navigate, authed]);
+  }, [navigate]);
 
   const handleGoogleSignIn = () => {
     base44.auth.redirectToLogin(window.location.href);
