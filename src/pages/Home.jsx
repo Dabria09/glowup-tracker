@@ -21,7 +21,6 @@ export default function Home() {
           } else {
             navigate('/onboarding');
           }
-          return;
         }
       } catch (err) {
         console.error('Auth check failed:', err);
@@ -31,26 +30,6 @@ export default function Home() {
     };
     
     checkAuth();
-    
-    let pollCount = 0;
-    const pollInterval = setInterval(async () => {
-      pollCount++;
-      if (pollCount >= 12) {
-        clearInterval(pollInterval);
-        return;
-      }
-      const isAuthed = await base44.auth.isAuthenticated();
-      if (isAuthed) {
-        clearInterval(pollInterval);
-        checkAuth();
-      }
-    }, 500);
-    
-    window.addEventListener('focus', checkAuth);
-    return () => {
-      clearInterval(pollInterval);
-      window.removeEventListener('focus', checkAuth);
-    };
   }, [navigate]);
 
   const handleGoogleSignIn = () => {
