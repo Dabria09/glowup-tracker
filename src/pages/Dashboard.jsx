@@ -133,7 +133,7 @@ export default function Dashboard() {
     <div className="min-h-screen text-white pb-24 overflow-x-hidden" style={patternStyle(bgPattern, bgColor, bgImage)}>
       {/* Points badge */}
       <div className="flex justify-end px-4 pt-3">
-        <div className="flex items-center gap-1 bg-gray-800/80 rounded-full px-3 py-1 text-xs font-bold">
+        <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
           <span>🏅</span><span className="text-yellow-400">15 pts</span>
         </div>
       </div>
@@ -155,14 +155,14 @@ export default function Dashboard() {
         {isEditMode ? (
           <button
             onClick={() => setIsEditMode(false)}
-            className="text-xs border border-pink-500 rounded-full px-3 py-1.5 text-pink-400 font-semibold hover:bg-pink-500/10 transition"
+            className="text-xs backdrop-blur-md bg-pink-500/20 border border-pink-500/40 rounded-full px-3 py-1.5 text-pink-300 font-semibold hover:bg-pink-500/30 transition"
           >
             ✅ Done
           </button>
         ) : (
           <>
-            <button onClick={() => setIsEditMode(true)} className="text-xs border border-gray-600 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:border-gray-400 transition">⚙️ Edit Home</button>
-            <button onClick={() => setShowCustomize(true)} className="text-xs border border-gray-600 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:border-gray-400 transition">🎨 Customize</button>
+            <button onClick={() => setIsEditMode(true)} className="text-xs backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition">⚙️ Edit Home</button>
+            <button onClick={() => setShowCustomize(true)} className="text-xs backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition">🎨 Customize</button>
           </>
         )}
       </div>
@@ -177,7 +177,7 @@ export default function Dashboard() {
       {/* Quick Access */}
       {!isEditMode && (
         <div className="px-4 mb-5">
-          <button className="flex items-center gap-2 bg-gray-800/80 rounded-full px-4 py-2 text-sm font-semibold text-white border border-gray-700">
+          <button className="flex items-center gap-2 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm font-semibold text-white">
             ⚡ Quick Access
           </button>
         </div>
@@ -185,7 +185,7 @@ export default function Dashboard() {
 
       {/* Search bar */}
       <div className="px-4 mb-5 relative">
-        <div className="flex items-center bg-gray-800/70 border border-gray-700 rounded-full px-4 py-2.5 gap-2">
+        <div className="flex items-center backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-4 py-2.5 gap-2">
           <Search size={16} className="text-gray-500" />
           <input
             value={search}
@@ -268,7 +268,7 @@ export default function Dashboard() {
         <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">✨ RECOMMENDED FOR YOU</p>
         <div className="space-y-3">
           {RECOMMENDED.map(r => (
-            <div key={r.id} className="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 cursor-pointer hover:bg-gray-800 transition">
+            <div key={r.id} className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 cursor-pointer hover:bg-white/10 transition">
               <p className="font-semibold text-sm mb-1">{r.icon} {r.title}</p>
               <p className="text-gray-400 text-sm">{r.desc}</p>
             </div>
@@ -279,14 +279,14 @@ export default function Dashboard() {
       {/* Glow Everywhere */}
       <div className="px-4 mb-6">
         <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">💗 GLOW EVERYWHERE</p>
-        <div className="bg-gray-800/50 border border-gray-700 rounded-2xl overflow-hidden">
+        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
           {SOCIAL.map((s, i) => (
             <a
               key={s.name}
               href={s.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center gap-3 px-4 py-3.5 hover:bg-gray-700/50 transition ${i < SOCIAL.length - 1 ? 'border-b border-gray-700' : ''}`}
+              className={`flex items-center gap-3 px-4 py-3.5 hover:bg-white/5 transition ${i < SOCIAL.length - 1 ? 'border-b border-white/10' : ''}`}
             >
               <div className={`w-9 h-9 rounded-full ${s.color} flex items-center justify-center text-sm flex-shrink-0`}>{s.icon}</div>
               <div className="flex-1">
