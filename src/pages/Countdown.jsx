@@ -133,10 +133,10 @@ export default function Countdown() {
         + Add Countdown
       </button>
 
-      <div className="px-4 space-y-6">
+      <div className="px-4 space-y-4">
         {/* Empty State or Countdowns List */}
         {countdowns.length === 0 ? (
-          <div>
+          <div className="space-y-4">
             <div className="text-center py-12">
               <p className="text-5xl mb-3">⏳</p>
               <p className="text-white font-semibold mb-1">No countdowns yet.</p>
@@ -145,14 +145,14 @@ export default function Countdown() {
 
             <button
               onClick={() => setShowModal(true)}
-              className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-base hover:opacity-90 transition mb-6"
+              className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-base hover:opacity-90 transition"
             >
               + Add Countdown
             </button>
 
             {/* Glow Journey Ideas */}
             <div>
-              <p className="text-sm font-bold tracking-widest text-gray-500 mb-4">✨ Glow Journey Countdown Ideas</p>
+              <p className="text-sm font-bold tracking-widest text-gray-500 mb-3">✨ Glow Journey Countdown Ideas</p>
               <div className="grid grid-cols-2 gap-3">
                 {COUNTDOWN_IDEAS.map((idea, i) => (
                   <div
@@ -180,7 +180,7 @@ export default function Countdown() {
           </div>
         ) : (
           <>
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3">
               {countdowns.map(cd => {
               const daysLeft = calculateDaysRemaining(cd.target_date);
               const categoryObj = CATEGORIES.find(c => c.label === cd.category);
@@ -227,7 +227,7 @@ export default function Countdown() {
       {/* New Countdown Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[90vh] overflow-y-auto">
+          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto pb-28">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-white">New Countdown</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400">
@@ -279,19 +279,25 @@ export default function Countdown() {
             </div>
 
             {/* Start Button */}
-            <button
-              onClick={handleStartCountdown}
-              className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition mb-3"
-            >
-              Start Countdown 💖
-            </button>
-
-            <button
-              onClick={() => setShowModal(false)}
-              className="w-full py-3 rounded-full border border-gray-700 text-white font-semibold hover:bg-gray-800 transition"
-            >
-              Cancel
-            </button>
+            <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
+              <button
+                onClick={handleStartCountdown}
+                className="flex-1 py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
+              >
+                Start Countdown 💖
+              </button>
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedCategory('Graduation');
+                  setCustomTitle('');
+                  setTargetDate('');
+                }}
+                className="flex-1 py-3 rounded-full border border-gray-700 text-white font-semibold hover:bg-gray-800 transition"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
