@@ -299,15 +299,14 @@ export default function FitnessTracker() {
           </div>
         </div>
 
-        {/* Past Logs */}
-        {logs.filter(l => l.log_date !== today()).length > 0 && (
+        {/* All Logs */}
+        {logs.length > 0 && (
           <div className="bg-gray-900/80 border border-white/5 rounded-2xl p-4 mb-4">
             <h2 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-              <span>📋</span> Past Logs
+              <span>📋</span> All Logs
             </h2>
             <div className="space-y-3">
               {logs
-                .filter(l => l.log_date !== today())
                 .sort((a, b) => b.log_date.localeCompare(a.log_date))
                 .map(log => (
                   <div key={log.id} className="bg-white/5 border border-white/10 rounded-xl p-3">
