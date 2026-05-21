@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Onboarding from './pages/Onboarding';
 import Avatar from './pages/Avatar';
+import Discover from './pages/Discover';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -34,6 +35,7 @@ const AuthenticatedApp = () => {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/avatar" element={<Avatar />} />
+      <Route path="/discover" element={<Discover />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
