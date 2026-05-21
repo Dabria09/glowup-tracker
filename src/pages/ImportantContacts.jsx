@@ -134,8 +134,8 @@ export default function ImportantContacts() {
           <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
         <div>
-          <h1 className="text-2xl font-bold">My Contacts & Appointments</h1>
-          <p className="text-xs text-gray-400">Keep your important people & dates organized</p>
+          <h1 className="text-2xl font-bold">My Contacts {"&"} Appointments</h1>
+          <p className="text-xs text-gray-400">Keep your important people {"&"} dates organized</p>
         </div>
       </div>
 
@@ -303,11 +303,19 @@ export default function ImportantContacts() {
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
           <div className="w-full bg-gray-900 rounded-t-3xl h-[90vh] max-h-[600px] flex flex-col">
             <div className="p-4 border-b border-gray-700 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">Add Contact</h2>
-                <button onClick={() => setShowContactModal(false)} className="text-gray-400">
-                  <X size={20} />
-                </button>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-bold text-white">{editingContactId ? 'Edit Contact' : 'Add Contact'}</h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleAddContact}
+                    className="px-4 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs hover:opacity-90 transition"
+                  >
+                    Save
+                  </button>
+                  <button onClick={() => setShowContactModal(false)} className="text-gray-400">
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -399,11 +407,19 @@ export default function ImportantContacts() {
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
           <div className="w-full bg-gray-900 rounded-t-3xl h-[90vh] max-h-[600px] flex flex-col">
             <div className="p-4 border-b border-gray-700 flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">Add Appointment</h2>
-                <button onClick={() => setShowAppointmentModal(false)} className="text-gray-400">
-                  <X size={20} />
-                </button>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-bold text-white">{editingAppointmentId ? 'Edit Appointment' : 'Add Appointment'}</h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleAddAppointment}
+                    className="px-4 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs hover:opacity-90 transition"
+                  >
+                    Save
+                  </button>
+                  <button onClick={() => setShowAppointmentModal(false)} className="text-gray-400">
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -421,7 +437,7 @@ export default function ImportantContacts() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-300 block mb-2">Date & Time *</label>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Date {"&"} Time *</label>
                   <input
                     type="datetime-local"
                     value={appointmentForm.date_time}

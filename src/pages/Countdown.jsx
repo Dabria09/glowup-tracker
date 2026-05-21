@@ -230,9 +230,17 @@ export default function Countdown() {
           <div className="w-full bg-gray-900 rounded-t-3xl h-[90vh] max-h-[600px] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
               <h2 className="text-xl font-bold text-white">New Countdown</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleStartCountdown}
+                  className="px-4 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-xs hover:opacity-90 transition"
+                >
+                  Save
+                </button>
+                <button onClick={() => setShowModal(false)} className="text-gray-400">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
