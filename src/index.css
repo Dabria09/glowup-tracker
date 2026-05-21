@@ -77,6 +77,22 @@
 
 
 
+/* Accessibility classes */
+body.large-text { font-size: 1.2rem !important; }
+body.large-text p, body.large-text span, body.large-text button, body.large-text input { font-size: 1.15em !important; }
+
+body.high-contrast { filter: contrast(1.5) brightness(1.1); }
+
+body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  transition-duration: 0.001ms !important;
+}
+
+body.screen-reader *:focus {
+  outline: 3px solid #ec4899 !important;
+  outline-offset: 2px !important;
+}
+
 @keyframes wiggle {
   0%, 100% { transform: rotate(-1.5deg); }
   50% { transform: rotate(1.5deg); }

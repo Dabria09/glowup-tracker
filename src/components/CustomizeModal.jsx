@@ -110,10 +110,36 @@ export default function CustomizeModal({
     soundEffects: true,
     screenReader: false,
   });
-  const [textSize, setTextSize] = useState(50);
+  const [textSize, setTextSize] = useState(100);
+
+  const handleTextSize = (val) => {
+    setTextSize(val);
+    document.documentElement.style.fontSize = (val / 100) * 16 + 'px';
+  };
+
+  const applyAccessibility = (settings) => {
+    document.body.classList.toggle('large-text', settings.largeText);
+    document.body.classList.toggle('high-contrast', settings.highContrast);
+    document.body.classList.toggle('reduce-motion', settings.reduceMotion);
+    document.body.classList.toggle('screen-reader', settings.screenReader);
+    if (settings.hapticFeedback && navigator.vibrate) navigator.vibrate(10);
+  };
 
   const toggleAccessibility = (key) => {
-    setAccessibilitySettings(prev => ({ ...prev, [key]: !prev[key] }));
+    setAccessibilitySettings(prev => {
+      const next = { ...prev, [key]: !prev[key] };
+      applyAccessibility(next);
+      if (key === 'soundEffects' && !prev[key]) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 880; g.gain.setValueAtTime(0.1, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        o.start(); o.stop(ctx.currentTime + 0.2);
+      }
+      return next;
+    });
   };
   const [selectedTheme, setSelectedTheme] = useState('classic');
   const [selectedFont, setSelectedFont] = useState('modern');
@@ -523,7 +549,8 @@ export default function CustomizeModal({
                   min={75}
                   max={150}
                   value={textSize}
-                  onChange={e => setTextSize(Number(e.target.value))}
+                  step={5}
+                  onChange={e => handleTextSize(Number(e.target.value))}
                   className="flex-1 accent-pink-500"
                 />
                 <span className="text-lg text-gray-400">A</span>
