@@ -55,11 +55,18 @@ module.exports = {
   				foreground: 'hsl(var(--sidebar-foreground))',
   				primary: 'hsl(var(--sidebar-primary))',
   				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-  				accent: 'hsl(var(--sidebar-accent))',
-  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+  				accent: {
+  					DEFAULT: 'hsl(var(--sidebar-accent))',
+  					foreground: 'hsl(var(--sidebar-accent-foreground))',
+  				},
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			}
+  		},
+  		fontFamily: {
+  			poppins: ['var(--font-poppins)'],
+  			inter: ['var(--font-inter)'],
+  			'playfair-display': ['var(--font-playfair-display)'],
   		},
   		keyframes: {
   			'accordion-down': {

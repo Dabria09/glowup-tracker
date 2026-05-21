@@ -28,38 +28,38 @@ export default function StepUsername({ data, update, onNext, onBack }) {
   };
 
   return (
-    <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+    <div className="bg-card rounded-2xl p-6 border border-border shadow-lg">
       <div className="text-center mb-6">
         <div className="text-4xl mb-2">✨</div>
-        <h2 className="text-2xl font-bold mb-1">Choose Your Username</h2>
-        <p className="text-gray-400 text-sm">This is how you'll appear in the GGU community.</p>
+        <h2 className="text-2xl font-bold font-poppins mb-1">Choose Your Username</h2>
+        <p className="text-muted-foreground text-sm">This is how you'll appear in the GGU community.</p>
       </div>
 
       <div className="relative mb-2">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">@</span>
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
         <input
           type="text"
           value={username}
           onChange={e => checkUsername(e.target.value)}
           placeholder="yourusername"
           maxLength={20}
-          className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-8 pr-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition"
+          className="w-full bg-secondary border border-border rounded-xl pl-8 pr-4 py-3 text-foreground text-sm outline-none focus:border-primary transition"
         />
       </div>
 
       <div className="text-xs mb-4 h-4">
-        {checking && <span className="text-gray-400">Checking availability…</span>}
-        {!checking && available === true && isValid && <span className="text-green-400">✓ @{username} is available!</span>}
-        {!checking && available === false && <span className="text-red-400">✗ @{username} is already taken.</span>}
-        {error && <span className="text-red-400">{error}</span>}
+        {checking && <span className="text-muted-foreground">Checking availability…</span>}
+        {!checking && available === true && isValid && <span className="text-green-600">✓ @{username} is available!</span>}
+        {!checking && available === false && <span className="text-red-500">✗ @{username} is already taken.</span>}
+        {error && <span className="text-red-500">{error}</span>}
       </div>
 
-      <p className="text-xs text-gray-600 mb-5">3–20 characters · letters, numbers, underscores only</p>
+      <p className="text-xs text-muted-foreground mb-5">3–20 characters · letters, numbers, underscores only</p>
 
-      <button onClick={handleNext} disabled={!isValid || available === false || checking} className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm disabled:opacity-40 transition">
+      <button onClick={handleNext} disabled={!isValid || available === false || checking} className="w-full py-3 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-sm disabled:opacity-40 transition">
         Continue →
       </button>
-      <button onClick={onBack} className="w-full py-3 text-gray-500 text-sm mt-2 hover:text-gray-300 transition">← Back</button>
+      <button onClick={onBack} className="w-full py-3 text-muted-foreground text-sm mt-2 hover:text-foreground transition">← Back</button>
     </div>
   );
 }

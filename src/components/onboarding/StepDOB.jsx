@@ -49,17 +49,17 @@ export default function StepDOB({ data, update, onNext }) {
   const group = preview !== null && !isNaN(preview) ? getAgeGroup(preview) : null;
 
   return (
-    <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+    <div className="bg-card rounded-2xl p-6 border border-border shadow-lg">
       <div className="text-center mb-6">
         <div className="text-4xl mb-2">🎂</div>
-        <h2 className="text-2xl font-bold mb-1">When's your birthday?</h2>
-        <p className="text-gray-400 text-sm">We use this to keep your experience age-appropriate and safe. GGU is for ages 10 and up.</p>
+        <h2 className="text-2xl font-bold font-poppins mb-1">When's your birthday?</h2>
+        <p className="text-muted-foreground text-sm">We use this to keep your experience age-appropriate and safe. GGU is for ages 10 and up.</p>
       </div>
 
       {/* Toggle */}
-      <div className="flex rounded-full bg-gray-800 p-1 mb-4">
-        <button onClick={() => { setMode('calendar'); setError(''); }} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${mode === 'calendar' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>📅 Birthday</button>
-        <button onClick={() => { setMode('age'); setError(''); }} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${mode === 'age' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>🔢 Enter Age</button>
+      <div className="flex rounded-full bg-secondary p-1 mb-4">
+        <button onClick={() => { setMode('calendar'); setError(''); }} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${mode === 'calendar' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}>📅 Birthday</button>
+        <button onClick={() => { setMode('age'); setError(''); }} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${mode === 'age' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}>🔢 Enter Age</button>
       </div>
 
       {mode === 'calendar' ? (
@@ -68,7 +68,7 @@ export default function StepDOB({ data, update, onNext }) {
           value={dob}
           onChange={e => { setDob(e.target.value); setError(''); }}
           max={new Date().toISOString().split('T')[0]}
-          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition mb-3"
+          className="w-full bg-secondary border border-border rounded-xl px-4 py-3 text-foreground text-sm outline-none focus:border-primary transition mb-3"
         />
       ) : (
         <input
@@ -78,22 +78,22 @@ export default function StepDOB({ data, update, onNext }) {
           placeholder="Enter your age"
           min="10"
           max="120"
-          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition mb-3"
+          className="w-full bg-secondary border border-border rounded-xl px-4 py-3 text-foreground text-sm outline-none focus:border-primary transition mb-3"
         />
       )}
 
-      {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
+      {error && <p className="text-red-500 text-xs mb-3">{error}</p>}
 
       {group && (
-        <div className="bg-gray-800 rounded-xl p-3 text-center mb-4">
-          <p className="text-xs text-gray-400 mb-1">You'll join as</p>
-          <p className={`font-bold text-lg ${AGE_GROUP_INFO[group].color}`}>{AGE_GROUP_INFO[group].label}</p>
-          <p className="text-xs text-gray-500">{AGE_GROUP_INFO[group].desc}</p>
-          {preview < 13 && <p className="text-xs text-yellow-400 mt-2">⚠️ Parental consent required for under-13</p>}
+        <div className="bg-secondary rounded-xl p-3 text-center mb-4">
+          <p className="text-xs text-muted-foreground mb-1">You'll join as</p>
+          <p className={`font-bold text-lg font-poppins ${AGE_GROUP_INFO[group].color}`}>{AGE_GROUP_INFO[group].label}</p>
+          <p className="text-xs text-muted-foreground">{AGE_GROUP_INFO[group].desc}</p>
+          {preview < 13 && <p className="text-xs text-amber-500 mt-2">⚠️ Parental consent required for under-13</p>}
         </div>
       )}
 
-      <button onClick={handleNext} disabled={mode === 'calendar' ? !dob : !ageInput} className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm disabled:opacity-40 transition">
+      <button onClick={handleNext} disabled={mode === 'calendar' ? !dob : !ageInput} className="w-full py-3 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-sm disabled:opacity-40 transition">
         Continue →
       </button>
     </div>

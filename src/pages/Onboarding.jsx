@@ -80,7 +80,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center px-4 py-8">
+    <div className="min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-8 font-inter">
       <img
         src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png"
         alt="Girls Glowing Up"
@@ -94,11 +94,11 @@ export default function Onboarding() {
             {progressSteps.map((_, i) => (
               <div
                 key={i}
-                className={`flex-1 h-1.5 rounded-full transition-all ${i <= progressIndex ? 'bg-pink-500' : 'bg-gray-700'}`}
+                className={`flex-1 h-1.5 rounded-full transition-all ${i <= progressIndex ? 'bg-primary' : 'bg-muted'}`}
               />
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-1 text-right">Step {progressIndex + 1} of {progressSteps.length}</p>
+          <p className="text-xs text-muted-foreground mt-1 text-right">Step {progressIndex + 1} of {progressSteps.length}</p>
         </div>
       )}
 
