@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useTranslation from '@/lib/useTranslation';
 import { Search } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
@@ -101,8 +102,9 @@ const RECOMMENDED = [
 ];
 
 function AppIcon({ item }) {
+  const navigate = useNavigate();
   return (
-    <div className="relative flex flex-col items-center gap-1.5 cursor-pointer group">
+    <div className="relative flex flex-col items-center gap-1.5 cursor-pointer group" onClick={() => item.route && navigate(item.route)}>
       {item.badge && (
         <span className={`absolute -top-1.5 left-1/2 -translate-x-1/2 z-10 text-[9px] font-bold px-2 py-0.5 rounded-full text-white shadow-lg ${item.badge === 'Live' ? 'bg-red-500' : 'bg-purple-600'}`}>
           {item.badge}
