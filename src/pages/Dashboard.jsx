@@ -44,12 +44,34 @@ function getGreeting() {
   return 'Good evening';
 }
 
+const PATTERN_SVGS = {
+  stars: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='10' y='42' font-size='30' fill='rgba(255,255,255,0.09)'>&#9733;</text></svg>",
+  hearts: "<svg xmlns='http://www.w3.org/2000/svg' width='55' height='55'><text x='8' y='40' font-size='28' fill='rgba(255,255,255,0.09)'>&#9829;</text></svg>",
+  sparkles: "<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><text x='5' y='36' font-size='26' fill='rgba(255,255,255,0.1)'>&#10022;</text></svg>",
+  flowers: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='8' y='42' font-size='30' fill='rgba(255,255,255,0.09)'>&#10047;</text></svg>",
+  butterflies: "<svg xmlns='http://www.w3.org/2000/svg' width='65' height='65'><text x='6' y='46' font-size='32' fill='rgba(255,255,255,0.08)'>&#129419;</text></svg>",
+  diamonds: "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><polygon points='22,3 41,22 22,41 3,22' fill='rgba(255,255,255,0.08)'/></svg>",
+  crowns: "<svg xmlns='http://www.w3.org/2000/svg' width='65' height='65'><text x='8' y='46' font-size='32' fill='rgba(255,255,255,0.09)'>&#128081;</text></svg>",
+  dots: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><circle cx='12' cy='12' r='2' fill='rgba(255,255,255,0.08)'/></svg>",
+  moons: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='8' y='42' font-size='30' fill='rgba(255,255,255,0.09)'>&#9790;</text></svg>",
+  lightning: "<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><text x='8' y='38' font-size='26' fill='rgba(255,255,255,0.09)'>&#9889;</text></svg>",
+  fire: "<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><text x='8' y='38' font-size='26' fill='rgba(255,255,255,0.09)'>&#128293;</text></svg>",
+  snowflakes: "<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><text x='5' y='38' font-size='28' fill='rgba(255,255,255,0.10)'>&#10052;</text></svg>",
+  music: "<svg xmlns='http://www.w3.org/2000/svg' width='55' height='55'><text x='6' y='40' font-size='28' fill='rgba(255,255,255,0.09)'>&#9834;</text></svg>",
+  rainbow: "<svg xmlns='http://www.w3.org/2000/svg' width='65' height='55'><text x='4' y='42' font-size='30' fill='rgba(255,255,255,0.08)'>&#127752;</text></svg>",
+  clouds: "<svg xmlns='http://www.w3.org/2000/svg' width='70' height='50'><text x='4' y='36' font-size='30' fill='rgba(255,255,255,0.09)'>&#9729;</text></svg>",
+  paws: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='8' y='42' font-size='28' fill='rgba(255,255,255,0.09)'>&#128062;</text></svg>",
+  lips: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='6' y='42' font-size='28' fill='rgba(255,255,255,0.09)'>&#128139;</text></svg>",
+  eyes: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='6' y='42' font-size='28' fill='rgba(255,255,255,0.09)'>&#129535;</text></svg>",
+};
+
 const patternStyle = (pattern, bgColor, bgImage) => {
-  const base = { backgroundColor: bgColor, backgroundImage: 'none' };
+  const base = { backgroundColor: bgColor };
   if (bgImage) return { ...base, backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' };
-  if (pattern === 'dots') return { ...base, backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px)', backgroundSize: '20px 20px' };
-  if (pattern === 'grid') return { ...base, backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)', backgroundSize: '24px 24px' };
-  if (pattern === 'stars') return { ...base, backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)', backgroundSize: '30px 30px' };
+  if (pattern && pattern !== 'none' && PATTERN_SVGS[pattern]) {
+    const encoded = encodeURIComponent(PATTERN_SVGS[pattern]);
+    return { ...base, backgroundImage: `url("data:image/svg+xml,${encoded}")` };
+  }
   return base;
 };
 
