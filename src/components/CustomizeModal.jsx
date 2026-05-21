@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { X, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -158,7 +158,18 @@ export default function CustomizeModal({
   const [selectedFont, setSelectedFont] = useState('modern');
   const [selectedLang, setSelectedLang] = useState('en');
   const [photoUrl, setPhotoUrl] = useState(null);
+  const [profileId, setProfileId] = useState(null);
   const fileRef = useRef();
+
+  useEffect(() => {
+    base44.auth.me().then(async (u) => {
+      const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+      if (profiles.length && profiles[0].avatar_url) {
+        setPhotoUrl(profiles[0].avatar_url);
+        setProfileId(profiles[0].id);
+      }
+    }).catch(() => {});
+  }, []);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -172,6 +183,13 @@ export default function CustomizeModal({
     if (!file) return;
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     setPhotoUrl(file_url);
+    if (profileId) {
+      await base44.entities.UserProfile.update(profileId, { avatar_url: file_url });
+    } else {
+      const u = await base44.auth.me();
+      const p = await base44.entities.UserProfile.create({ user_email: u.email, avatar_url: file_url });
+      setProfileId(p.id);
+    }
   };
 
   const Tabs = [
@@ -385,7 +403,10 @@ export default function CustomizeModal({
               📸 Your photo will appear on your Home screen in place of your avatar. You can still customize your avatar at any time from the My Avatar page.
             </div>
 
-            <button className="w-full py-3 rounded-2xl border border-gray-700 text-white font-semibold text-sm">
+            <button
+              onClick={() => { onClose(); window.location.href = '/avatar'; }}
+              className="w-full py-3 rounded-2xl border border-gray-700 text-white font-semibold text-sm hover:bg-gray-800 transition"
+            >
               👤 Go to Avatar Creator
             </button>
 
