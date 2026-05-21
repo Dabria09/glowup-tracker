@@ -25,6 +25,8 @@ export default function ImportantContacts() {
   const [appointments, setAppointments] = useState([]);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [editingContactId, setEditingContactId] = useState(null);
+  const [editingAppointmentId, setEditingAppointmentId] = useState(null);
   const [contactForm, setContactForm] = useState({ name: '', role: 'Doctor', phone: '', email: '', notes: '' });
   const [appointmentForm, setAppointmentForm] = useState({ appointment_type: '', date_time: '', provider_name: '', location: '', notes: '' });
 
@@ -48,16 +50,23 @@ export default function ImportantContacts() {
       return;
     }
     try {
-      const newContact = await base44.entities.Contact.create({
-        user_email: user.email,
-        ...contactForm
-      });
-      setContacts([...contacts, newContact]);
+      if (editingContactId) {
+        await base44.entities.Contact.update(editingContactId, contactForm);
+        setContacts(contacts.map(c => c.id === editingContactId ? { ...c, ...contactForm } : c));
+        toast.success('Contact updated!');
+      } else {
+        const newContact = await base44.entities.Contact.create({
+          user_email: user.email,
+          ...contactForm
+        });
+        setContacts([...contacts, newContact]);
+        toast.success('Contact added!');
+      }
       setContactForm({ name: '', role: 'Doctor', phone: '', email: '', notes: '' });
+      setEditingContactId(null);
       setShowContactModal(false);
-      toast.success('Contact added!');
     } catch (e) {
-      toast.error('Failed to add contact');
+      toast.error(editingContactId ? 'Failed to update contact' : 'Failed to add contact');
     }
   };
 
@@ -67,16 +76,23 @@ export default function ImportantContacts() {
       return;
     }
     try {
-      const newAppointment = await base44.entities.Appointment.create({
-        user_email: user.email,
-        ...appointmentForm
-      });
-      setAppointments([...appointments, newAppointment]);
+      if (editingAppointmentId) {
+        await base44.entities.Appointment.update(editingAppointmentId, appointmentForm);
+        setAppointments(appointments.map(a => a.id === editingAppointmentId ? { ...a, ...appointmentForm } : a));
+        toast.success('Appointment updated!');
+      } else {
+        const newAppointment = await base44.entities.Appointment.create({
+          user_email: user.email,
+          ...appointmentForm
+        });
+        setAppointments([...appointments, newAppointment]);
+        toast.success('Appointment added!');
+      }
       setAppointmentForm({ appointment_type: '', date_time: '', provider_name: '', location: '', notes: '' });
+      setEditingAppointmentId(null);
       setShowAppointmentModal(false);
-      toast.success('Appointment added!');
     } catch (e) {
-      toast.error('Failed to add appointment');
+      toast.error(editingAppointmentId ? 'Failed to update appointment' : 'Failed to add appointment');
     }
   };
 
@@ -181,12 +197,24 @@ export default function ImportantContacts() {
                           <p className="text-xs text-pink-400">{contact.role}</p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteContact(contact.id)}
-                        className="text-gray-500 hover:text-red-400 transition flex-shrink-0"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            setEditingContactId(contact.id);
+                            setContactForm(contact);
+                            setShowContactModal(true);
+                          }}
+                          className="text-gray-500 hover:text-pink-400 transition"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => handleDeleteContact(contact.id)}
+                          className="text-gray-500 hover:text-red-400 transition"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
                     <div className="space-y-2 text-sm">
                       {contact.phone && (
@@ -238,12 +266,24 @@ export default function ImportantContacts() {
                         <p className="font-bold text-white">{apt.appointment_type}</p>
                         <p className="text-xs text-pink-400 mt-0.5">{apt.date_time}</p>
                       </div>
-                      <button
-                        onClick={() => handleDeleteAppointment(apt.id)}
-                        className="text-gray-500 hover:text-red-400 transition flex-shrink-0"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            setEditingAppointmentId(apt.id);
+                            setAppointmentForm(apt);
+                            setShowAppointmentModal(true);
+                          }}
+                          className="text-gray-500 hover:text-pink-400 transition"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAppointment(apt.id)}
+                          className="text-gray-500 hover:text-red-400 transition"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
                     <div className="space-y-1 text-sm">
                       {apt.provider_name && <p className="text-gray-300">Provider: {apt.provider_name}</p>}
@@ -261,7 +301,7 @@ export default function ImportantContacts() {
       {/* Add Contact Modal */}
       {showContactModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[90vh] overflow-y-auto pb-8">
+          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-white">Add Contact</h2>
               <button onClick={() => setShowContactModal(false)} className="text-gray-400">
@@ -327,15 +367,19 @@ export default function ImportantContacts() {
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
                 <button
                   onClick={handleAddContact}
                   className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
                 >
-                  Add Contact
+                  {editingContactId ? 'Update Contact' : 'Add Contact'}
                 </button>
                 <button
-                  onClick={() => setShowContactModal(false)}
+                  onClick={() => {
+                    setShowContactModal(false);
+                    setEditingContactId(null);
+                    setContactForm({ name: '', role: 'Doctor', phone: '', email: '', notes: '' });
+                  }}
                   className="flex-1 py-3 rounded-xl border border-gray-700 text-white font-semibold hover:bg-gray-800 transition"
                 >
                   Cancel
@@ -349,7 +393,7 @@ export default function ImportantContacts() {
       {/* Add Appointment Modal */}
       {showAppointmentModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[90vh] overflow-y-auto pb-8">
+          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto pb-28">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-white">Add Appointment</h2>
               <button onClick={() => setShowAppointmentModal(false)} className="text-gray-400">
@@ -412,15 +456,19 @@ export default function ImportantContacts() {
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
                 <button
                   onClick={handleAddAppointment}
                   className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
                 >
-                  Add Appointment
+                  {editingAppointmentId ? 'Update Appointment' : 'Add Appointment'}
                 </button>
                 <button
-                  onClick={() => setShowAppointmentModal(false)}
+                  onClick={() => {
+                    setShowAppointmentModal(false);
+                    setEditingAppointmentId(null);
+                    setAppointmentForm({ appointment_type: '', date_time: '', provider_name: '', location: '', notes: '' });
+                  }}
                   className="flex-1 py-3 rounded-xl border border-gray-700 text-white font-semibold hover:bg-gray-800 transition"
                 >
                   Cancel
