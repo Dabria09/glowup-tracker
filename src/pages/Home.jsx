@@ -12,12 +12,16 @@ export default function Home() {
       const isAuthed = await base44.auth.isAuthenticated();
       if (!isAuthed) return;
       setAuthed(true);
-      // If already fully onboarded, go straight to dashboard
+      // If user has any profile record, they've started onboarding
       const me = await base44.auth.me();
       const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
       console.log('Auth check:', { isAuthed, email: me?.email, profileCount: profiles.length, onboardingComplete: profiles[0]?.onboarding_complete });
-      if (profiles.length && profiles[0].onboarding_complete === true) {
+      if (profiles.length && profiles[0]?.onboarding_complete === true) {
         console.log('Redirecting to dashboard - user already onboarded');
+        navigate('/dashboard');
+      } else if (profiles.length) {
+        // User has profile but onboarding not complete (e.g., pending parental consent)
+        console.log('User has profile but pending - going to dashboard');
         navigate('/dashboard');
       } else {
         console.log('User needs onboarding - profile count:', profiles.length);
@@ -35,7 +39,10 @@ export default function Home() {
     if (authed) {
       const me = await base44.auth.me();
       const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
-      if (profiles.length && profiles[0].onboarding_complete) {
+      if (profiles.length && profiles[0]?.onboarding_complete === true) {
+        navigate('/dashboard');
+      } else if (profiles.length) {
+        // Has profile but pending (e.g., parental consent)
         navigate('/dashboard');
       } else {
         navigate('/onboarding');
