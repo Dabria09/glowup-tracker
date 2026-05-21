@@ -227,15 +227,15 @@ export default function Countdown() {
       {/* New Countdown Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+          <div className="w-full bg-gray-900 rounded-t-3xl h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-gray-700 flex-shrink-0">
               <h2 className="text-2xl font-bold text-white">New Countdown</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400">
                 <X size={24} />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 min-h-0">
               <p className="text-sm text-gray-400">What are you counting down to?</p>
 
               {/* Category Selection */}

@@ -134,8 +134,8 @@ export default function ImportantContacts() {
           <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
         <div>
-          <h1 className="text-2xl font-bold">My Contacts &amp; Appointments</h1>
-          <p className="text-xs text-gray-400">Keep your important people &amp; dates organized</p>
+          <h1 className="text-2xl font-bold">My Contacts & Appointments</h1>
+          <p className="text-xs text-gray-400">Keep your important people & dates organized</p>
         </div>
       </div>
 
@@ -301,15 +301,17 @@ export default function ImportantContacts() {
       {/* Add Contact Modal */}
       {showContactModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl flex flex-col max-h-[85vh]">
-            <div className="p-5 overflow-y-auto flex-1">
-              <div className="flex items-center justify-between mb-4">
+          <div className="w-full bg-gray-900 rounded-t-3xl h-[85vh] flex flex-col">
+            <div className="p-5 border-b border-gray-700 flex-shrink-0">
+              <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-white">Add Contact</h2>
                 <button onClick={() => setShowContactModal(false)} className="text-gray-400">
                   <X size={24} />
                 </button>
               </div>
+            </div>
 
+            <div className="flex-1 overflow-y-auto p-5 min-h-0">
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-semibold text-gray-300 block mb-2">Name *</label>
@@ -370,7 +372,7 @@ export default function ImportantContacts() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
+            <div className="bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3 flex-shrink-0">
               <button
                 onClick={handleAddContact}
                 className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
@@ -395,14 +397,17 @@ export default function ImportantContacts() {
       {/* Add Appointment Modal */}
       {showAppointmentModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl flex flex-col max-h-[85vh]">
-            <div className="p-5 overflow-y-auto flex-1">
-              <div className="flex items-center justify-between mb-4">
+          <div className="w-full bg-gray-900 rounded-t-3xl h-[85vh] flex flex-col">
+            <div className="p-5 border-b border-gray-700 flex-shrink-0">
+              <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-white">Add Appointment</h2>
                 <button onClick={() => setShowAppointmentModal(false)} className="text-gray-400">
                   <X size={24} />
                 </button>
               </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5 min-h-0">
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-semibold text-gray-300 block mb-2">Appointment Type *</label>
@@ -416,7 +421,7 @@ export default function ImportantContacts() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-300 block mb-2">Date &amp; Time *</label>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Date & Time *</label>
                   <input
                     type="datetime-local"
                     value={appointmentForm.date_time}
@@ -459,7 +464,8 @@ export default function ImportantContacts() {
                 </div>
               </div>
             </div>
-            <div className="bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
+
+            <div className="bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3 flex-shrink-0">
               <button
                 onClick={handleAddAppointment}
                 className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
