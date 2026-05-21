@@ -227,7 +227,7 @@ export default function Countdown() {
       {/* New Countdown Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto pb-28">
+          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto pb-32">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-white">New Countdown</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400">
@@ -268,7 +268,7 @@ export default function Countdown() {
             </div>
 
             {/* Target Date */}
-            <div className="mb-6">
+            <div className="mb-8">
               <label className="text-sm font-semibold text-gray-300 block mb-2">Target Date</label>
               <input
                 type="date"
@@ -277,6 +277,9 @@ export default function Countdown() {
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none"
               />
             </div>
+
+            {/* Extra spacing before sticky buttons */}
+            <div className="h-8" />
 
             {/* Start Button */}
             <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
