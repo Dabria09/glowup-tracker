@@ -6,60 +6,60 @@ export default function Home() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('signin');
   const [authed, setAuthed] = useState(false);
-  const [signInMethod, setSignInMethod] = useState('google'); // 'google' or 'email'
+  const [signInMethod, setSignInMethod] = useState('google');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const isAuthed = await base44.auth.isAuthenticated();
-        if (!isAuthed) {
-          setAuthed(false);
-          return;
-        }
-        setAuthed(true);
-        // Give it a moment for auth state to fully initialize after OAuth
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const me = await base44.auth.me();
-        const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
-        console.log('Auth check:', { isAuthed, email: me?.email, profileCount: profiles.length, onboardingComplete: profiles[0]?.onboarding_complete });
-        // If user has any profile (even incomplete), go to dashboard
-        if (profiles.length > 0) {
-          console.log('User has profile - redirecting to dashboard');
-          navigate('/dashboard');
-        } else {
-          console.log('New user - needs onboarding');
-          navigate('/onboarding');
+        setAuthed(isAuthed);
+        
+        if (isAuthed) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const me = await base44.auth.me();
+          const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
+          
+          // If user has any profile, go to dashboard
+          if (profiles.length > 0) {
+            navigate('/dashboard');
+            return;
+          } else {
+            navigate('/onboarding');
+            return;
+          }
         }
       } catch (err) {
         console.error('Auth check failed:', err);
         setAuthed(false);
+      } finally {
+        setIsLoading(false);
       }
     };
     
     checkAuth();
     
-    // Poll for auth state changes (for OAuth redirect)
+    // Poll for OAuth redirect completion
     let pollCount = 0;
-    const maxPolls = 12; // 6 seconds total
-    
-    const pollAuth = async () => {
+    const maxPolls = 12;
+    const pollInterval = setInterval(async () => {
       pollCount++;
       if (pollCount >= maxPolls) {
+        clearInterval(pollInterval);
         return;
       }
       const isAuthed = await base44.auth.isAuthenticated();
       if (isAuthed && !authed) {
+        clearInterval(pollInterval);
         checkAuth();
       }
-    };
-    
-    const pollingInterval = setInterval(pollAuth, 500);
+    }, 500);
     
     window.addEventListener('focus', checkAuth);
     return () => {
-      clearInterval(pollingInterval);
+      clearInterval(pollInterval);
       window.removeEventListener('focus', checkAuth);
     };
   }, [navigate, authed]);
@@ -68,19 +68,34 @@ export default function Home() {
     if (authed) {
       const me = await base44.auth.me();
       const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
-      if (profiles.length && profiles[0]?.onboarding_complete === true) {
-        navigate('/dashboard');
-      } else if (profiles.length) {
-        // Has profile but pending (e.g., parental consent)
+      if (profiles.length > 0) {
         navigate('/dashboard');
       } else {
         navigate('/onboarding');
       }
-    } else {
-      // Redirect to login, and after successful OAuth, check auth again
-      base44.auth.redirectToLogin(window.location.href);
+      return;
     }
+
+    if (signInMethod === 'email') {
+      if (!email || !password) {
+        alert('Please enter both email and password');
+        return;
+      }
+      alert('Email/password authentication coming soon. Please use Google sign-in.');
+      return;
+    }
+
+    // OAuth sign-in (Google, Apple, Facebook)
+    base44.auth.redirectToLogin(window.location.href);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="w-8 h-8 border-4 border-gray-700 border-t-pink-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center px-4 py-8 overflow-x-hidden w-full">
@@ -233,8 +248,7 @@ export default function Home() {
                   alert('Please enter both email and password');
                   return;
                 }
-                // Email/password sign-in logic would go here
-                alert('Email/password sign-in coming soon. Please use Google sign-in for now.');
+                alert('Email/password authentication coming soon. Please use Google sign-in.');
               }}
               className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm mb-3 hover:opacity-90 transition"
             >
@@ -253,7 +267,7 @@ export default function Home() {
         <div className="mt-4 bg-gray-800 rounded-xl p-3 flex gap-2 items-start">
           <span className="text-yellow-400 text-sm mt-0.5">💡</span>
           <p className="text-xs text-pink-400">
-            <strong>For the best experience, please sign in with Google.</strong> Apple sign-in is not currently supported on this platform.
+            <strong>For the best experience, please sign in with Google.</strong> Apple and Facebook sign-in require additional dashboard configuration.
           </p>
         </div>
       </div>
