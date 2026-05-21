@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { Search, MessageCircle, ChevronRight, X, Check, Upload } from 'lucide-react';
+import { Search, MessageCircle, ChevronRight, X } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import CustomizeModal from '@/components/CustomizeModal';
 import AvatarPreview from '@/components/avatar/AvatarPreview';
@@ -30,14 +31,6 @@ const SOCIAL = [
   { name: 'X / Twitter', handle: '@girlsglowingup', url: 'https://x.com/girlsglowingup', color: 'bg-black border border-gray-600', icon: '✖️' },
   { name: 'Facebook', handle: 'Girls Glowing Up', url: 'https://facebook.com/girlsglowingup', color: 'bg-blue-600', icon: '📘' },
   { name: 'Snapchat', handle: 'girlsglowingup', url: 'https://snapchat.com/add/girlsglowingup', color: 'bg-yellow-400', icon: '👻' },
-];
-
-const BG_COLORS = ['#1a0a0f', '#0a0a1a', '#0a1a0a', '#1a1a0a', '#0d0d0d', '#1a0a1a'];
-const BG_PATTERNS = [
-  { id: 'none', label: 'None' },
-  { id: 'dots', label: 'Dots' },
-  { id: 'grid', label: 'Grid' },
-  { id: 'stars', label: 'Stars' },
 ];
 
 function getTime() {
@@ -71,7 +64,8 @@ export default function Dashboard() {
   const [bgColor, setBgColor] = useState('#1a0a0f');
   const [bgPattern, setBgPattern] = useState('none');
   const [bgImage, setBgImage] = useState(null);
-  const [quickAccess, setQuickAccess] = useState(['grow', 'know', 'safety', 'glowboard']);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [homeApps, setHomeApps] = useState(WORLD_APPS.filter(a => !a.soon));
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -81,9 +75,7 @@ export default function Dashboard() {
         const profile = profiles[0];
         if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
         if (profile.avatar_builder_config) {
-          try {
-            setAvatarConfig(JSON.parse(profile.avatar_builder_config));
-          } catch {}
+          try { setAvatarConfig(JSON.parse(profile.avatar_builder_config)); } catch {}
         }
       }
     }).catch(() => {});
@@ -102,7 +94,18 @@ export default function Dashboard() {
     ? allSearchable.filter(i => i.label.toLowerCase().includes(search.toLowerCase()))
     : [];
 
-  const quickApps = WORLD_APPS.filter(a => quickAccess.includes(a.id));
+  const hiddenApps = WORLD_APPS.filter(a => !a.soon && !homeApps.find(h => h.id === a.id));
+
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+    const items = Array.from(homeApps);
+    const [moved] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, moved);
+    setHomeApps(items);
+  };
+
+  const removeApp = (id) => setHomeApps(prev => prev.filter(a => a.id !== id));
+  const addApp = (app) => setHomeApps(prev => [...prev, app]);
 
   return (
     <div className="min-h-screen text-white pb-24 overflow-x-hidden" style={patternStyle(bgPattern, bgColor, bgImage)}>
@@ -127,8 +130,19 @@ export default function Dashboard() {
         <span className="text-white font-semibold text-sm">{time}</span>
         <button className="ml-1 text-gray-300 hover:text-white"><MessageCircle size={20} /></button>
         <div className="flex-1" />
-        <button onClick={() => setShowCustomize(true)} className="text-xs border border-gray-600 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:border-gray-400 transition">⚙️ Edit Home</button>
-        <button onClick={() => setShowCustomize(true)} className="text-xs border border-gray-600 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:border-gray-400 transition">🎨 Customize</button>
+        {isEditMode ? (
+          <button
+            onClick={() => setIsEditMode(false)}
+            className="text-xs border border-pink-500 rounded-full px-3 py-1.5 text-pink-400 font-semibold hover:bg-pink-500/10 transition"
+          >
+            ✅ Done
+          </button>
+        ) : (
+          <>
+            <button onClick={() => setIsEditMode(true)} className="text-xs border border-gray-600 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:border-gray-400 transition">⚙️ Edit Home</button>
+            <button onClick={() => setShowCustomize(true)} className="text-xs border border-gray-600 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:border-gray-400 transition">🎨 Customize</button>
+          </>
+        )}
       </div>
 
       {/* Greeting */}
@@ -139,21 +153,13 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Access */}
-      <div className="px-4 mb-5">
-        <button className="flex items-center gap-2 bg-gray-800/80 rounded-full px-4 py-2 text-sm font-semibold text-white border border-gray-700">
-          ⚡ Quick Access
-        </button>
-        {quickApps.length > 0 && (
-          <div className="flex gap-3 mt-3 overflow-x-auto pb-1">
-            {quickApps.map(app => (
-              <div key={app.id} className={`flex-shrink-0 w-16 flex flex-col items-center gap-1 ${app.bg} rounded-2xl p-3 cursor-pointer hover:opacity-80 transition`}>
-                <span className="text-2xl">{app.icon}</span>
-                <span className="text-xs text-center text-gray-300 leading-tight">{app.label}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {!isEditMode && (
+        <div className="px-4 mb-5">
+          <button className="flex items-center gap-2 bg-gray-800/80 rounded-full px-4 py-2 text-sm font-semibold text-white border border-gray-700">
+            ⚡ Quick Access
+          </button>
+        </div>
+      )}
 
       {/* Search bar */}
       <div className="px-4 mb-5 relative">
@@ -181,15 +187,58 @@ export default function Dashboard() {
       {/* Your World */}
       <div className="px-4 mb-6">
         <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">YOUR WORLD</p>
-        <div className="grid grid-cols-4 gap-3">
-          {WORLD_APPS.map(app => (
-            <div key={app.id} className={`relative flex flex-col items-center gap-1.5 ${app.bg} rounded-2xl p-3 cursor-pointer hover:opacity-80 transition`}>
-              {app.soon && <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">Soon</span>}
-              <span className="text-3xl">{app.icon}</span>
-              <span className="text-xs text-center text-gray-300 leading-tight">{app.label}</span>
-            </div>
-          ))}
-        </div>
+        {isEditMode ? (
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="apps" direction="horizontal">
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="grid grid-cols-4 gap-3"
+                >
+                  {homeApps.map((app, index) => (
+                    <Draggable key={app.id} draggableId={app.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className={`relative flex flex-col items-center gap-1.5 ${app.bg} rounded-2xl p-3 transition ${snapshot.isDragging ? 'opacity-70 scale-110' : 'animate-[wiggle_0.3s_ease-in-out_infinite]'}`}
+                        >
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeApp(app.id); }}
+                            className="absolute -top-1.5 -left-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold z-10 hover:bg-red-600"
+                          >
+                            &times;
+                          </button>
+                          <span className="text-3xl">{app.icon}</span>
+                          <span className="text-xs text-center text-gray-300 leading-tight">{app.label}</span>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {hiddenApps.map(app => (
+                    <div key={app.id} onClick={() => addApp(app)} className="flex flex-col items-center gap-1.5 border-2 border-dashed border-gray-600 rounded-2xl p-3 cursor-pointer hover:border-pink-500 transition">
+                      <span className="text-2xl text-gray-500">+</span>
+                      <span className="text-xs text-center text-gray-500 leading-tight">{app.label}</span>
+                    </div>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        ) : (
+          <div className="grid grid-cols-4 gap-3">
+            {homeApps.map(app => (
+              <div key={app.id} className={`relative flex flex-col items-center gap-1.5 ${app.bg} rounded-2xl p-3 cursor-pointer hover:opacity-80 transition`}>
+                {app.soon && <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">Soon</span>}
+                <span className="text-3xl">{app.icon}</span>
+                <span className="text-xs text-center text-gray-300 leading-tight">{app.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Recommended For You */}
@@ -239,12 +288,7 @@ export default function Dashboard() {
           setBgPattern={setBgPattern}
           bgImage={bgImage}
           setBgImage={setBgImage}
-          quickAccess={quickAccess}
-          setQuickAccess={setQuickAccess}
-          allApps={WORLD_APPS}
           onClose={() => setShowCustomize(false)}
-          BG_COLORS={BG_COLORS}
-          BG_PATTERNS={BG_PATTERNS}
         />
       )}
     </div>
