@@ -21,9 +21,15 @@ export default function Home() {
     });
   }, []);
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     if (authed) {
-      navigate('/onboarding');
+      const me = await base44.auth.me();
+      const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
+      if (profiles.length && profiles[0].onboarding_complete) {
+        navigate('/dashboard');
+      } else {
+        navigate('/onboarding');
+      }
     } else {
       base44.auth.redirectToLogin(window.location.href);
     }
