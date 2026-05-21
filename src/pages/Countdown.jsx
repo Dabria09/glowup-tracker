@@ -227,79 +227,80 @@ export default function Countdown() {
       {/* New Countdown Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto pb-32">
-            <div className="flex items-center justify-between mb-4">
+          <div className="w-full bg-gray-900 rounded-t-3xl max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-gray-700">
               <h2 className="text-2xl font-bold text-white">New Countdown</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400">
                 <X size={24} />
               </button>
             </div>
 
-            <p className="text-sm text-gray-400 mb-4">What are you counting down to?</p>
+            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+              <p className="text-sm text-gray-400">What are you counting down to?</p>
 
-            {/* Category Selection */}
-            <div className="grid grid-cols-3 gap-2 mb-6">
-              {CATEGORIES.map(cat => (
-                <button
-                  key={cat.label}
-                  onClick={() => setSelectedCategory(cat.label)}
-                  className={`p-3 rounded-2xl border-2 transition text-center ${
-                    selectedCategory === cat.label
-                      ? 'border-pink-500 bg-pink-500/20'
-                      : 'border-gray-700 hover:border-gray-600'
-                  }`}
-                >
-                  <p className="text-2xl mb-1">{cat.emoji}</p>
-                  <p className="text-xs font-semibold text-white">{cat.label}</p>
-                </button>
-              ))}
+              {/* Category Selection */}
+              <div className="grid grid-cols-3 gap-2">
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat.label}
+                    onClick={() => setSelectedCategory(cat.label)}
+                    className={`p-3 rounded-2xl border-2 transition text-center ${
+                      selectedCategory === cat.label
+                        ? 'border-pink-500 bg-pink-500/20'
+                        : 'border-gray-700 hover:border-gray-600'
+                    }`}
+                  >
+                    <p className="text-2xl mb-1">{cat.emoji}</p>
+                    <p className="text-xs font-semibold text-white">{cat.label}</p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Title */}
+              <div>
+                <label className="text-sm font-semibold text-gray-300 block mb-2">Custom Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Custom countdown"
+                  value={customTitle}
+                  onChange={e => setCustomTitle(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none placeholder-gray-600"
+                />
+              </div>
+
+              {/* Target Date */}
+              <div>
+                <label className="text-sm font-semibold text-gray-300 block mb-2">Target Date</label>
+                <input
+                  type="date"
+                  value={targetDate}
+                  onChange={e => setTargetDate(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none"
+                />
+              </div>
             </div>
-
-            {/* Custom Title */}
-            <div className="mb-4">
-              <label className="text-sm font-semibold text-gray-300 block mb-2">Custom Name</label>
-              <input
-                type="text"
-                placeholder="e.g. Custom countdown"
-                value={customTitle}
-                onChange={e => setCustomTitle(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none placeholder-gray-600"
-              />
-            </div>
-
-            {/* Target Date */}
-            <div className="mb-8">
-              <label className="text-sm font-semibold text-gray-300 block mb-2">Target Date</label>
-              <input
-                type="date"
-                value={targetDate}
-                onChange={e => setTargetDate(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none"
-              />
-            </div>
-
-            {/* Extra spacing before sticky buttons */}
-            <div className="h-8" />
 
             {/* Start Button */}
-            <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
-              <button
-                onClick={handleStartCountdown}
-                className="flex-1 py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
-              >
-                Start Countdown 💖
-              </button>
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setSelectedCategory('Graduation');
-                  setCustomTitle('');
-                  setTargetDate('');
-                }}
-                className="flex-1 py-3 rounded-full border border-gray-700 text-white font-semibold hover:bg-gray-800 transition"
-              >
-                Cancel
-              </button>
+            <div className="p-5 border-t border-gray-700 bg-gray-900">
+              <div className="flex gap-3">
+                <button
+                  onClick={handleStartCountdown}
+                  className="flex-1 py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
+                >
+                  Start Countdown 💖
+                </button>
+                <button
+                  onClick={() => {
+                    setShowModal(false);
+                    setSelectedCategory('Graduation');
+                    setCustomTitle('');
+                    setTargetDate('');
+                  }}
+                  className="flex-1 py-3 rounded-full border border-gray-700 text-white font-semibold hover:bg-gray-800 transition"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
