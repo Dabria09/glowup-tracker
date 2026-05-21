@@ -156,7 +156,25 @@ export default function CustomizeModal({
   };
   const [selectedTheme, setSelectedTheme] = useState('classic');
   const [selectedFont, setSelectedFont] = useState('modern');
-  const [selectedLang, setSelectedLang] = useState('en');
+  const [selectedLang, setSelectedLang] = useState(() => localStorage.getItem('ggu_lang') || 'en');
+  const [colorMode, setColorMode] = useState(() => localStorage.getItem('ggu_color_mode') || 'dark');
+
+  useEffect(() => {
+    document.body.classList.toggle('light-mode', colorMode === 'light');
+  }, [colorMode]);
+
+  const handleLangChange = (code) => {
+    setSelectedLang(code);
+    localStorage.setItem('ggu_lang', code);
+    document.documentElement.setAttribute('lang', code);
+    document.documentElement.setAttribute('dir', code === 'ar' ? 'rtl' : 'ltr');
+  };
+
+  const handleColorMode = (mode) => {
+    setColorMode(mode);
+    localStorage.setItem('ggu_color_mode', mode);
+    document.body.classList.toggle('light-mode', mode === 'light');
+  };
   const [photoUrl, setPhotoUrl] = useState(null);
   const [profileId, setProfileId] = useState(null);
   const fileRef = useRef();
@@ -419,12 +437,31 @@ export default function CustomizeModal({
           <div>
             <h3 className="text-lg font-bold text-white mb-2">Language / Idioma / Langue</h3>
             <p className="text-xs text-gray-400 mb-4">Choose the language for the app interface</p>
-            
+
+            {/* Dark / Light Mode */}
+            <div className="mb-5 bg-gray-800/50 border border-gray-700 rounded-2xl p-4">
+              <p className="text-sm font-bold text-white mb-3">🌗 App Theme</p>
+              <div className="grid grid-cols-2 gap-3">
+                {[{ id: 'dark', label: '🌙 Dark Mode', desc: 'Default dark look' }, { id: 'light', label: '☀️ Light Mode', desc: 'Bright & airy' }].map(m => (
+                  <button
+                    key={m.id}
+                    onClick={() => handleColorMode(m.id)}
+                    className={`p-3 rounded-xl border-2 text-left transition ${
+                      colorMode === m.id ? 'border-pink-500 bg-pink-500/10' : 'border-gray-700 hover:border-gray-600'
+                    }`}
+                  >
+                    <p className="font-semibold text-white text-sm">{m.label}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{m.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-2">
               {LANGUAGES.map(lang => (
                 <button
                   key={lang.code}
-                  onClick={() => setSelectedLang(lang.code)}
+                  onClick={() => handleLangChange(lang.code)}
                   className={`w-full p-4 rounded-2xl border-2 transition text-left flex items-center gap-3 ${
                     selectedLang === lang.code
                       ? 'border-pink-500 bg-pink-500/10'
@@ -432,10 +469,11 @@ export default function CustomizeModal({
                   }`}
                 >
                   <span className="text-2xl">{lang.flag}</span>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-semibold text-white">{lang.name}</p>
                     <p className="text-xs text-gray-400">{lang.native}</p>
                   </div>
+                  {selectedLang === lang.code && <span className="text-pink-400">✓</span>}
                 </button>
               ))}
             </div>

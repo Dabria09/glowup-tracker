@@ -43,6 +43,16 @@ const AuthenticatedApp = () => {
 
 
 function App() {
+  // Restore persisted color mode on load
+  if (typeof window !== 'undefined') {
+    const savedMode = localStorage.getItem('ggu_color_mode');
+    if (savedMode === 'light') document.body.classList.add('light-mode');
+    const savedLang = localStorage.getItem('ggu_lang');
+    if (savedLang) {
+      document.documentElement.setAttribute('lang', savedLang);
+      document.documentElement.setAttribute('dir', savedLang === 'ar' ? 'rtl' : 'ltr');
+    }
+  }
 
   return (
     <AuthProvider>

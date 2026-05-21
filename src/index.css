@@ -122,6 +122,68 @@ body.screen-reader *:focus {
   outline-offset: 2px !important;
 }
 
+/* Light Mode */
+body.light-mode {
+  background-color: #f5f0f8 !important;
+  color: #1a0a18 !important;
+}
+body.light-mode .min-h-screen {
+  background-color: #f5f0f8 !important;
+}
+body.light-mode [style*="background-color: rgb(13, 13, 13)"],
+body.light-mode [style*="backgroundColor: '#0d0d0d'"] {
+  background-color: #f5f0f8 !important;
+}
+body.light-mode .text-white {
+  color: #1a0a18 !important;
+}
+body.light-mode .text-gray-100,
+body.light-mode .text-gray-200,
+body.light-mode .text-gray-300 {
+  color: #3d1f3a !important;
+}
+body.light-mode .text-gray-400,
+body.light-mode .text-gray-500,
+body.light-mode .text-gray-600 {
+  color: #6b4f68 !important;
+}
+body.light-mode .bg-gray-950,
+body.light-mode .bg-gray-900 {
+  background-color: #e8dff0 !important;
+}
+body.light-mode .bg-gray-800\/50,
+body.light-mode .bg-gray-800 {
+  background-color: #ddd0e8 !important;
+}
+body.light-mode .bg-gray-700 {
+  background-color: #c9b8d8 !important;
+}
+body.light-mode .bg-white\/5,
+body.light-mode .bg-white\/10 {
+  background-color: rgba(139, 45, 136, 0.08) !important;
+}
+body.light-mode .border-white\/10,
+body.light-mode .border-white\/15,
+body.light-mode .border-white\/20 {
+  border-color: rgba(139, 45, 136, 0.2) !important;
+}
+body.light-mode .border-gray-700,
+body.light-mode .border-gray-800 {
+  border-color: #c9b8d8 !important;
+}
+body.light-mode .bg-gray-950\/95 {
+  background-color: rgba(232, 223, 240, 0.97) !important;
+}
+body.light-mode .border-t.border-gray-800 {
+  border-color: #c9b8d8 !important;
+}
+body.light-mode input::placeholder {
+  color: #9b7a98 !important;
+}
+body.light-mode input {
+  color: #1a0a18 !important;
+}
+
 @keyframes wiggle {
   0%, 100% { transform: rotate(-1.5deg); }
   50% { transform: rotate(1.5deg); }
