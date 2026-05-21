@@ -6,6 +6,9 @@ export default function Home() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('signin');
   const [authed, setAuthed] = useState(false);
+  const [signInMethod, setSignInMethod] = useState('google'); // 'google' or 'email'
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -124,33 +127,93 @@ export default function Home() {
           </>
         )}
 
-        <button
-          onClick={handleSignIn}
-          className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm mb-3 hover:opacity-90 transition"
-        >
-          {authed ? '✨ Continue to GGU →' : tab === 'create' ? '✨ Create Account with Google' : '✨ Sign In with Google'}
-        </button>
+        {/* Sign In Method Toggle */}
+        <div className="flex rounded-full bg-gray-800 p-1 mb-4">
+          <button onClick={() => setSignInMethod('google')} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${signInMethod === 'google' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>
+            🔍 Google
+          </button>
+          <button onClick={() => setSignInMethod('email')} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${signInMethod === 'email' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>
+            📧 Email
+          </button>
+        </div>
 
-        <p className="text-gray-500 text-xs text-center mb-3">
-          New here? Tap <span className="font-bold text-white">Create Account</span> above.
-        </p>
+        {signInMethod === 'google' ? (
+          <>
+            <button
+              onClick={handleSignIn}
+              className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm mb-3 hover:opacity-90 transition"
+            >
+              {authed ? '✨ Continue to GGU →' : tab === 'create' ? '✨ Create Account with Google' : '✨ Sign In with Google'}
+            </button>
 
-        <button
-          onClick={handleSignIn}
-          className="w-full py-3 rounded-full border border-pink-400 text-pink-400 font-semibold text-sm mb-3 hover:bg-pink-400/10 transition"
-        >
-          🧑‍🏫 Mentor Sign In
-        </button>
+            <p className="text-gray-500 text-xs text-center mb-3">
+              New here? Tap <span className="font-bold text-white">Create Account</span> above.
+            </p>
 
-        <div className="text-center text-gray-600 text-xs mb-3">or</div>
+            <button
+              onClick={handleSignIn}
+              className="w-full py-3 rounded-full border border-pink-400 text-pink-400 font-semibold text-sm mb-3 hover:bg-pink-400/10 transition"
+            >
+              🧑‍🏫 Mentor Sign In
+            </button>
 
-        <button className="w-full py-3 rounded-full border border-gray-600 text-gray-400 font-semibold text-sm hover:bg-gray-800 transition">
-          🔐 Sign In with Face / Fingerprint
-        </button>
+            <div className="text-center text-gray-600 text-xs mb-3">or</div>
 
-        <p className="text-gray-600 text-xs text-center mt-3">
-          Face / fingerprint login requires setting it up in your Profile first.
-        </p>
+            <button className="w-full py-3 rounded-full border border-gray-600 text-gray-400 font-semibold text-sm hover:bg-gray-800 transition">
+              🔐 Sign In with Face / Fingerprint
+            </button>
+
+            <p className="text-gray-600 text-xs text-center mt-3">
+              Face / fingerprint login requires setting it up in your Profile first.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-300 block mb-2">Email</label>
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition placeholder-gray-600"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-300 block mb-2">Password</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-pink-500 transition placeholder-gray-600"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                if (!email || !password) {
+                  alert('Please enter both email and password');
+                  return;
+                }
+                // Email/password sign-in logic would go here
+                alert('Email/password sign-in coming soon. Please use Google sign-in for now.');
+              }}
+              className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold text-sm mb-3 hover:opacity-90 transition"
+            >
+              {tab === 'create' ? '✨ Create Account' : '✨ Sign In'}
+            </button>
+
+            <p className="text-gray-500 text-xs text-center">
+              {tab === 'signin' ? "Don't have an account? " : 'Already have an account? '}
+              <button onClick={() => setTab(tab === 'signin' ? 'create' : 'signin')} className="text-pink-400 font-bold hover:underline">
+                {tab === 'signin' ? 'Create Account' : 'Sign In'}
+              </button>
+            </p>
+          </>
+        )}
 
         <div className="mt-4 bg-gray-800 rounded-xl p-3 flex gap-2 items-start">
           <span className="text-yellow-400 text-sm mt-0.5">💡</span>
