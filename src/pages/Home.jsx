@@ -9,31 +9,63 @@ export default function Home() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const isAuthed = await base44.auth.isAuthenticated();
-      if (!isAuthed) return;
-      setAuthed(true);
-      // If user has any profile record, they've started onboarding
-      const me = await base44.auth.me();
-      const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
-      console.log('Auth check:', { isAuthed, email: me?.email, profileCount: profiles.length, onboardingComplete: profiles[0]?.onboarding_complete });
-      if (profiles.length && profiles[0]?.onboarding_complete === true) {
-        console.log('Redirecting to dashboard - user already onboarded');
-        navigate('/dashboard');
-      } else if (profiles.length) {
-        // User has profile but onboarding not complete (e.g., pending parental consent)
-        console.log('User has profile but pending - going to dashboard');
-        navigate('/dashboard');
-      } else {
-        console.log('User needs onboarding - profile count:', profiles.length);
+      try {
+        const isAuthed = await base44.auth.isAuthenticated();
+        if (!isAuthed) {
+          setAuthed(false);
+          return;
+        }
+        setAuthed(true);
+        // Give it a moment for auth state to fully initialize after OAuth
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const me = await base44.auth.me();
+        const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
+        console.log('Auth check:', { isAuthed, email: me?.email, profileCount: profiles.length, onboardingComplete: profiles[0]?.onboarding_complete });
+        if (profiles.length && profiles[0]?.onboarding_complete === true) {
+          console.log('Redirecting to dashboard - user already onboarded');
+          navigate('/dashboard');
+        } else if (profiles.length) {
+          // User has profile but onboarding not complete (e.g., pending parental consent)
+          console.log('User has profile but pending - going to dashboard');
+          navigate('/dashboard');
+        } else {
+          console.log('User needs onboarding - profile count:', profiles.length);
+        }
+      } catch (err) {
+        console.error('Auth check failed:', err);
+        setAuthed(false);
       }
     };
     
     checkAuth();
     
-    // Re-check when page regains focus (after OAuth redirect)
+    // Poll for auth state changes (for OAuth redirect)
+    const pollInterval = setInterval(checkAuth, 500);
+    const maxPolls = 10; // Stop after 5 seconds
+    let pollCount = 0;
+    
+    const pollAuth = async () => {
+      pollCount++;
+      if (pollCount >= maxPolls) {
+        clearInterval(pollInterval);
+        return;
+      }
+      const isAuthed = await base44.auth.isAuthenticated();
+      if (isAuthed && !authed) {
+        checkAuth();
+        clearInterval(pollInterval);
+      }
+    };
+    
+    const pollingInterval = setInterval(pollAuth, 500);
+    
     window.addEventListener('focus', checkAuth);
-    return () => window.removeEventListener('focus', checkAuth);
-  }, []);
+    return () => {
+      clearInterval(pollInterval);
+      clearInterval(pollingInterval);
+      window.removeEventListener('focus', checkAuth);
+    };
+  }, [navigate]);
 
   const handleSignIn = async () => {
     if (authed) {
@@ -48,6 +80,7 @@ export default function Home() {
         navigate('/onboarding');
       }
     } else {
+      // Redirect to login, and after successful OAuth, check auth again
       base44.auth.redirectToLogin(window.location.href);
     }
   };
