@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 const WORKOUT_TYPES = [
   { id: 'cardio', label: 'Cardio', emoji: '🏃‍♀️' },
@@ -33,6 +34,7 @@ export default function FitnessTracker() {
   const [user, setUser] = useState(null);
   const [logs, setLogs] = useState([]);
   const [todayLog, setTodayLog] = useState(null);
+  const [profile, setProfile] = useState(null);
 
   const [workoutType, setWorkoutType] = useState([]);
   const [minutes, setMinutes] = useState('');
@@ -45,11 +47,34 @@ export default function FitnessTracker() {
   const [saveError, setSaveError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
 
+  // Goals state
+  const [goals, setGoals] = useState({
+    minutes: 30,
+    steps: 8000,
+    water: 64,
+    calories: 300,
+  });
+
+  // Streak state
+  const [streak, setStreak] = useState(0);
+
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
-      const allLogs = await base44.entities.FitnessLog.filter({ user_email: u.email });
+      const [allLogs, profiles] = await Promise.all([
+        base44.entities.FitnessLog.filter({ user_email: u.email }),
+        base44.entities.UserProfile.filter({ user_email: u.email })
+      ]);
       setLogs(allLogs);
+      if (profiles.length) {
+        setProfile(profiles[0]);
+        // Load goals from profile if saved
+        if (profiles[0].fitness_goals) {
+          try {
+            setGoals(JSON.parse(profiles[0].fitness_goals));
+          } catch (e) {}
+        }
+      }
       const tlog = allLogs.find(l => l.log_date === today());
       if (tlog) {
         setTodayLog(tlog);
@@ -60,6 +85,21 @@ export default function FitnessTracker() {
         setWaterOz(tlog.water_oz || 0);
         setNotes(tlog.notes || '');
       }
+
+      // Calculate streak
+      const sortedLogs = allLogs.sort((a, b) => b.log_date.localeCompare(a.log_date));
+      let currentStreak = 0;
+      const now = new Date();
+      for (let i = 0; i < sortedLogs.length; i++) {
+        const logDate = new Date(sortedLogs[i].log_date + 'T12:00:00');
+        const diffDays = Math.floor((now - logDate) / (1000 * 60 * 60 * 24));
+        if (diffDays <= currentStreak + 1) {
+          currentStreak = diffDays + 1;
+        } else {
+          break;
+        }
+      }
+      setStreak(currentStreak);
     }).catch(() => {
       base44.auth.redirectToLogin();
     });
@@ -107,6 +147,12 @@ export default function FitnessTracker() {
         setTodayLog(created);
         setLogs(prev => [...prev, created]);
       }
+      // Save goals to profile
+      if (profile) {
+        await base44.entities.UserProfile.update(profile.id, { fitness_goals: JSON.stringify(goals) });
+      } else {
+        await base44.entities.UserProfile.create({ user_email: user.email, fitness_goals: JSON.stringify(goals) });
+      }
       setSaving(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -115,6 +161,8 @@ export default function FitnessTracker() {
       setSaveError('Failed to save: ' + e.message);
     }
   };
+
+  const [editingGoals, setEditingGoals] = useState(false);
 
   return (
     <div className="min-h-screen text-white pb-24" style={{ backgroundColor: '#0d0d0d' }}>
@@ -130,11 +178,90 @@ export default function FitnessTracker() {
           </div>
         </div>
         <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-          <span>🏅</span><span className="text-yellow-400">15 pts</span>
+          <span>🏅</span><span className="text-yellow-400">0 pts</span>
         </div>
       </div>
 
       <div className="px-4 mt-3 space-y-4">
+        {/* Streak Badge */}
+        {streak > 0 && (
+          <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-2xl px-4 py-3">
+            <span className="text-2xl">🔥</span>
+            <div>
+              <p className="text-xs text-orange-300 font-bold tracking-widest">CURRENT STREAK</p>
+              <p className="text-lg font-bold text-white">{streak} {streak === 1 ? 'day' : 'days'} in a row!</p>
+            </div>
+          </div>
+        )}
+
+        {/* Goals Section */}
+        <div className="bg-gray-900/80 border border-white/5 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <span>🎯</span> My Goals
+            </h2>
+            <button
+              onClick={() => setEditingGoals(!editingGoals)}
+              className="text-xs px-3 py-1.5 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition"
+            >
+              {editingGoals ? '✅ Done' : '✏️ Edit'}
+            </button>
+          </div>
+          <div className="space-y-3">
+            {editingGoals ? (
+              <>
+                {[
+                  { key: 'minutes', label: 'Workout Minutes', icon: '🔥', goal: goals.minutes, unit: 'min' },
+                  { key: 'steps', label: 'Steps', icon: '👟', goal: goals.steps, unit: 'steps' },
+                  { key: 'water', label: 'Water Intake', icon: '💧', goal: goals.water, unit: 'oz' },
+                  { key: 'calories', label: 'Calories Burned', icon: '⚡', goal: goals.calories, unit: 'cal' },
+                ].map(goal => (
+                  <div key={goal.key}>
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="text-xs font-bold text-gray-400">{goal.icon} {goal.label}</p>
+                      <p className="text-xs text-pink-400 font-bold">{goals[goal.key]} {goal.unit}</p>
+                    </div>
+                    <input
+                      type="range"
+                      min={goal.key === 'steps' ? 1000 : 10}
+                      max={goal.key === 'steps' ? 20000 : goal.key === 'water' ? 128 : 1000}
+                      step={goal.key === 'steps' ? 500 : 8}
+                      value={goals[goal.key]}
+                      onChange={e => setGoals(g => ({ ...g, [goal.key]: Number(e.target.value) }))}
+                      className="w-full accent-pink-500"
+                    />
+                  </div>
+                ))}
+              </>
+            ) : (
+              <>
+                {[
+                  { key: 'minutes', label: 'Workout Minutes', icon: '🔥', value: minutes || 0, goal: goals.minutes, unit: 'min' },
+                  { key: 'steps', label: 'Steps', icon: '👟', value: steps || 0, goal: goals.steps, unit: 'steps' },
+                  { key: 'water_oz', label: 'Water Intake', icon: '💧', value: waterOz || 0, goal: goals.water, unit: 'oz' },
+                  { key: 'calories', label: 'Calories Burned', icon: '⚡', value: calories || 0, goal: goals.calories, unit: 'cal' },
+                ].map(goal => {
+                  const percent = Math.min(Math.round((Number(goal.value) / goal.goal) * 100), 100);
+                  const met = Number(goal.value) >= goal.goal;
+                  return (
+                    <div key={goal.key}>
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-xs font-bold text-gray-400">{goal.icon} {goal.label}</p>
+                        <p className={`text-xs font-bold ${met ? 'text-green-400' : 'text-gray-500'}`}>
+                          {goal.value} / {goal.goal} {goal.unit} {met && '✓'}
+                        </p>
+                      </div>
+                      <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full transition-all ${met ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-pink-500 to-purple-600'}`} style={{ width: `${percent}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
           {[
@@ -298,6 +425,34 @@ export default function FitnessTracker() {
             ))}
           </div>
         </div>
+
+        {/* Progress Charts */}
+        {logs.length > 1 && (
+          <div className="bg-gray-900/80 border border-white/5 rounded-2xl p-4 mb-4">
+            <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+              <span>📊</span> Weekly Progress
+            </h2>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={logs.slice(0, 7).sort((a, b) => a.log_date.localeCompare(b.log_date)).map(log => ({
+                  date: new Date(log.log_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }),
+                  minutes: log.minutes || 0,
+                  steps: (log.steps || 0) / 1000,
+                }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="date" stroke="#9CA3AF" fontSize={12} />
+                  <YAxis stroke="#9CA3AF" fontSize={12} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px' }}
+                    labelStyle={{ color: '#F3F4F6' }}
+                  />
+                  <Bar dataKey="minutes" fill="#EC4899" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="text-xs text-gray-500 text-center mt-2">Workout minutes over last 7 days</p>
+          </div>
+        )}
 
         {/* All Logs */}
         {logs.length > 0 && (
