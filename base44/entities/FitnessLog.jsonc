@@ -1,0 +1,39 @@
+{
+  "name": "FitnessLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "log_date": {
+      "type": "string",
+      "title": "Log Date"
+    },
+    "workout_type": {
+      "type": "string",
+      "title": "Workout Type"
+    },
+    "minutes": {
+      "type": "number",
+      "title": "Minutes"
+    },
+    "calories": {
+      "type": "number",
+      "title": "Calories"
+    },
+    "steps": {
+      "type": "number",
+      "title": "Steps"
+    },
+    "water_oz": {
+      "type": "number",
+      "title": "Water (oz)"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": []
+}
