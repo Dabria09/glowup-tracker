@@ -173,6 +173,16 @@ export default function Dashboard() {
           <>
             <button onClick={() => setIsEditMode(true)} className="text-xs backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition">{t('edit_home')}</button>
             <button onClick={() => setShowCustomize(true)} className="text-xs backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition">{t('customize')}</button>
+            <button
+              onClick={async () => {
+                if (window.confirm('Are you sure you want to sign out?')) {
+                  await base44.auth.logout('/');
+                }
+              }}
+              className="text-xs backdrop-blur-md bg-red-500/20 border border-red-500/40 rounded-full px-3 py-1.5 text-red-300 font-semibold hover:bg-red-500/30 transition"
+            >
+              Sign Out
+            </button>
           </>
         )}
       </div>
