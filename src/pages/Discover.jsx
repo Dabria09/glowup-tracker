@@ -22,7 +22,7 @@ const SECTIONS = [
     title: '🌿 Wellness & Health',
     items: [
       { id: 'wellness_hub', label: 'Wellness Hub', emoji: '🌀', gradient: 'from-purple-900 via-pink-900 to-rose-900', route: '/wellness-hub' },
-      { id: 'calm_corner', label: 'Calm Corner', emoji: '🕯️', gradient: 'from-amber-900 via-orange-900 to-rose-900', route: '/calm-corner' },
+      { id: 'calm_corner', label: 'Calm Corner', emoji: '🕯️', gradient: 'from-amber-900 via-orange-900 to-rose-900', route: '/calm-corner', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/9b3280305_IMG_4343.jpeg' },
       { id: 'cycle_tracker', label: 'Cycle Tracker', emoji: '🌸', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', route: '/cycle-tracker' },
       { id: 'glow_checkin', label: 'Glow Check-In', emoji: '💗', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/glow-checkin' },
       { id: 'spiritual_glow', label: 'Spiritual Glow', emoji: '🧘', gradient: 'from-indigo-900 via-purple-900 to-violet-900', route: '/spiritual-glow' },
@@ -105,10 +105,13 @@ function AppIcon({ item }) {
         </span>
       )}
       <div
-        className={`w-[76px] h-[76px] rounded-[18px] bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg group-hover:scale-95 transition-transform border border-white/5`}
+        className={`w-[76px] h-[76px] rounded-[18px] overflow-hidden shadow-lg group-hover:scale-95 transition-transform border border-white/5 ${item.image ? '' : 'bg-gradient-to-br ' + item.gradient + ' flex items-center justify-center'}`}
         style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}
       >
-        <span className="text-4xl drop-shadow-lg">{item.emoji}</span>
+        {item.image
+          ? <img src={item.image} alt={item.label} className="w-full h-full object-cover" />
+          : <span className="text-4xl drop-shadow-lg">{item.emoji}</span>
+        }
       </div>
       <span className="text-[11px] text-center text-gray-300 leading-tight w-20">{item.label}</span>
     </div>
