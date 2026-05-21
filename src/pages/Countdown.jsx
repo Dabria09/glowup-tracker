@@ -55,8 +55,12 @@ export default function Countdown() {
   };
 
   const handleStartCountdown = async () => {
-    if (!customTitle.trim() || !targetDate) {
-      toast.error('Please fill in all fields');
+    if (!customTitle.trim()) {
+      toast.error('Please enter a countdown name');
+      return;
+    }
+    if (!targetDate) {
+      toast.error('Please select a target date');
       return;
     }
 
@@ -121,15 +125,13 @@ export default function Countdown() {
         </div>
       </div>
 
-      {/* Add Button */}
-      {countdowns.length > 0 && (
-        <button
-          onClick={() => setShowModal(true)}
-          className="mx-4 w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-sm hover:opacity-90 transition mb-4"
-        >
-          + Add Countdown
-        </button>
-      )}
+      {/* Add Button - Always Visible */}
+      <button
+        onClick={() => setShowModal(true)}
+        className="mx-4 w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-base hover:opacity-90 transition mb-4"
+      >
+        + Add Countdown
+      </button>
 
       <div className="px-4 space-y-6">
         {/* Empty State or Countdowns List */}
@@ -164,6 +166,7 @@ export default function Countdown() {
                       onClick={() => {
                         setSelectedCategory(idea.category);
                         setCustomTitle(idea.title);
+                        setTargetDate('');
                         setShowModal(true);
                       }}
                       className="mt-3 text-xs text-pink-400 font-semibold hover:text-pink-300"

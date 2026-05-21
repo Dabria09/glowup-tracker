@@ -261,7 +261,7 @@ export default function ImportantContacts() {
       {/* Add Contact Modal */}
       {showContactModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[90vh] overflow-y-auto">
+          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[90vh] overflow-y-auto pb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-white">Add Contact</h2>
               <button onClick={() => setShowContactModal(false)} className="text-gray-400">
@@ -349,7 +349,7 @@ export default function ImportantContacts() {
       {/* Add Appointment Modal */}
       {showAppointmentModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[90vh] overflow-y-auto">
+          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[90vh] overflow-y-auto pb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-white">Add Appointment</h2>
               <button onClick={() => setShowAppointmentModal(false)} className="text-gray-400">
