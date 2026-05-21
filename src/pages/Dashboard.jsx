@@ -65,8 +65,18 @@ const PATTERN_SVGS = {
   eyes: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='6' y='42' font-size='28' fill='rgba(255,255,255,0.03)'>&#129535;</text></svg>",
 };
 
+const hexToRgb = (hex) => {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+};
+
 const patternStyle = (pattern, bgColor, bgImage) => {
-  const base = { backgroundColor: bgColor };
+  // Always dark base, tint with theme color
+  let rgb = '26,10,15';
+  try { if (bgColor && bgColor.startsWith('#') && bgColor.length >= 7) rgb = hexToRgb(bgColor); } catch {}
+  const base = { backgroundColor: `rgba(${rgb},0.18)`, background: `linear-gradient(135deg, #0d0d0d 0%, rgba(${rgb},0.25) 100%)` };
   if (bgImage) return { ...base, backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' };
   if (pattern && pattern !== 'none' && PATTERN_SVGS[pattern]) {
     const encoded = encodeURIComponent(PATTERN_SVGS[pattern]);
@@ -83,7 +93,7 @@ export default function Dashboard() {
   const [time, setTime] = useState(getTime());
   const [search, setSearch] = useState('');
   const [showCustomize, setShowCustomize] = useState(false);
-  const [bgColor, setBgColor] = useState('#1a0a0f');
+  const [bgColor, setBgColor] = useState('#8b2d88');
   const [bgPattern, setBgPattern] = useState('none');
   const [bgImage, setBgImage] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
