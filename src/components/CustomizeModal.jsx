@@ -102,6 +102,19 @@ export default function CustomizeModal({
   onClose,
 }) {
   const [activeTab, setActiveTab] = useState('color');
+  const [accessibilitySettings, setAccessibilitySettings] = useState({
+    largeText: false,
+    highContrast: false,
+    reduceMotion: false,
+    hapticFeedback: true,
+    soundEffects: true,
+    screenReader: false,
+  });
+  const [textSize, setTextSize] = useState(50);
+
+  const toggleAccessibility = (key) => {
+    setAccessibilitySettings(prev => ({ ...prev, [key]: !prev[key] }));
+  };
   const [selectedTheme, setSelectedTheme] = useState('classic');
   const [selectedFont, setSelectedFont] = useState('modern');
   const [selectedLang, setSelectedLang] = useState('en');
@@ -466,39 +479,53 @@ export default function CustomizeModal({
             
             <div className="space-y-3 mb-6">
               {[
-                { icon: 'Abc', title: 'Large Text', desc: 'Increase text size throughout the app' },
-                { icon: '◐◑', title: 'High Contrast', desc: 'Stronger color contrast for readability' },
-                { icon: '📼', title: 'Reduce Motion', desc: 'Minimize animations and transitions' },
-                { icon: '📳', title: 'Haptic Feedback', desc: 'Vibration on key interactions' },
-                { icon: '🔊', title: 'Sound Effects', desc: 'Play sounds for achievements and alerts' },
-                { icon: '🎙️', title: 'Screen Reader Support', desc: 'Optimized for VoiceOver and TalkBack' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl font-bold text-pink-400 w-6 text-center">{item.icon}</span>
-                    <div>
-                      <p className="font-semibold text-white text-sm">{item.title}</p>
-                      <p className="text-xs text-gray-400">{item.desc}</p>
+                { icon: 'Aa', key: 'largeText', title: 'Large Text', desc: 'Increase text size throughout the app' },
+                { icon: '◑', key: 'highContrast', title: 'High Contrast', desc: 'Stronger color contrast for readability' },
+                { icon: '🎞️', key: 'reduceMotion', title: 'Reduce Motion', desc: 'Minimize animations and transitions' },
+                { icon: '📳', key: 'hapticFeedback', title: 'Haptic Feedback', desc: 'Vibration on key interactions' },
+                { icon: '🔊', key: 'soundEffects', title: 'Sound Effects', desc: 'Play sounds for achievements and alerts' },
+                { icon: '🎙️', key: 'screenReader', title: 'Screen Reader Support', desc: 'Optimized for VoiceOver and TalkBack' },
+              ].map((item) => {
+                const isOn = accessibilitySettings[item.key];
+                return (
+                  <div key={item.key} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <span className="text-base font-bold text-pink-400 w-6 text-center">{item.icon}</span>
+                      <div>
+                        <p className="font-semibold text-white text-sm">{item.title}</p>
+                        <p className="text-xs text-gray-400">{item.desc}</p>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => toggleAccessibility(item.key)}
+                      className={`w-12 h-6 rounded-full relative transition-colors duration-200 ${isOn ? 'bg-pink-500' : 'bg-gray-700'}`}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-200 ${isOn ? 'left-6' : 'left-0.5'}`} />
+                    </button>
                   </div>
-                  <div className="w-12 h-6 rounded-full bg-gray-700 relative cursor-pointer">
-                    <div className="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white" />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-4 mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl font-bold text-pink-400">Α</span>
-                <p className="font-semibold text-white">Text Size</p>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-bold text-pink-400">Aa</span>
+                  <p className="font-semibold text-white">Text Size</p>
+                </div>
+                <span className="text-xs text-pink-400 font-bold">{textSize}%</span>
               </div>
               <p className="text-xs text-gray-400 mb-3">Adjust the base font size for the app.</p>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-400">A</span>
-                <div className="flex-1 h-1 rounded-full bg-gradient-to-r from-pink-500 to-purple-600">
-                  <div className="w-1/2 h-1 rounded-full bg-white" />
-                </div>
+                <input
+                  type="range"
+                  min={75}
+                  max={150}
+                  value={textSize}
+                  onChange={e => setTextSize(Number(e.target.value))}
+                  className="flex-1 accent-pink-500"
+                />
                 <span className="text-lg text-gray-400">A</span>
               </div>
             </div>
