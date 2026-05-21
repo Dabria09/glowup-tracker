@@ -20,19 +20,17 @@ export default function Home() {
         }
         setAuthed(true);
         // Give it a moment for auth state to fully initialize after OAuth
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
         const me = await base44.auth.me();
         const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
         console.log('Auth check:', { isAuthed, email: me?.email, profileCount: profiles.length, onboardingComplete: profiles[0]?.onboarding_complete });
-        if (profiles.length && profiles[0]?.onboarding_complete === true) {
-          console.log('Redirecting to dashboard - user already onboarded');
-          navigate('/dashboard');
-        } else if (profiles.length) {
-          // User has profile but onboarding not complete (e.g., pending parental consent)
-          console.log('User has profile but pending - going to dashboard');
+        // If user has any profile (even incomplete), go to dashboard
+        if (profiles.length > 0) {
+          console.log('User has profile - redirecting to dashboard');
           navigate('/dashboard');
         } else {
-          console.log('User needs onboarding - profile count:', profiles.length);
+          console.log('New user - needs onboarding');
+          navigate('/onboarding');
         }
       } catch (err) {
         console.error('Auth check failed:', err);
@@ -43,20 +41,17 @@ export default function Home() {
     checkAuth();
     
     // Poll for auth state changes (for OAuth redirect)
-    const pollInterval = setInterval(checkAuth, 500);
-    const maxPolls = 10; // Stop after 5 seconds
     let pollCount = 0;
+    const maxPolls = 12; // 6 seconds total
     
     const pollAuth = async () => {
       pollCount++;
       if (pollCount >= maxPolls) {
-        clearInterval(pollInterval);
         return;
       }
       const isAuthed = await base44.auth.isAuthenticated();
       if (isAuthed && !authed) {
         checkAuth();
-        clearInterval(pollInterval);
       }
     };
     
@@ -64,11 +59,10 @@ export default function Home() {
     
     window.addEventListener('focus', checkAuth);
     return () => {
-      clearInterval(pollInterval);
       clearInterval(pollingInterval);
       window.removeEventListener('focus', checkAuth);
     };
-  }, [navigate]);
+  }, [navigate, authed]);
 
   const handleSignIn = async () => {
     if (authed) {
@@ -130,10 +124,13 @@ export default function Home() {
         {/* Sign In Method Toggle */}
         <div className="flex rounded-full bg-gray-800 p-1 mb-4">
           <button onClick={() => setSignInMethod('google')} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${signInMethod === 'google' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>
-            🔍 Google
+            Google
           </button>
-          <button onClick={() => setSignInMethod('email')} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${signInMethod === 'email' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>
-            📧 Email
+          <button onClick={() => setSignInMethod('apple')} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${signInMethod === 'apple' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>
+            Apple
+          </button>
+          <button onClick={() => setSignInMethod('fb')} className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${signInMethod === 'fb' ? 'bg-pink-500 text-white' : 'text-gray-400'}`}>
+            Facebook
           </button>
         </div>
 
@@ -165,6 +162,44 @@ export default function Home() {
 
             <p className="text-gray-600 text-xs text-center mt-3">
               Face / fingerprint login requires setting it up in your Profile first.
+            </p>
+          </>
+        ) : signInMethod === 'apple' ? (
+          <>
+            <button
+              onClick={() => {
+                alert('Apple Sign-In requires configuration in Base44 dashboard. Please use Google sign-in for now.');
+              }}
+              className="w-full py-3 rounded-full bg-white text-black font-semibold text-sm mb-3 hover:bg-gray-100 transition flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-.8 1.94-.8s.16 1.09-.73 2.08c-.89.99-2.08.87-2.08.87s-.18-1.12.87-2.15z"/></svg>
+              {tab === 'create' ? 'Sign Up with Apple' : 'Sign In with Apple'}
+            </button>
+
+            <p className="text-gray-500 text-xs text-center mb-3">
+              {tab === 'signin' ? "Don't have an account? " : 'Already have an account? '}
+              <button onClick={() => setTab(tab === 'signin' ? 'create' : 'signin')} className="text-pink-400 font-bold hover:underline">
+                {tab === 'signin' ? 'Create Account' : 'Sign In'}
+              </button>
+            </p>
+          </>
+        ) : signInMethod === 'fb' ? (
+          <>
+            <button
+              onClick={() => {
+                alert('Facebook Sign-In requires configuration in Base44 dashboard. Please use Google sign-in for now.');
+              }}
+              className="w-full py-3 rounded-full bg-blue-600 text-white font-semibold text-sm mb-3 hover:bg-blue-700 transition flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              {tab === 'create' ? 'Sign Up with Facebook' : 'Sign In with Facebook'}
+            </button>
+
+            <p className="text-gray-500 text-xs text-center mb-3">
+              {tab === 'signin' ? "Don't have an account? " : 'Already have an account? '}
+              <button onClick={() => setTab(tab === 'signin' ? 'create' : 'signin')} className="text-pink-400 font-bold hover:underline">
+                {tab === 'signin' ? 'Create Account' : 'Sign In'}
+              </button>
             </p>
           </>
         ) : (
