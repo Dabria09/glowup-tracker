@@ -77,7 +77,8 @@ export default function FitnessTracker() {
   const totalWater = last7.reduce((s, l) => s + (l.water_oz || 0), 0);
 
   const handleSave = async () => {
-    if (!user) { base44.auth.redirectToLogin(); return; }
+    console.log('handleSave called, user:', user, 'todayLog:', todayLog);
+    if (!user) { console.log('No user, redirecting to login'); base44.auth.redirectToLogin(); return; }
     setSaving(true);
     setSaveError('');
     const data = {
@@ -90,12 +91,16 @@ export default function FitnessTracker() {
       water_oz: waterOz,
       notes,
     };
+    console.log('Saving data:', data);
     try {
       if (todayLog) {
+        console.log('Updating existing log:', todayLog.id);
         await base44.entities.FitnessLog.update(todayLog.id, data);
         setLogs(prev => prev.map(l => l.id === todayLog.id ? { ...l, ...data } : l));
       } else {
+        console.log('Creating new log');
         const created = await base44.entities.FitnessLog.create(data);
+        console.log('Created:', created);
         setTodayLog(created);
         setLogs(prev => [...prev, created]);
       }
@@ -103,8 +108,9 @@ export default function FitnessTracker() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
+      console.error('Save error:', e);
       setSaving(false);
-      setSaveError('Failed to save. Please try again.');
+      setSaveError('Failed to save: ' + e.message);
     }
   };
 
