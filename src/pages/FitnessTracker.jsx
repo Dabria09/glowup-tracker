@@ -40,6 +40,7 @@ export default function FitnessTracker() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -284,6 +285,74 @@ export default function FitnessTracker() {
             ))}
           </div>
         </div>
+
+        {/* Past Logs */}
+        {logs.filter(l => l.log_date !== today()).length > 0 && (
+          <div className="bg-gray-900/80 border border-white/5 rounded-2xl p-4 mb-4">
+            <h2 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+              <span>📋</span> Past Logs
+            </h2>
+            <div className="space-y-3">
+              {logs
+                .filter(l => l.log_date !== today())
+                .sort((a, b) => b.log_date.localeCompare(a.log_date))
+                .map(log => (
+                  <div key={log.id} className="bg-white/5 border border-white/10 rounded-xl p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white">
+                          {new Date(log.log_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {log.workout_type && log.workout_type.split(',').filter(Boolean).map(t => {
+                            const w = WORKOUT_TYPES.find(x => x.id === t);
+                            return w ? <span key={t} className="text-xs bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full">{w.emoji} {w.label}</span> : null;
+                          })}
+                        </div>
+                        <div className="flex gap-3 mt-1.5 text-xs text-gray-400 flex-wrap">
+                          {log.minutes > 0 && <span>🔥 {log.minutes} min</span>}
+                          {log.steps > 0 && <span>👟 {Number(log.steps).toLocaleString()} steps</span>}
+                          {log.water_oz > 0 && <span>💧 {log.water_oz} oz</span>}
+                          {log.calories > 0 && <span>⚡ {log.calories} cal</span>}
+                        </div>
+                        {log.notes && <p className="text-xs text-gray-500 mt-1 truncate">{log.notes}</p>}
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            setTodayLog(log);
+                            setWorkoutType(log.workout_type ? log.workout_type.split(',') : []);
+                            setMinutes(log.minutes || '');
+                            setCalories(log.calories || '');
+                            setSteps(log.steps || '');
+                            setWaterOz(log.water_oz || 0);
+                            setNotes(log.notes || '');
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="text-xs px-3 py-1.5 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 transition"
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm('Delete this log?')) return;
+                            setDeletingId(log.id);
+                            await base44.entities.FitnessLog.delete(log.id);
+                            setLogs(prev => prev.filter(l => l.id !== log.id));
+                            setDeletingId(null);
+                          }}
+                          disabled={deletingId === log.id}
+                          className="text-xs px-3 py-1.5 rounded-lg bg-red-900/40 text-red-400 hover:bg-red-900/60 transition disabled:opacity-50"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <BottomNav active="discover" />
