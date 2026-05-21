@@ -15,8 +15,12 @@ export default function Home() {
       // If already fully onboarded, go straight to dashboard
       const me = await base44.auth.me();
       const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
-      if (profiles.length && profiles[0].onboarding_complete) {
+      console.log('Auth check:', { isAuthed, email: me?.email, profileCount: profiles.length, onboardingComplete: profiles[0]?.onboarding_complete });
+      if (profiles.length && profiles[0].onboarding_complete === true) {
+        console.log('Redirecting to dashboard - user already onboarded');
         navigate('/dashboard');
+      } else {
+        console.log('User needs onboarding - profile count:', profiles.length);
       }
     };
     
