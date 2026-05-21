@@ -7,86 +7,86 @@ const SECTIONS = [
     id: 'learn',
     title: '📚 Learn & Grow',
     items: [
-      { id: 'ggu_academy', label: 'GGU Academy', emoji: '🏛️', route: '/ggu-academy' },
-      { id: 'girls_library', label: 'Girls Library', emoji: '📚', route: '/girls-library' },
-      { id: 'career_explorer', label: 'Career Explorer', emoji: '💼', route: '/career-explorer' },
-      { id: 'your_voice', label: 'Your Voice', emoji: '🗳️', route: '/your-voice', badge: 'New' },
-      { id: 'growth_mindset', label: 'Growth Mindset', emoji: '🧠', route: '/growth-mindset' },
-      { id: 'homework_tracker', label: 'Homework Tracker', emoji: '📓', route: '/homework-tracker' },
-      { id: 'daily_quotes', label: 'Daily Quotes', emoji: '✨', route: '/daily-quotes' },
-      { id: 'glow_tips', label: 'Glow Tips', emoji: '💡', route: '/glow-tips' },
+      { id: 'ggu_academy', label: 'GGU Academy', emoji: '🏛️', gradient: 'from-pink-900 via-purple-900 to-pink-800', route: '/ggu-academy' },
+      { id: 'girls_library', label: 'Girls Library', emoji: '📚', gradient: 'from-amber-800 via-orange-900 to-yellow-900', route: '/girls-library' },
+      { id: 'career_explorer', label: 'Career Explorer', emoji: '💼', gradient: 'from-yellow-800 via-amber-900 to-orange-900', route: '/career-explorer' },
+      { id: 'your_voice', label: 'Your Voice', emoji: '🗳️', gradient: 'from-rose-900 via-red-900 to-pink-900', route: '/your-voice', badge: 'New' },
+      { id: 'growth_mindset', label: 'Growth Mindset', emoji: '🧠', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', route: '/growth-mindset' },
+      { id: 'homework_tracker', label: 'Homework Tracker', emoji: '📓', gradient: 'from-gray-800 via-slate-900 to-gray-900', route: '/homework-tracker' },
+      { id: 'daily_quotes', label: 'Daily Quotes', emoji: '✨', gradient: 'from-yellow-800 via-amber-900 to-orange-900', route: '/daily-quotes' },
+      { id: 'glow_tips', label: 'Glow Tips', emoji: '💡', gradient: 'from-violet-900 via-purple-900 to-indigo-900', route: '/glow-tips' },
     ],
   },
   {
     id: 'wellness',
     title: '🌿 Wellness & Health',
     items: [
-      { id: 'wellness_hub', label: 'Wellness Hub', emoji: '🌀', route: '/wellness-hub' },
-      { id: 'calm_corner', label: 'Calm Corner', emoji: '🕯️', route: '/calm-corner' },
-      { id: 'cycle_tracker', label: 'Cycle Tracker', emoji: '🌸', route: '/cycle-tracker' },
-      { id: 'glow_checkin', label: 'Glow Check-In', emoji: '💗', route: '/glow-checkin' },
-      { id: 'spiritual_glow', label: 'Spiritual Glow', emoji: '🧘', route: '/spiritual-glow' },
+      { id: 'wellness_hub', label: 'Wellness Hub', emoji: '🌀', gradient: 'from-purple-900 via-pink-900 to-rose-900', route: '/wellness-hub' },
+      { id: 'calm_corner', label: 'Calm Corner', emoji: '🕯️', gradient: 'from-amber-900 via-orange-900 to-rose-900', route: '/calm-corner' },
+      { id: 'cycle_tracker', label: 'Cycle Tracker', emoji: '🌸', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', route: '/cycle-tracker' },
+      { id: 'glow_checkin', label: 'Glow Check-In', emoji: '💗', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/glow-checkin' },
+      { id: 'spiritual_glow', label: 'Spiritual Glow', emoji: '🧘', gradient: 'from-indigo-900 via-purple-900 to-violet-900', route: '/spiritual-glow' },
     ],
   },
   {
     id: 'money',
     title: '💰 Money & Future',
     items: [
-      { id: 'money_savings', label: 'Money & Savings', emoji: '🏦', route: '/money-savings' },
-      { id: 'dream_calculator', label: 'Dream Calculator', emoji: '🌌', route: '/dream-calculator' },
-      { id: 'vision_board', label: 'Vision Board', emoji: '🗂️', route: '/vision-board' },
-      { id: 'scholarships', label: 'Scholarships', emoji: '🎓', route: '/scholarships' },
-      { id: 'grocery_list', label: 'Grocery List', emoji: '🛒', route: '/grocery-list' },
+      { id: 'money_savings', label: 'Money & Savings', emoji: '🏦', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', route: '/money-savings' },
+      { id: 'dream_calculator', label: 'Dream Calculator', emoji: '🌌', gradient: 'from-indigo-900 via-purple-900 to-blue-900', route: '/dream-calculator' },
+      { id: 'vision_board', label: 'Vision Board', emoji: '🗂️', gradient: 'from-pink-900 via-rose-900 to-orange-900', route: '/vision-board' },
+      { id: 'scholarships', label: 'Scholarships', emoji: '🎓', gradient: 'from-amber-900 via-yellow-900 to-orange-900', route: '/scholarships' },
+      { id: 'grocery_list', label: 'Grocery List', emoji: '🛒', gradient: 'from-yellow-700 via-amber-800 to-orange-800', route: '/grocery-list' },
     ],
   },
   {
     id: 'challenges',
     title: '🔥 Challenges & Goals',
     items: [
-      { id: 'daily_challenges', label: 'Daily Challenges', emoji: '⚡', route: '/daily-challenges' },
-      { id: 'transformation', label: 'Transformation', emoji: '🦋', route: '/transformation' },
-      { id: 'me_vs_me', label: 'Me vs Me', emoji: '👑', route: '/me-vs-me' },
-      { id: 'weekly_theme', label: 'Weekly Theme', emoji: '📅', route: '/weekly-theme' },
+      { id: 'daily_challenges', label: 'Daily Challenges', emoji: '⚡', gradient: 'from-pink-900 via-rose-900 to-red-900', route: '/daily-challenges' },
+      { id: 'transformation', label: 'Transformation', emoji: '🦋', gradient: 'from-purple-900 via-violet-900 to-fuchsia-900', route: '/transformation' },
+      { id: 'me_vs_me', label: 'Me vs Me', emoji: '👑', gradient: 'from-yellow-900 via-pink-900 to-black', route: '/me-vs-me' },
+      { id: 'weekly_theme', label: 'Weekly Theme', emoji: '📅', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', route: '/weekly-theme' },
     ],
   },
   {
     id: 'community',
     title: '💜 Community & Connect',
     items: [
-      { id: 'community_hub', label: 'Community Hub', emoji: '🤝', route: '/community-hub' },
-      { id: 'glow_feed', label: 'Glow Feed', emoji: '🏆', route: '/glow-feed' },
-      { id: 'mentorship', label: 'Mentorship', emoji: '🌺', route: '/mentorship' },
-      { id: 'glow_talk', label: 'Glow Talk', emoji: '🎙️', route: '/glow-talk', badge: 'Live' },
-      { id: 'glow_squads', label: 'Glow Squads', emoji: '👯', route: '/glow-squads' },
-      { id: 'teams', label: 'Teams', emoji: '🏅', route: '/teams' },
-      { id: 'glow_board', label: 'Glow Board', emoji: '📸', route: '/glow-board' },
-      { id: 'glow_kitchen', label: 'Glow Kitchen', emoji: '👩‍🍳', route: '/glow-kitchen' },
-      { id: 'my_glow_link', label: 'My Glow Link™', emoji: '🔗', route: '/my-glow-link' },
-      { id: 'leaderboard', label: 'Leaderboard', emoji: '🥇', route: '/leaderboard' },
-      { id: 'shout_outs', label: 'Shout Outs', emoji: '📣', route: '/shout-outs' },
+      { id: 'community_hub', label: 'Community Hub', emoji: '🤝', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/community-hub' },
+      { id: 'glow_feed', label: 'Glow Feed', emoji: '🏆', gradient: 'from-yellow-800 via-amber-900 to-pink-900', route: '/glow-feed' },
+      { id: 'mentorship', label: 'Mentorship', emoji: '🌺', gradient: 'from-purple-900 via-pink-900 to-rose-900', route: '/mentorship' },
+      { id: 'glow_talk', label: 'Glow Talk', emoji: '🎙️', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', route: '/glow-talk', badge: 'Live' },
+      { id: 'glow_squads', label: 'Glow Squads', emoji: '👯', gradient: 'from-fuchsia-900 via-pink-900 to-purple-900', route: '/glow-squads' },
+      { id: 'teams', label: 'Teams', emoji: '🏅', gradient: 'from-purple-900 via-indigo-900 to-pink-900', route: '/teams' },
+      { id: 'glow_board', label: 'Glow Board', emoji: '📸', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/glow-board' },
+      { id: 'glow_kitchen', label: 'Glow Kitchen', emoji: '👩‍🍳', gradient: 'from-rose-900 via-pink-900 to-fuchsia-900', route: '/glow-kitchen' },
+      { id: 'my_glow_link', label: 'My Glow Link™', emoji: '🔗', gradient: 'from-yellow-800 via-amber-900 to-orange-900', route: '/my-glow-link' },
+      { id: 'leaderboard', label: 'Leaderboard', emoji: '🥇', gradient: 'from-yellow-800 via-pink-900 to-fuchsia-900', route: '/leaderboard' },
+      { id: 'shout_outs', label: 'Shout Outs', emoji: '📣', gradient: 'from-orange-900 via-red-900 to-pink-900', route: '/shout-outs' },
     ],
   },
   {
     id: 'my_life',
     title: '🌸 My Life',
     items: [
-      { id: 'my_calendar', label: 'My Calendar', emoji: '📆', route: '/my-calendar' },
-      { id: 'my_diary', label: 'My Diary', emoji: '📔', route: '/my-diary' },
-      { id: 'sticky_notes', label: 'Sticky Notes', emoji: '📝', route: '/sticky-notes' },
-      { id: 'cleaning_calendar', label: 'Cleaning Calendar', emoji: '🧹', route: '/cleaning-calendar' },
-      { id: 'birthday_planner', label: 'Birthday Planner', emoji: '🎂', route: '/birthday-planner' },
-      { id: 'time_management', label: 'Time Management', emoji: '⏰', route: '/time-management' },
-      { id: 'trip_planner', label: 'Trip Planner', emoji: '✈️', route: '/trip-planner' },
-      { id: 'countdown', label: 'Countdown', emoji: '🎉', route: '/countdown' },
-      { id: 'important_contacts', label: 'Important Contacts', emoji: '📱', route: '/important-contacts' },
-      { id: 'password_vault', label: 'Password Vault', emoji: '🔒', route: '/password-vault' },
+      { id: 'my_calendar', label: 'My Calendar', emoji: '📆', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/my-calendar' },
+      { id: 'my_diary', label: 'My Diary', emoji: '📔', gradient: 'from-pink-800 via-purple-900 to-rose-900', route: '/my-diary' },
+      { id: 'sticky_notes', label: 'Sticky Notes', emoji: '📝', gradient: 'from-violet-900 via-purple-900 to-fuchsia-900', route: '/sticky-notes' },
+      { id: 'cleaning_calendar', label: 'Cleaning Calendar', emoji: '🧹', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', route: '/cleaning-calendar' },
+      { id: 'birthday_planner', label: 'Birthday Planner', emoji: '🎂', gradient: 'from-pink-800 via-rose-900 to-fuchsia-900', route: '/birthday-planner' },
+      { id: 'time_management', label: 'Time Management', emoji: '⏰', gradient: 'from-purple-900 via-pink-900 to-rose-900', route: '/time-management' },
+      { id: 'trip_planner', label: 'Trip Planner', emoji: '✈️', gradient: 'from-blue-900 via-indigo-900 to-purple-900', route: '/trip-planner' },
+      { id: 'countdown', label: 'Countdown', emoji: '🎉', gradient: 'from-fuchsia-900 via-purple-900 to-pink-900', route: '/countdown' },
+      { id: 'important_contacts', label: 'Important Contacts', emoji: '📱', gradient: 'from-teal-900 via-cyan-900 to-blue-900', route: '/important-contacts' },
+      { id: 'password_vault', label: 'Password Vault', emoji: '🔒', gradient: 'from-yellow-800 via-amber-900 to-gray-900', route: '/password-vault' },
     ],
   },
   {
     id: 'fitness',
     title: '💪 Fitness & Body',
     items: [
-      { id: 'fitness_tracker', label: 'Fitness Tracker', emoji: '🏋️', route: '/fitness-tracker' },
+      { id: 'fitness_tracker', label: 'Fitness Tracker', emoji: '🏋️', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', route: '/fitness-tracker' },
     ],
   },
 ];
@@ -95,6 +95,25 @@ const RECOMMENDED = [
   { id: 'curriculum', icon: '📚', title: 'Curriculum', desc: 'Personalized learning paths', route: '/curriculum' },
   { id: 'resources', icon: '📖', title: 'Resources', desc: 'Handpicked for your growth', route: '/resources' },
 ];
+
+function AppIcon({ item }) {
+  return (
+    <div className="relative flex flex-col items-center gap-1.5 cursor-pointer group">
+      {item.badge && (
+        <span className={`absolute -top-1.5 left-1/2 -translate-x-1/2 z-10 text-[9px] font-bold px-2 py-0.5 rounded-full text-white shadow-lg ${item.badge === 'Live' ? 'bg-red-500' : 'bg-purple-600'}`}>
+          {item.badge}
+        </span>
+      )}
+      <div
+        className={`w-[76px] h-[76px] rounded-[18px] bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg group-hover:scale-95 transition-transform border border-white/5`}
+        style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}
+      >
+        <span className="text-4xl drop-shadow-lg">{item.emoji}</span>
+      </div>
+      <span className="text-[11px] text-center text-gray-300 leading-tight w-20">{item.label}</span>
+    </div>
+  );
+}
 
 export default function Discover() {
   const [search, setSearch] = useState('');
@@ -139,7 +158,7 @@ export default function Discover() {
         </div>
 
         {/* Recommended */}
-        <div className="mb-6">
+        <div className="mb-7">
           <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">✨ RECOMMENDED FOR YOU</p>
           <div className="grid grid-cols-2 gap-3">
             {RECOMMENDED.map(r => (
@@ -155,22 +174,9 @@ export default function Discover() {
         {SECTIONS.map(section => (
           <div key={section.id} className="mb-8">
             <h2 className="text-lg font-bold text-white mb-4">{section.title}</h2>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-x-3 gap-y-5">
               {section.items.map(item => (
-                <div
-                  key={item.id}
-                  className="relative flex flex-col items-center gap-2 cursor-pointer group"
-                >
-                  {item.badge && (
-                    <span className={`absolute -top-1 left-1/2 -translate-x-1/2 z-10 text-[9px] font-bold px-2 py-0.5 rounded-full text-white ${item.badge === 'Live' ? 'bg-red-500' : 'bg-purple-600'}`}>
-                      {item.badge}
-                    </span>
-                  )}
-                  <div className="w-20 h-20 rounded-2xl bg-gray-800/80 border border-white/8 flex items-center justify-center text-4xl group-hover:bg-gray-700/80 transition backdrop-blur-sm">
-                    {item.emoji}
-                  </div>
-                  <span className="text-xs text-center text-gray-300 leading-tight">{item.label}</span>
-                </div>
+                <AppIcon key={item.id} item={item} />
               ))}
             </div>
           </div>
