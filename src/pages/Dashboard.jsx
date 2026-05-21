@@ -65,24 +65,13 @@ const PATTERN_SVGS = {
   eyes: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='6' y='42' font-size='28' fill='rgba(255,255,255,0.03)'>&#129535;</text></svg>",
 };
 
-const hexToRgb = (hex) => {
-  const r = parseInt(hex.slice(1,3),16);
-  const g = parseInt(hex.slice(3,5),16);
-  const b = parseInt(hex.slice(5,7),16);
-  return `${r},${g},${b}`;
-};
-
-const patternStyle = (pattern, bgColor, bgImage) => {
-  // Always dark base, tint with theme color
-  let rgb = '26,10,15';
-  try { if (bgColor && bgColor.startsWith('#') && bgColor.length >= 7) rgb = hexToRgb(bgColor); } catch {}
-  const base = { backgroundColor: `rgba(${rgb},0.18)`, background: `linear-gradient(135deg, #0d0d0d 0%, rgba(${rgb},0.25) 100%)` };
-  if (bgImage) return { ...base, backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' };
+const patternStyle = (pattern, bgImage) => {
+  if (bgImage) return { backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' };
   if (pattern && pattern !== 'none' && PATTERN_SVGS[pattern]) {
     const encoded = encodeURIComponent(PATTERN_SVGS[pattern]);
-    return { ...base, backgroundImage: `url("data:image/svg+xml,${encoded}")` };
+    return { backgroundImage: `url("data:image/svg+xml,${encoded}")` };
   }
-  return base;
+  return {};
 };
 
 export default function Dashboard() {
@@ -140,7 +129,15 @@ export default function Dashboard() {
   const addApp = (app) => setHomeApps(prev => [...prev, app]);
 
   return (
-    <div className="min-h-screen text-white pb-24 overflow-x-hidden" style={patternStyle(bgPattern, bgColor, bgImage)}>
+    <div className="min-h-screen text-white pb-24 overflow-x-hidden relative" style={{ backgroundColor: '#0d0d0d' }}>
+      {/* Color tint overlay */}
+      <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundColor: bgColor, opacity: 0.12 }} />
+      {/* Pattern overlay */}
+      {(bgPattern !== 'none' || bgImage) && (
+        <div className="fixed inset-0 pointer-events-none z-0" style={patternStyle(bgPattern, bgImage)} />
+      )}
+      {/* Content above overlays */}
+      <div className="relative z-10">
       {/* Points badge */}
       <div className="flex justify-end px-4 pt-3">
         <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
@@ -309,6 +306,8 @@ export default function Dashboard() {
         </div>
         <p className="text-center text-xs text-gray-600 mt-2">Tapping opens the app — GGU is not affiliated with these platforms</p>
       </div>
+
+      </div>{/* end relative z-10 */}
 
       <BottomNav active="home" />
 
