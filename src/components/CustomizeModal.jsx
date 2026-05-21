@@ -168,6 +168,7 @@ export default function CustomizeModal({
     localStorage.setItem('ggu_lang', code);
     document.documentElement.setAttribute('lang', code);
     document.documentElement.setAttribute('dir', code === 'ar' ? 'rtl' : 'ltr');
+    window.dispatchEvent(new Event('ggu_lang_change'));
   };
 
   const handleColorMode = (mode) => {

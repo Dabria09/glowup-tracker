@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useTranslation from '@/lib/useTranslation';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -18,10 +19,10 @@ const WORLD_APPS = [
   { id: 'games', icon: '🎮', label: 'Games', bg: 'bg-gray-800', route: '/games', soon: true },
 ];
 
-const RECOMMENDED = [
-  { id: 'curriculum', icon: '📚', title: 'Curriculum', desc: 'Personalized curriculum based on your interests and goals' },
-  { id: 'habits', icon: '🎯', title: 'Habits', desc: 'Build habits that match your goals' },
-  { id: 'library', icon: '📖', title: 'Library', desc: 'Resources handpicked for your growth' },
+const RECOMMENDED_IDS = [
+  { id: 'curriculum', icon: '📚', titleKey: 'rec_curriculum_title', descKey: 'rec_curriculum_desc' },
+  { id: 'habits', icon: '🎯', titleKey: 'rec_habits_title', descKey: 'rec_habits_desc' },
+  { id: 'library', icon: '📖', titleKey: 'rec_library_title', descKey: 'rec_library_desc' },
 ];
 
 const SOCIAL = [
@@ -39,9 +40,9 @@ function getTime() {
 
 function getGreeting() {
   const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return 'greeting_morning';
+  if (h < 17) return 'greeting_afternoon';
+  return 'greeting_evening';
 }
 
 const PATTERN_SVGS = {
@@ -76,6 +77,7 @@ const patternStyle = (pattern, bgImage, bgImagePos = { x: 50, y: 50 }) => {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [avatarConfig, setAvatarConfig] = useState(null);
@@ -110,7 +112,7 @@ export default function Dashboard() {
 
   const allSearchable = [
     ...WORLD_APPS.map(a => ({ label: a.label, route: a.route })),
-    ...RECOMMENDED.map(r => ({ label: r.title, route: '/' + r.id })),
+    ...RECOMMENDED_IDS.map(r => ({ label: r.titleKey, route: '/' + r.id })),
   ];
   const searchResults = search.trim().length > 1
     ? allSearchable.filter(i => i.label.toLowerCase().includes(search.toLowerCase()))
@@ -142,7 +144,7 @@ export default function Dashboard() {
       {/* Points badge */}
       <div className="flex justify-end px-4 pt-3">
         <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-          <span>🏅</span><span className="text-yellow-400">15 pts</span>
+          <span>🏅</span><span className="text-yellow-400">15 {t('points')}</span>
         </div>
       </div>
 
@@ -165,19 +167,19 @@ export default function Dashboard() {
             onClick={() => setIsEditMode(false)}
             className="text-xs backdrop-blur-md bg-pink-500/20 border border-pink-500/40 rounded-full px-3 py-1.5 text-pink-300 font-semibold hover:bg-pink-500/30 transition"
           >
-            ✅ Done
+            {t('done')}
           </button>
         ) : (
           <>
-            <button onClick={() => setIsEditMode(true)} className="text-xs backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition">⚙️ Edit Home</button>
-            <button onClick={() => setShowCustomize(true)} className="text-xs backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition">🎨 Customize</button>
+            <button onClick={() => setIsEditMode(true)} className="text-xs backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition">{t('edit_home')}</button>
+            <button onClick={() => setShowCustomize(true)} className="text-xs backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition">{t('customize')}</button>
           </>
         )}
       </div>
 
       {/* Greeting */}
       <div className="px-4 mb-4">
-        <p className="text-gray-400 text-sm">{getGreeting()} ✨</p>
+        <p className="text-gray-400 text-sm">{t(getGreeting())} ✨</p>
         <h1 className="text-2xl font-bold">Hey, {firstName} ✨</h1>
         <p className="text-gray-500 text-sm">@{username}</p>
       </div>
@@ -186,7 +188,7 @@ export default function Dashboard() {
       {!isEditMode && (
         <div className="px-4 mb-5">
           <button className="flex items-center gap-2 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm font-semibold text-white">
-            ⚡ Quick Access
+            {t('quick_access')}
           </button>
         </div>
       )}
@@ -198,7 +200,7 @@ export default function Dashboard() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search the entire app..."
+            placeholder={t('search_placeholder')}
             className="bg-transparent text-sm text-white placeholder-gray-500 outline-none flex-1"
           />
           {search && <button onClick={() => setSearch('')}><X size={14} className="text-gray-500" /></button>}
@@ -216,7 +218,7 @@ export default function Dashboard() {
 
       {/* Your World */}
       <div className="px-4 mb-6">
-        <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">YOUR WORLD</p>
+        <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('your_world')}</p>
         {isEditMode ? (
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="apps" direction="horizontal">
@@ -273,12 +275,12 @@ export default function Dashboard() {
 
       {/* Recommended For You */}
       <div className="px-4 mb-6">
-        <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">✨ RECOMMENDED FOR YOU</p>
+        <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('recommended')}</p>
         <div className="space-y-3">
-          {RECOMMENDED.map(r => (
+          {RECOMMENDED_IDS.map(r => (
             <div key={r.id} className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 cursor-pointer hover:bg-white/10 transition">
-              <p className="font-semibold text-sm mb-1">{r.icon} {r.title}</p>
-              <p className="text-gray-400 text-sm">{r.desc}</p>
+              <p className="font-semibold text-sm mb-1">{r.icon} {t(r.titleKey)}</p>
+              <p className="text-gray-400 text-sm">{t(r.descKey)}</p>
             </div>
           ))}
         </div>
@@ -286,7 +288,7 @@ export default function Dashboard() {
 
       {/* Glow Everywhere */}
       <div className="px-4 mb-6">
-        <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">💗 GLOW EVERYWHERE</p>
+        <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('glow_everywhere')}</p>
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
           {SOCIAL.map((s, i) => (
             <a

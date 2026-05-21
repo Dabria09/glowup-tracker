@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useTranslation from '@/lib/useTranslation';
 import { Search } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
@@ -123,6 +124,7 @@ function AppIcon({ item }) {
 
 export default function Discover() {
   const [search, setSearch] = useState('');
+  const { t } = useTranslation();
 
   const allItems = SECTIONS.flatMap(s => s.items);
   const searchResults = search.trim().length > 1
@@ -139,7 +141,7 @@ export default function Discover() {
       </div>
 
       <div className="px-4 pt-2 pb-4">
-        <h1 className="text-3xl font-bold text-white mb-4">Discover ✨</h1>
+        <h1 className="text-3xl font-bold text-white mb-4">{t('discover_title')}</h1>
 
         {/* Search */}
         <div className="relative mb-6">
@@ -148,7 +150,7 @@ export default function Discover() {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search features, topics, resources..."
+              placeholder={t('discover_search')}
               className="bg-transparent text-sm text-white placeholder-gray-500 outline-none flex-1"
             />
           </div>
@@ -165,7 +167,7 @@ export default function Discover() {
 
         {/* Recommended */}
         <div className="mb-7">
-          <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">✨ RECOMMENDED FOR YOU</p>
+          <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('recommended')}</p>
           <div className="grid grid-cols-2 gap-3">
             {RECOMMENDED.map(r => (
               <div key={r.id} className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 cursor-pointer hover:bg-white/10 transition">
@@ -179,7 +181,7 @@ export default function Discover() {
         {/* Sections */}
         {SECTIONS.map(section => (
           <div key={section.id} className="mb-8">
-            <h2 className="text-lg font-bold text-white mb-4">{section.title}</h2>
+            <h2 className="text-lg font-bold text-white mb-4">{t('discover_' + section.id) || section.title}</h2>
             <div className="grid grid-cols-3 gap-x-3 gap-y-5">
               {section.items.map(item => (
                 <AppIcon key={item.id} item={item} />
