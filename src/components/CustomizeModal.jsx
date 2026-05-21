@@ -52,12 +52,24 @@ const PATTERNS = [
 ];
 
 const FONT_STYLES = [
-  { id: 'modern', name: 'Modern', desc: 'Your glow era starts now.' },
-  { id: 'elegant', name: 'Elegant', desc: 'Your glow era starts now.' },
-  { id: 'playful', name: 'Playful', desc: 'Your glow era starts now.' },
-  { id: 'bold', name: 'Bold', desc: 'Your glow era starts now.' },
-  { id: 'classic', name: 'Classic', desc: 'Your glow era starts now.' },
+  { id: 'modern', name: 'Modern', family: "'Outfit', sans-serif", google: 'Outfit:wght@400;600;700', desc: 'Your glow era starts now.' },
+  { id: 'elegant', name: 'Elegant', family: "'Playfair Display', serif", google: 'Playfair+Display:wght@400;600;700', desc: 'Your glow era starts now.' },
+  { id: 'playful', name: 'Playful', family: "'Nunito', sans-serif", google: 'Nunito:wght@400;600;800', desc: 'Your glow era starts now.' },
+  { id: 'bold', name: 'Bold', family: "'Montserrat', sans-serif", google: 'Montserrat:wght@400;700;900', desc: 'Your glow era starts now.' },
+  { id: 'classic', name: 'Classic', family: "'Lora', serif", google: 'Lora:wght@400;600;700', desc: 'Your glow era starts now.' },
 ];
+
+const loadAndApplyFont = (font) => {
+  const linkId = `gfont-${font.id}`;
+  if (!document.getElementById(linkId)) {
+    const link = document.createElement('link');
+    link.id = linkId;
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${font.google}&display=swap`;
+    document.head.appendChild(link);
+  }
+  document.body.style.fontFamily = font.family;
+};
 
 const LANGUAGES = [
   { code: 'en', name: 'English', flag: '🇺🇸', native: 'English' },
@@ -402,15 +414,15 @@ export default function CustomizeModal({
               {FONT_STYLES.map(font => (
                 <button
                   key={font.id}
-                  onClick={() => setSelectedFont(font.id)}
+                  onClick={() => { setSelectedFont(font.id); loadAndApplyFont(font); }}
                   className={`w-full p-4 rounded-2xl border-2 transition text-left ${
                     selectedFont === font.id
                       ? 'border-pink-500 bg-pink-500/10'
                       : 'border-gray-700 hover:border-gray-600'
                   }`}
                 >
-                  <p className={`font-semibold text-white text-lg ${selectedFont === font.id ? 'text-pink-400' : ''}`}>{font.name}</p>
-                  <p className="text-xs text-gray-400">{font.desc}</p>
+                  <p className={`font-semibold text-white text-lg ${selectedFont === font.id ? 'text-pink-400' : ''}`} style={{ fontFamily: font.family }}>{font.name}</p>
+                  <p className="text-xs text-gray-400" style={{ fontFamily: font.family }}>{font.desc}</p>
                 </button>
               ))}
             </div>
