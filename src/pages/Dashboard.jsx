@@ -65,8 +65,8 @@ const PATTERN_SVGS = {
   eyes: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='6' y='42' font-size='28' fill='rgba(255,255,255,0.03)'>&#129535;</text></svg>",
 };
 
-const patternStyle = (pattern, bgImage) => {
-  if (bgImage) return { backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' };
+const patternStyle = (pattern, bgImage, bgImagePos = { x: 50, y: 50 }) => {
+  if (bgImage) return { backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: `${bgImagePos.x}% ${bgImagePos.y}%` };
   if (pattern && pattern !== 'none' && PATTERN_SVGS[pattern]) {
     const encoded = encodeURIComponent(PATTERN_SVGS[pattern]);
     return { backgroundImage: `url("data:image/svg+xml,${encoded}")` };
@@ -85,6 +85,7 @@ export default function Dashboard() {
   const [bgColor, setBgColor] = useState('#8b2d88');
   const [bgPattern, setBgPattern] = useState('none');
   const [bgImage, setBgImage] = useState(null);
+  const [bgImagePos, setBgImagePos] = useState({ x: 50, y: 50 });
   const [isEditMode, setIsEditMode] = useState(false);
   const [homeApps, setHomeApps] = useState(WORLD_APPS.filter(a => !a.soon));
 
@@ -134,7 +135,7 @@ export default function Dashboard() {
       <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundColor: bgColor, opacity: 0.12 }} />
       {/* Pattern overlay */}
       {(bgPattern !== 'none' || bgImage) && (
-        <div className="fixed inset-0 pointer-events-none z-0" style={patternStyle(bgPattern, bgImage)} />
+        <div className="fixed inset-0 pointer-events-none z-0" style={patternStyle(bgPattern, bgImage, bgImagePos)} />
       )}
       {/* Content above overlays */}
       <div className="relative z-10">
@@ -319,6 +320,8 @@ export default function Dashboard() {
           setBgPattern={setBgPattern}
           bgImage={bgImage}
           setBgImage={setBgImage}
+          bgImagePos={bgImagePos}
+          setBgImagePos={setBgImagePos}
           onClose={() => setShowCustomize(false)}
         />
       )}

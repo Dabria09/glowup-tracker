@@ -111,6 +111,7 @@ export default function CustomizeModal({
   bgColor, setBgColor,
   bgPattern, setBgPattern,
   bgImage, setBgImage,
+  bgImagePos, setBgImagePos,
   onClose,
 }) {
   const [activeTab, setActiveTab] = useState('color');
@@ -306,17 +307,35 @@ export default function CustomizeModal({
             <h3 className="text-lg font-bold text-white mb-2">Background Photo</h3>
             <p className="text-sm text-gray-400 mb-4">Upload your own photo to use as a soft background across the whole app — just like the star patterns.</p>
             
-            <div className="bg-gray-800/50 rounded-2xl p-6 flex flex-col items-center mb-4">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center mb-2">
-                {bgImage ? (
-                  <img src={bgImage} alt="preview" className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <span className="text-3xl">🖼️</span>
-                )}
-              </div>
-              <p className="text-sm font-semibold text-white">{bgImage ? 'Preview' : 'Preview'}</p>
-              <p className="text-xs text-gray-400">{bgImage ? 'Background photo set' : 'No background photo'}</p>
+            {/* Live preview */}
+            <div className="mb-4 rounded-2xl overflow-hidden relative" style={{ height: 160, background: '#0d0d0d' }}>
+              {bgImage ? (
+                <img
+                  src={bgImage}
+                  alt="bg preview"
+                  className="w-full h-full object-cover"
+                  style={{ objectPosition: `${bgImagePos?.x ?? 50}% ${bgImagePos?.y ?? 50}%` }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-600 text-sm">No photo selected</div>
+              )}
             </div>
+
+            {bgImage && setBgImagePos && (
+              <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-4 mb-4">
+                <p className="text-sm font-semibold text-white mb-3">📐 Position</p>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Horizontal</span><span>{bgImagePos?.x ?? 50}%</span></div>
+                    <input type="range" min={0} max={100} value={bgImagePos?.x ?? 50} onChange={e => setBgImagePos(p => ({ ...p, x: Number(e.target.value) }))} className="w-full accent-pink-500" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Vertical</span><span>{bgImagePos?.y ?? 50}%</span></div>
+                    <input type="range" min={0} max={100} value={bgImagePos?.y ?? 50} onChange={e => setBgImagePos(p => ({ ...p, y: Number(e.target.value) }))} className="w-full accent-pink-500" />
+                  </div>
+                </div>
+              </div>
+            )}
 
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
             <button
