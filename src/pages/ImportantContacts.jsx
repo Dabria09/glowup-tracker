@@ -301,90 +301,92 @@ export default function ImportantContacts() {
       {/* Add Contact Modal */}
       {showContactModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-white">Add Contact</h2>
-              <button onClick={() => setShowContactModal(false)} className="text-gray-400">
-                <X size={24} />
-              </button>
+          <div className="w-full bg-gray-900 rounded-t-3xl flex flex-col max-h-[85vh]">
+            <div className="p-5 overflow-y-auto flex-1">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">Add Contact</h2>
+                <button onClick={() => setShowContactModal(false)} className="text-gray-400">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Name *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Dr. Johnson"
+                    value={contactForm.name}
+                    onChange={e => setContactForm({...contactForm, name: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Role *</label>
+                  <select
+                    value={contactForm.role}
+                    onChange={e => setContactForm({...contactForm, role: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none"
+                  >
+                    {Object.keys(ROLE_COLORS).map(role => (
+                      <option key={role} value={role}>{role}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Phone</label>
+                  <input
+                    type="tel"
+                    placeholder="(555) 123-4567"
+                    value={contactForm.phone}
+                    onChange={e => setContactForm({...contactForm, phone: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Email</label>
+                  <input
+                    type="email"
+                    placeholder="doctor@clinic.com"
+                    value={contactForm.email}
+                    onChange={e => setContactForm({...contactForm, email: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Notes</label>
+                  <textarea
+                    placeholder="Office hours, address, insurance info..."
+                    value={contactForm.notes}
+                    onChange={e => setContactForm({...contactForm, notes: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600 resize-none"
+                    rows={3}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-gray-300 block mb-2">Name *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Dr. Johnson"
-                  value={contactForm.name}
-                  onChange={e => setContactForm({...contactForm, name: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-300 block mb-2">Role *</label>
-                <select
-                  value={contactForm.role}
-                  onChange={e => setContactForm({...contactForm, role: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none"
-                >
-                  {Object.keys(ROLE_COLORS).map(role => (
-                    <option key={role} value={role}>{role}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-300 block mb-2">Phone</label>
-                <input
-                  type="tel"
-                  placeholder="(555) 123-4567"
-                  value={contactForm.phone}
-                  onChange={e => setContactForm({...contactForm, phone: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-300 block mb-2">Email</label>
-                <input
-                  type="email"
-                  placeholder="doctor@clinic.com"
-                  value={contactForm.email}
-                  onChange={e => setContactForm({...contactForm, email: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-300 block mb-2">Notes</label>
-                <textarea
-                  placeholder="Office hours, address, insurance info..."
-                  value={contactForm.notes}
-                  onChange={e => setContactForm({...contactForm, notes: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600 resize-none"
-                  rows={3}
-                />
-              </div>
-
-              <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
-                <button
-                  onClick={handleAddContact}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
-                >
-                  {editingContactId ? 'Update Contact' : 'Add Contact'}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowContactModal(false);
-                    setEditingContactId(null);
-                    setContactForm({ name: '', role: 'Doctor', phone: '', email: '', notes: '' });
-                  }}
-                  className="flex-1 py-3 rounded-xl border border-gray-700 text-white font-semibold hover:bg-gray-800 transition"
-                >
-                  Cancel
-                </button>
-              </div>
+            <div className="bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
+              <button
+                onClick={handleAddContact}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
+              >
+                {editingContactId ? 'Update Contact' : 'Add Contact'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowContactModal(false);
+                  setEditingContactId(null);
+                  setContactForm({ name: '', role: 'Doctor', phone: '', email: '', notes: '' });
+                }}
+                className="flex-1 py-3 rounded-xl border border-gray-700 text-white font-semibold hover:bg-gray-800 transition"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -393,87 +395,87 @@ export default function ImportantContacts() {
       {/* Add Appointment Modal */}
       {showAppointmentModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto pb-28">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-white">Add Appointment</h2>
-              <button onClick={() => setShowAppointmentModal(false)} className="text-gray-400">
-                <X size={24} />
-              </button>
+          <div className="w-full bg-gray-900 rounded-t-3xl flex flex-col max-h-[85vh]">
+            <div className="p-5 overflow-y-auto flex-1">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">Add Appointment</h2>
+                <button onClick={() => setShowAppointmentModal(false)} className="text-gray-400">
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Appointment Type *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Annual Physical, Dental Cleaning"
+                    value={appointmentForm.appointment_type}
+                    onChange={e => setAppointmentForm({...appointmentForm, appointment_type: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Date &amp; Time *</label>
+                  <input
+                    type="datetime-local"
+                    value={appointmentForm.date_time}
+                    onChange={e => setAppointmentForm({...appointmentForm, date_time: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Provider Name</label>
+                  <input
+                    type="text"
+                    placeholder="Dr. Smith, Ms. Johnson..."
+                    value={appointmentForm.provider_name}
+                    onChange={e => setAppointmentForm({...appointmentForm, provider_name: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Location / Address</label>
+                  <input
+                    type="text"
+                    placeholder="123 Main St, Suite 200"
+                    value={appointmentForm.location}
+                    onChange={e => setAppointmentForm({...appointmentForm, location: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 block mb-2">Notes</label>
+                  <textarea
+                    placeholder="Bring insurance card, fasting required, etc."
+                    value={appointmentForm.notes}
+                    onChange={e => setAppointmentForm({...appointmentForm, notes: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600 resize-none"
+                    rows={3}
+                  />
+                </div>
+              </div>
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-gray-300 block mb-2">Appointment Type *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Annual Physical, Dental Cleaning"
-                  value={appointmentForm.appointment_type}
-                  onChange={e => setAppointmentForm({...appointmentForm, appointment_type: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-300 block mb-2">Date &amp; Time *</label>
-                <input
-                  type="datetime-local"
-                  value={appointmentForm.date_time}
-                  onChange={e => setAppointmentForm({...appointmentForm, date_time: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-300 block mb-2">Provider Name</label>
-                <input
-                  type="text"
-                  placeholder="Dr. Smith, Ms. Johnson..."
-                  value={appointmentForm.provider_name}
-                  onChange={e => setAppointmentForm({...appointmentForm, provider_name: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-300 block mb-2">Location / Address</label>
-                <input
-                  type="text"
-                  placeholder="123 Main St, Suite 200"
-                  value={appointmentForm.location}
-                  onChange={e => setAppointmentForm({...appointmentForm, location: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-300 block mb-2">Notes</label>
-                <textarea
-                  placeholder="Bring insurance card, fasting required, etc."
-                  value={appointmentForm.notes}
-                  onChange={e => setAppointmentForm({...appointmentForm, notes: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm outline-none placeholder-gray-600 resize-none"
-                  rows={3}
-                />
-              </div>
-
-              <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
-                <button
-                  onClick={handleAddAppointment}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
-                >
-                  {editingAppointmentId ? 'Update Appointment' : 'Add Appointment'}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAppointmentModal(false);
-                    setEditingAppointmentId(null);
-                    setAppointmentForm({ appointment_type: '', date_time: '', provider_name: '', location: '', notes: '' });
-                  }}
-                  className="flex-1 py-3 rounded-xl border border-gray-700 text-white font-semibold hover:bg-gray-800 transition"
-                >
-                  Cancel
-                </button>
-              </div>
+            <div className="bg-gradient-to-t from-gray-900 to-gray-900/80 border-t border-gray-700 p-5 flex gap-3">
+              <button
+                onClick={handleAddAppointment}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold hover:opacity-90 transition"
+              >
+                {editingAppointmentId ? 'Update Appointment' : 'Add Appointment'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowAppointmentModal(false);
+                  setEditingAppointmentId(null);
+                  setAppointmentForm({ appointment_type: '', date_time: '', provider_name: '', location: '', notes: '' });
+                }}
+                className="flex-1 py-3 rounded-xl border border-gray-700 text-white font-semibold hover:bg-gray-800 transition"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
