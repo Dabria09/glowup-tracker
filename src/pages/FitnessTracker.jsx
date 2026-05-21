@@ -22,7 +22,10 @@ const TIPS = [
   { emoji: '🥗', text: 'Fuel your body with protein and veggies after working out' },
 ];
 
-const today = () => new Date().toISOString().split('T')[0];
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
 const todayLabel = () => new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
 export default function FitnessTracker() {
@@ -90,9 +93,11 @@ export default function FitnessTracker() {
     try {
       if (todayLog) {
         await base44.entities.FitnessLog.update(todayLog.id, data);
+        setLogs(prev => prev.map(l => l.id === todayLog.id ? { ...l, ...data } : l));
       } else {
         const created = await base44.entities.FitnessLog.create(data);
         setTodayLog(created);
+        setLogs(prev => [...prev, created]);
       }
       setSaving(false);
       setSaved(true);
