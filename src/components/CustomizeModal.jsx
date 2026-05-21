@@ -170,6 +170,29 @@ export default function CustomizeModal({
         {activeTab === 'color' && (
           <div>
             <h3 className="text-lg font-bold text-white mb-4">Choose Your Color Theme</h3>
+            {/* Live Preview */}
+            {(() => {
+              const t = COLOR_THEMES.find(t => t.id === selectedTheme);
+              return t ? (
+                <div className="mb-5 rounded-2xl border border-white/10 backdrop-blur-md overflow-hidden" style={{ backgroundColor: t.color + '18' }}>
+                  <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+                    <span className="text-pink-400 text-xs">🎨</span>
+                    <span className="text-xs font-bold tracking-widest text-white/50">LIVE PREVIEW</span>
+                  </div>
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <div className="w-12 h-12 rounded-full shadow-lg flex-shrink-0" style={{ background: `radial-gradient(circle at 35% 35%, white 0%, ${t.color} 60%)` }} />
+                    <div>
+                      <p className="font-bold text-white text-base">{t.emoji} {t.name}</p>
+                      <p className="text-xs text-white/50">{t.desc}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 px-4 pb-4">
+                    <button className="flex-1 py-2 rounded-full text-sm font-bold text-white" style={{ backgroundColor: t.color }}>Sample Button</button>
+                    <button className="flex-1 py-2 rounded-full text-sm font-semibold text-white/70 border border-white/15">Secondary</button>
+                  </div>
+                </div>
+              ) : null;
+            })()}
             <div className="grid grid-cols-2 gap-3">
               {COLOR_THEMES.map(theme => (
                 <button
