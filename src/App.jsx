@@ -13,6 +13,7 @@ import Avatar from './pages/Avatar';
 import Discover from './pages/Discover';
 import FitnessTracker from './pages/FitnessTracker';
 import PasswordVault from './pages/PasswordVault';
+import ImportantContacts from './pages/ImportantContacts';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -40,6 +41,7 @@ const AuthenticatedApp = () => {
       <Route path="/discover" element={<Discover />} />
       <Route path="/fitness-tracker" element={<FitnessTracker />} />
       <Route path="/password-vault" element={<PasswordVault />} />
+      <Route path="/important-contacts" element={<ImportantContacts />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

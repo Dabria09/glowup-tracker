@@ -1,0 +1,31 @@
+{
+  "name": "Appointment",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "appointment_type": {
+      "type": "string",
+      "title": "Appointment Type"
+    },
+    "date_time": {
+      "type": "string",
+      "title": "Date & Time"
+    },
+    "provider_name": {
+      "type": "string",
+      "title": "Provider Name"
+    },
+    "location": {
+      "type": "string",
+      "title": "Location/Address"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": []
+}

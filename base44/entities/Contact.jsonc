@@ -1,0 +1,42 @@
+{
+  "name": "Contact",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "role": {
+      "type": "string",
+      "title": "Role",
+      "enum": [
+        "Doctor",
+        "Dentist",
+        "Therapist",
+        "Teacher",
+        "Coach",
+        "Counselor",
+        "Parent/Guardian",
+        "Emergency Contact",
+        "Other"
+      ]
+    },
+    "phone": {
+      "type": "string",
+      "title": "Phone"
+    },
+    "email": {
+      "type": "string",
+      "title": "Email"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": []
+}
