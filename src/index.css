@@ -78,16 +78,45 @@
 
 
 /* Accessibility classes */
-body.large-text { font-size: 1.2rem !important; }
-body.large-text p, body.large-text span, body.large-text button, body.large-text input { font-size: 1.15em !important; }
 
-body.high-contrast { filter: contrast(1.5) brightness(1.1); }
+/* Large Text: scale root so all rem-based text grows proportionally */
+body.large-text {
+  font-size: 20px !important;
+}
 
+/* High Contrast: boost text and border visibility without touching images */
+body.high-contrast p,
+body.high-contrast span,
+body.high-contrast h1,
+body.high-contrast h2,
+body.high-contrast h3,
+body.high-contrast h4,
+body.high-contrast label,
+body.high-contrast button {
+  color: #ffffff !important;
+  text-shadow: 0 0 1px rgba(0,0,0,0.8);
+}
+body.high-contrast .text-gray-400,
+body.high-contrast .text-gray-500,
+body.high-contrast .text-gray-300 {
+  color: #d1d5db !important;
+}
+body.high-contrast .bg-gray-800\/50,
+body.high-contrast .bg-white\/5 {
+  background-color: rgba(30, 30, 30, 0.95) !important;
+  border-color: rgba(255,255,255,0.3) !important;
+}
+body.high-contrast [class*="border"] {
+  border-color: rgba(255,255,255,0.25) !important;
+}
+
+/* Reduce Motion */
 body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after {
   animation-duration: 0.001ms !important;
   transition-duration: 0.001ms !important;
 }
 
+/* Screen Reader: visible focus rings */
 body.screen-reader *:focus {
   outline: 3px solid #ec4899 !important;
   outline-offset: 2px !important;
