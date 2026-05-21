@@ -39,6 +39,7 @@ export default function FitnessTracker() {
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -55,7 +56,9 @@ export default function FitnessTracker() {
         setWaterOz(tlog.water_oz || 0);
         setNotes(tlog.notes || '');
       }
-    }).catch(() => {});
+    }).catch(() => {
+      base44.auth.redirectToLogin();
+    });
   }, []);
 
   // Stats from last 7 days
@@ -70,8 +73,9 @@ export default function FitnessTracker() {
   const totalWater = last7.reduce((s, l) => s + (l.water_oz || 0), 0);
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user) { base44.auth.redirectToLogin(); return; }
     setSaving(true);
+    setSaveError('');
     const data = {
       user_email: user.email,
       log_date: today(),
@@ -82,15 +86,20 @@ export default function FitnessTracker() {
       water_oz: waterOz,
       notes,
     };
-    if (todayLog) {
-      await base44.entities.FitnessLog.update(todayLog.id, data);
-    } else {
-      const created = await base44.entities.FitnessLog.create(data);
-      setTodayLog(created);
+    try {
+      if (todayLog) {
+        await base44.entities.FitnessLog.update(todayLog.id, data);
+      } else {
+        const created = await base44.entities.FitnessLog.create(data);
+        setTodayLog(created);
+      }
+      setSaving(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (e) {
+      setSaving(false);
+      setSaveError('Failed to save. Please try again.');
     }
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
   };
 
   return (
@@ -251,6 +260,7 @@ export default function FitnessTracker() {
           </div>
 
           {/* Save Button */}
+          {saveError && <p className="text-red-400 text-xs text-center mb-2">{saveError}</p>}
           <button
             onClick={handleSave}
             disabled={saving}
