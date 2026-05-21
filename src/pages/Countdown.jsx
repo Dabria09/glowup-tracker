@@ -92,9 +92,10 @@ export default function Countdown() {
 
     try {
       await base44.entities.Countdown.delete(id);
-      setCountdowns(countdowns.filter(c => c.id !== id));
+      setCountdowns(prev => prev.filter(c => c.id !== id));
       toast.success('Countdown deleted');
     } catch (e) {
+      console.error('Delete error:', e);
       toast.error('Failed to delete countdown');
     }
   };
