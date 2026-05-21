@@ -36,6 +36,14 @@ export default function Home() {
     base44.auth.redirectToLogin(window.location.href);
   };
 
+  const handleAppleSignIn = () => {
+    base44.auth.redirectToLogin(window.location.href);
+  };
+
+  const handleFacebookSignIn = () => {
+    base44.auth.redirectToLogin(window.location.href);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0d0d1f' }}>
@@ -105,6 +113,22 @@ export default function Home() {
               <span>✨</span> Sign In with Google
             </button>
 
+            {/* Apple Sign In */}
+            <button
+              onClick={handleAppleSignIn}
+              className="w-full py-3 rounded-full bg-black text-white font-bold text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
+            >
+              <span>🍎</span> Sign In with Apple
+            </button>
+
+            {/* Facebook Sign In */}
+            <button
+              onClick={handleFacebookSignIn}
+              className="w-full py-3 rounded-full bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition flex items-center justify-center gap-2"
+            >
+              <span>📘</span> Sign In with Facebook
+            </button>
+
             {/* Mentor Sign In */}
             <button
               className="w-full py-3 rounded-full border border-cyan-500 text-cyan-400 font-bold text-sm hover:bg-cyan-500/10 transition flex items-center justify-center gap-2"
@@ -139,6 +163,22 @@ export default function Home() {
               <span>✨</span> Create Account with Google
             </button>
 
+            {/* Apple Sign Up */}
+            <button
+              onClick={handleAppleSignIn}
+              className="w-full py-3 rounded-full bg-black text-white font-bold text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
+            >
+              <span>🍎</span> Create Account with Apple
+            </button>
+
+            {/* Facebook Sign Up */}
+            <button
+              onClick={handleFacebookSignIn}
+              className="w-full py-3 rounded-full bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition flex items-center justify-center gap-2"
+            >
+              <span>📘</span> Create Account with Facebook
+            </button>
+
             <div className="bg-purple-900/20 border border-purple-900/30 rounded-2xl p-4 space-y-2">
               <p className="text-white font-bold text-sm">✨ What happens next</p>
               <ol className="text-gray-300 text-xs space-y-1">
@@ -151,7 +191,7 @@ export default function Home() {
 
             <div className="bg-cyan-900/20 border border-cyan-600/30 rounded-xl p-3 flex gap-2">
               <span className="text-cyan-400 flex-shrink-0">💡</span>
-              <p className="text-cyan-300 text-xs">For the best experience, please sign in with Google. Apple sign-in is not currently supported on this platform.</p>
+              <p className="text-cyan-300 text-xs">For the best experience, please sign in with Google, Apple, or Facebook.</p>
             </div>
           </div>
         )}
