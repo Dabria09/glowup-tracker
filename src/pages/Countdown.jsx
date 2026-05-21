@@ -176,8 +176,9 @@ export default function Countdown() {
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            {countdowns.map(cd => {
+          <>
+            <div className="space-y-3 mb-6">
+              {countdowns.map(cd => {
               const daysLeft = calculateDaysRemaining(cd.target_date);
               const categoryObj = CATEGORIES.find(c => c.label === cd.category);
 
@@ -215,7 +216,8 @@ export default function Countdown() {
                 </div>
               );
             })}
-          </div>
+            </div>
+          </>
         )}
       </div>
 
