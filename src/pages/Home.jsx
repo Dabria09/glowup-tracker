@@ -8,7 +8,8 @@ export default function Home() {
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    base44.auth.isAuthenticated().then(async (isAuthed) => {
+    const checkAuth = async () => {
+      const isAuthed = await base44.auth.isAuthenticated();
       if (!isAuthed) return;
       setAuthed(true);
       // If already fully onboarded, go straight to dashboard
@@ -17,8 +18,13 @@ export default function Home() {
       if (profiles.length && profiles[0].onboarding_complete) {
         navigate('/dashboard');
       }
-      // Otherwise stay on Home so user sees the landing page
-    });
+    };
+    
+    checkAuth();
+    
+    // Re-check when page regains focus (after OAuth redirect)
+    window.addEventListener('focus', checkAuth);
+    return () => window.removeEventListener('focus', checkAuth);
   }, []);
 
   const handleSignIn = async () => {
