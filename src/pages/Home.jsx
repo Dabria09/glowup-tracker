@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { Shield, Lock, Heart, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
-  const [authed, setAuthed] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('signin');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -17,9 +16,7 @@ export default function Home() {
           const me = await base44.auth.me();
           const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
           
-          if (profiles.length > 0 && profiles[0]?.onboarding_complete === true) {
-            navigate('/dashboard');
-          } else if (profiles.length > 0) {
+          if (profiles.length > 0) {
             navigate('/dashboard');
           } else {
             navigate('/onboarding');
@@ -34,6 +31,26 @@ export default function Home() {
     };
     
     checkAuth();
+    
+    let pollCount = 0;
+    const pollInterval = setInterval(async () => {
+      pollCount++;
+      if (pollCount >= 12) {
+        clearInterval(pollInterval);
+        return;
+      }
+      const isAuthed = await base44.auth.isAuthenticated();
+      if (isAuthed) {
+        clearInterval(pollInterval);
+        checkAuth();
+      }
+    }, 500);
+    
+    window.addEventListener('focus', checkAuth);
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener('focus', checkAuth);
+    };
   }, [navigate]);
 
   const handleGoogleSignIn = () => {
@@ -42,96 +59,235 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-pink-500 rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0d0d1f' }}>
+        <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 py-8">
-      <div className="w-full max-w-md space-y-6">
-        {/* Logo/Icon */}
-        <div className="flex justify-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
-            <span className="text-3xl">✨</span>
+    <div className="min-h-screen pb-20" style={{ backgroundColor: '#0d0d1f' }}>
+      {/* Header Logo */}
+      <div className="pt-8 px-4 pb-6 text-center">
+        <div className="mb-4 flex justify-center">
+          <div className="relative">
+            <div className="text-4xl font-bold" style={{
+              background: 'linear-gradient(135deg, #ff1493 0%, #ff69b4 50%, #ffb6c1 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 0 20px rgba(255, 20, 147, 0.6))',
+              textShadow: '0 0 30px rgba(255, 20, 147, 0.4)',
+            }}>
+              Girls Glowing Up
+            </div>
           </div>
         </div>
+        <p className="text-gray-400 text-sm">Your journey to becoming your best self starts here.</p>
+      </div>
 
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to GlowUp Tracker</h1>
-          <p className="text-gray-600 text-sm">Sign in to continue</p>
-        </div>
-
-        {/* Google Button */}
+      {/* Tabs */}
+      <div className="flex gap-4 px-4 mb-6">
         <button
-          onClick={handleGoogleSignIn}
-          className="w-full py-3 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium text-sm hover:bg-gray-50 transition flex items-center justify-center gap-3"
+          onClick={() => setActiveTab('signin')}
+          className={`flex-1 py-2.5 rounded-full font-semibold text-sm transition ${
+            activeTab === 'signin'
+              ? 'bg-pink-500 text-white'
+              : 'bg-white/10 text-gray-400 border border-white/10'
+          }`}
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path fill="#EA4335" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#4285F4" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          Continue with Google
+          Sign In
         </button>
-
-        {/* Divider */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-white text-gray-600 font-medium">OR</span>
-          </div>
-        </div>
-
-        {/* Email & Password Form */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-            />
-          </div>
-        </div>
-
-        {/* Sign In Button */}
         <button
-          onClick={() => alert('Email/password authentication coming soon. Please use Google sign-in.')}
-          className="w-full py-3 rounded-lg bg-gray-900 text-white font-semibold text-sm hover:bg-gray-800 transition"
+          onClick={() => setActiveTab('signup')}
+          className={`flex-1 py-2.5 rounded-full font-semibold text-sm transition ${
+            activeTab === 'signup'
+              ? 'bg-pink-500 text-white'
+              : 'bg-white/10 text-gray-400 border border-white/10'
+          }`}
         >
-          Sign in
+          Create Account
         </button>
+      </div>
 
-        {/* Links */}
-        <div className="flex flex-col items-center gap-3 text-sm">
-          <a href="#" className="text-gray-600 hover:text-pink-500 transition">
-            Forgot password?
-          </a>
-          <div className="text-gray-600">
-            Need an account?{' '}
-            <a href="#" className="text-pink-500 font-semibold hover:text-pink-600 transition">
-              Sign up
-            </a>
+      <div className="px-4 space-y-4">
+        {/* Sign In Tab */}
+        {activeTab === 'signin' && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-white font-bold text-xl mb-2">Welcome Back ✨</h2>
+              <p className="text-gray-400 text-sm">Your glow up journey continues here</p>
+            </div>
+
+            {/* Google Sign In */}
+            <button
+              onClick={handleGoogleSignIn}
+              className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold text-sm hover:from-pink-600 hover:to-pink-700 transition flex items-center justify-center gap-2"
+            >
+              <span>✨</span> Sign In with Google
+            </button>
+
+            {/* Mentor Sign In */}
+            <button
+              className="w-full py-3 rounded-full border border-cyan-500 text-cyan-400 font-bold text-sm hover:bg-cyan-500/10 transition flex items-center justify-center gap-2"
+            >
+              <span>💬</span> Mentor Sign In
+            </button>
+
+            {/* Biometric */}
+            <button
+              className="w-full py-3 rounded-full border border-purple-900 text-gray-300 font-bold text-sm hover:bg-white/5 transition flex items-center justify-center gap-2"
+            >
+              <span>👆</span> Sign In with Face / Fingerprint
+            </button>
+
+            <p className="text-gray-500 text-xs text-center">Face / fingerprint login requires setting it up in your Profile first.</p>
+          </div>
+        )}
+
+        {/* Create Account Tab */}
+        {activeTab === 'signup' && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-white font-bold text-xl mb-2">Join Girls Glowing Up 💖</h2>
+              <p className="text-gray-400 text-sm">Create your account in seconds with Google. Your sisterhood awaits.</p>
+            </div>
+
+            {/* Google Sign Up */}
+            <button
+              onClick={handleGoogleSignIn}
+              className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold text-sm hover:from-pink-600 hover:to-pink-700 transition flex items-center justify-center gap-2"
+            >
+              <span>✨</span> Create Account with Google
+            </button>
+
+            <div className="bg-purple-900/20 border border-purple-900/30 rounded-2xl p-4 space-y-2">
+              <p className="text-white font-bold text-sm">✨ What happens next</p>
+              <ol className="text-gray-300 text-xs space-y-1">
+                <li>1. Sign up with Google (we never see your password)</li>
+                <li>2. Pick your stage — Girl, Mom, or Sis</li>
+                <li>3. Take a quick tour of your new sisterhood</li>
+              </ol>
+              <p className="text-xs text-gray-500 pt-2">Under 13? A parent or guardian must give consent first — we will guide you through it.</p>
+            </div>
+
+            <div className="bg-cyan-900/20 border border-cyan-600/30 rounded-xl p-3 flex gap-2">
+              <span className="text-cyan-400 flex-shrink-0">💡</span>
+              <p className="text-cyan-300 text-xs">For the best experience, please sign in with Google. Apple sign-in is not currently supported on this platform.</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Features Grid */}
+      <div className="px-4 mt-8 space-y-4">
+        <h3 className="text-white font-bold text-sm">GGU Features</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+            <p className="text-2xl mb-1">📚</p>
+            <p className="text-white font-semibold text-xs">GGU Curriculum</p>
+            <p className="text-gray-400 text-xs">5 pillars of growth</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+            <p className="text-2xl mb-1">💬</p>
+            <p className="text-white font-semibold text-xs">Daily Quotes</p>
+            <p className="text-gray-400 text-xs">Inspiration every day</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+            <p className="text-2xl mb-1">🌸</p>
+            <p className="text-white font-semibold text-xs">Cycle Tracker</p>
+            <p className="text-gray-400 text-xs">Know your body</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+            <p className="text-2xl mb-1">⚡</p>
+            <p className="text-white font-semibold text-xs">Me vs Me</p>
+            <p className="text-gray-400 text-xs">Beat your best self</p>
           </div>
         </div>
+      </div>
+
+      {/* Become a Mentor */}
+      <div className="px-4 mt-8 bg-gradient-to-br from-purple-900/30 to-pink-900/20 border border-purple-900/40 rounded-2xl p-6 text-center">
+        <p className="text-3xl mb-3">🌟</p>
+        <h3 className="text-white font-bold text-lg mb-2">Are you a mentor or educator?</h3>
+        <p className="text-gray-300 text-sm mb-4">Join our team of verified mentors and help girls glow up.</p>
+        <button className="w-full py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold text-sm hover:from-blue-600 hover:to-blue-700 transition">
+          ✨ Become a Mentor
+        </button>
+      </div>
+
+      {/* Trust Badges */}
+      <div className="px-4 mt-8 space-y-3">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+            <p className="text-2xl mb-1">🛡️</p>
+            <p className="text-white text-xs font-semibold">Background Checked</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+            <p className="text-2xl mb-1">🔒</p>
+            <p className="text-white text-xs font-semibold">Data Protected</p>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+            <p className="text-2xl mb-1">✅</p>
+            <p className="text-white text-xs font-semibold">Verified Mentors</p>
+          </div>
+        </div>
+
+        {/* Safety Section */}
+        <div className="bg-gradient-to-br from-orange-900/30 to-red-900/20 border border-orange-900/40 rounded-2xl p-4 mt-4">
+          <div className="flex gap-3 mb-3">
+            <p className="text-2xl">⚠️</p>
+            <h4 className="text-orange-400 font-bold">Important Safety Disclosure</h4>
+          </div>
+          <p className="text-gray-300 text-xs mb-3">
+            Girls Glowing Up is a platform designed exclusively for girls and verified mentors. Despite our rigorous screening process, individuals with harmful intentions may attempt to gain access to this platform.
+          </p>
+          <div className="space-y-2 text-xs text-gray-400">
+            <div className="flex gap-2">
+              <p className="text-gray-500 flex-shrink-0">🔍</p>
+              <p>All mentor applications require a background check AND a live Zoom or phone interview before approval.</p>
+            </div>
+            <div className="flex gap-2">
+              <p className="text-gray-500 flex-shrink-0">⚠️</p>
+              <p>If any mentor or user makes you feel unsafe, uncomfortable, or asks for personal information — report them immediately using the flag button.</p>
+            </div>
+            <div className="flex gap-2">
+              <p className="text-gray-500 flex-shrink-0">📍</p>
+              <p>Never share your home address, school name, phone number, or meet anyone from this platform in person without a trusted adult present.</p>
+            </div>
+            <div className="flex gap-2">
+              <p className="text-gray-500 flex-shrink-0">👨‍👩‍👧</p>
+              <p>Parents: you may request a full activity review of your child account at any time by contacting our safety team.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Report Button */}
+        <div className="bg-red-900/20 border border-red-900/40 rounded-xl p-3 text-center mt-3">
+          <p className="text-red-400 font-bold text-sm mb-1">🚨 Report suspicious behavior:</p>
+          <p className="text-red-300 font-semibold text-xs mb-2">safety@girlsglowingup.com</p>
+          <p className="text-gray-500 text-xs">All reports are reviewed within 24 hours. Zero tolerance policy enforced.</p>
+        </div>
+
+        {/* Additional Trust */}
+        <div className="bg-cyan-900/20 border border-cyan-600/30 rounded-xl p-3 mt-3">
+          <p className="text-cyan-300 font-semibold text-xs mb-2">⭐ Trusted by Families</p>
+          <p className="text-gray-300 text-xs">GGU is a trusted educational platform for girls empowerment and personal growth.</p>
+        </div>
+
+        <div className="bg-white/5 border border-white/10 rounded-xl p-3 mt-3">
+          <p className="text-white font-semibold text-xs mb-2">📋 Not a Therapy Service</p>
+          <p className="text-gray-400 text-xs">GGU mentors are not licensed therapists, counselors, or medical professionals. Girls Glowing Up does not diagnose, treat, or provide clinical advice. If you or someone you know is in crisis, please contact a qualified mental health professional or call 988.</p>
+        </div>
+      </div>
+
+      {/* Footer Links */}
+      <div className="px-4 mt-8 pb-4 space-y-2 text-center">
+        <div className="flex gap-4 justify-center text-xs">
+          <a href="#" className="text-cyan-400 hover:text-cyan-300">Privacy Policy</a>
+          <a href="#" className="text-cyan-400 hover:text-cyan-300">Terms of Service</a>
+          <a href="#" className="text-cyan-400 hover:text-cyan-300">Parental Consent (COPPA)</a>
+        </div>
+        <p className="text-gray-600 text-xs">© 2025 Girls Glowing Up. All rights reserved.</p>
       </div>
     </div>
   );
