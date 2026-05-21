@@ -12,6 +12,7 @@ import Onboarding from './pages/Onboarding';
 import Avatar from './pages/Avatar';
 import Discover from './pages/Discover';
 import FitnessTracker from './pages/FitnessTracker';
+import PasswordVault from './pages/PasswordVault';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -38,6 +39,7 @@ const AuthenticatedApp = () => {
       <Route path="/avatar" element={<Avatar />} />
       <Route path="/discover" element={<Discover />} />
       <Route path="/fitness-tracker" element={<FitnessTracker />} />
+      <Route path="/password-vault" element={<PasswordVault />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
