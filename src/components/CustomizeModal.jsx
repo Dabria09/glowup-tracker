@@ -69,6 +69,32 @@ const LANGUAGES = [
   { code: 'ar', name: 'العربية', flag: '🇸🇦', native: 'Arabic' },
 ];
 
+const PATTERN_SVGS = {
+  stars: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='10' y='42' font-size='30' fill='rgba(255,255,255,0.18)'>&#9733;</text></svg>",
+  hearts: "<svg xmlns='http://www.w3.org/2000/svg' width='55' height='55'><text x='8' y='40' font-size='28' fill='rgba(255,255,255,0.18)'>&#9829;</text></svg>",
+  sparkles: "<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><text x='5' y='36' font-size='26' fill='rgba(255,255,255,0.2)'>&#10022;</text></svg>",
+  flowers: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='8' y='42' font-size='30' fill='rgba(255,255,255,0.18)'>&#10047;</text></svg>",
+  butterflies: "<svg xmlns='http://www.w3.org/2000/svg' width='65' height='65'><text x='6' y='46' font-size='32' fill='rgba(255,255,255,0.16)'>&#129419;</text></svg>",
+  diamonds: "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><polygon points='22,3 41,22 22,41 3,22' fill='rgba(255,255,255,0.16)'/></svg>",
+  crowns: "<svg xmlns='http://www.w3.org/2000/svg' width='65' height='65'><text x='8' y='46' font-size='32' fill='rgba(255,255,255,0.18)'>&#128081;</text></svg>",
+  dots: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><circle cx='12' cy='12' r='2' fill='rgba(255,255,255,0.16)'/></svg>",
+  moons: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='8' y='42' font-size='30' fill='rgba(255,255,255,0.18)'>&#9790;</text></svg>",
+  lightning: "<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><text x='8' y='38' font-size='26' fill='rgba(255,255,255,0.18)'>&#9889;</text></svg>",
+  fire: "<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><text x='8' y='38' font-size='26' fill='rgba(255,255,255,0.18)'>&#128293;</text></svg>",
+  snowflakes: "<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><text x='5' y='38' font-size='28' fill='rgba(255,255,255,0.20)'>&#10052;</text></svg>",
+  music: "<svg xmlns='http://www.w3.org/2000/svg' width='55' height='55'><text x='6' y='40' font-size='28' fill='rgba(255,255,255,0.18)'>&#9834;</text></svg>",
+  rainbow: "<svg xmlns='http://www.w3.org/2000/svg' width='65' height='55'><text x='4' y='42' font-size='30' fill='rgba(255,255,255,0.16)'>&#127752;</text></svg>",
+  clouds: "<svg xmlns='http://www.w3.org/2000/svg' width='70' height='50'><text x='4' y='36' font-size='30' fill='rgba(255,255,255,0.18)'>&#9729;</text></svg>",
+  paws: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='8' y='42' font-size='28' fill='rgba(255,255,255,0.18)'>&#128062;</text></svg>",
+  lips: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='6' y='42' font-size='28' fill='rgba(255,255,255,0.18)'>&#128139;</text></svg>",
+  eyes: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='6' y='42' font-size='28' fill='rgba(255,255,255,0.18)'>&#129535;</text></svg>",
+};
+
+const getPatternBg = (patternId) => {
+  if (!patternId || patternId === 'none' || !PATTERN_SVGS[patternId]) return {};
+  return { backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(PATTERN_SVGS[patternId])}")` };
+};
+
 export default function CustomizeModal({
   bgColor, setBgColor,
   bgPattern, setBgPattern,
@@ -148,16 +174,20 @@ export default function CustomizeModal({
               {COLOR_THEMES.map(theme => (
                 <button
                   key={theme.id}
-                  onClick={() => setSelectedTheme(theme.id)}
-                  className={`p-4 rounded-2xl border-2 transition text-left ${
+                  onClick={() => { setSelectedTheme(theme.id); setBgColor(theme.color); }}
+                  className={`p-4 rounded-2xl border-2 transition text-left relative overflow-hidden ${
                     selectedTheme === theme.id
                       ? 'border-pink-500 bg-pink-500/10'
                       : 'border-gray-700 hover:border-gray-600'
                   }`}
+                  style={{ backgroundColor: theme.color + '22' }}
                 >
+                  {selectedTheme === theme.id && (
+                    <span className="absolute top-2 right-2 w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center text-white text-xs">✓</span>
+                  )}
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full" style={{ backgroundColor: theme.color }} />
-                    <span className="font-semibold text-white text-sm">{theme.name}</span>
+                    <div className="w-8 h-8 rounded-full border-2 border-white/20" style={{ backgroundColor: theme.color }} />
+                    <span className="font-semibold text-white text-sm">{theme.emoji} {theme.name}</span>
                   </div>
                   <p className="text-xs text-gray-400">{theme.desc}</p>
                 </button>
@@ -176,15 +206,19 @@ export default function CustomizeModal({
                 <button
                   key={pattern.id}
                   onClick={() => setBgPattern(pattern.id)}
-                  className={`p-4 rounded-2xl border-2 transition text-left ${
+                  className={`p-4 rounded-2xl border-2 transition text-left relative overflow-hidden ${
                     bgPattern === pattern.id
-                      ? 'border-pink-500 bg-pink-500/10'
+                      ? 'border-pink-500'
                       : 'border-gray-700 hover:border-gray-600'
                   }`}
+                  style={{ backgroundColor: '#1a0a18', ...getPatternBg(pattern.id) }}
                 >
+                  {bgPattern === pattern.id && (
+                    <span className="absolute top-2 right-2 w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center text-white text-xs">✓</span>
+                  )}
                   <div className="text-3xl mb-2">{pattern.emoji}</div>
                   <p className="font-semibold text-white text-sm">{pattern.label}</p>
-                  <p className="text-xs text-gray-400">{pattern.desc}</p>
+                  <p className="text-xs text-gray-300/70">{pattern.desc}</p>
                 </button>
               ))}
             </div>
