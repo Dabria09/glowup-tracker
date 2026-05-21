@@ -31,7 +31,7 @@ export default function FitnessTracker() {
   const [logs, setLogs] = useState([]);
   const [todayLog, setTodayLog] = useState(null);
 
-  const [workoutType, setWorkoutType] = useState('');
+  const [workoutType, setWorkoutType] = useState([]);
   const [minutes, setMinutes] = useState('');
   const [calories, setCalories] = useState('');
   const [steps, setSteps] = useState('');
@@ -48,7 +48,7 @@ export default function FitnessTracker() {
       const tlog = allLogs.find(l => l.log_date === today());
       if (tlog) {
         setTodayLog(tlog);
-        setWorkoutType(tlog.workout_type || '');
+        setWorkoutType(tlog.workout_type ? tlog.workout_type.split(',') : []);
         setMinutes(tlog.minutes || '');
         setCalories(tlog.calories || '');
         setSteps(tlog.steps || '');
@@ -75,7 +75,7 @@ export default function FitnessTracker() {
     const data = {
       user_email: user.email,
       log_date: today(),
-      workout_type: workoutType,
+      workout_type: workoutType.join(','),
       minutes: Number(minutes) || 0,
       calories: Number(calories) || 0,
       steps: Number(steps) || 0,
@@ -139,9 +139,9 @@ export default function FitnessTracker() {
             {WORKOUT_TYPES.map(w => (
               <button
                 key={w.id}
-                onClick={() => setWorkoutType(w.id === workoutType ? '' : w.id)}
+                onClick={() => setWorkoutType(prev => prev.includes(w.id) ? prev.filter(x => x !== w.id) : [...prev, w.id])}
                 className={`flex flex-col items-center gap-1 py-3 rounded-xl border transition ${
-                  workoutType === w.id
+                  workoutType.includes(w.id)
                     ? 'border-pink-500 bg-pink-500/20'
                     : 'border-white/10 bg-white/5 hover:bg-white/10'
                 }`}
