@@ -212,6 +212,21 @@ export default function Dashboard() {
         <p className="text-gray-500 text-sm">@{username}</p>
       </div>
 
+      {/* Daily Glow Check-In Banner */}
+      <div className="px-4 mb-5">
+        <button onClick={() => navigate('/daily-checkin')}
+          className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.5), rgba(168,85,247,0.4), rgba(236,72,153,0.3))', border: '1px solid rgba(168,85,247,0.4)' }}>
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0" style={{ background: 'rgba(168,85,247,0.3)' }}>✦</div>
+          <div className="flex-1">
+            <p className="text-xs font-bold tracking-wider text-yellow-400 mb-0.5">DAILY GLOW CHECK-IN</p>
+            <p className="font-bold text-white text-base">How are you glowing today?</p>
+            <p className="text-xs text-gray-400">Tap to check in &amp; earn points ✨</p>
+          </div>
+          <ChevronRight size={18} className="text-gray-400 flex-shrink-0" />
+        </button>
+      </div>
+
       {/* Quick Access */}
       {!isEditMode && (
         <div className="px-4 mb-5">
