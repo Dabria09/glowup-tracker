@@ -185,7 +185,7 @@ export default function TripDetail() {
       <div className="relative z-10">
         {/* Hero */}
         <div className="relative pt-6 pb-6 px-4 text-center" style={{ background: 'linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6)' }}>
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='55' height='55'%3E%3Ctext x='8' y='40' font-size='28' fill='white'%3E%E2%99%A5%3C/text%3E%3C/svg%3E\")" }} />
+          <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='55' height='55'%3E%3Ctext x='8' y='40' font-size='28' fill='white'%3E%E2%99%A5%3C/text%3E%3C/svg%3E\")" }} />
           <button onClick={() => navigate('/trip-planner')} className="absolute top-6 left-4 text-white/80 flex items-center gap-1 text-sm z-10">
             <ChevronLeft size={18} /> All Trips
           </button>
