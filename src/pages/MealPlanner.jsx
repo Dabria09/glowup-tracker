@@ -269,7 +269,82 @@ export default function MealPlanner() {
           <div className="w-full rounded-t-3xl flex flex-col" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)', maxHeight: 'calc(100vh - 80px)', height: '90vh' }} onClick={e => e.stopPropagation()}>
 
             {/* Scrollable content */}
-            <div className="overflow-y-auto flex-1 p-6 pb-2">
+            <div className="overflow-y-auto flex-1 p-6 pb-2 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 mb-2 block">MEAL NAME</label>
+                <input
+                  type="text"
+                  value={addName}
+                  onChange={e => setAddName(e.target.value)}
+                  placeholder="e.g., Grilled Chicken Salad"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 mb-2 block">MEAL TYPE</label>
+                  <select
+                    value={addType}
+                    onChange={e => setAddType(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"
+                  >
+                    {MEAL_TYPES.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 mb-2 block">DAY</label>
+                  <select
+                    value={addDay}
+                    onChange={e => setAddDay(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"
+                  >
+                    {DAYS.map(day => (
+                      <option key={day} value={day}>{day}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 mb-2 block">NOTES (OPTIONAL)</label>
+                <textarea
+                  value={addNotes}
+                  onChange={e => setAddNotes(e.target.value)}
+                  placeholder="Recipe notes, ingredients, etc."
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none resize-none min-h-20"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 mb-2 block">LINK GROCERY ITEMS</label>
+                <p className="text-xs text-gray-500 mb-2">Select items from your grocery list</p>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {uncheckedGrocery.length === 0 ? (
+                    <p className="text-xs text-gray-500">No items in grocery list</p>
+                  ) : (
+                    uncheckedGrocery.map(item => (
+                      <button
+                        key={item.id}
+                        onClick={() => toggleGrocery(item.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm transition ${
+                          addLinked.includes(item.id) ? 'bg-green-900/50 border border-green-700/50' : 'bg-white/5 border border-white/10'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                          addLinked.includes(item.id) ? 'bg-green-500 border-green-500' : 'border-gray-500'
+                        }`}>
+                          {addLinked.includes(item.id) && <span className="text-white text-xs">✓</span>}
+                        </div>
+                        <span className="flex-1">{item.name}</span>
+                        {item.quantity > 1 && <span className="text-xs text-gray-400">×{item.quantity}</span>}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
 
               <button onClick={saveAdd} disabled={!addName.trim()}
                 className="w-full py-4 rounded-2xl font-bold text-white text-sm disabled:opacity-40"
