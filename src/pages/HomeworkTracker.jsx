@@ -258,7 +258,14 @@ export default function HomeworkTracker() {
           <div className="w-full max-w-lg glass-strong rounded-t-3xl p-6 pb-10" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <p className="text-white font-bold text-lg">📝 New Assignment</p>
-              <button onClick={() => setShowForm(false)}><X size={22} className="text-gray-400" /></button>
+              <div className="flex items-center gap-2">
+                <button onClick={handleAdd} disabled={saving || !fTitle.trim()}
+                  className="px-4 py-2 rounded-full font-bold text-white text-sm disabled:opacity-60"
+                  style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                  {saving ? 'Adding...' : '✓ Save'}
+                </button>
+                <button onClick={() => setShowForm(false)}><X size={22} className="text-gray-400" /></button>
+              </div>
             </div>
 
             <input autoFocus type="text" placeholder="Assignment title" value={fTitle} onChange={e => setFTitle(e.target.value)}
@@ -298,11 +305,7 @@ export default function HomeworkTracker() {
             <input type="text" placeholder="e.g. Chapter 5, pages 20-30" value={fNotes} onChange={e => setFNotes(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm outline-none placeholder-gray-500 mb-4" />
 
-            <button onClick={handleAdd} disabled={saving || !fTitle.trim()}
-              className="w-full py-3 rounded-full font-bold text-white disabled:opacity-60"
-              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-              {saving ? 'Adding...' : '✓ Add Assignment'}
-            </button>
+
           </div>
         </div>
       )}
