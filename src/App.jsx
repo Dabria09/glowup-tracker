@@ -38,6 +38,7 @@ import DailyQuotes from './pages/DailyQuotes';
 import DailyCheckIn from './pages/DailyCheckIn';
 import GroceryList from './pages/GroceryList';
 import MealPlanner from './pages/MealPlanner';
+import MyGlowLink from './pages/MyGlowLink';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -90,6 +91,7 @@ const AuthenticatedApp = () => {
       <Route path="/daily-checkin" element={<DailyCheckIn />} />
       <Route path="/grocery-list" element={<GroceryList />} />
       <Route path="/meal-planner" element={<MealPlanner />} />
+      <Route path="/my-glow-link" element={<MyGlowLink />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
