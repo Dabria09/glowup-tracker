@@ -54,8 +54,37 @@ export default function MyGlowLink() {
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
+      let userProfile = null;
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
-      if (profiles.length) setProfile(profiles[0]);
+      if (profiles.length) {
+        userProfile = profiles[0];
+        setProfile(userProfile);
+        setUsername(userProfile.username || '');
+        setGlowEra(userProfile.glow_era || 'Glow Up Era');
+        setBio(userProfile.bio || '');
+        setMotto(userProfile.motto || '');
+        setLinks(userProfile.links ? JSON.parse(userProfile.links) : []);
+        setProfilePhoto(userProfile.avatar_url || null);
+      }
+      
+      // Fetch real user points/achievements
+      try {
+        const userPoints = await base44.entities.UserPoints.filter({ user_email: u.email });
+        if (userPoints.length) {
+          const points = userPoints[0];
+          setAchievements({
+            streak: points.check_in_streak || 0,
+            badges: Math.floor(points.total_points / 100) || 0,
+            goals: 0,
+            challenges: points.challenges_completed || 0,
+            days: Math.floor((new Date() - new Date(userProfile?.created_date || Date.now())) / (1000 * 60 * 60 * 24)) || 0,
+            tier: points.total_points >= 500 ? 'Radiant' : points.total_points >= 200 ? 'Glowing' : 'Spark',
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching user points:', err);
+      }
+      
       setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
@@ -121,26 +150,59 @@ export default function MyGlowLink() {
         <div className="px-4 py-4 space-y-6">
 
           {/* Profile Section */}
-          <div>
-            <h2 className="text-sm font-bold tracking-widest text-gray-400 mb-3">YOUR PROFILE</h2>
-            <div className="flex items-center justify-between gap-4 rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div className="flex items-center gap-3 flex-1">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-lg font-bold flex-shrink-0">
-                  {profilePhoto ? <img src={profilePhoto} alt="profile" className="w-full h-full object-cover rounded-full" /> : user?.full_name?.[0] || 'G'}
+          <div className="space-y-4">
+            <h2 className="text-sm font-bold tracking-widest text-gray-400">YOUR PROFILE</h2>
+            <div className="rounded-2xl px-4 py-4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              {/* Header with avatar and stats */}
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-xl font-bold flex-shrink-0 overflow-hidden">
+                    {profilePhoto ? <img src={profilePhoto} alt="profile" className="w-full h-full object-cover" /> : user?.full_name?.[0] || 'G'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-white text-base">{user?.full_name}</p>
+                    <p className="text-xs text-gray-400 truncate">@{username || user?.email?.split('@')[0]}</p>
+                    {glowEra && (
+                      <p className="text-xs text-pink-400 font-semibold mt-1">{glowEra}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-white text-sm">{user?.full_name}</p>
-                  <p className="text-xs text-gray-400 truncate">@{user?.email?.split('@')[0]}</p>
+                <div className="flex gap-4">
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-bold text-white">{followers}</p>
+                    <p className="text-[10px] text-gray-400">Followers</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-bold text-white">{following}</p>
+                    <p className="text-[10px] text-gray-400">Following</p>
+                  </div>
                 </div>
               </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-sm font-bold text-white">{followers}</p>
-                <p className="text-[10px] text-gray-400">Followers</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-sm font-bold text-white">{following}</p>
-                <p className="text-[10px] text-gray-400">Following</p>
-              </div>
+              
+              {/* Bio */}
+              {bio && (
+                <div className="mb-3 pb-3 border-b border-white/10">
+                  <p className="text-sm text-gray-200">{bio}</p>
+                </div>
+              )}
+              
+              {/* Motto */}
+              {motto && (
+                <div className="mb-3 pb-3 border-b border-white/10">
+                  <p className="text-xs text-gray-400 italic">"{motto}"</p>
+                </div>
+              )}
+              
+              {/* Links */}
+              {links && links.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {links.map((link, i) => (
+                    <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-full text-xs font-semibold bg-pink-500/20 text-pink-300 border border-pink-500/30 hover:bg-pink-500/30 transition">
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -340,41 +402,48 @@ export default function MyGlowLink() {
               </div>
 
               {/* Achievements */}
-              <div>
-                <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">HER ACHIEVEMENTS</h3>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <span className="text-2xl block mb-1">🔥</span>
-                    <p className="font-bold text-white text-sm">{achievements.streak} days</p>
-                    <p className="text-xs text-gray-400">Streak</p>
-                  </div>
-                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <span className="text-2xl block mb-1">⭐</span>
-                    <p className="font-bold text-white text-sm">{achievements.badges} earned</p>
-                    <p className="text-xs text-gray-400">Badges</p>
-                  </div>
-                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <span className="text-2xl block mb-1">🎯</span>
-                    <p className="font-bold text-white text-sm">{achievements.goals} active</p>
-                    <p className="text-xs text-gray-400">Goals</p>
-                  </div>
-                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <span className="text-2xl block mb-1">✓</span>
-                    <p className="font-bold text-white text-sm">{achievements.challenges} done</p>
-                    <p className="text-xs text-gray-400">Challenges</p>
-                  </div>
-                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <span className="text-2xl block mb-1">📅</span>
-                    <p className="font-bold text-white text-sm">{achievements.days}+</p>
-                    <p className="text-xs text-gray-400">Days in GGU</p>
-                  </div>
-                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <span className="text-2xl block mb-1">👑</span>
-                    <p className="font-bold text-white text-sm">{achievements.tier}</p>
-                    <p className="text-xs text-gray-400">Tier</p>
+              {privacy.show_achievements && (achievements.streak > 0 || achievements.badges > 0 || achievements.challenges > 0) && (
+                <div>
+                  <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">HER ACHIEVEMENTS</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {achievements.streak > 0 && (
+                      <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <span className="text-2xl block mb-1">🔥</span>
+                        <p className="font-bold text-white text-sm">{achievements.streak} days</p>
+                        <p className="text-xs text-gray-400">Streak</p>
+                      </div>
+                    )}
+                    {achievements.badges > 0 && (
+                      <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <span className="text-2xl block mb-1">⭐</span>
+                        <p className="font-bold text-white text-sm">{achievements.badges} earned</p>
+                        <p className="text-xs text-gray-400">Badges</p>
+                      </div>
+                    )}
+                    {achievements.challenges > 0 && (
+                      <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <span className="text-2xl block mb-1">✓</span>
+                        <p className="font-bold text-white text-sm">{achievements.challenges} done</p>
+                        <p className="text-xs text-gray-400">Challenges</p>
+                      </div>
+                    )}
+                    {achievements.days > 0 && (
+                      <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <span className="text-2xl block mb-1">📅</span>
+                        <p className="font-bold text-white text-sm">{achievements.days}+</p>
+                        <p className="text-xs text-gray-400">Days in GGU</p>
+                      </div>
+                    )}
+                    {achievements.tier !== 'Spark' && (
+                      <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <span className="text-2xl block mb-1">👑</span>
+                        <p className="font-bold text-white text-sm">{achievements.tier}</p>
+                        <p className="text-xs text-gray-400">Tier</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Privacy Controls */}
               <div>
@@ -399,7 +468,33 @@ export default function MyGlowLink() {
                 ))}
               </div>
 
-              <button onClick={async () => { if (user) { await base44.auth.updateMe({ bio, motto }); alert('Glow Link saved!'); } }} className="w-full py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+              <button onClick={async () => {
+                if (user) {
+                  // Update UserProfile entity
+                  const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+                  if (profiles.length) {
+                    await base44.entities.UserProfile.update(profiles[0].id, {
+                      bio,
+                      motto,
+                      glow_era: glowEra,
+                      username,
+                      links: JSON.stringify(links),
+                    });
+                  } else {
+                    await base44.entities.UserProfile.create({
+                      user_email: user.email,
+                      bio,
+                      motto,
+                      glow_era: glowEra,
+                      username,
+                      links: JSON.stringify(links),
+                    });
+                  }
+                  // Also update auth profile
+                  await base44.auth.updateMe({ bio, motto });
+                  alert('Glow Link saved! 💜');
+                }
+              }} className="w-full py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                 Save My Glow Link 💜
               </button>
             </div>
