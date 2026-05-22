@@ -1,0 +1,35 @@
+{
+  "name": "MealPlan",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "week_start": {
+      "type": "string",
+      "title": "Week Start Date (YYYY-MM-DD)"
+    },
+    "day": {
+      "type": "string",
+      "title": "Day of Week"
+    },
+    "meal_type": {
+      "type": "string",
+      "title": "Meal Type (breakfast/lunch/dinner/snack)"
+    },
+    "meal_name": {
+      "type": "string",
+      "title": "Meal Name"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    },
+    "grocery_items": {
+      "type": "string",
+      "title": "Linked Grocery Item IDs (JSON array)"
+    }
+  },
+  "required": []
+}

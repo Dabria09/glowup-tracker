@@ -43,6 +43,7 @@ const SECTIONS = [
       { id: 'vision_board', label: 'Vision Board', gradient: 'from-pink-900 via-rose-900 to-orange-900', route: '/vision-board', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/6adb092a1_IMG_4341.jpeg' },
       { id: 'scholarships', label: 'Scholarships', gradient: 'from-amber-900 via-yellow-900 to-orange-900', route: '/scholarships', image: MANUS + 'icon-diploma-education_12164ff4.png' },
       { id: 'grocery_list', label: 'Grocery List', gradient: 'from-yellow-700 via-amber-800 to-orange-800', route: '/grocery-list', image: CDN + 'icon-grocery-list-Sz9GHLVJt4pRGz2JvYmwDw.webp' },
+      { id: 'meal_planner', label: 'Meal Planner', gradient: 'from-green-900 via-teal-900 to-emerald-900', route: '/meal-planner', image: '', emoji: '🍽️' },
     ],
   },
   {

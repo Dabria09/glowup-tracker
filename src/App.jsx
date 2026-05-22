@@ -37,6 +37,7 @@ import WellnessHub from './pages/WellnessHub';
 import DailyQuotes from './pages/DailyQuotes';
 import DailyCheckIn from './pages/DailyCheckIn';
 import GroceryList from './pages/GroceryList';
+import MealPlanner from './pages/MealPlanner';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -88,6 +89,7 @@ const AuthenticatedApp = () => {
       <Route path="/daily-quotes" element={<DailyQuotes />} />
       <Route path="/daily-checkin" element={<DailyCheckIn />} />
       <Route path="/grocery-list" element={<GroceryList />} />
+      <Route path="/meal-planner" element={<MealPlanner />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
