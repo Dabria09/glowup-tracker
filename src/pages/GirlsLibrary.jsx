@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { BookOpen, ChevronLeft, X } from 'lucide-react';
+import LibraryQuiz from '@/components/LibraryQuiz';
+import QUIZZES from '@/lib/libraryQuizzes';
+import { BookOpen, ChevronLeft } from 'lucide-react';
 
 const SECTION_TABS = [
   { id: 'resources', label: 'Resources', emoji: '📚' },
@@ -242,6 +244,7 @@ export default function GirlsLibrary() {
             <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
               {renderContent(selectedResource.content)}
             </div>
+            <LibraryQuiz key={selectedResource.id} quiz={QUIZZES[selectedResource.id]} />
           </div>
         </div>
       )}
