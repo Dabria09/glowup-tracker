@@ -4,7 +4,7 @@ import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import LibraryQuiz from '@/components/LibraryQuiz';
 import QUIZZES from '@/lib/libraryQuizzes';
-import { BookOpen, ChevronLeft } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 
 const SECTION_TABS = [
   { id: 'resources', label: 'Resources', emoji: '📚' },
@@ -21,101 +21,353 @@ const SECTION_TABS = [
   { id: 'your_voice', label: 'Your Voice', emoji: '🎤' },
 ];
 
-const CATEGORIES = [
-  { id: 'all', label: 'All', emoji: '' },
-  { id: 'hygiene', label: 'Hygiene', emoji: '🚿' },
-  { id: 'skincare', label: 'Skincare', emoji: '✨' },
-  { id: 'budgeting', label: 'Budgeting', emoji: '💰' },
-  { id: 'scholarships', label: 'Scholarships', emoji: '🎓' },
-  { id: 'college', label: 'College', emoji: '🏢' },
-  { id: 'entrepreneurship', label: 'Entrepreneurship', emoji: '🚀' },
-  { id: 'interview', label: 'Interview Prep', emoji: '💼' },
-  { id: 'safety', label: 'Safety', emoji: '🛡️' },
-  { id: 'studying', label: 'Studying', emoji: '📖' },
-  { id: 'black_hair', label: 'Black Hair Care', emoji: '👑' },
-  { id: 'mental_wellness', label: 'Mental Wellness', emoji: '🧘‍♀️' },
-  { id: 'growth_mindset', label: 'Growth Mindset', emoji: '🧠' },
-  { id: 'real_life', label: 'Real Life Skills', emoji: '🗺️' },
-  { id: 'road_rules', label: 'Real Life Road Rules', emoji: '🚗' },
-  { id: 'beauty', label: 'Beauty & Glow Up', emoji: '💅' },
-  { id: 'character', label: 'Character & Values', emoji: '💡' },
-  { id: 'life_skills', label: 'Life Skills', emoji: '🏛️' },
-  { id: 'healthy_eating', label: 'Healthy Eating', emoji: '🥗' },
-  { id: 'time_mgmt', label: 'Time Management', emoji: '⏰' },
-];
+const CAT_META = {
+  hygiene:         { label: 'Hygiene',              emoji: '🚿', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  skincare:        { label: 'Skincare',              emoji: '✨', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  budgeting:       { label: 'Budgeting',             emoji: '💰', labelColor: '#fb923c', cardBg: 'rgba(88,28,135,0.55)' },
+  scholarships:    { label: 'Scholarships',          emoji: '🎓', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  college:         { label: 'College',               emoji: '🏢', labelColor: '#c084fc', cardBg: 'rgba(60,40,100,0.6)' },
+  entrepreneurship:{ label: 'Entrepreneurship',      emoji: '🚀', labelColor: '#fb923c', cardBg: 'rgba(100,20,20,0.55)' },
+  interview:       { label: 'Interview Prep',        emoji: '💼', labelColor: '#34d399', cardBg: 'rgba(6,78,59,0.5)' },
+  safety:          { label: 'Safety',                emoji: '🛡️', labelColor: '#f87171', cardBg: 'rgba(127,29,29,0.5)' },
+  studying:        { label: 'Studying',              emoji: '📖', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  black_hair:      { label: 'Black Hair Care',       emoji: '👑', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  mental_wellness: { label: 'Mental Wellness',       emoji: '🧘‍♀️', labelColor: '#4ade80', cardBg: 'rgba(6,78,59,0.45)' },
+  growth_mindset:  { label: 'Growth Mindset',        emoji: '🧠', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  real_life:       { label: 'Real Life Skills',      emoji: '🗺️', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  road_rules:      { label: 'Real Life Road Rules',  emoji: '🚗', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  beauty:          { label: 'Beauty & Glow Up',      emoji: '💅', labelColor: '#f472b6', cardBg: 'rgba(131,24,67,0.45)' },
+  character:       { label: 'Character & Values',    emoji: '💡', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  life_skills:     { label: 'Life Skills',            emoji: '🏛️', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  healthy_eating:  { label: 'Healthy Eating',         emoji: '🥗', labelColor: '#4ade80', cardBg: 'rgba(6,78,59,0.45)' },
+  time_mgmt:       { label: 'Time Management',        emoji: '⏰', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+};
 
 const RESOURCES = [
-  // Hygiene
-  { id: 1, cat: 'hygiene', emoji: '🚿', title: 'Daily Hygiene Routine', desc: 'Your complete guide to looking and feeling fresh every single day.', content: `**Why Hygiene Matters**\nYour daily hygiene routine is the foundation of confidence. When you feel clean and fresh, you carry yourself differently.\n\n**Morning Routine**\n• Wash your face with a gentle cleanser\n• Brush teeth for 2 minutes (morning & night)\n• Deodorant — apply to clean, dry skin\n• Shower or freshen up daily\n• Change into clean clothes\n\n**Body Care**\n• Shower daily or every other day\n• Use a body wash that suits your skin type\n• Moisturize your skin while it's still slightly damp\n• Wash hands regularly, especially before eating\n\n**Dental Care**\n• Brush twice a day, floss once\n• Use mouthwash for extra freshness\n• See a dentist every 6 months\n\n**Hair Care Basics**\n• Wash hair based on your hair type (1-3x per week)\n• Keep a clean brush/comb\n• Avoid touching your hair too much\n\n**Quick Tips**\n✨ Keep travel-sized products in your bag for refreshing on the go\n✨ Change your pillowcase weekly — your skin will thank you\n✨ Drink water — hydration shows on your skin` },
-  { id: 2, cat: 'hygiene', emoji: '🌸', title: 'Period Hygiene & Care', desc: 'Everything you need to know about managing your period with confidence.', content: `**Your Period is Power**\nYour cycle is a sign that your body is working perfectly. Managing it confidently starts with the right information.\n\n**Products to Know**\n• **Pads** — Easy to use, great for starting out. Change every 4-6 hours.\n• **Tampons** — Internal option. Never leave in more than 8 hours (TSS risk).\n• **Menstrual Cup** — Reusable, eco-friendly, lasts 10+ years.\n• **Period Underwear** — Comfortable backup protection.\n\n**Changing Your Products**\n• Change pads every 4-6 hours, or sooner if needed\n• Change tampons every 4-8 hours — set a phone reminder\n• Always wash hands before and after\n\n**Managing Cramps**\n• Heating pad on your lower abdomen\n• Ibuprofen works best when taken early\n• Light movement and yoga help\n• Magnesium-rich foods (dark chocolate, bananas)\n\n**Period Kit for School**\n🎒 Pack in a small pouch: 2-3 pads or tampons, pain reliever, wipes, backup underwear\n\n**When to See a Doctor**\n🚨 Periods lasting 10+ days, extreme pain, soaking a pad per hour, or no period for 3+ months` },
+  { id: 1,  cat: 'hygiene',          emoji: '🚿', title: 'Daily Hygiene Routine',
+    desc: 'Your complete guide to looking and feeling fresh every single day.',
+    tips: ['Shower or bathe daily, especially after exercise','Brush teeth twice a day and floss daily','Use deodorant or antiperspirant every morning','Wash your face morning and night','Change underwear and socks daily','Wash your hair regularly (every 2–3 days or as needed for your hair type)'],
+    actions: ['Build a 10-minute morning routine','Keep hygiene products organized in one place','Create a nighttime routine that includes washing your face','Set phone reminders for flossing or skincare steps','Track your routine for one week to build the habit'] },
 
-  // Skincare
-  { id: 3, cat: 'skincare', emoji: '✨', title: 'Skincare for Glowing Skin', desc: 'Simple skincare routines that actually work — no matter your skin type.', content: `**Know Your Skin Type**\n• **Oily** — Shiny, enlarged pores, prone to breakouts\n• **Dry** — Tight, flaky, dull\n• **Combination** — Oily T-zone, dry cheeks\n• **Normal** — Balanced, minimal issues\n• **Sensitive** — Easily irritated, reacts to products\n\n**The Basic Routine (Everyone Needs This)**\n\n**Morning:**\n1. Gentle cleanser\n2. Moisturizer\n3. SPF (sunscreen protects from aging and cancer)\n\n**Evening:**\n1. Remove makeup (micellar water or cleansing balm)\n2. Cleanser\n3. Treatment (if needed — niacinamide, retinol, etc.)\n4. Moisturizer\n\n**Drugstore Heroes**\n• CeraVe Hydrating Cleanser\n• Neutrogena Hydro Boost Moisturizer\n• La Roche-Posay SPF 50\n• The Ordinary Niacinamide 10%\n\n**Glow Tips**\n✨ Drink 8+ glasses of water daily\n✨ Change pillowcase weekly\n✨ Never sleep in makeup\n✨ Sunscreen is non-negotiable — even on cloudy days` },
-  { id: 4, cat: 'skincare', emoji: '💆‍♀️', title: 'Managing Acne & Breakouts', desc: 'Acne is normal. Here\'s how to manage it without damaging your skin.', content: `**Acne is Normal — You Are Not Alone**\nOver 85% of teens experience acne. It is not a sign of being dirty or unhealthy. It is hormones, genetics, and sometimes lifestyle.\n\n**What Causes Acne**\n• Excess oil production\n• Bacteria (C. acnes)\n• Clogged pores from dead skin cells\n• Hormonal changes\n• Touching your face\n\n**What Actually Works**\n• **Salicylic Acid** — Unclogs pores, great for blackheads\n• **Benzoyl Peroxide** — Kills bacteria, reduces inflammation\n• **Niacinamide** — Reduces redness and oil\n• **Retinol** — Speeds up cell turnover (start slow!)\n\n**What to Avoid**\n🚫 Popping pimples — causes scarring and more breakouts\n🚫 Over-washing — strips skin and causes rebound oil\n🚫 Heavy, comedogenic products\n🚫 Touching your face throughout the day\n\n**See a Dermatologist If:**\n• OTC products aren't working after 3 months\n• You have deep, painful cystic acne\n• Acne is affecting your mental health\n\n**Quick Tip:** Change your pillowcase 2x per week and clean your phone screen daily — both touch your face constantly.` },
+  { id: 2,  cat: 'hygiene',          emoji: '🌸', title: 'Period Hygiene & Care',
+    desc: 'Everything you need to know about managing your period with confidence.',
+    tips: ['Change pads every 4–6 hours, or sooner if needed','Never leave a tampon in for more than 8 hours','Always wash your hands before and after changing products','Use a heating pad or ibuprofen early for cramps','Track your cycle so you\'re always prepared'],
+    actions: ['Build a period kit for your bag (pads, wipes, pain reliever, backup underwear)','Download a period tracking app','Talk to a trusted adult or doctor if you have unusual symptoms','Stock up on supplies at the beginning of each month','Create a self-care plan for your first day'] },
 
-  // Budgeting
-  { id: 5, cat: 'budgeting', emoji: '💰', title: 'Budgeting 101', desc: 'Learn how to manage your money so your money doesn\'t manage you.', content: `**Why Budgeting Matters Now**\nThe habits you build today will shape your financial future. You don't need to earn a lot to start budgeting — you just need to start.\n\n**The 50/30/20 Rule**\n• **50%** — Needs (essentials: food, transportation, necessities)\n• **30%** — Wants (fun, clothes, entertainment)\n• **20%** — Savings & goals\n\n**Step 1: Know Your Income**\nWrite down everything that comes in — allowance, job, gifts.\n\n**Step 2: Track Your Spending**\nFor one week, write down every single purchase. You will be surprised.\n\n**Step 3: Set a Savings Goal**\nWhat are you saving for? A phone? A car? College? Name it.\n\n**Budgeting Apps for Teens**\n• YNAB (You Need A Budget)\n• Mint\n• Greenlight (teens + parents)\n• Just a notes app works too!\n\n**Money Mindset**\n💡 Pay yourself first — save before you spend\n💡 Wants vs. needs: ask "do I need this or just want it?"\n💡 Every dollar you save now grows over time with compound interest` },
-  { id: 6, cat: 'budgeting', emoji: '💼', title: 'Teen Side Hustles', desc: 'Real ways to make money right now — no degree required.', content: `**You Can Start Making Money Now**\nYou don't have to wait until you're 18 or have a degree to start earning.\n\n**Service-Based Hustles**\n• Babysitting & childcare\n• Dog walking & pet sitting\n• Lawn mowing & yard work\n• Car washing\n• House cleaning\n• Grocery shopping for neighbors\n\n**Skills-Based Hustles**\n• Tutoring classmates\n• Social media management for local businesses\n• Graphic design (Canva is free!)\n• Selling photos you take\n• Video editing\n\n**Online Hustles**\n• Sell handmade items on Etsy\n• Resell thrifted clothes on Depop/Poshmark\n• Sell digital products (templates, notes)\n• YouTube or TikTok content\n\n**Getting Started**\n1. Pick ONE hustle to start with\n2. Tell your neighborhood/network\n3. Set a fair price\n4. Deliver great work and ask for referrals\n\n💡 Track your earnings and save at least 20% of everything you make` },
+  { id: 3,  cat: 'skincare',         emoji: '✨', title: 'Skincare for Glowing Skin',
+    desc: 'Simple skincare routines that actually work — no matter your skin type.',
+    tips: ['Wash your face morning and night with a gentle cleanser','Always wear SPF in the morning — even on cloudy days','Moisturize while your skin is still slightly damp','Never sleep in makeup','Change your pillowcase weekly'],
+    actions: ['Identify your skin type (oily, dry, combination, sensitive)','Build a basic 3-step routine: cleanse, moisturize, SPF','Shop drugstore heroes: CeraVe, Neutrogena, La Roche-Posay','Drink 8 glasses of water daily for hydrated skin','Track your skin for 4 weeks to see what works'] },
 
-  // Scholarships
-  { id: 7, cat: 'scholarships', emoji: '🎓', title: 'Finding Scholarships', desc: 'Free money for college exists — you just have to find it and apply.', content: `**Scholarships Are Free Money**\nMillions of dollars in scholarship money goes unclaimed every year because students don't apply. That stops today.\n\n**Where to Search**\n• Fastweb.com\n• Scholarships.com\n• Bold.org\n• Going Merry\n• Your state's department of education\n• Local community foundations\n• Your high school counselor's office\n\n**Types of Scholarships**\n• Merit-based (grades, test scores)\n• Need-based (financial situation)\n• Identity-based (race, gender, first-generation)\n• Essay-based (write your story)\n• Community service\n• Sports & extracurriculars\n\n**Application Tips**\n✅ Start early — junior year of high school\n✅ Apply to small local scholarships (less competition!)\n✅ Customize each essay — never use a generic one\n✅ Get multiple people to proofread\n✅ Track deadlines in a spreadsheet\n✅ Apply to everything — even $500 adds up\n\n**FAFSA First**\nFill out the FAFSA (Free Application for Federal Student Aid) as soon as it opens — October 1st of your senior year.` },
+  { id: 4,  cat: 'skincare',         emoji: '💆‍♀️', title: 'Managing Acne & Breakouts',
+    desc: 'Acne is normal. Here\'s how to manage it without damaging your skin.',
+    tips: ['Never pop pimples — it causes scarring and spreads bacteria','Avoid touching your face throughout the day','Change your pillowcase 2x per week','Clean your phone screen daily','Don\'t over-wash — it strips skin and causes more oil'],
+    actions: ['Try a salicylic acid cleanser for 4 weeks','Add niacinamide serum to reduce redness','Keep a skin diary to track triggers (food, stress, products)','See a dermatologist if OTC products don\'t work after 3 months','Build a consistent routine and stick to it'] },
 
-  // College
-  { id: 8, cat: 'college', emoji: '🏫', title: 'College Prep Guide', desc: 'Everything you need to know to get into the college of your dreams.', content: `**Start Earlier Than You Think**\nCollege prep isn't just for seniors. What you do in 9th and 10th grade matters too.\n\n**The College Application Timeline**\n**9th-10th Grade:** Take challenging classes, explore interests, join clubs\n**11th Grade:** PSAT, begin college research, visit campuses (virtual counts)\n**Summer Before 12th:** Draft essays, request recommendation letters\n**12th Grade (Fall):** Apply! Common App opens August 1st\n**12th Grade (Winter/Spring):** FAFSA, financial aid letters, decide by May 1st\n\n**What Colleges Look For**\n• GPA and course rigor\n• Standardized test scores (SAT/ACT) — many schools are test-optional now\n• Extracurriculars and leadership\n• Essays — your unique voice matters most\n• Recommendation letters\n• Community service\n\n**Essay Tips**\n✍️ Write about something specific, not general\n✍️ Show who you are, not just what you did\n✍️ Start with a compelling hook\n✍️ Be authentic — don't try to sound impressive\n\n**Apply to a Range**\nSafety schools + match schools + reach schools = balanced list` },
+  { id: 5,  cat: 'budgeting',        emoji: '💰', title: 'Budgeting 101',
+    desc: 'Learn how to manage your money so your money doesn\'t manage you.',
+    tips: ['Pay yourself first — save before you spend','Track every purchase for one week to see where money goes','Use the 50/30/20 rule: needs/wants/savings','Ask "need or want?" before every purchase','Small savings add up — $5/day is $1,825/year'],
+    actions: ['Write down all your income sources this month','Track every purchase for 7 days (even small ones)','Set one specific savings goal with a deadline','Download a budgeting app (YNAB, Mint, or Greenlight)','Set up automatic transfers to savings on payday'] },
 
-  // Entrepreneurship
-  { id: 9, cat: 'entrepreneurship', emoji: '🚀', title: 'Starting Your Own Business', desc: 'You don\'t need to wait until you\'re an adult to be an entrepreneur.', content: `**You Are Already an Entrepreneur at Heart**\nEvery business started as an idea. Your age is not a barrier — your mindset is the only thing that matters.\n\n**Business Ideas for Teen Girls**\n• Handmade jewelry or accessories\n• Custom clothing or thrifted fashion\n• Tutoring or educational services\n• Social media management\n• Event planning\n• Baking & custom treats\n• Photography or videography\n\n**The Simple Business Plan**\n1. **What** — What product or service are you selling?\n2. **Who** — Who is your customer?\n3. **How Much** — What's your price? What are your costs?\n4. **How** — How will you reach customers?\n\n**Starting Steps**\n✅ Research your idea (is there demand?)\n✅ Start small — test before investing big\n✅ Open a separate savings account for business money\n✅ Create a simple Instagram or Etsy page\n✅ Tell 10 people about your business\n\n**Teen Entrepreneur Resources**\n• SCORE Mentoring (free mentors)\n• Young Entrepreneurs Academy\n• Shark Tank Junior\n\n💡 The best time to start is before you feel ready.` },
+  { id: 6,  cat: 'budgeting',        emoji: '💼', title: 'Teen Side Hustles',
+    desc: 'Real ways to make money right now — no degree required.',
+    tips: ['Start with one hustle and master it before adding more','Tell your network — word of mouth is the best marketing','Deliver great work and ask for referrals','Track your income and save at least 20%','Every problem around you is a potential business opportunity'],
+    actions: ['List 3 skills or services you could offer starting this week','Set a fair price by researching what others charge','Create a simple flyer or social media post','Tell 10 people in your network about your hustle','Open a separate savings account for business income'] },
 
-  // Interview Prep
-  { id: 10, cat: 'interview', emoji: '💼', title: 'Interview Prep & Job Skills', desc: 'How to walk into any interview — job, college, scholarship — and own the room.', content: `**Confidence is a Skill You Can Build**\nEvery great interviewer was once a nervous first-timer. Practice makes perfect.\n\n**Before the Interview**\n• Research the company or program\n• Prepare answers to common questions\n• Plan your outfit (neat, clean, professional)\n• Arrive 10-15 minutes early\n• Bring a copy of your resume\n\n**Common Questions & How to Answer**\n\n*"Tell me about yourself"* — Give a 60-second highlight reel: who you are, what you do, why you're here\n\n*"What are your strengths?"* — Pick 2-3 with real examples\n\n*"What's your weakness?"* — Be honest but show growth: "I used to struggle with time management, so I started using a planner and now I..."  \n\n*"Why do you want this?"* — Show genuine enthusiasm and research\n\n**Body Language**\n✨ Firm handshake\n✨ Eye contact (not staring — natural!)\n✨ Sit up straight, no slouching\n✨ Smile genuinely\n✨ Nod to show you're listening\n\n**After the Interview**\nSend a thank-you email within 24 hours. This sets you apart from most candidates.` },
+  { id: 7,  cat: 'scholarships',     emoji: '🎓', title: 'Finding Scholarships',
+    desc: 'Free money for college exists — you just have to find it and apply.',
+    tips: ['Start searching during junior year of high school','Apply to small local scholarships — less competition!','Never use a generic essay — customize every application','Get 2+ people to proofread before submitting','Track all deadlines in a spreadsheet'],
+    actions: ['Create profiles on Fastweb.com, Bold.org, and Going Merry','Visit your school counselor\'s office for local opportunities','Fill out the FAFSA as soon as it opens (October 1st senior year)','Draft a master essay you can customize for each application','Apply to at least 5 scholarships this month'] },
 
-  // Safety
-  { id: 11, cat: 'safety', emoji: '🛡️', title: 'Personal Safety', desc: 'Know your rights, trust your instincts, and always protect yourself.', content: `**Your Safety is Non-Negotiable**\nTrusting your gut has saved countless lives. If something feels wrong, it probably is.\n\n**Street Safety**\n• Stay aware — headphones in both ears = reduced awareness\n• Walk confidently — eyes up, shoulders back\n• Stick to well-lit, populated areas at night\n• Share your location with someone you trust\n• Have emergency contacts on speed dial\n\n**Digital Safety**\n• Never share your home address, school, or daily schedule with strangers online\n• Be cautious of anyone who moves too fast emotionally online\n• Reverse image search profile photos to check for catfishing\n• Anything you send can be screenshot and shared forever\n\n**Relationship Safety**\nRed flags to never ignore:\n🚩 Someone who isolates you from friends/family\n🚩 Controlling or jealous behavior\n🚩 Pressure to do things you're not comfortable with\n🚩 Making you feel bad about yourself\n\n**If You're in Danger**\n• Call 911\n• Text 911 (available in most areas)\n• Tell a trusted adult immediately\n• National DV Hotline: 1-800-799-7233\n\n**Remember:** Getting out of a dangerous situation is never overreacting.` },
-  { id: 12, cat: 'safety', emoji: '🔒', title: 'Online Safety & Digital Privacy', desc: 'Learn what never to share, how to spot predators, and protect yourself online.', content: `**The Internet Never Forgets**\nAnything you post, send, or share online can live forever — even if you delete it.\n\n**Never Share Online**\n🚫 Your home address or school name\n🚫 Your daily schedule or routine\n🚫 Financial information\n🚫 Passwords (even with friends)\n🚫 Explicit photos or videos — ever\n\n**Spotting Online Predators**\nWarning signs:\n• Moves very quickly to being your "best friend"\n• Asks overly personal questions early on\n• Wants to move to a private platform quickly\n• Offers money, gifts, or modeling opportunities\n• Says things like "you're so mature for your age"\n• Asks you to keep the relationship secret\n\n**Protecting Your Accounts**\n• Use strong, unique passwords\n• Enable 2-factor authentication\n• Keep accounts private\n• Regularly audit who follows you\n• Turn off location sharing on posts\n\n**If Something Goes Wrong**\n• Tell a trusted adult immediately\n• Screenshot evidence before deleting anything\n• Report to the platform\n• Report to NCMEC CyberTipline: cybertipline.org\n• Call 1-800-THE-LOST` },
+  { id: 8,  cat: 'college',          emoji: '🏫', title: 'College Prep Guide',
+    desc: 'Everything you need to know to get into the college of your dreams.',
+    tips: ['Start preparing in 9th grade — not senior year','Take challenging courses to show academic rigor','Your college essay is the most important part of your application','Build a balanced list: safety, match, and reach schools','Visit campuses virtually if you can\'t go in person'],
+    actions: ['Research 5–10 colleges that fit your goals and budget','Request recommendation letters the summer before 12th grade','Start drafting your college essay during junior year','Make a timeline of all application deadlines','Fill out the FAFSA as soon as it opens'] },
 
-  // Studying
-  { id: 13, cat: 'studying', emoji: '📖', title: 'Study Skills & Academic Success', desc: 'Master the art of studying smarter, not harder.', content: `**Study Smart, Not Just Hard**\nHours spent staring at a book ≠ actually learning. Here's how to actually retain information.\n\n**The Most Effective Study Methods**\n\n**Active Recall** — Close the book and try to remember what you just read. Quiz yourself.\n\n**Spaced Repetition** — Study a little bit every day instead of cramming the night before. Your brain retains information better this way.\n\n**The Pomodoro Method** — 25 minutes of focused studying, 5-minute break. Repeat 4 times, then take a longer break.\n\n**Teach It** — Explain what you learned to someone else (or even your pet!). If you can teach it, you know it.\n\n**Setting Up to Study**\n• Clean, organized space\n• Phone in another room or on Do Not Disturb\n• Water and a light snack nearby\n• Use lo-fi music or white noise if silence is too distracting\n\n**Before a Test**\n• Review 3 days before, not the night before\n• Get 8+ hours of sleep the night before\n• Eat a real breakfast\n• Arrive early and breathe\n\n💡 Your GPA doesn't define you, but good study habits will serve you for life.` },
-  { id: 14, cat: 'studying', emoji: '✏️', title: 'Note-Taking Strategies That Actually Work', desc: 'Transform your notes from messy scribbles into powerful study tools.', content: `**Your Notes Are a Study Tool — Make Them Work**\nBad notes = studying the same material twice. Good notes = studying half as long.\n\n**The Cornell Method**\nDivide your page into 3 sections:\n• **Right column (70%)** — Main notes during class\n• **Left column (30%)** — Key questions and cues after class\n• **Bottom section** — Summary in your own words\n\n**The Outline Method**\nGreat for organized content:\n- Main topic\n  - Subtopic\n    - Detail\n\n**The Mind Map Method**\nPerfect for visual learners. Put the main concept in the center, branch out to subtopics.\n\n**Tips for Better Notes**\n✨ Use abbreviations and symbols\n✨ Write in your own words — don't copy word for word\n✨ Use color coding by topic\n✨ Leave white space — your brain needs breathing room\n✨ Review and add to notes within 24 hours of class\n\n**Digital vs. Handwritten**\nStudies show handwritten notes lead to better retention — your brain processes it differently when your hand writes it.` },
-  { id: 15, cat: 'studying', emoji: '🎯', title: 'Test Prep & Exam Strategy', desc: 'Walk into every exam confident, prepared, and ready to show what you know.', content: `**Preparation Is the Confidence Builder**\nYou don't need luck when you've prepared.\n\n**2 Weeks Before**\n• Identify every topic on the test\n• Make a study schedule\n• Gather all notes and materials\n• Form a study group (optional but helpful)\n\n**1 Week Before**\n• Active recall sessions daily\n• Practice tests and past exams\n• Flashcards for memorization\n• Teach concepts to a friend\n\n**Night Before**\n• Light review only — no cramming\n• Prepare your bag and outfit\n• Get 8-9 hours of sleep (this is non-negotiable)\n• No screens for 1 hour before bed\n\n**Day of the Test**\n• Eat a protein-rich breakfast\n• Arrive early and take deep breaths\n• Read every question carefully before answering\n• Skip hard questions and come back\n• Trust your first instinct on multiple choice\n\n**Managing Test Anxiety**\n• 4-7-8 breathing before you start\n• Remind yourself: "I have prepared for this"\n• If you blank, move on and come back` },
+  { id: 9,  cat: 'entrepreneurship', emoji: '🚀', title: 'Starting Your Own Business',
+    desc: 'You don\'t need to wait until you\'re an adult to be an entrepreneur.',
+    tips: ['Start small — test before you invest','Research your idea: is there real demand?','Open a separate account for business money','Create a simple Instagram or Etsy page to reach customers','The best time to start is before you feel ready'],
+    actions: ['Write a one-page simple business plan (what, who, how much, how)','Research your competition and identify what makes you different','Tell 10 people about your business idea this week','Set up a free Canva account to create your branding','Apply to the Young Entrepreneurs Academy or SCORE mentoring'] },
 
-  // Black Hair Care
-  { id: 16, cat: 'black_hair', emoji: '👑', title: 'Natural Hair Care Basics', desc: 'Love and care for your natural hair with knowledge and tools to keep it healthy.', content: `**Your Crown is Everything**\nNatural hair is beautiful, powerful, and worth every moment of care you give it.\n\n**The Basics of Natural Hair Care**\n\n**Moisture is Everything**\nBlack hair tends to be naturally dry because the natural oils from your scalp have a harder time traveling down the curl. Moisture = life.\n\n**The LOC/LCO Method**\n• **L** — Liquid (water or water-based leave-in)\n• **O** — Oil (seals in moisture — coconut, castor, jojoba)\n• **C** — Cream (thick moisturizer)\nApply in this order for maximum moisture retention.\n\n**Wash Day Basics**\n1. Pre-poo (optional) — oil treatment before washing\n2. Shampoo — focus on scalp, not ends\n3. Deep condition — always! (15-30 min with heat)\n4. Leave-in conditioner\n5. Style while hair is still damp\n\n**Protective Styles**\nBraids, twists, wigs, and weaves protect your ends from breakage. But keep them clean and don't leave them in too long!\n\n**Ingredients to Love**\n✅ Shea butter, castor oil, aloe vera, glycerin\n\n**Ingredients to Avoid**\n🚫 Sulfates (drying), mineral oil (clogs pores), alcohol (drying)` },
-  { id: 17, cat: 'black_hair', emoji: '💧', title: 'Understanding Hair Porosity', desc: 'Knowing your hair\'s porosity is the key to choosing products that actually work.', content: `**What is Hair Porosity?**\nPorosity is your hair's ability to absorb and retain moisture. It's determined by your hair cuticle.\n\n**Test Your Porosity**\nDrop a clean strand of hair in a glass of water:\n• Floats → **Low porosity**\n• Sinks slowly → **Medium/Normal porosity**  \n• Sinks fast → **High porosity**\n\n**Low Porosity Hair**\n• Cuticles are tightly closed\n• Water beads up, products sit on top\n• Takes forever to dry\n\n**What Works:** Lightweight products, heat when deep conditioning, clarifying shampoo to remove buildup\n\n**High Porosity Hair**\n• Cuticles have gaps (from heat, chemicals, or genetics)\n• Absorbs moisture quickly but loses it fast\n• Frizzy, prone to breakage\n\n**What Works:** Protein treatments, heavier butters and creams, sealing with oil after moisturizing, cold water rinses\n\n**Normal/Medium Porosity Hair**\n• Most balanced — hold moisture well\n• Responds well to most products\n\n💡 Once you know your porosity, you stop wasting money on products that don't work for you.` },
-  { id: 18, cat: 'black_hair', emoji: '✨', title: 'Protective Styles Guide', desc: 'Protective styles for length retention, low manipulation, and giving your hair a break.', content: `**Why Protective Styles Work**\nYour ends are the oldest, most fragile part of your hair. Protecting them = retaining length.\n\n**Popular Protective Styles**\n\n**Braids** (box braids, cornrows, knotless braids)\n• Great for 4-8 weeks\n• Keep moisturizing your scalp weekly\n• Don't braid too tight — it causes breakage and traction alopecia\n\n**Twists** (mini twists, Senegalese twists)\n• Less tension than braids\n• Great for 2-6 weeks\n\n**Wigs & Weaves**\n• Protect your natural hair underneath\n• Keep your natural hair moisturized and clean underneath\n• Give your edges a break — don't glue near your hairline\n\n**Locs**\n• A long-term protective style and lifestyle\n• Require regular retwisting and moisturizing\n\n**Protective Style Care Tips**\n✅ Moisturize your scalp weekly (not just the style)\n✅ Sleep with a satin bonnet or pillowcase always\n✅ Take down before 8 weeks to prevent matting\n✅ Deep condition after taking a style down\n\n⚠️ Never let a stylist braid too tight. Pain = damage.` },
+  { id: 10, cat: 'interview',        emoji: '💼', title: 'Interview Prep & Job Skills',
+    desc: 'How to walk into any interview — job, college, scholarship — and own the room.',
+    tips: ['Research the company or program before every interview','Arrive 10–15 minutes early — never late','Prepare your "Tell me about yourself" answer in under 60 seconds','Send a thank-you email within 24 hours after the interview','Practice in front of a mirror or with a trusted friend'],
+    actions: ['Write out your answers to the 5 most common interview questions','Plan your interview outfit (neat, clean, professional)','Practice your handshake and eye contact','Do a mock interview with a parent, teacher, or counselor','Follow up every interview with a handwritten or email thank-you'] },
 
-  // Mental Wellness
-  { id: 19, cat: 'mental_wellness', emoji: '🙋‍♀️', title: 'People Pleasing: Are You Doing Too Much?', desc: 'Do you say yes when you mean no? Let\'s talk about it.', content: `**Signs You Might Be a People Pleaser**\n• You say yes when you desperately want to say no\n• You change your opinion based on who you're with\n• You feel responsible for other people's emotions\n• You apologize constantly, even when it's not your fault\n• You feel guilty when you prioritize yourself\n• You fear that saying no will make people not like you\n\n**Why We People Please**\nMost people pleasers grew up in environments where their approval was tied to their behavior. Or they were hurt by conflict and learned that keeping the peace = staying safe.\n\n**The Cost of People Pleasing**\n• Resentment builds over time\n• You attract people who take advantage\n• You lose touch with your own wants and needs\n• Anxiety and burnout\n\n**How to Stop**\n1. **Pause before responding** — "Let me think about that and get back to you"\n2. **Practice saying no** — Start small. "I can't make it tonight."\n3. **Recognize your needs matter too** — Your comfort is not less important than others'\n4. **Notice the guilt** — Feeling guilty for saying no doesn't mean you did something wrong\n\n💡 Saying no to what doesn't serve you is saying yes to yourself.` },
-  { id: 20, cat: 'mental_wellness', emoji: '🧘‍♀️', title: 'Mental Wellness & Self-Care', desc: 'Your mental health matters just as much as your physical health.', content: `**Mental Health is Health**\nYou wouldn't ignore a broken arm. Don't ignore a struggling mind.\n\n**Signs Your Mental Health Needs Attention**\n• Persistent sadness or emptiness\n• Losing interest in things you used to love\n• Changes in sleep (too much or too little)\n• Withdrawing from friends and family\n• Feeling hopeless about the future\n• Irritability or anger that feels out of control\n\n**Daily Mental Health Habits**\n• Sleep 8-9 hours (this is the #1 mental health tool)\n• Move your body — even a 20-minute walk helps\n• Limit social media (2 hours/day max)\n• Talk to someone you trust\n• Journal — get your thoughts out of your head\n• Do one thing you enjoy every day\n\n**When to Get Help**\nTalk to a school counselor, trusted adult, or therapist if:\n• Symptoms persist for 2+ weeks\n• You're having thoughts of hurting yourself\n• Daily functioning is affected\n\n**Crisis Resources**\n📱 Crisis Text Line: Text HOME to 741741\n📞 988 Suicide & Crisis Lifeline: Call or text 988\n\n💡 Asking for help is not weakness — it's the strongest thing you can do.` },
-  { id: 21, cat: 'mental_wellness', emoji: '🌿', title: 'Staying Present in the Moment', desc: 'How to stop living in your worries and actually experience your life.', content: `**The Problem with Living in Your Head**\nWhen your mind is always in the past (ruminating) or the future (worrying), you miss the only thing that's real — right now.\n\n**What is Mindfulness?**\nMindfulness just means paying attention to the present moment on purpose, without judgment.\n\n**Simple Ways to Be More Present**\n\n**5-4-3-2-1 Technique:**\n• 5 things you can see\n• 4 things you can touch\n• 3 things you can hear\n• 2 things you can smell\n• 1 thing you can taste\n\n**Mindful Eating:** Put the phone down. Taste your food. Notice textures and flavors.\n\n**Mindful Walking:** Feel your feet on the ground. Notice the air. Look around.\n\n**Tech Boundaries for Presence**\n• No phone for the first 30 minutes after waking up\n• Phone-free meals\n• One social media check per day\n• No phone in bed\n\n💡 The most important moment of your life is always this one.` },
+  { id: 11, cat: 'safety',           emoji: '🛡️', title: 'Personal Safety',
+    desc: 'Know your rights, trust your instincts, and always protect yourself.',
+    tips: ['Trust your gut — if something feels wrong, it probably is','Stay aware in public — headphones in both ears reduces awareness','Share your location with a trusted person when going out','Walk confidently — eyes up, shoulders back','Know the red flags of a controlling or dangerous relationship'],
+    actions: ['Save 911 and 5 trusted contacts on your phone\'s speed dial','Download the Companion app for walking home safely','Learn the signs of an unhealthy relationship','Share your location with a trusted adult when you go out at night','Know the National DV Hotline: 1-800-799-7233'] },
 
-  // Growth Mindset
-  { id: 22, cat: 'growth_mindset', emoji: '🧠', title: 'Growth Mindset vs Fixed Mindset', desc: 'Your mindset is the story you tell yourself about who you are.', content: `**What is a Mindset?**\nA mindset is the set of beliefs you hold about yourself and your abilities.\n\n**Fixed Mindset Says:**\n• "I'm just not smart."\n• "I can't do math — I never could."\n• "She's naturally talented. I'll never be that good."\n• "I failed, so I must not be cut out for this."\n\n**Growth Mindset Says:**\n• "I'm not good at this *yet*."\n• "What can I learn from this failure?"\n• "She worked hard to get there. I can too."\n• "This is difficult, which means I'm growing."\n\n**The Science**\nResearcher Carol Dweck at Stanford proved that believing you can improve actually changes what's possible for you. Your brain physically grows new connections when you learn.\n\n**Shifting Your Mindset**\nWhenever you hear a fixed mindset thought:\n1. Notice it — "There's that fixed mindset voice."\n2. Acknowledge it — "I understand you're trying to protect me."\n3. Redirect it — "But what if I try anyway?"\n\n**The Power of YET**\nAdd the word "yet" to your fixed thoughts:\n"I don't understand this" → "I don't understand this *yet*"` },
+  { id: 12, cat: 'safety',           emoji: '🔒', title: 'Online Safety & Digital Privacy: Protect Yourself Online',
+    desc: 'The internet is powerful — but it can also be dangerous.',
+    tips: ['Never share your home address, school name, or daily schedule online','Anything you post can live forever — even after you delete it','Reverse image search profile photos to check for catfishing','Enable 2-factor authentication on all accounts','Regularly audit who follows you on private accounts'],
+    actions: ['Audit your social media privacy settings this week','Remove your home address or school from all public profiles','Report any suspicious accounts or messages immediately','Screenshot evidence before deleting anything harmful','Visit cybertipline.org to report exploitation'] },
 
-  // Real Life Skills
-  { id: 23, cat: 'real_life', emoji: '🚗', title: 'Buying Your First Car', desc: 'Everything you need to know about buying a car — don\'t let a dealership play you.', content: `**Knowledge is Protection at a Dealership**\nDealerships are in the business of making money. Go in informed.\n\n**Step 1: Set Your Budget**\n• Car payment should be no more than 15% of your monthly income\n• Don't forget: insurance, gas, maintenance, registration\n\n**Step 2: New vs. Used**\nFor a first car, used (1-4 years old, low mileage) is almost always the smarter choice. New cars lose 20% of their value the moment you drive off the lot.\n\n**Step 3: Research Before You Go**\n• Use Carfax or AutoCheck to check vehicle history\n• Get a pre-purchase inspection from an independent mechanic\n• Look up fair market value on Kelley Blue Book (KBB)\n\n**Step 4: At the Dealership**\n• Get pre-approved for financing before going (your bank or credit union)\n• Negotiate the price, not the monthly payment\n• Never sign the same day — sleep on it\n• Read every line before signing\n\n**Red Flags**\n🚩 Pressure to sign today\n🚩 "Special deal only good right now"\n🚩 Fees you weren't told about beforehand` },
-  { id: 24, cat: 'real_life', emoji: '🏡', title: 'Buying a Home', desc: 'Homeownership is one of the biggest wealth-building tools available.', content: `**Why Homeownership Matters**\nWhen you pay rent, you're building someone else's wealth. When you own, you build equity — money that belongs to you.\n\n**Start Preparing Now**\nEven if you're years away, these habits matter:\n• **Build credit** — Get a secured credit card, pay it off monthly\n• **Save for a down payment** — Aim for 3-20% of the home price\n• **Reduce debt** — Student loans, car payments affect what you qualify for\n\n**How a Mortgage Works**\nA bank lends you money to buy a home. You pay it back monthly (principal + interest) over 15-30 years. As you pay, you build equity.\n\n**The Home Buying Process**\n1. Get pre-approved for a mortgage\n2. Find a real estate agent\n3. Search for homes in your budget\n4. Make an offer\n5. Inspection and appraisal\n6. Close the deal and get your keys!\n\n**First-Time Buyer Programs**\n• FHA loans (3.5% down payment)\n• Down payment assistance programs (many cities/states offer these)\n• First-time homebuyer tax credits\n\n💡 The best time to start preparing for homeownership is always right now.` },
-  { id: 25, cat: 'real_life', emoji: '🚪', title: 'How to Leave an Uncomfortable Situation', desc: 'Real scripts and exit plans for getting yourself out of situations that don\'t feel right.', content: `**Your Discomfort is a Signal — Honor It**\nYou never need a reason to leave a situation that doesn't feel right. Your safety and comfort are enough reason.\n\n**Exit Scripts That Work**\n\n"I have to go — my mom/dad just texted me."\n"I'm not feeling well, I need to head out."\n"I just remembered I have somewhere to be."\n"This isn't really my scene — I'm gonna head out."\n"I need some air — I'll catch you later."\n\n**The Fake Call Trick**\nSet a timer on your phone for 15-20 minutes after arriving somewhere you're unsure about. When it goes off, take the "call" and excuse yourself.\n\n**If You Feel Unsafe**\n• Get to a public, well-lit area\n• Call 911 if you feel in immediate danger\n• Text a friend your location\n• Use the Companion app — it lets someone virtually walk you home\n\n**Driving Safety**\nIf the driver is intoxicated or driving dangerously:\n• Ask them to pull over\n• Call someone to pick you up — there is always a way home\n• You can always call 911\n• No ride is worth your life\n\n💡 A real friend will never be upset that you left a situation to keep yourself safe.` },
+  { id: 13, cat: 'studying',         emoji: '📖', title: 'Study Skills & Academic Success',
+    desc: 'Master the art of studying smarter, not harder.',
+    tips: ['Use active recall: close the book and quiz yourself','Study a little every day instead of cramming the night before','Use the Pomodoro method: 25 min focus, 5 min break','Teach what you learned to someone else to lock it in','Get 8+ hours of sleep the night before any test'],
+    actions: ['Create a weekly study schedule and stick to it for 2 weeks','Set up a clean, distraction-free study space','Put your phone in another room during study sessions','Practice active recall on your last 3 topics today','Review notes within 24 hours of every class'] },
 
-  // Road Rules
-  { id: 26, cat: 'road_rules', emoji: '🚨', title: 'How to Handle Getting Pulled Over', desc: 'Knowing exactly what to do keeps you safe, calm, and legally protected.', content: `**Stay Calm — You Can Handle This**\nGetting pulled over is stressful but manageable. What you do in those moments matters.\n\n**Immediately When You See Lights**\n1. Turn on your hazard lights\n2. Slow down gradually and pull to the right side of the road\n3. Put the car in park and turn off the engine\n4. Turn on interior lights if it's dark\n5. Keep both hands visible on the steering wheel\n\n**When the Officer Approaches**\n• Don't reach for anything until asked\n• Speak calmly and respectfully\n• Say: "Officer, my license and registration are in my [glove box / wallet]. May I reach for them?"\n\n**Know Your Rights**\n• You have the right to remain silent beyond providing your license, registration, and insurance\n• You can decline a vehicle search: "I do not consent to a search"\n• You cannot be detained indefinitely without reason\n• If you feel your rights were violated, address it in court — not on the roadside\n\n**Protect Yourself**\n• Remain calm even if treated unfairly\n• Document badge numbers and officer names after the stop\n• Contact the ACLU or a lawyer if needed\n\n💡 How you handle this moment can affect the outcome significantly.` },
-  { id: 27, cat: 'road_rules', emoji: '🛡️', title: 'Car Insurance 101', desc: 'Car insurance isn\'t optional — it\'s the law.', content: `**What is Car Insurance?**\nCar insurance protects you financially if you're in an accident, your car is stolen, or you damage someone else's property.\n\n**Types of Coverage**\n\n**Liability (Required in most states)**\n• Covers damage you cause to others\n• Has two parts: bodily injury + property damage\n\n**Collision**\n• Covers damage to YOUR car in an accident\n• Required if you have a car loan\n\n**Comprehensive**\n• Covers theft, weather damage, hitting an animal\n• "Everything except a collision"\n\n**Uninsured Motorist**\n• Protects you if the other driver has no insurance\n\n**Understanding Your Policy**\n• **Premium** — What you pay monthly\n• **Deductible** — What you pay out-of-pocket before insurance kicks in\n• **Coverage limits** — The max your insurance will pay\n\n**Reducing Your Premium**\n• Good grades discount (many insurers offer this for teens!)\n• Stay on parents' policy if possible\n• Take a defensive driving course\n• Keep a clean driving record\n\n💡 Always carry proof of insurance in your car and on your phone.` },
+  { id: 14, cat: 'studying',         emoji: '✏️', title: 'Note-Taking Strategies That Actually Work',
+    desc: 'Transform your notes from messy scribbles into powerful study tools.',
+    tips: ['Write notes in your own words — never copy word for word','Use abbreviations and symbols to write faster','Color code by topic for easier review','Leave white space — your brain needs breathing room','Review and add to notes within 24 hours of class'],
+    actions: ['Try the Cornell Method for your next class','Experiment with mind maps for a visual subject','Create a color coding system for your notes this week','Review last week\'s notes for 10 minutes each morning','Compare notes with a classmate to fill in gaps'] },
 
-  // Beauty
-  { id: 28, cat: 'beauty', emoji: '💅', title: 'Nails on a Budget', desc: 'Keep your nails looking clean, polished, and cute without spending a lot.', content: `**Clean Nails = Put-Together Look**\nYou don't need a salon visit to have beautiful nails.\n\n**Essential Tools**\n• Nail file and buffer (drugstore — under $5)\n• Nail clippers\n• Base coat (protects nails)\n• A few nail polish colors you love\n• Top coat (makes polish last 2x longer)\n• Cuticle oil or coconut oil\n\n**Simple At-Home Manicure**\n1. Remove old polish completely\n2. Clip and file — always file in one direction\n3. Soak hands in warm water for 5 minutes\n4. Push back cuticles (never cut them)\n5. Apply base coat\n6. Apply 2 thin coats of color (let each dry!)\n7. Apply top coat\n8. Apply cuticle oil\n\n**Budget-Friendly Nail Polish Brands**\n• Sally Hansen (drugstore, great quality)\n• Essie (affordable, wide range)\n• OPI (splurge when on sale)\n• Wet n Wild (very affordable)\n\n**Making It Last**\n• Reapply top coat every 2-3 days\n• Wear gloves when washing dishes\n• Apply cuticle oil daily\n\n💅 Nails are jewelry you always have on — take care of them!` },
-  { id: 29, cat: 'beauty', emoji: '💄', title: 'Everyday Makeup on a Budget', desc: 'Look polished and put-together every day without spending a lot.', content: `**The 5-Minute Budget Makeup Routine**\nYou don't need a full face to look polished. A few key products go a long way.\n\n**The Essential 5 Products**\n1. **Tinted moisturizer or BB cream** — Evens skin tone, feels light\n2. **Concealer** — Covers dark circles and blemishes\n3. **Mascara** — Opens up your eyes instantly\n4. **Tinted lip balm or gloss** — Adds a healthy glow\n5. **Brow pencil or gel** — Frames your face\n\n**Budget Drugstore Picks**\n• e.l.f. Cosmetics (everything under $15)\n• Wet n Wild (amazing quality, ultra affordable)\n• NYX Professional Makeup\n• Maybelline Fit Me Concealer/Foundation\n• L'Oreal Telescopic Mascara\n\n**Makeup Tips for Beginners**\n• Less is more — build up gradually\n• Blend everything — harsh lines are the #1 mistake\n• Match foundation to your jaw, not your wrist\n• Remove makeup every single night\n• Clean brushes weekly\n\n**Money-Saving Tips**\n• Buy during Ulta 21 Days of Beauty sales\n• Check dupes on Reddit (r/MakeupAddiction)\n• Multi-use products (lip color as blush, etc.)` },
+  { id: 15, cat: 'studying',         emoji: '🎯', title: 'Test Prep & Exam Strategy',
+    desc: 'Walk into every exam confident, prepared, and ready to show what you know.',
+    tips: ['Start reviewing 2 weeks before any major test','Do a light review only the night before — no cramming','Get 8–9 hours of sleep before your exam — non-negotiable','Eat a protein-rich breakfast on test day','Use 4-7-8 breathing to manage test anxiety'],
+    actions: ['Make a study schedule starting 2 weeks before your next test','Complete at least one full practice test before the real thing','Create flashcards for all key vocabulary and formulas','Identify your weakest topics and spend extra time on them','Prepare your bag, outfit, and breakfast the night before'] },
 
-  // Character & Values
-  { id: 30, cat: 'character', emoji: '💡', title: 'The Power of Honesty', desc: 'Why being truthful — with yourself and others — is one of the most powerful things you can do.', content: `**Honesty is a Superpower**\nIn a world full of filters, facades, and fake smiles — being genuinely honest is rare and powerful.\n\n**Honesty With Others**\nHonest people:\n• Are trusted more in relationships and professionally\n• Attract real, authentic friendships\n• Sleep better at night (no stories to keep straight)\n• Are taken more seriously\n• Build reputations that last\n\n**Honesty With Yourself**\nThis is the hardest kind. Self-honesty means:\n• Admitting when you're wrong\n• Acknowledging your flaws without shame\n• Recognizing when a relationship or situation isn't working\n• Owning your part in conflicts\n• Being honest about what you actually want\n\n**When It's Hard to Be Honest**\nSometimes being honest means:\n• Having a difficult conversation\n• Disappointing someone\n• Admitting you need help\n• Saying "I was wrong"\n\nNone of these are comfortable — but all of them build character.\n\n**Honesty vs. Harshness**\nHonesty doesn't mean being brutal. The goal is truth delivered with kindness.\n\n💡 "The truth will set you free, but first it will make you uncomfortable."` },
+  { id: 16, cat: 'studying',         emoji: '🏆', title: 'College Readiness & SAT/ACT Prep',
+    desc: 'Start preparing early for college admissions and standardized tests.',
+    tips: ['Start SAT/ACT prep at least 3–6 months in advance','Many schools are now test-optional — research each school\'s policy','Take a full-length practice test first to identify weak areas','Consistency beats cramming — 30 minutes a day beats 5 hours on Sunday','Khan Academy offers free official SAT prep'],
+    actions: ['Take a free diagnostic SAT or ACT test this week','Create a Khan Academy account and link it to College Board','Research the test policies for your top 5 colleges','Register for your first SAT or ACT by junior year','Practice 2–3 math and reading questions every single day'] },
 
-  // Life Skills
-  { id: 31, cat: 'life_skills', emoji: '🏛️', title: 'Sororities & Greek Life', desc: 'Everything about joining a sorority — the culture, sisterhood, and how to prepare.', content: `**What is Greek Life?**\nSororities are women's organizations at colleges and universities that focus on sisterhood, service, leadership, and academics.\n\n**Types of Sororities**\n\n**National Panhellenic Conference (NPC)**\nTraditionally white-founded sororities. Focus on recruitment during formal "rush" periods.\nExamples: Alpha Chi Omega, Kappa Delta, Zeta Tau Alpha\n\n**National Pan-Hellenic Council (NPHC) — The "Divine Nine"**\nHistorically Black sororities and fraternities.\nExamples: Alpha Kappa Alpha (ΑΚΑ), Delta Sigma Theta (ΔΣΘ), Sigma Gamma Rho, Zeta Phi Beta\n\n**How to Prepare**\n• Maintain a strong GPA (most chapters require 2.5-3.0+)\n• Get involved on campus and in community service\n• Build genuine relationships\n• Learn about each organization's values and history\n\n**Things to Know**\n• Dues can range from hundreds to thousands per semester\n• Some chapters "haze" — know the signs and know your rights\n• Real sisterhood is built on mutual respect, not hazing\n• Greek life is what you make it — go in with intention\n\n💡 Research each organization's national values and legacy before committing.` },
-  { id: 32, cat: 'life_skills', emoji: '🚗', title: 'Car Maintenance Every Girl Should Know', desc: 'Learn the basics that keep you safe, save you money, and make you independent.', content: `**Car Basics Every Driver Should Know**\nYou shouldn't need to rely on someone else for basic car knowledge.\n\n**Check These Monthly**\n\n**Oil Level**\nPull the dipstick, wipe it, reinsert, pull again. Oil should be between the two marks and golden/brown (not black).\n\n**Tire Pressure**\nCheck when tires are cold. Use a pressure gauge. Correct PSI is on the door jamb sticker.\n\n**Windshield Wiper Fluid**\nNever let this run out — especially in winter.\n\n**When to Schedule Service**\n• **Oil change** — Every 3,000-5,000 miles (conventional) or 7,500-10,000 (synthetic)\n• **Tire rotation** — Every 5,000-7,500 miles\n• **Tire replacement** — When tread depth is at 2/32"\n• **Brake check** — If you hear squealing or grinding\n\n**Emergency Kit in Your Car**\n🔦 Flashlight\n🔋 Jumper cables\n🪛 Basic toolkit\n🧯 Fire extinguisher\n🏕️ Emergency blanket\n📋 Insurance and registration copies\n\n**When Your Car Warning Lights Come On**\n• Check Engine — Get diagnosed soon\n• Oil light — Stop driving, check oil immediately\n• Temperature — Pull over, let engine cool` },
+  { id: 17, cat: 'black_hair',       emoji: '👑', title: 'Natural Hair Care Basics',
+    desc: 'Love and care for your natural hair with the knowledge and tools to keep it healthy.',
+    tips: ['Moisture is everything — black hair needs consistent hydration','Use the LOC method: Liquid → Oil → Cream for maximum moisture retention','Deep condition every wash day with heat for 15–30 minutes','Always detangle gently from ends to roots','Sleep with a satin bonnet or pillowcase every night'],
+    actions: ['Start the LOC method on your next wash day','Get a deep conditioner and use it weekly for one month','Buy a satin bonnet or pillowcase this week','Build a wash day routine and stick to it for 30 days','Research which products work best for your curl pattern'] },
 
-  // Healthy Eating
-  { id: 33, cat: 'healthy_eating', emoji: '🥗', title: 'Healthy Eating for Teen Girls', desc: 'Fuel your body right for energy, glowing skin, and mental clarity.', content: `**Food is Fuel — And So Much More**\nWhat you eat affects your energy, skin, mood, focus, and how you feel about yourself.\n\n**What Your Body Needs**\n• **Protein** — Builds muscle, keeps you full: eggs, chicken, beans, Greek yogurt, nuts\n• **Complex Carbs** — Sustained energy: oats, brown rice, sweet potatoes, whole grain bread\n• **Healthy Fats** — Brain food and hormone health: avocado, olive oil, nuts, salmon\n• **Fiber** — Gut health and fullness: fruits, vegetables, beans\n• **Iron** — Especially important for girls (periods deplete iron): red meat, spinach, fortified cereals\n• **Calcium** — Bone strength: dairy, fortified plant milks, leafy greens\n\n**Building a Balanced Plate**\n• Half your plate: vegetables and fruits\n• Quarter: protein\n• Quarter: whole grains\n• Plus healthy fats\n\n**Eating on a Budget**\n• Buy frozen vegetables (just as nutritious as fresh)\n• Eggs are cheap and incredibly nutritious\n• Oats, beans, and rice are budget superfoods\n• Buy in season\n\n**Hydration**\nDrink 8-10 glasses of water daily. Dehydration causes fatigue, headaches, and poor concentration.\n\n💡 Healthy eating isn't about being perfect — it's about nourishing yourself consistently.` },
+  { id: 18, cat: 'black_hair',       emoji: '💧', title: 'Understanding Hair Porosity',
+    desc: 'Knowing your hair\'s porosity is the key to choosing products that actually work.',
+    tips: ['Test your porosity: drop a clean hair strand in a glass of water','Low porosity hair needs lightweight products and heat to absorb moisture','High porosity hair needs heavier creams, butters, and protein treatments','Normal porosity hair works well with most products','Once you know your porosity, stop wasting money on products that don\'t work'],
+    actions: ['Do the water glass porosity test today','Research your porosity type and recommended products','Audit your current products to see if they match your porosity needs','Try a protein treatment if you have high porosity hair','Share your porosity type with a stylist at your next appointment'] },
 
-  // Time Management
-  { id: 34, cat: 'time_mgmt', emoji: '⏰', title: 'Time Management for Teen Girls', desc: 'Own your schedule before it owns you.', content: `**Time is Your Most Valuable Resource**\nYou can always make more money. You cannot make more time.\n\n**Why Time Management Matters**\nGirls who manage their time well:\n• Stress less (they know what's coming)\n• Sleep more (no all-nighters)\n• Do better academically\n• Have more free time (not less!)\n• Feel more in control of their lives\n\n**Time Management Tools**\n\n**Time Blocking**\nAssign specific activities to specific time blocks in your day. Example: 4-5pm = homework, 5-6pm = workout, 7-8pm = free time.\n\n**The Eisenhower Matrix**\nSort tasks by urgency and importance:\n• Urgent + Important → Do it now\n• Important but Not Urgent → Schedule it\n• Urgent but Not Important → Delegate\n• Neither → Delete it\n\n**Weekly Planning**\nEvery Sunday, spend 15 minutes:\n• Writing out the week's commitments\n• Identifying priority tasks\n• Scheduling self-care and rest\n\n**Fighting Procrastination**\n• The 2-minute rule: if it takes less than 2 minutes, do it now\n• Start with the hardest task first\n• Break big projects into small daily steps\n\n💡 You'll never find time — you have to make it.` },
+  { id: 19, cat: 'black_hair',       emoji: '✨', title: 'Protective Styles Guide',
+    desc: 'Protective styles are a powerful tool for length retention and low manipulation.',
+    tips: ['Never braid too tight — pain means damage and traction alopecia','Moisturize your scalp weekly even while in a protective style','Take down protective styles before 8 weeks to prevent matting','Deep condition your hair immediately after taking a style down','Protect your edges — never glue near your hairline'],
+    actions: ['Book your next protective style with a trusted natural hair stylist','Buy a satin bonnet to wear every night during your style','Set a calendar reminder to take your style down by week 8','Deep condition the week after your style comes out','Research which protective style is best for your hair goals'] },
+
+  { id: 20, cat: 'black_hair',       emoji: '🌱', title: 'Growing Long, Healthy Natural Hair',
+    desc: 'Healthy hair grows from the inside out — learn the habits that lead to length retention.',
+    tips: ['Retention is the key — hair grows, but breakage keeps it short','Handle your hair with minimal manipulation','Eat foods rich in protein, iron, and biotin for hair growth','Trim split ends regularly — they cause more breakage if left','Protective styles help retain the length you\'ve already grown'],
+    actions: ['Start taking a biotin or hair growth supplement (consult a doctor first)','Commit to one protective style for the next 6–8 weeks','Trim split ends at your next salon visit','Drink at least 8 glasses of water daily for internal hydration','Take monthly length check photos to track your progress'] },
+
+  { id: 21, cat: 'mental_wellness',  emoji: '🙋‍♀️', title: 'People Pleasing: Are You Doing Too Much?',
+    desc: 'Do you say yes when you mean no? That\'s people pleasing — and it\'s stealing your peace.',
+    tips: ['Pause before responding: "let me think about that and get back to you"','Feeling guilty for saying no doesn\'t mean you did something wrong','You are not responsible for managing other people\'s emotions','Real friends respect your boundaries','Saying no to what doesn\'t serve you is saying yes to yourself'],
+    actions: ['Identify one situation this week where you said yes but meant no','Practice saying "I can\'t make it" without over-explaining','Journal about where your people pleasing comes from','Set one boundary this week and stick to it','Talk to a counselor if people pleasing is affecting your mental health'] },
+
+  { id: 22, cat: 'mental_wellness',  emoji: '🧘‍♀️', title: 'Mental Wellness & Self-Care',
+    desc: 'Your mental health matters just as much as your physical health.',
+    tips: ['Sleep 8–9 hours — this is the #1 mental health tool','Move your body daily — even a 20-minute walk helps','Limit social media to 2 hours a day maximum','Journal to get thoughts out of your head and onto paper','Do one thing you genuinely enjoy every single day'],
+    actions: ['Set a consistent bedtime and wake-up time this week','Take a 20-minute walk outside today','Set a daily screen time limit on your phone','Start a 5-minute journaling habit every morning or night','Text 988 or reach out to a counselor if you\'re struggling'] },
+
+  { id: 23, cat: 'mental_wellness',  emoji: '🌿', title: 'Staying Present in the Moment',
+    desc: 'How to stop living in your phone, your worries, or your past — and actually experience your life.',
+    tips: ['The most important moment of your life is always right now','Use the 5-4-3-2-1 technique to ground yourself when anxious','Put your phone down during meals and conversations','No phone for the first 30 minutes after waking up','Mindfulness just means paying attention on purpose'],
+    actions: ['Practice the 5-4-3-2-1 grounding technique once today','Have one phone-free meal today and tomorrow','Set a "no phone in bed" rule starting tonight','Take a 5-minute mindful walk outside without any devices','Notice 3 beautiful things around you right now'] },
+
+  { id: 24, cat: 'mental_wellness',  emoji: '🔓', title: 'Breaking Free from Victim Thinking',
+    desc: 'How to recognize negative thought patterns that keep you stuck.',
+    tips: ['Victim thinking: "this always happens to me." Growth: "what can I do about this?"','You can acknowledge pain AND take responsibility for your response','Accountability is power — blaming others keeps you stuck','Your story does not have to define your future','Healing is possible — but it requires honesty with yourself'],
+    actions: ['Journal about one situation where you felt powerless — find one thing you could have controlled','Replace one "I can\'t" with "I\'m choosing not to" this week','Apologize for one thing this week without making excuses','Read "The Obstacle Is the Way" by Ryan Holiday','Talk to a counselor if you feel stuck in negative patterns'] },
+
+  { id: 25, cat: 'growth_mindset',   emoji: '🧠', title: 'Growth Mindset vs Fixed Mindset',
+    desc: 'Your mindset is the story you tell yourself about who you are and what you\'re capable of.',
+    tips: ['Add the word "yet" to your fixed mindset thoughts','Every struggle is evidence that you\'re growing','What you believe about yourself shapes what\'s possible for you','Failure is information — not a verdict on your worth','The most successful people failed the most times'],
+    actions: ['Write down 3 fixed mindset thoughts you had this week and rewrite them with growth mindset','Notice when you say "I\'m just not good at this" and add "yet"','Read "Mindset" by Carol Dweck','Seek out a challenge you\'ve been avoiding this week','Celebrate effort, not just results — praise yourself for trying'] },
+
+  { id: 26, cat: 'growth_mindset',   emoji: '🔄', title: 'Reframe Your Thoughts: Fixed → Growth',
+    desc: 'Your inner voice is powerful. Learn to catch fixed mindset thoughts and flip them.',
+    tips: ['Notice the thought → acknowledge it → redirect it','Your inner critic is telling a story, not the truth','"I failed" is not the same as "I am a failure"','Challenge every absolute ("always", "never", "can\'t") you tell yourself','Your brain literally changes when you think differently'],
+    actions: ['Keep a "thought reframe" journal for one week','Write down one fixed thought per day and rewrite it as a growth thought','Share your reframes with a friend or in a journal','Practice positive self-talk out loud in the mirror each morning','Teach the reframe concept to someone you know'] },
+
+  { id: 27, cat: 'growth_mindset',   emoji: '📚', title: 'Growth Mindset at School',
+    desc: 'School is literally designed to challenge you. Here\'s how to use a growth mindset to win.',
+    tips: ['Every hard class is a growth opportunity — not a threat','A bad grade is feedback — not a final verdict','Ask for help early — waiting makes it harder','Teachers respect students who show effort even when struggling','Your GPA does not define your intelligence or your future'],
+    actions: ['Email one teacher this week and ask for extra help or feedback','Reframe your least favorite subject as your biggest growth opportunity','Write down what you LEARNED from your last bad grade','Set a specific academic improvement goal for next semester','Find a study partner or tutoring resource for your hardest class'] },
+
+  { id: 28, cat: 'real_life',        emoji: '🚗', title: 'Buying Your First Car',
+    desc: 'Everything you need to know about buying a car — don\'t let a dealership play you.',
+    tips: ['Car payment should be no more than 15% of your monthly income','Always get pre-approved for financing BEFORE visiting a dealership','Research fair market value on Kelley Blue Book (KBB) first','Never sign the same day — always sleep on it','Read every single line before you sign anything'],
+    actions: ['Look up the fair market value on KBB for 3 cars you\'re considering','Get pre-approved at your bank or credit union before shopping','Run a Carfax or AutoCheck report on any used car you\'re considering','Get an independent mechanic inspection before buying any used car','List all monthly car costs: payment + insurance + gas + maintenance'] },
+
+  { id: 29, cat: 'real_life',        emoji: '📋', title: 'Car Registration & Title',
+    desc: 'The paperwork side of owning a car — registration, titles, and what to do when things change.',
+    tips: ['Your car title proves ownership — keep it in a safe place (not in the car)','Registration must be renewed every year — keep the sticker on your plate','If you move, update your registration address within 30 days in most states','You need the title to sell your car, get a loan, or transfer ownership','Driving with expired tags can result in a ticket or your car being impounded'],
+    actions: ['Locate your car\'s title and store it safely at home','Set a calendar reminder 30 days before your registration expires','Research your state\'s requirements for registration renewal','If you buy a used car, transfer the title within the required timeframe','Keep a copy of your registration in your glove box at all times'] },
+
+  { id: 30, cat: 'real_life',        emoji: '🏡', title: 'Buying a Home',
+    desc: 'Homeownership is one of the biggest wealth-building tools available.',
+    tips: ['Renting builds the landlord\'s wealth; owning builds yours','Building credit NOW affects your ability to buy a home later','Start saving for a down payment as early as possible','FHA loans allow as little as 3.5% down for first-time buyers','Your monthly mortgage payment should be under 28% of your income'],
+    actions: ['Check your credit score today using Credit Karma (free)','Open a high-yield savings account specifically for a future down payment','Learn the difference between pre-qualification and pre-approval','Research first-time homebuyer programs in your city or state','Calculate what a monthly mortgage payment would look like for your dream home'] },
+
+  { id: 31, cat: 'real_life',        emoji: '🪪', title: 'Getting Your Driver\'s License',
+    desc: 'Step-by-step guide to getting your permit, passing your test, and hitting the road.',
+    tips: ['Study the driver\'s handbook — test questions come directly from it','Log all required practice hours with a licensed adult driver','Practice in different conditions: rain, night, highways, parking','Know the rules for your graduated license if you\'re under 18','Distracted driving is the #1 cause of teen driving accidents'],
+    actions: ['Download your state\'s driver\'s handbook and study it this week','Schedule your written permit test at your local DMV','Log all required practice hours with a licensed adult','Practice parallel parking and three-point turns until confident','Schedule your road test at least 2 weeks before you need your license'] },
+
+  { id: 32, cat: 'real_life',        emoji: '🛡️', title: 'Understanding Insurance',
+    desc: 'Insurance protects everything you\'ve worked for. Here\'s a plain-English breakdown.',
+    tips: ['Car insurance is the law — never drive without it','Health insurance prevents one emergency from bankrupting you','Renters insurance is cheap and protects your belongings','Life insurance is most affordable when you\'re young and healthy','A deductible is what you pay before insurance kicks in — know yours'],
+    actions: ['Learn what types of insurance you currently have (through parents)','Research the cost of renters insurance for when you move out','Understand your deductible and coverage limit for car insurance','Compare 3 car insurance quotes when you\'re ready to buy a car','Talk to a trusted adult about what insurance you\'ll need as an adult'] },
+
+  { id: 33, cat: 'real_life',        emoji: '🚦', title: 'Driver & Passenger Safety',
+    desc: 'How to stay safe in a car — as the driver AND as a passenger.',
+    tips: ['You always have the right to ask a driver to slow down or pull over','Never get in a car with a driver who is impaired — period','Wear your seatbelt every single time, no exceptions','No phone while driving — pull over if you must use it','A car full of teens dramatically increases crash risk'],
+    actions: ['Save the numbers of 3 people you can always call for a safe ride','Practice saying: "Can you slow down? I\'m not comfortable."','Research your state\'s graduated driver\'s license rules for passengers','Install a driving safety app if you\'re a new driver','Create a family safety agreement about safe driving expectations'] },
+
+  { id: 34, cat: 'real_life',        emoji: '🚪', title: 'How to Leave an Uncomfortable Situation',
+    desc: 'Real scripts, safety strategies, and exit plans for getting yourself out.',
+    tips: ['You never need a reason to leave a situation that doesn\'t feel right','The "fake call" trick: set a timer so your phone goes off as an excuse to leave','A real friend will never be upset that you left to keep yourself safe','Trust your gut — physical discomfort is a real signal','Getting out is never overreacting'],
+    actions: ['Memorize 2–3 exit scripts you can use comfortably','Download the Companion app for safe solo walks','Tell a trusted friend your plans and share your location before going out','Practice saying "no" to small things so it\'s easier for bigger things','Create a safety plan with a trusted friend or family member'] },
+
+  { id: 35, cat: 'real_life',        emoji: '✋', title: 'Saying No to Drugs & Peer Pressure',
+    desc: 'Real talk about drugs, peer pressure, and how to protect your future.',
+    tips: ['"Everyone\'s doing it" is almost never actually true','Your "no" does not require explanation or justification','Real friends respect your boundaries — every single time','Drugs can change your brain chemistry permanently at your age','One decision made under pressure can follow you for years'],
+    actions: ['Practice your "no" scripts out loud until they feel natural','Identify 2–3 trusted friends who share your values','Research the real effects of common drugs teens encounter','Talk to a school counselor if you\'re feeling pressured','Create a code word with a parent so they can "rescue" you without awkwardness'] },
+
+  { id: 36, cat: 'road_rules',       emoji: '🚗', title: 'Tag Renewal & Registration Basics',
+    desc: 'Your car registration isn\'t just a sticker — it\'s a legal requirement.',
+    tips: ['Driving with expired tags can result in a ticket or your car being impounded','Registration must match the state you LIVE in, not where you bought the car','You can often renew online or at a kiosk — no appointment needed','Keep proof of insurance and registration in your glove box always','Some states offer reduced fees for low-income drivers'],
+    actions: ['Find the renewal date on your current registration sticker','Set a phone reminder 45 days before your tags expire','Locate your nearest DMV and check their hours','Understand what documents you need for renewal in your state','Store digital copies of your registration and insurance on your phone'] },
+
+  { id: 37, cat: 'road_rules',       emoji: '🛡️', title: 'Car Insurance 101',
+    desc: 'Car insurance isn\'t optional — it\'s the law.',
+    tips: ['Liability insurance is required in almost every state — know your minimums','Your deductible is what you pay before insurance covers the rest','Good grades can earn you a discount — ask your insurer','Staying on your parents\' policy is usually the cheapest option for teens','Always carry proof of insurance in the car and on your phone'],
+    actions: ['Learn what coverage you currently have (through parents)','Ask about the good student discount at your family\'s insurance provider','Get 3 quotes when it\'s time to get your own policy','Understand what happens if you get in an accident with no insurance','Set a reminder to review your coverage every year'] },
+
+  { id: 38, cat: 'road_rules',       emoji: '📋', title: 'Traffic Tickets & Points on Your License',
+    desc: 'Getting a ticket feels like a one-time thing — but the effects can follow you for years.',
+    tips: ['Points on your license can raise your insurance rates significantly','You can often contest a ticket in court — it\'s worth trying','Traffic school can remove points from your record in many states','Multiple tickets can lead to license suspension','Speeding tickets go on your record and follow you — slow down'],
+    actions: ['If you get a ticket, research your options before just paying it','Look into traffic school to remove points from your record','Request a hearing if you believe the ticket was issued in error','Calculate how a ticket would affect your insurance premium','Keep a clean driving record by being intentional every time you drive'] },
+
+  { id: 39, cat: 'road_rules',       emoji: '🚨', title: 'How to Handle Getting Pulled Over',
+    desc: 'Getting pulled over is stressful — but knowing exactly what to do keeps you safe.',
+    tips: ['Turn on hazard lights, slow down, and pull to the right','Keep hands visible on the steering wheel at all times','Ask before reaching for anything: "May I reach for my license?"','You have the right to remain silent beyond providing required documents','Address any rights violations in court — not on the roadside'],
+    actions: ['Practice saying: "My license is in my wallet. May I reach for it?"','Know where your registration and insurance card are at all times','Look up your state\'s specific laws about traffic stops','Program a trusted adult\'s number to call right after a stop if needed','Know the non-emergency police number in your city'] },
+
+  { id: 40, cat: 'road_rules',       emoji: '⚠️', title: 'The Real Cost of a DUI',
+    desc: 'A DUI isn\'t just a ticket — it\'s a life-altering event.',
+    tips: ['The legal BAC limit is 0.08% for adults, ZERO tolerance for under 21 in most states','A DUI can cost $10,000+ when all fees, lawyers, and consequences are added up','A DUI stays on your record and affects jobs, housing, and scholarships','If you\'ve been drinking, use a rideshare or call a parent — no judgment','Never get in a car with a drunk driver — your life is worth more'],
+    actions: ['Save Uber and Lyft on your phone for every night out','Create a no-questions-asked agreement with a parent for safe rides','Research your state\'s Zero Tolerance law for underage drinking and driving','Share this information with friends before a party or event','Make a pact with your friend group: designated driver or rideshare, always'] },
+
+  { id: 41, cat: 'road_rules',       emoji: '🚫', title: 'License Suspension & Reinstatement',
+    desc: 'A suspended license doesn\'t mean your driving problems are over — it means they\'re beginning.',
+    tips: ['Driving on a suspended license is a serious crime — don\'t do it','Suspension can happen for unpaid tickets, too many points, or a DUI','Reinstatement requires paying fines, completing a course, and waiting','SR-22 insurance (high-risk) is often required after suspension','Prevention is everything — one decision can cost years of driving freedom'],
+    actions: ['Know the point system for your state\'s driver\'s license','Never ignore a traffic ticket — unpaid tickets lead to suspension','If suspended, find out the exact steps to reinstate your license','Look into hardship licenses if you need to drive for work or school','Commit to a clean record: one careful choice at a time'] },
+
+  { id: 42, cat: 'road_rules',       emoji: '💸', title: 'Paying Tickets & Fines the Smart Way',
+    desc: 'Getting a ticket is stressful — but knowing your options can save you money.',
+    tips: ['You often have 3 options: pay, contest, or attend traffic school','Traffic school can keep the ticket off your record in many states','Contesting a ticket is often worth it — officers sometimes don\'t show up','Never ignore a ticket — ignoring it makes everything worse','Some courts offer payment plans if you can\'t pay all at once'],
+    actions: ['Read your ticket carefully — it lists your options and deadline','Research if your state allows traffic school to remove the violation','Look up the contest process for your court online','Ask about a payment plan if you can\'t pay the fine in full','Set a phone reminder for the ticket due date so you never miss it'] },
+
+  { id: 43, cat: 'road_rules',       emoji: '📂', title: 'Important Adult Documents: What to Keep & Where',
+    desc: 'Adulting means knowing where your important documents are.',
+    tips: ['Never keep your Social Security card in your wallet — only bring it when required','Keep originals in a fireproof safe or secure location at home','Have digital backup copies of every critical document','Birth certificate, SS card, and passport are the hardest to replace','Start collecting and organizing your documents now — before you need them'],
+    actions: ['Locate your birth certificate, Social Security card, and any ID documents','Buy a small fireproof document safe or folder','Scan and save digital copies to a secure cloud folder','Know where your vaccination records and school transcripts are','Make a checklist of every adult document you\'ll need in the next 5 years'] },
+
+  { id: 44, cat: 'road_rules',       emoji: '💡', title: 'What I Wish I Knew: Real Life Lessons',
+    desc: 'Nobody teaches you this stuff in school. These are the lessons people learn the hard way.',
+    tips: ['Your credit score follows you everywhere — protect it from day one','No one is coming to save you — build your own financial foundation','The friends you keep will shape who you become','Compound interest is either your best friend or your worst enemy','Your reputation is built slowly and destroyed quickly'],
+    actions: ['Check your credit score today (Credit Karma is free)','Write down 3 life lessons you\'ve already learned the hard way','Make a list of the habits you want to build in the next 12 months','Audit the 5 people you spend the most time with — are they helping you grow?','Start one habit today that your future self will thank you for'] },
+
+  { id: 45, cat: 'safety',           emoji: '🚗', title: 'Car & Passenger Safety: Protecting Yourself in the Car',
+    desc: 'Being in a car with a reckless driver is dangerous — and you have the right to speak up.',
+    tips: ['You always have the right to ask to get out of a car','Wearing a seatbelt reduces your chance of dying in a crash by 45%','Distracted driving kills more teens than drunk driving','If the driver is impaired, call 911 or a trusted adult for a safe ride','No destination is worth risking your life'],
+    actions: ['Practice saying: "Please slow down — I\'m not comfortable."','Save 3 trusted numbers on speed dial for emergencies','Never get in a car with a driver who has been drinking','Research your state\'s graduated license rules about passengers under 18','Create a family safety code word you can text to get picked up'] },
+
+  { id: 46, cat: 'beauty',           emoji: '💅', title: 'Nails on a Budget',
+    desc: 'Keep your nails looking clean, polished, and cute without spending a lot.',
+    tips: ['Always apply a base coat before color — it protects your nails','Reapply top coat every 2–3 days to make polish last longer','Apply cuticle oil daily for healthy, soft cuticles','File nails in one direction only — back-and-forth causes breakage','Clean, short nails look more polished than chipped long ones'],
+    actions: ['Buy the essential tools: file, buffer, base coat, top coat, and cuticle oil','Try a simple at-home manicure this weekend','Research Sally Hansen, Essie, or Wet n Wild for affordable polishes','Set a weekly nail care routine (5–10 minutes)','Apply cuticle oil every night before bed for one week'] },
+
+  { id: 47, cat: 'beauty',           emoji: '✨', title: 'Glam Nail Looks',
+    desc: 'Level up your nail game with salon-worthy looks you can do at home or on a budget.',
+    tips: ['Nail tape and stickers make geometric designs accessible for beginners','Gel polish kits can give you salon-quality results at home','Accent nails on one finger make a simple look intentional','Chrome powder can be applied on top of regular gel for a chrome look','Nail art doesn\'t have to be complex — a single stripe goes a long way'],
+    actions: ['Watch 3 beginner nail art tutorials on YouTube or TikTok','Buy a nail art brush set (under $10 on Amazon)','Try a simple accent nail design on your next manicure','Invest in a gel nail lamp kit if you want long-lasting home nails','Follow nail artists on Instagram for daily inspiration'] },
+
+  { id: 48, cat: 'beauty',           emoji: '💇‍♀️', title: 'Hair Care on a Budget',
+    desc: 'Keep your hair healthy, clean, and styled without breaking the bank.',
+    tips: ['Washing your hair too often strips natural oils','Silk or satin bonnets prevent frizz and breakage overnight','Deep conditioning once a week transforms hair health over time','Heat protectant is non-negotiable before ANY heat styling','Trimming split ends regularly prevents more breakage'],
+    actions: ['Identify your hair type and build a routine around it','Buy a satin bonnet this week and use it every single night','Find a drugstore shampoo and conditioner for your hair type','Schedule a trim every 8–12 weeks to maintain healthy ends','Do a DIY deep conditioning treatment with products you already have'] },
+
+  { id: 49, cat: 'beauty',           emoji: '👑', title: 'Glam Hair Looks',
+    desc: 'Elevated hairstyles that look expensive and polished — from sleek to voluminous.',
+    tips: ['A sleek bun with edge control looks sophisticated and takes 5 minutes','Blowouts on natural hair can be achieved at home with the right tools','Flexi rods and perm rods create beautiful heatless curls overnight','Adding accessories (clips, ribbons, headbands) elevates any hairstyle instantly','YouTube tutorials for your specific hair type are the best free resource'],
+    actions: ['Watch 3 YouTube tutorials for your hair type and length this week','Try one new hairstyle this week that\'s outside your comfort zone','Invest in one quality styling tool: a diffuser, flat iron, or curling wand','Stock up on hair accessories that complement your style','Practice one updo or protective style until you can do it in 10 minutes'] },
+
+  { id: 50, cat: 'beauty',           emoji: '💄', title: 'Everyday Makeup on a Budget',
+    desc: 'Look polished and put-together every day without spending a lot.',
+    tips: ['The 5 essentials: tinted moisturizer, concealer, mascara, tinted lip balm, and brow gel','Always remove your makeup completely at night — no exceptions','Blend everything — harsh lines are the #1 beginner mistake','Match foundation to your jaw, not your wrist or hand','Less is more — build up gradually rather than applying too much at once'],
+    actions: ['Start with just 2–3 products and master them before adding more','Research e.l.f., Wet n Wild, or NYX for quality drugstore picks','Watch a beginner\'s makeup tutorial for your skin tone','Buy a good makeup sponge or brush for seamless blending','Clean your makeup brushes once a week to prevent breakouts'] },
+
+  { id: 51, cat: 'beauty',           emoji: '🌟', title: 'Glam Makeup Looks',
+    desc: 'Turn up the glam for special occasions, events, or just because you feel like it.',
+    tips: ['A glam look starts with skin prep: primer makes everything last longer','Eyeshadow primer prevents creasing all day and night','Cut crease technique with concealer makes any eyeshadow color pop','Setting spray locks makeup in place for up to 16 hours','Glam makeup takes practice — tutorials are your best teacher'],
+    actions: ['Watch tutorials for your eye shape and skin tone on YouTube','Invest in one good highlighter and mascara for elevated everyday looks','Practice a glam smoky eye before the event — not the night of','Research drugstore dupes for high-end products you love','Build a "special occasion" makeup kit separate from your daily products'] },
+
+  { id: 52, cat: 'beauty',           emoji: '💎', title: 'Full Glow Up on a Budget',
+    desc: 'Look and feel your absolute best without spending a lot — a complete guide to affordable beauty.',
+    tips: ['A glow up is 80% lifestyle: sleep, water, exercise, and confidence','You don\'t need expensive products to look elevated and put-together','Grooming basics (clean nails, fresh hair, pressed clothes) go further than luxury brands','Confidence is the most attractive thing you can wear — it costs nothing','A few quality basics beats 20 mediocre products'],
+    actions: ['Identify the 5 things that would make you feel most confident in your appearance','Shop drugstore and dupes before buying expensive products','Build a morning and evening routine that makes you feel good','Declutter your beauty products and keep only what you actually use','Set a realistic monthly beauty budget and stick to it'] },
+
+  { id: 53, cat: 'character',        emoji: '💡', title: 'The Power of Honesty',
+    desc: 'Why being truthful — with yourself and others — is one of the most powerful things you can do.',
+    tips: ['Self-honesty is harder than honesty with others — and more important','Honest people build trust that takes years to build but moments to destroy','Honesty delivered with kindness is not the same as harshness','Admitting when you\'re wrong shows strength, not weakness','The truth always surfaces eventually — choose the short-term discomfort'],
+    actions: ['Have one honest conversation you\'ve been avoiding this week','Journal about one area where you haven\'t been fully honest with yourself','Practice giving a gentle but honest opinion to a friend who asks','Own one mistake this week fully — no excuses, no deflecting','Notice how you feel after an honest moment versus a dishonest one'] },
+
+  { id: 54, cat: 'mental_wellness',  emoji: '🌿', title: 'Breaking Free from Victim Thinking',
+    desc: 'How to recognize negative thought patterns that keep you stuck.',
+    tips: ['Victim thinking keeps you stuck; ownership moves you forward','Acknowledging pain and taking responsibility are not opposites','Accountability is freedom — blame keeps you powerless','Your past does not determine your future unless you let it','Healing requires honesty with yourself about your patterns'],
+    actions: ['Journal: "Where in my life am I giving my power away?"','Replace "why does this always happen to me?" with "what can I do about this?"','Identify one pattern in your life you want to change — then take one action','Talk to a counselor if you feel stuck in helplessness','Read "The Courage to Be Disliked" or "The Obstacle Is the Way"'] },
+
+  { id: 55, cat: 'life_skills',      emoji: '🏛️', title: 'Sororities & Greek Life: What You Need to Know',
+    desc: 'Everything about joining a sorority — the culture, the sisterhood, and how to prepare.',
+    tips: ['Maintain a strong GPA — most chapters require 2.5–3.0+','Get involved in community service before rush','Learn each organization\'s values and history before committing','Real sisterhood is built on mutual respect — not hazing','Dues can range from hundreds to thousands per semester — plan financially'],
+    actions: ['Research the Divine Nine NPHC sororities and NPC sororities','Attend a college\'s Greek Week or info sessions virtually','Build your GPA and service record before rushing','Talk to current members to get an honest perspective','Understand all financial commitments before pledging'] },
+
+  { id: 56, cat: 'life_skills',      emoji: '🚗', title: 'Car Maintenance Every Girl Should Know',
+    desc: 'You don\'t need a mechanic for everything. Learn the basics that keep you safe.',
+    tips: ['Check your oil level monthly — don\'t wait for the warning light','Correct tire pressure is on the door jamb sticker — not on the tire itself','An oil change every 5,000–10,000 miles is non-negotiable','If your check engine light comes on, get it diagnosed soon','Keep an emergency kit in your trunk: jumper cables, flashlight, blanket'],
+    actions: ['Check your oil level this week using the dipstick','Check your tire pressure this week (use a gauge, check when cold)','Schedule an oil change if you\'re overdue','Build a car emergency kit for your trunk','Download your car\'s owner manual app or find it in the glove box'] },
+
+  { id: 57, cat: 'life_skills',      emoji: '💰', title: 'Understanding Taxes: What Nobody Taught You',
+    desc: 'Taxes are not optional and not as scary as they seem.',
+    tips: ['If you earn income, you are required to file taxes','The US uses a progressive tax system — higher income = higher bracket','A tax refund means you overpaid during the year — not free money','W-2 forms come from employers; 1099 forms come from freelance work','Free tax filing is available through IRS Free File if you earn under $73,000'],
+    actions: ['Learn the difference between gross pay and net pay on a pay stub','Look up the current federal tax brackets for your income range','Set up an account on IRS.gov to understand your tax history','File your first taxes using IRS Free File or FreeTaxUSA','Set aside 25–30% of any freelance income for taxes from day one'] },
+
+  { id: 58, cat: 'life_skills',      emoji: '📊', title: 'Interest Rates: Cars, Homes & Credit Cards',
+    desc: 'Interest is either working for you or against you — there is no neutral.',
+    tips: ['A higher credit score = lower interest rate = thousands saved over a lifetime','Credit card interest (20%+) is the most expensive debt you can carry','Compound interest on savings GROWS your money over time','Pay more than the minimum on credit cards — always','A 1% difference in mortgage interest on a 30-year loan can cost you $30,000+'],
+    actions: ['Calculate how much interest you\'d pay on a $20,000 car loan at 5% vs. 12%','Check your credit score today (Credit Karma is free)','Learn what APR means on any credit card offer you see','Use a compound interest calculator to see what $100/month becomes over 10 years','Commit to paying your credit card balance in full every month'] },
+
+  { id: 59, cat: 'character',        emoji: '✌️', title: 'Conflict Resolution & Fighting',
+    desc: 'Real talk on how to handle beef, drama, and conflict with integrity.',
+    tips: ['Most conflicts are about unmet needs, not the surface issue','Address conflict directly with the person — not through social media or others','Use "I feel" statements instead of "you always"','Taking a breath before responding prevents 90% of escalation','You don\'t have to win every argument — you have to choose your peace'],
+    actions: ['Identify one unresolved conflict in your life and plan a calm conversation','Practice "I feel [emotion] when [situation]" statements','Next time you\'re angry, wait 24 hours before responding','Learn the difference between assertiveness and aggression','Decide: is this worth your energy? Not every battle deserves your attention'] },
+
+  { id: 60, cat: 'character',        emoji: '🔒', title: 'Breaking Generational Curses',
+    desc: 'Understanding the patterns, trauma, and behaviors passed down — and how to stop them.',
+    tips: ['You can\'t fix what you don\'t acknowledge — awareness comes first','Breaking a generational curse means choosing differently than what was modeled for you','Therapy is one of the most powerful tools for breaking inherited patterns','You are not responsible for what happened to you, but you are responsible for your healing','The bravest thing you can do for your future is heal now'],
+    actions: ['Journal about patterns in your family you want to break','Research therapy options available to you (school counselor, BetterHelp, local resources)','Read "It Didn\'t Start With You" by Mark Wolynn','Have an honest conversation with a trusted mentor about your family patterns','Commit to one new habit that represents who you\'re becoming'] },
+
+  { id: 61, cat: 'character',        emoji: '💎', title: 'Owning Your Accountability',
+    desc: 'What it really means to take responsibility for your actions, choices, and growth.',
+    tips: ['Accountability is not self-punishment — it\'s self-honesty','Making excuses keeps you stuck; ownership moves you forward','Apologizing without changing behavior is just manipulation','You can be a good person who made a bad choice — own it and grow','The people who grow the fastest hold themselves accountable honestly'],
+    actions: ['Identify one situation this week where you deflected blame — own your part','Practice a full apology: what you did, why it was wrong, what you\'ll do differently','Stop using "but" after an apology — it cancels the apology','Journal: "What would I do differently if I took full responsibility for this?"','Find an accountability partner who will be honest with you'] },
+
+  { id: 62, cat: 'safety',           emoji: '🛡️', title: 'Sexual Abuse: Know Your Rights & How to Heal',
+    desc: 'What sexual abuse is, how to recognize it, and what to do if it happens to you.',
+    tips: ['Sexual abuse is NEVER your fault — not your clothes, not your behavior','You have the right to say no to any unwanted touch — always','Grooming often starts with gifts, special treatment, and secret-keeping','Trauma responses are normal — freezing does not mean consent','Healing is possible — with the right support, survivors thrive'],
+    actions: ['Know the RAINN hotline: 1-800-656-HOPE (4673)','Tell a trusted adult if something has happened or is happening to you','Know that you will be believed — reach out for help','Research trauma-informed therapists in your area if you need support','Learn the signs of grooming behavior to protect yourself and your friends'] },
+
+  { id: 63, cat: 'life_skills',      emoji: '🏠', title: 'Keeping Your Space Clean: Home & Car',
+    desc: 'A clean space = a clear mind. Learn how to maintain your environment.',
+    tips: ['Clean as you go — 2-minute rule: if it takes less than 2 minutes, do it now','Your environment directly affects your mood, focus, and stress levels','Declutter first, then organize — no point organizing things you don\'t need','A clean car reflects how you care for your possessions','Weekly resets prevent the overwhelm of massive deep-cleaning sessions'],
+    actions: ['Set a 10-minute daily cleaning habit (make bed, clear surfaces)','Do a weekly Sunday reset: clean room, laundry, organize your week','Declutter one drawer or closet section this week','Clean your car inside and out this weekend','Set a monthly deep-clean day on your calendar'] },
+
+  { id: 64, cat: 'life_skills',      emoji: '🎤', title: 'Public Speaking & Owning the Room',
+    desc: 'Your voice matters. Learn how to speak with confidence in any setting.',
+    tips: ['Preparation eliminates 80% of public speaking anxiety','Slow down — nervous speakers always talk too fast','Eye contact builds trust and confidence — look at people, not your notes','Start strong: the first 10 seconds determines how people receive you','Your posture communicates confidence before you say a single word'],
+    actions: ['Join your school\'s speech team, debate club, or drama class','Practice your next presentation out loud at least 3 times','Record yourself speaking and watch it back once','Work on your opening line until it\'s powerful, clear, and memorable','Volunteer to speak in class at least once a week to build comfort'] },
+
+  { id: 65, cat: 'character',        emoji: '💪', title: 'Handling Rejection & Hearing No',
+    desc: 'No is not the end of your story. Learn how to handle rejection with grace and resilience.',
+    tips: ['Rejection is redirection — it often protects you from what wasn\'t right for you','Don\'t take rejection personally — often it has nothing to do with your worth','Every successful person has a rejection story — sometimes hundreds','How you respond to "no" says more about you than the rejection itself','Give yourself 24 hours to feel it, then move forward'],
+    actions: ['Journal about your last major rejection: what did you learn?','Apply to something you\'re afraid of being rejected from this month','Practice celebrating your efforts regardless of the outcome','Read about a successful person\'s rejection story (J.K. Rowling, Michael Jordan)','Reframe your last rejection: "What door did this close? What door might it open?"'] },
 ];
 
 export default function GirlsLibrary() {
@@ -124,25 +376,9 @@ export default function GirlsLibrary() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedResource, setSelectedResource] = useState(null);
 
-  const filtered = RESOURCES.filter(r => {
-    return activeCategory === 'all' || r.cat === activeCategory;
-  });
-
-  const renderContent = (text) => {
-    return text.split('\n').map((line, i) => {
-      if (line.startsWith('**') && line.endsWith('**')) {
-        return <p key={i} className="font-bold text-white mt-3 mb-1">{line.replace(/\*\*/g, '')}</p>;
-      }
-      if (line.match(/^\*\*.+\*\*/)) {
-        return <p key={i} className="text-sm text-gray-200 mb-1" dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />;
-      }
-      if (line.startsWith('• ') || line.startsWith('✅ ') || line.startsWith('🚫 ') || line.startsWith('🚩 ') || line.startsWith('✨ ') || line.startsWith('💡 ')) {
-        return <p key={i} className="text-sm text-gray-300 mb-1 pl-2">{line}</p>;
-      }
-      if (line.trim() === '') return <div key={i} className="h-1" />;
-      return <p key={i} className="text-sm text-gray-300 mb-1">{line}</p>;
-    });
-  };
+  const ALL_CATS = Object.keys(CAT_META);
+  const filtered = activeCategory === 'all' ? RESOURCES : RESOURCES.filter(r => r.cat === activeCategory);
+  const categoryTiles = ALL_CATS.map(id => ({ id, ...CAT_META[id] }));
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
@@ -151,19 +387,17 @@ export default function GirlsLibrary() {
       <div className="relative z-10">
         {/* Header */}
         <div className="px-4 pt-4 pb-2">
-          <div className="flex items-center gap-2 mb-3">
-            <button onClick={() => navigate(-1)} className="text-gray-400"><ChevronLeft size={22} /></button>
-            <div className="flex items-center gap-2">
-              <BookOpen size={14} className="text-gray-400" />
-              <span className="text-xs font-bold tracking-widest text-gray-400">GIRLS LIBRARY</span>
+          <div className="flex items-center gap-2 mb-2">
+            <button onClick={() => navigate(-1)} className="text-gray-400"><ChevronLeft size={20} /></button>
+            <div className="flex items-center gap-1.5">
+              <BookOpen size={13} className="text-purple-400" />
+              <span className="text-xs font-bold tracking-widest text-purple-400">GIRLS LIBRARY</span>
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-1">Girls Library 📚</h1>
-          <p className="text-sm text-gray-400 mb-4">Knowledge, guides, and curated books to help you thrive.</p>
-
-          {/* Recommended banner */}
-          <div className="rounded-2xl px-4 py-3 mb-4"
-            style={{ background: 'linear-gradient(135deg, rgba(109,40,217,0.5), rgba(139,10,120,0.4))', border: '1px solid rgba(168,85,247,0.3)' }}>
+          <h1 className="text-3xl font-bold text-white mb-0.5">Girls Library 📚</h1>
+          <p className="text-sm text-gray-400 mb-3">Knowledge, guides, and curated books to help you thrive.</p>
+          <div className="rounded-2xl px-4 py-3 mb-3"
+            style={{ background: 'linear-gradient(135deg, rgba(109,40,217,0.4), rgba(139,10,120,0.3))', border: '1px solid rgba(168,85,247,0.25)' }}>
             <p className="text-xs font-bold text-yellow-300 mb-0.5">✨ Recommended For You</p>
             <p className="text-xs text-gray-300">Resources handpicked based on your interests and growth stage</p>
           </div>
@@ -173,77 +407,153 @@ export default function GirlsLibrary() {
         <div className="flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-none">
           {SECTION_TABS.map(tab => (
             <button key={tab.id} onClick={() => setActiveSection(tab.id)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap`}
+              className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap"
               style={activeSection === tab.id
-                ? { background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff' }
+                ? { background: 'rgba(139,92,246,0.35)', border: '1px solid rgba(168,85,247,0.5)', color: '#fff' }
                 : { background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
-              {tab.emoji && <span>{tab.emoji}</span>}
-              {tab.label}
+              <span>{tab.emoji}</span>{tab.label}
             </button>
           ))}
         </div>
 
-        {/* Category Filter Chips */}
+        {/* Category filter chips */}
         <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-3 scrollbar-none">
-          {CATEGORIES.map(cat => (
-            <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-              className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition whitespace-nowrap`}
-              style={activeCategory === cat.id
-                ? { background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', color: '#fff' }
-                : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
-              {cat.emoji && <span>{cat.emoji}</span>}
-              {cat.label}
-            </button>
-          ))}
+          <button onClick={() => setActiveCategory('all')}
+            className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition whitespace-nowrap"
+            style={activeCategory === 'all'
+              ? { background: 'rgba(139,92,246,0.4)', border: '1px solid rgba(168,85,247,0.6)', color: '#fff' }
+              : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+            All
+          </button>
+          {ALL_CATS.map(id => {
+            const m = CAT_META[id];
+            return (
+              <button key={id} onClick={() => setActiveCategory(id)}
+                className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition whitespace-nowrap"
+                style={activeCategory === id
+                  ? { background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', color: '#fff' }
+                  : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+                <span>{m.emoji}</span>{m.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* 2-Column Grid */}
-        <div className="grid grid-cols-2 gap-3 px-4 pt-1">
-          {filtered.map(r => (
-            <button key={r.id} onClick={() => setSelectedResource(r)}
-              className="flex flex-col items-center justify-center gap-3 rounded-2xl py-8 px-4 text-center transition hover:opacity-80"
-              style={{ background: 'rgba(60,20,80,0.7)', border: '1px solid rgba(255,255,255,0.07)', minHeight: 140 }}>
-              <span className="text-4xl">{r.emoji}</span>
-              <p className="text-xs font-semibold text-gray-200 leading-tight">{CATEGORIES.find(c => c.id === r.cat)?.label || r.cat}</p>
-            </button>
-          ))}
+        {/* Category Grid (All selected) */}
+        {activeCategory === 'all' && (
+          <div className="grid grid-cols-3 gap-3 px-4 pb-4">
+            {categoryTiles.map(cat => (
+              <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+                className="flex flex-col items-center justify-center gap-2 rounded-2xl py-6 px-2 text-center transition hover:opacity-80"
+                style={{ background: 'rgba(50,15,80,0.7)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <span className="text-3xl">{cat.emoji}</span>
+                <p className="text-xs font-semibold text-gray-200 leading-tight">{cat.label}</p>
+              </button>
+            ))}
+          </div>
+        )}
 
-          {filtered.length === 0 && (
-            <div className="col-span-2 text-center py-10">
-              <p className="text-4xl mb-3">📚</p>
-              <p className="text-white font-semibold">No resources here yet</p>
-              <p className="text-gray-500 text-sm mt-1">Try a different category</p>
-            </div>
-          )}
-        </div>
+        {/* Resource List (category selected) */}
+        {activeCategory !== 'all' && (
+          <div className="space-y-3 px-4 pb-4">
+            {filtered.map(r => {
+              const meta = CAT_META[r.cat];
+              return (
+                <button key={r.id} onClick={() => setSelectedResource(r)}
+                  className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition hover:opacity-90"
+                  style={{ background: meta.cardBg, border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl"
+                    style={{ background: 'rgba(255,255,255,0.08)' }}>
+                    {r.emoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold mb-0.5" style={{ color: meta.labelColor }}>{meta.label}</p>
+                    <p className="font-bold text-sm text-white leading-snug">{r.title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">{r.desc}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Heart size={15} className="text-gray-600" />
+                    <ChevronRight size={16} className="text-gray-500" />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Resource Detail Modal */}
+      {/* Resource Detail */}
       {selectedResource && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: '#0d0010' }}>
-          <div className="flex items-center gap-2 px-4 pt-4 pb-3 flex-shrink-0"
-            style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-            <button onClick={() => setSelectedResource(null)} className="text-gray-400">
-              <ChevronLeft size={22} />
+        <div className="fixed inset-0 z-50 overflow-y-auto" style={{ backgroundColor: '#0d0010' }}>
+          <div className="flex items-center gap-2 px-4 pt-4 pb-3 sticky top-0 z-10" style={{ backgroundColor: '#0d0010' }}>
+            <button onClick={() => setSelectedResource(null)} className="flex items-center gap-1 text-gray-400 text-sm hover:text-white transition">
+              <ChevronLeft size={18} /> Back to Girls Library
             </button>
-            <div className="flex-1">
-              <p className="text-xs text-pink-400 font-semibold">{CATEGORIES.find(c => c.id === selectedResource.cat)?.emoji} {CATEGORIES.find(c => c.id === selectedResource.cat)?.label}</p>
-            </div>
           </div>
-          <div className="flex-1 overflow-y-auto px-4 pt-4 pb-24">
-            <div className="flex items-center gap-3 mb-4">
+
+          <div className="px-4 pb-32">
+            {/* Resource header */}
+            <div className="flex items-start gap-3 mb-4">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
-                style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.2)' }}>
+                style={{ background: CAT_META[selectedResource.cat].cardBg, border: '1px solid rgba(255,255,255,0.1)' }}>
                 {selectedResource.emoji}
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">{selectedResource.title}</h1>
-                <p className="text-xs text-gray-400 mt-0.5">{selectedResource.desc}</p>
+              <div className="flex-1">
+                <p className="text-xs font-bold mb-1" style={{ color: CAT_META[selectedResource.cat].labelColor }}>
+                  {CAT_META[selectedResource.cat].label.toUpperCase()}
+                </p>
+                <h1 className="text-2xl font-bold italic text-white leading-tight">{selectedResource.title}</h1>
               </div>
             </div>
-            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              {renderContent(selectedResource.content)}
-            </div>
+            <p className="text-sm text-gray-300 mb-5">{selectedResource.desc}</p>
+
+            {/* Tips & Guidance */}
+            {selectedResource.tips && selectedResource.tips.length > 0 && (
+              <div className="mb-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-yellow-400 text-lg">💡</span>
+                  <p className="font-bold text-white text-base">Tips &amp; Guidance</p>
+                </div>
+                <div className="space-y-2">
+                  {selectedResource.tips.map((tip, i) => (
+                    <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-2xl"
+                      style={{ background: 'rgba(60,15,90,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                      <div className="mt-1 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ border: '2px solid #ec4899' }}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-pink-500" />
+                      </div>
+                      <p className="text-sm text-gray-200 leading-relaxed">{tip}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Steps */}
+            {selectedResource.actions && selectedResource.actions.length > 0 && (
+              <div className="mb-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs font-bold">✓</span>
+                  </div>
+                  <p className="font-bold text-white text-base">Action Steps</p>
+                </div>
+                <div className="space-y-2">
+                  {selectedResource.actions.map((action, i) => (
+                    <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-2xl"
+                      style={{ background: 'rgba(15,60,35,0.5)', border: '1px solid rgba(74,222,128,0.15)' }}>
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
+                        style={{ background: 'rgba(34,197,94,0.5)', minWidth: 24 }}>
+                        {i + 1}
+                      </div>
+                      <p className="text-sm text-gray-200 leading-relaxed">{action}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quiz */}
             <LibraryQuiz key={selectedResource.id} quiz={QUIZZES[selectedResource.id]} />
           </div>
         </div>
