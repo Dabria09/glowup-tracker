@@ -121,7 +121,7 @@ export default function Diary() {
               <button
                 key={entry.id}
                 onClick={() => navigate(`/diary/${entry.id}`)}
-                className="w-full text-left bg-white/5 border border-white/10 rounded-2xl p-4"
+                className="w-full text-left glass rounded-2xl p-4 hover:scale-[1.01] transition-transform"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">

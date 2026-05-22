@@ -220,7 +220,7 @@ export default function CleaningCalendar() {
         </div>
 
         {/* Progress */}
-        <div className="mx-4 mb-5 bg-white/10 rounded-2xl p-4">
+        <div className="mx-4 mb-5 glass rounded-2xl p-4">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-gray-300">{checkedCount} of {total} tasks done</span>
             <span className="text-white font-bold">{pct}%</span>
@@ -250,7 +250,7 @@ export default function CleaningCalendar() {
                   {roomTasks.map(task => (
                     <div
                       key={task.key}
-                      className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3"
+                      className="flex items-center gap-3 glass rounded-2xl px-4 py-3"
                     >
                       <button
                         onClick={() => toggleTask(task)}

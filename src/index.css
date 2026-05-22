@@ -203,3 +203,32 @@ body.light-mode input {
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* Glassmorphism card */
+  .glass {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+
+  /* Stronger glass for modal / overlay panels */
+  .glass-strong {
+    background: rgba(30, 10, 40, 0.72);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  /* Glowing pink/purple border highlight on interactive glass cards */
+  .glass-glow {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    box-shadow: 0 4px 24px rgba(236,72,153,0.12), 0 1px 0 rgba(255,255,255,0.08) inset;
+  }
+}

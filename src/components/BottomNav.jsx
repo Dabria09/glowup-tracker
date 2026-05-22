@@ -16,7 +16,7 @@ export default function BottomNav({ active }) {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-950/95 backdrop-blur border-t border-gray-800 flex items-center justify-around px-2 py-2 z-50">
+    <div className="fixed bottom-0 left-0 right-0 flex items-center justify-around px-2 py-2 z-50" style={{background:'rgba(8,6,20,0.82)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',borderTop:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 -4px 30px rgba(0,0,0,0.4)'}} >
       {tabs.map(tab => {
         const Icon = tab.icon;
         const isActive = active === tab.id;

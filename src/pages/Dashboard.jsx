@@ -150,7 +150,7 @@ export default function Dashboard() {
   const addApp = (app) => setHomeApps(prev => [...prev, app]);
 
   return (
-    <div className="min-h-screen text-white pb-24 overflow-x-hidden relative" style={{ backgroundColor: '#0d0d0d' }}>
+    <div className="min-h-screen text-white pb-24 overflow-x-hidden relative" style={{ backgroundColor: '#080810' }}>
       {/* Color tint overlay */}
       <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundColor: bgColor, opacity: 0.12 }} />
       {/* Pattern overlay */}
@@ -161,7 +161,7 @@ export default function Dashboard() {
       <div className="relative z-10">
       {/* Points badge */}
       <div className="flex justify-end px-4 pt-3">
-        <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
+        <div className="flex items-center gap-1 glass rounded-full px-3 py-1 text-xs font-bold">
           <span>🏅</span><span className="text-yellow-400">15 {t('points')}</span>
         </div>
       </div>
@@ -189,8 +189,8 @@ export default function Dashboard() {
           </button>
         ) : (
           <>
-            <button onClick={() => setIsEditMode(true)} className="text-xs backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition">{t('edit_home')}</button>
-            <button onClick={() => setShowCustomize(true)} className="text-xs backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-gray-300 hover:text-white hover:bg-white/10 transition">{t('customize')}</button>
+            <button onClick={() => setIsEditMode(true)} className="text-xs glass rounded-full px-3 py-1.5 text-gray-300 hover:text-white transition">{t('edit_home')}</button>
+            <button onClick={() => setShowCustomize(true)} className="text-xs glass rounded-full px-3 py-1.5 text-gray-300 hover:text-white transition">{t('customize')}</button>
             <button
               onClick={async () => {
                 if (window.confirm('Are you sure you want to sign out?')) {
@@ -223,7 +223,7 @@ export default function Dashboard() {
 
       {/* Search bar */}
       <div className="px-4 mb-5 relative">
-        <div className="flex items-center backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-4 py-2.5 gap-2">
+        <div className="flex items-center glass rounded-full px-4 py-2.5 gap-2">
           <Search size={16} className="text-gray-500" />
           <input
             value={search}
@@ -291,7 +291,7 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-4 gap-3">
             {homeApps.map(app => (
-              <div key={app.id} className={`relative flex flex-col items-center gap-1.5 ${app.bg} rounded-2xl p-3 cursor-pointer hover:opacity-80 transition`}>
+              <div key={app.id} className={`relative flex flex-col items-center gap-1.5 rounded-2xl p-3 cursor-pointer hover:scale-95 transition-transform glass-glow`} style={{background: 'rgba(255,255,255,0.06)'}}>
                 {app.soon && <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">Soon</span>}
                 <span className="text-3xl">{app.icon}</span>
                 <span className="text-xs text-center text-gray-300 leading-tight">{app.label}</span>
@@ -306,7 +306,7 @@ export default function Dashboard() {
         <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('recommended')}</p>
         <div className="space-y-3">
           {RECOMMENDED_IDS.map(r => (
-            <div key={r.id} className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 cursor-pointer hover:bg-white/10 transition">
+            <div key={r.id} className="glass rounded-2xl p-4 cursor-pointer hover:scale-[1.01] transition-transform">
               <p className="font-semibold text-sm mb-1">{r.icon} {t(r.titleKey)}</p>
               <p className="text-gray-400 text-sm">{t(r.descKey)}</p>
             </div>
