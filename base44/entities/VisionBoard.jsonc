@@ -1,0 +1,23 @@
+{
+  "name": "VisionBoard",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "title": {
+      "type": "string",
+      "title": "Board Title"
+    },
+    "theme": {
+      "type": "string",
+      "title": "Theme"
+    },
+    "layout": {
+      "type": "string",
+      "title": "Layout Style"
+    }
+  },
+  "required": []
+}

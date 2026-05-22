@@ -1,0 +1,31 @@
+{
+  "name": "VisionBoardItem",
+  "type": "object",
+  "properties": {
+    "board_id": {
+      "type": "string",
+      "title": "Board ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL"
+    },
+    "caption": {
+      "type": "string",
+      "title": "Caption"
+    },
+    "position": {
+      "type": "number",
+      "title": "Position"
+    },
+    "size": {
+      "type": "string",
+      "title": "Size (small/medium/large)"
+    }
+  },
+  "required": []
+}
