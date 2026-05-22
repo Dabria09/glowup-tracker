@@ -180,67 +180,10 @@ export default function GroceryList() {
       {/* Add Item Modal */}
       {showAdd && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end" onClick={() => { setShowAdd(false); setShowCatPicker(false); }}>
-          <div className="w-full rounded-t-3xl flex flex-col" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)', maxHeight: '85vh' }} onClick={e => e.stopPropagation()}>
+          <div className="w-full rounded-t-3xl flex flex-col" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)', maxHeight: 'calc(100vh - 80px)', height: '90vh' }} onClick={e => e.stopPropagation()}>
             {/* Scrollable content */}
-            <div className="overflow-y-auto flex-1 p-6">
-              <div className="flex items-center justify-between mb-5">
-                <p className="font-bold text-lg">🛒 Add Item</p>
-                <button onClick={() => setShowAdd(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                  <X size={16} />
-                </button>
-              </div>
+            <div className="overflow-y-auto flex-1 p-6 pb-2">
 
-              <label className="block text-sm text-gray-400 mb-1">Item Name *</label>
-              <input
-                autoFocus
-                value={newName}
-                onChange={e => setNewName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addItem()}
-                placeholder="e.g. Almond milk, Spinach, Chicken..."
-                className="w-full px-4 py-3 rounded-2xl text-sm text-white outline-none mb-4"
-                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
-              />
-
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="block text-sm text-gray-400 mb-1">Quantity</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={newQty}
-                    onChange={e => setNewQty(parseInt(e.target.value) || 1)}
-                    className="w-full px-4 py-3 rounded-2xl text-sm text-white outline-none"
-                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
-                  />
-                </div>
-                <div className="flex-1 relative">
-                  <label className="block text-sm text-gray-400 mb-1">Category</label>
-                  <button
-                    onClick={() => setShowCatPicker(!showCatPicker)}
-                    className="w-full px-4 py-3 rounded-2xl text-sm text-white text-left flex items-center gap-2"
-                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
-                  >
-                    <span>{catEmoji(newCat)}</span> {newCat}
-                  </button>
-                  {showCatPicker && (
-                    <div className="absolute top-full left-0 right-0 mt-1 rounded-2xl overflow-hidden shadow-2xl z-10"
-                      style={{ background: '#2a1a3e', border: '1px solid rgba(255,255,255,0.15)' }}>
-                      {CATEGORIES.map(cat => (
-                        <button key={cat.id} onClick={() => { setNewCat(cat.id); setShowCatPicker(false); }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-left hover:bg-white/10 transition"
-                        >
-                          {newCat === cat.id && <span className="text-pink-400 text-xs">✓</span>}
-                          <span>{cat.emoji}</span> {cat.id}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Button pinned outside scroll */}
-            <div className="px-6 pb-8 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
               <button
                 onClick={addItem}
                 disabled={!newName.trim()}
