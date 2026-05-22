@@ -1,0 +1,31 @@
+{
+  "name": "CycleSymptomLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "log_date": {
+      "type": "string",
+      "title": "Log Date"
+    },
+    "symptoms": {
+      "type": "string",
+      "title": "Symptoms (JSON array)"
+    },
+    "pain_level": {
+      "type": "number",
+      "title": "Pain Level (1-10)"
+    },
+    "mood": {
+      "type": "string",
+      "title": "Mood"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": []
+}

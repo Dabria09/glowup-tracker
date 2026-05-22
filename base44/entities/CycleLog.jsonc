@@ -1,0 +1,27 @@
+{
+  "name": "CycleLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "period_start": {
+      "type": "string",
+      "title": "Period Start Date"
+    },
+    "period_end": {
+      "type": "string",
+      "title": "Period End Date"
+    },
+    "cycle_length": {
+      "type": "number",
+      "title": "Cycle Length (days)"
+    },
+    "period_length": {
+      "type": "number",
+      "title": "Period Length (days)"
+    }
+  },
+  "required": []
+}
