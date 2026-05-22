@@ -24,6 +24,10 @@ export default function Leaderboard() {
   const [weeklyLeaders, setWeeklyLeaders] = useState([]);
   const [teams, setTeams] = useState([]);
   const [circle, setCircle] = useState([]);
+  
+  // Airtable configuration - update these with your actual values
+  const AIRTABLE_BASE_ID = 'appYOUR_BASE_ID'; // Replace with your Airtable base ID
+  const AIRTABLE_TABLE_NAME = 'Leaderboard'; // Replace with your table name
 
   // Calculate points from user activities
   const calculateUserPoints = async (userEmail) => {
@@ -77,54 +81,62 @@ export default function Leaderboard() {
     base44.auth.me().then(async (u) => {
       setUser(u);
       try {
-        // Fetch all user profiles
-        const profiles = await base44.entities.UserProfile.filter({});
-        
-        // Calculate points for each user
-        const leadersWithPoints = await Promise.all(
-          profiles.map(async (profile) => {
-            const points = await calculateUserPoints(profile.data.user_email);
-            return {
-              id: profile.id,
-              name: profile.data.username || profile.data.user_email.split('@')[0],
-              username: profile.data.username || 'user',
-              email: profile.data.user_email,
-              points: points.total_points,
-              weeklyPoints: points.weekly_points,
-              avatar_url: profile.data.avatar_url,
-              check_in_streak: points.check_in_streak,
-              journal_entries: points.journal_entries,
-            };
-          })
-        );
+        // Fetch leaderboard data from Airtable
+        const response = await base44.functions.invoke('airtableFetch', {
+          action: 'fetchRecords',
+          baseId: AIRTABLE_BASE_ID,
+          tableId: AIRTABLE_TABLE_NAME,
+        });
 
-        // Sort by total points
-        const sorted = leadersWithPoints.sort((a, b) => b.points - a.points);
+        if (response.records && response.records.length > 0) {
+          // Parse Airtable data into leaderboard format
+          const airtableData = response.records.map(record => ({
+            id: record.id,
+            name: record.fields.Name || record.fields.Username || 'User',
+            username: record.fields.Username || record.fields.Name || 'user',
+            email: record.fields.Email || '',
+            points: record.fields.Total_Points || record.fields.Points || 0,
+            weeklyPoints: record.fields.Weekly_Points || 0,
+            teamPoints: record.fields.Team_Points || 0,
+            teamName: record.fields.Team || '',
+            avatar_url: record.fields.Avatar_URL || null,
+            check_in_streak: record.fields.Check_In_Streak || 0,
+            journal_entries: record.fields.Journal_Entries || 0,
+          }));
 
-        setGlobalLeaders(sorted);
-        setWeeklyLeaders(sorted.slice(0, 10).map(l => ({
-          ...l,
-          weeklyPoints: l.weeklyPoints,
-        })));
+          // Sort by total points for global leaderboard
+          const sorted = airtableData.sort((a, b) => b.points - a.points);
 
-        // Mock teams based on user data
-        const allPoints = sorted.reduce((sum, l) => sum + l.points, 0);
-        setTeams([
-          { id: '1', name: 'Glow Getters', memberCount: Math.ceil(sorted.length / 3), teamPoints: Math.floor(allPoints * 0.4) },
-          { id: '2', name: 'Shine Squad', memberCount: Math.ceil(sorted.length / 3), teamPoints: Math.floor(allPoints * 0.35) },
-          { id: '3', name: 'Radiant Rebels', memberCount: sorted.length - 2 * Math.ceil(sorted.length / 3), teamPoints: Math.floor(allPoints * 0.25) },
-        ]);
+          setGlobalLeaders(sorted);
+          
+          // Weekly leaders (top 10 by weekly points)
+          const weeklySorted = [...airtableData].sort((a, b) => b.weeklyPoints - a.weeklyPoints);
+          setWeeklyLeaders(weeklySorted.slice(0, 10));
 
-        // Circle - top users similar to current user
-        setCircle(sorted.slice(0, 5).map((l, idx) => ({
-          ...l,
-          circlePoints: l.points,
-          rank: ['Glow Queen', 'Shine Leader', 'Rising Star', 'Spark', 'Beam'][idx] || 'Member',
-        })));
+          // Group by teams
+          const teamMap = {};
+          airtableData.forEach(member => {
+            if (member.teamName) {
+              if (!teamMap[member.teamName]) {
+                teamMap[member.teamName] = { id: member.teamName, name: member.teamName, members: [], teamPoints: 0 };
+              }
+              teamMap[member.teamName].members.push(member);
+              teamMap[member.teamName].teamPoints += member.points;
+            }
+          });
+          setTeams(Object.values(teamMap).sort((a, b) => b.teamPoints - a.teamPoints));
+
+          // Circle - top 5 from global
+          setCircle(sorted.slice(0, 5).map((l, idx) => ({
+            ...l,
+            circlePoints: l.points,
+            rank: ['Glow Queen', 'Shine Leader', 'Rising Star', 'Spark', 'Beam'][idx] || 'Member',
+          })));
+        }
 
         setLoading(false);
       } catch (error) {
-        console.error('Error loading leaderboard:', error);
+        console.error('Error loading leaderboard from Airtable:', error);
         setLoading(false);
       }
     }).catch(() => base44.auth.redirectToLogin());
