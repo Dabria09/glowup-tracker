@@ -91,7 +91,7 @@ const SECTIONS = [
       { id: 'homework_tracker_life', label: 'Homework Tracker', gradient: 'from-gray-800 via-slate-900 to-gray-900', route: '/homework-tracker', image: CDN + 'icon-homework-tracker-UzfmPy6kuzvUAsU3vgon39.webp' },
       { id: 'vision_board_life', label: 'Vision Board', gradient: 'from-pink-900 via-rose-900 to-orange-900', route: '/vision-board', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/6adb092a1_IMG_4341.jpeg' },
       { id: 'grocery_list_life', label: 'Grocery List', gradient: 'from-yellow-700 via-amber-800 to-orange-800', route: '/grocery-list', image: CDN + 'icon-grocery-list-Sz9GHLVJt4pRGz2JvYmwDw.webp' },
-      { id: 'meal_planner_life', label: 'Meal Planner', gradient: 'from-green-900 via-teal-900 to-emerald-900', route: '/meal-planner', image: '', emoji: '🍽️' },
+      { id: 'meal_planner_life', label: 'Meal Planner', gradient: 'from-green-900 via-teal-900 to-emerald-900', route: '/meal-planner', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/3f8b8ce77_generated_image.png' },
     ],
   },
   {
