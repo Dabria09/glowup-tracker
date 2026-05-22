@@ -193,8 +193,49 @@ export default function MyGlowLink() {
                       <button className="hover:text-pink-400 transition">❤️ {post.likes}</button>
                       <button className="hover:text-pink-400 transition">💬 {post.comments}</button>
                       {post.visibility === 'public' && (
-                        <button onClick={() => { alert('Post reshared! 🎉'); }} className="hover:text-pink-400 transition">🔄 Reshare</button>
+                        <button 
+                          onClick={async () => {
+                            try {
+                              await base44.entities.GlowUpPost.create({
+                                user_email: user.email,
+                                content: `✨ Reposted: ${post.content}`,
+                                media_urls: post.media_urls,
+                                visibility: 'public',
+                                likes: 0,
+                                comments: 0,
+                              });
+                              alert('Post reshared to your timeline! 🎉');
+                            } catch (error) {
+                              console.error('Error resharing:', error);
+                              alert('Failed to reshare post');
+                            }
+                          }} 
+                          className="hover:text-pink-400 transition flex items-center gap-1"
+                        >
+                          🔄 Reshare
+                        </button>
                       )}
+                      <button 
+                        onClick={async () => {
+                          if (navigator.share) {
+                            try {
+                              await navigator.share({
+                                title: 'Check out this post!',
+                                text: post.content,
+                                url: window.location.href,
+                              });
+                            } catch (err) {
+                              console.log('Share canceled');
+                            }
+                          } else {
+                            navigator.clipboard.writeText(`${post.content}\n\nShared from GGU`);
+                            alert('Link copied to clipboard! 📋');
+                          }
+                        }} 
+                        className="hover:text-pink-400 transition flex items-center gap-1"
+                      >
+                        📤 Share
+                      </button>
                     </div>
                   </div>
                 ))
