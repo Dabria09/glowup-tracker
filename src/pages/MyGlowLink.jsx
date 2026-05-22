@@ -369,7 +369,7 @@ export default function MyGlowLink() {
       {/* Post Creation Modal */}
       {showPostForm && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end" onClick={() => setShowPostForm(false)}>
-          <div className="w-full rounded-t-3xl flex flex-col max-h-[90vh] h-full" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
+          <div className="w-full rounded-t-3xl flex flex-col max-h-[90vh]" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
               <h3 className="text-lg font-bold">New Post</h3>
               <button onClick={() => setShowPostForm(false)}><X size={20} /></button>
