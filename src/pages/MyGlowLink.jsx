@@ -413,7 +413,12 @@ export default function MyGlowLink() {
           <div className="w-full rounded-t-3xl flex flex-col max-h-[90vh] h-full" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
               <h3 className="text-lg font-bold">New Post</h3>
-              <button onClick={() => setShowPostForm(false)}><X size={20} /></button>
+              <div className="flex items-center gap-2">
+                <button onClick={createPost} disabled={!postText.trim() && postFiles.length === 0} className="px-4 py-2 rounded-full font-bold text-white text-sm disabled:opacity-40 transition" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                  Post
+                </button>
+                <button onClick={() => setShowPostForm(false)}><X size={20} /></button>
+              </div>
             </div>
             <div className="overflow-y-auto p-6 space-y-4 flex-1">
               <textarea value={postText} onChange={e => setPostText(e.target.value)} placeholder="What's on your mind? ✨" className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none min-h-24 resize-none" />
@@ -444,11 +449,7 @@ export default function MyGlowLink() {
                 </div>
               </div>
             </div>
-            <div className="px-6 pb-6 pt-3 border-t border-white/10 flex-shrink-0">
-              <button onClick={createPost} disabled={!postText.trim() && postFiles.length === 0} className="w-full py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-40 transition" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-                Post
-              </button>
-            </div>
+
           </div>
         </div>
       )}
