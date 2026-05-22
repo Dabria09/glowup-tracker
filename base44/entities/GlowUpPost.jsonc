@@ -1,0 +1,41 @@
+{
+  "name": "GlowUpPost",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "content": {
+      "type": "string",
+      "title": "Post Content"
+    },
+    "media_urls": {
+      "type": "string",
+      "title": "Media URLs (JSON array)"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "followers"
+      ],
+      "default": "followers",
+      "title": "Visibility"
+    },
+    "likes": {
+      "type": "number",
+      "title": "Likes",
+      "default": 0
+    },
+    "comments": {
+      "type": "number",
+      "title": "Comments",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_email",
+    "content"
+  ]
+}
