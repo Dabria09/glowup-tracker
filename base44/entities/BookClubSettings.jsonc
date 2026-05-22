@@ -1,0 +1,15 @@
+{
+  "name": "BookClubSettings",
+  "type": "object",
+  "properties": {
+    "current_book_id": {
+      "type": "string",
+      "title": "Current Month Book ID"
+    },
+    "month": {
+      "type": "string",
+      "title": "Month (YYYY-MM)"
+    }
+  },
+  "required": []
+}

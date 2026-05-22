@@ -19,6 +19,8 @@ const GENRES = ['All', 'Memoir', 'Fiction', 'Self-Help'];
 const THIS_MONTH_ID = 'becoming';
 const CLUB_TABS = ['This Month', 'All Books', 'Vote'];
 
+const DEFAULT_BOOK_ID = 'becoming';
+
 const VOTE_NOMINEES = [
   { id: 'dont_settle',  title: "Don't Settle for Safe",  author: 'Sarah Jakes Roberts' },
   { id: 'my_brilliant', title: 'My Brilliant Friend',     author: 'Elena Ferrante' },
@@ -42,14 +44,28 @@ export default function BookClub({ user }) {
   const [discussions, setDiscussions] = useState({});
   const [myProgress, setMyProgress] = useState(null);
   const [activeWeek, setActiveWeek] = useState(0);
+  const [thisMonthId, setThisMonthId] = useState(DEFAULT_BOOK_ID);
+  const [settingsRecord, setSettingsRecord] = useState(null);
+  const [showBookPicker, setShowBookPicker] = useState(false);
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     const month = new Date().toISOString().slice(0, 7);
     Promise.all([
       base44.entities.BookClubVote.filter({ vote_month: month }),
       base44.entities.BookClubDiscussion.list(),
-      base44.entities.BookClubProgress.filter({ user_email: user.email, book_id: THIS_MONTH_ID }),
-    ]).then(([voteList, discList, progList]) => {
+      base44.entities.BookClubSettings.filter({ month }),
+    ]).then(async ([voteList, discList, settingsList]) => {
+      // Load settings
+      if (settingsList.length) {
+        setSettingsRecord(settingsList[0]);
+        setThisMonthId(settingsList[0].current_book_id);
+        const progList = await base44.entities.BookClubProgress.filter({ user_email: user.email, book_id: settingsList[0].current_book_id });
+        if (progList.length) setMyProgress(progList[0]);
+      } else {
+        const progList = await base44.entities.BookClubProgress.filter({ user_email: user.email, book_id: DEFAULT_BOOK_ID });
+        if (progList.length) setMyProgress(progList[0]);
+      }
       const tally = {};
       VOTE_NOMINEES.forEach(n => { tally[n.id] = 0; });
       voteList.forEach(v => {
@@ -62,12 +78,26 @@ export default function BookClub({ user }) {
       const counts = {};
       discList.forEach(d => { counts[d.book_id] = (counts[d.book_id] || 0) + 1; });
       setDiscussions(counts);
-      if (progList.length) setMyProgress(progList[0]);
     });
     // Determine current week of month
     const dayOfMonth = new Date().getDate();
     setActiveWeek(Math.min(3, Math.floor((dayOfMonth - 1) / 7)));
   }, [user.email]);
+
+  const changeThisMonthBook = async (bookId) => {
+    const month = new Date().toISOString().slice(0, 7);
+    if (settingsRecord) {
+      const updated = await base44.entities.BookClubSettings.update(settingsRecord.id, { current_book_id: bookId });
+      setSettingsRecord(updated);
+    } else {
+      const created = await base44.entities.BookClubSettings.create({ current_book_id: bookId, month });
+      setSettingsRecord(created);
+    }
+    setThisMonthId(bookId);
+    setMyProgress(null);
+    setShowBookPicker(false);
+    toast.success(`This month's book updated! 📚`);
+  };
 
   const castVote = async (nom) => {
     if (myVote) return;
@@ -82,7 +112,7 @@ export default function BookClub({ user }) {
     return <BookDetail book={selectedBook} user={user} onBack={() => setSelectedBook(null)} />;
   }
 
-  const thisMonth = BOOKS.find(b => b.id === THIS_MONTH_ID);
+  const thisMonth = BOOKS.find(b => b.id === thisMonthId) || BOOKS[0];
   const currentChapter = myProgress?.current_chapter || 0;
   const pct = Math.round((currentChapter / thisMonth.chapters) * 100);
   const filtered = genre === 'All' ? BOOKS : BOOKS.filter(b => b.genre === genre);
@@ -107,6 +137,38 @@ export default function BookClub({ user }) {
       {/* ── THIS MONTH ── */}
       {clubTab === 'This Month' && (
         <div className="space-y-4">
+          {/* Admin: Change Book */}
+          {isAdmin && (
+            <div className="flex justify-end mb-2">
+              <button onClick={() => setShowBookPicker(!showBookPicker)}
+                className="text-xs px-3 py-1.5 rounded-full font-semibold transition"
+                style={{ background: 'rgba(234,179,8,0.2)', border: '1px solid rgba(234,179,8,0.4)', color: '#fde047' }}>
+                🛠️ Admin: Change This Month's Book
+              </button>
+            </div>
+          )}
+
+          {/* Book Picker for Admin */}
+          {isAdmin && showBookPicker && (
+            <div className="rounded-2xl p-4 mb-3" style={{ background: 'rgba(30,10,50,0.9)', border: '1px solid rgba(234,179,8,0.4)' }}>
+              <p className="text-xs font-bold text-yellow-400 mb-3">Select This Month's Book</p>
+              <div className="space-y-2">
+                {BOOKS.map(b => (
+                  <button key={b.id} onClick={() => changeThisMonthBook(b.id)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition"
+                    style={{ background: b.id === thisMonthId ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.05)', border: `1px solid ${b.id === thisMonthId ? 'rgba(168,85,247,0.6)' : 'rgba(255,255,255,0.08)'}` }}>
+                    <span className="text-xl">📖</span>
+                    <div>
+                      <p className="text-sm font-semibold text-white">{b.title} {b.id === thisMonthId ? '✓' : ''}</p>
+                      <p className="text-xs text-gray-400">by {b.author} · {b.genre}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setShowBookPicker(false)} className="w-full mt-3 py-2 rounded-xl text-sm text-gray-400" style={{ background: 'rgba(255,255,255,0.05)' }}>Cancel</button>
+            </div>
+          )}
+
           {/* Hero Book Card */}
           <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(109,40,217,0.6), rgba(139,10,120,0.5))', border: '1px solid rgba(168,85,247,0.4)' }}>
             <div className="px-4 pt-4 pb-2">
