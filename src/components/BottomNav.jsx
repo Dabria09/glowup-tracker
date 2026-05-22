@@ -10,7 +10,7 @@ export default function BottomNav({ active }) {
   const tabs = [
     { id: 'home', label: t('nav_home'), icon: Home, route: '/dashboard' },
     { id: 'discover', label: t('nav_discover'), icon: Compass, route: '/discover' },
-    { id: 'glow', label: t('nav_glow'), icon: Sparkles, route: '/glow' },
+    { id: 'glow', label: t('nav_glow'), icon: Sparkles, route: '/glow-board' },
     { id: 'connect', label: t('nav_connect'), icon: Users, route: '/connect' },
     { id: 'me', label: t('nav_me'), icon: User, route: '/me' },
   ];
