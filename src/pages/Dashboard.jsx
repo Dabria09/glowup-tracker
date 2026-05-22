@@ -278,9 +278,10 @@ export default function Dashboard() {
                     </Draggable>
                   ))}
                   {hiddenApps.map(app => (
-                    <div key={app.id} onClick={() => addApp(app)} className="flex flex-col items-center gap-1.5 border-2 border-dashed border-gray-600 rounded-2xl p-3 cursor-pointer hover:border-pink-500 transition">
-                      <span className="text-2xl text-gray-500">+</span>
-                      <span className="text-xs text-center text-gray-500 leading-tight">{app.label}</span>
+                    <div key={app.id} onClick={() => addApp(app)} className="flex flex-col items-center gap-1.5 border-2 border-dashed border-gray-600 rounded-2xl p-3 cursor-pointer hover:border-pink-500 hover:bg-pink-500/10 transition">
+                      <span className="text-2xl">{app.icon}</span>
+                      <span className="text-xs text-center text-gray-400 leading-tight">{app.label}</span>
+                      <span className="text-[10px] font-bold text-pink-400 bg-pink-500/20 rounded-full px-2 py-0.5">+ Add</span>
                     </div>
                   ))}
                   {provided.placeholder}
