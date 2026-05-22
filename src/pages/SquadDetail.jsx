@@ -16,22 +16,30 @@ export default function SquadDetail() {
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [checkInText, setCheckInText] = useState('');
   const [todayCheckIn, setTodayCheckIn] = useState(null);
+  const [showCreateChallenge, setShowCreateChallenge] = useState(false);
+  const [squadChallenges, setSquadChallenges] = useState([]);
+  const [newChallenge, setNewChallenge] = useState({
+    challenge_name: '',
+    challenge_type: 'streak',
+    description: '',
+    target_value: 7,
+    start_date: new Date().toISOString().split('T')[0],
+    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  });
 
   useEffect(() => {
     Promise.all([
       base44.auth.me(),
       base44.entities.GlowSquad.filter({ id }),
-      base44.entities.SquadMember.filter({ squad_id: id })
-    ]).then(async ([u, squads, squadMembers]) => {
+      base44.entities.SquadMember.filter({ squad_id: id }),
+      base44.entities.SquadChallenge.filter({ squad_id: id })
+    ]).then(async ([u, squads, squadMembers, challenges]) => {
       setUser(u);
       if (squads.length > 0) {
         setSquad(squads[0]);
         setMembers(squadMembers);
         setIsMember(squadMembers.some(m => m.user_email === u.email));
-        
-        // Check if user checked in today
-        const today = new Date().toDateString();
-        // You can implement check-in logic here
+        setSquadChallenges(challenges);
       }
       setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());
@@ -184,6 +192,56 @@ export default function SquadDetail() {
             </div>
           </div>
 
+          {/* Squad Challenges */}
+          {isMember && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold tracking-widest text-gray-400 flex items-center gap-2">
+                  <Trophy size={16} className="text-yellow-400" /> SQUAD CHALLENGES
+                </h3>
+                <button
+                  onClick={() => setShowCreateChallenge(true)}
+                  className="text-xs px-3 py-1.5 rounded-full font-semibold bg-pink-500 hover:bg-pink-600 transition flex items-center gap-1"
+                >
+                  <Plus size={12} /> Create
+                </button>
+              </div>
+              {squadChallenges.length === 0 ? (
+                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
+                  <p className="text-sm text-gray-400">No challenges yet. Create your first squad challenge!</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {squadChallenges.map(challenge => (
+                    <div key={challenge.id} className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <p className="font-semibold text-white text-sm">{challenge.challenge_name}</p>
+                          <p className="text-xs text-gray-400">{challenge.description}</p>
+                        </div>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          challenge.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                          challenge.status === 'ended' ? 'bg-gray-500/20 text-gray-400' :
+                          'bg-yellow-500/20 text-yellow-400'
+                        }`}>
+                          {challenge.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-400 mb-2">
+                        <span className="flex items-center gap-1"><Flame size={10} /> {challenge.challenge_type}</span>
+                        <span>Target: {challenge.target_value}</span>
+                        <span>Ends: {new Date(challenge.end_date).toLocaleDateString()}</span>
+                      </div>
+                      <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-pink-500 to-purple-600" style={{ width: '0%' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Squad Progress */}
           <div>
             <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3 flex items-center gap-2">
@@ -226,7 +284,6 @@ export default function SquadDetail() {
                 </div>
                 <button
                   onClick={async () => {
-                    // Save check-in logic here
                     setShowCheckIn(false);
                     setCheckInText('');
                     alert('Check-in saved! Your squad is proud of you 💜');
@@ -234,6 +291,116 @@ export default function SquadDetail() {
                   className="w-full py-3 rounded-2xl font-bold text-white text-sm bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition"
                 >
                   Check In 💜
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Create Challenge Modal */}
+        {showCreateChallenge && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-end" onClick={() => setShowCreateChallenge(false)}>
+            <div
+              className="w-full rounded-t-3xl flex flex-col max-h-[90vh] h-full"
+              style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
+                <h3 className="text-lg font-bold">Create Squad Challenge</h3>
+                <button onClick={() => setShowCreateChallenge(false)}><X size={20} /></button>
+              </div>
+              <div className="overflow-y-auto p-6 space-y-4 flex-1">
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Challenge Name *</label>
+                  <input
+                    value={newChallenge.challenge_name}
+                    onChange={e => setNewChallenge({ ...newChallenge, challenge_name: e.target.value })}
+                    placeholder="e.g., 7 Day Streak Challenge"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Challenge Type *</label>
+                  <select
+                    value={newChallenge.challenge_type}
+                    onChange={e => setNewChallenge({ ...newChallenge, challenge_type: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"
+                  >
+                    <option value="streak">🔥 Streak Challenge</option>
+                    <option value="points">⭐ Points Challenge</option>
+                    <option value="challenges">✓ Challenges Completed</option>
+                    <option value="checkins">📅 Daily Check-ins</option>
+                    <option value="custom">✨ Custom Challenge</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Description</label>
+                  <textarea
+                    value={newChallenge.description}
+                    onChange={e => setNewChallenge({ ...newChallenge, description: e.target.value })}
+                    placeholder="What's the goal?"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none resize-none min-h-20"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Target Value *</label>
+                  <input
+                    type="number"
+                    value={newChallenge.target_value}
+                    onChange={e => setNewChallenge({ ...newChallenge, target_value: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-300 mb-2 block">Start Date *</label>
+                    <input
+                      type="date"
+                      value={newChallenge.start_date}
+                      onChange={e => setNewChallenge({ ...newChallenge, start_date: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-300 mb-2 block">End Date *</label>
+                    <input
+                      type="date"
+                      value={newChallenge.end_date}
+                      onChange={e => setNewChallenge({ ...newChallenge, end_date: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (!newChallenge.challenge_name.trim()) return;
+                    await base44.entities.SquadChallenge.create({
+                      squad_id: squad.id,
+                      challenge_name: newChallenge.challenge_name,
+                      challenge_type: newChallenge.challenge_type,
+                      description: newChallenge.description,
+                      target_value: newChallenge.target_value,
+                      start_date: newChallenge.start_date,
+                      end_date: newChallenge.end_date,
+                      created_by: user.email,
+                      status: 'active',
+                    });
+                    setShowCreateChallenge(false);
+                    setNewChallenge({
+                      challenge_name: '',
+                      challenge_type: 'streak',
+                      description: '',
+                      target_value: 7,
+                      start_date: new Date().toISOString().split('T')[0],
+                      end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    });
+                    const updated = await base44.entities.SquadChallenge.filter({ squad_id: squad.id });
+                    setSquadChallenges(updated);
+                    alert('Challenge created! Let\\'s go! 💜');
+                  }}
+                  className="w-full py-3 rounded-2xl font-bold text-white text-sm bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition"
+                >
+                  Create Challenge 🏆
                 </button>
               </div>
             </div>

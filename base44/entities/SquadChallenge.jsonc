@@ -1,0 +1,62 @@
+{
+  "name": "SquadChallenge",
+  "type": "object",
+  "properties": {
+    "squad_id": {
+      "type": "string",
+      "title": "Squad ID"
+    },
+    "challenge_name": {
+      "type": "string",
+      "title": "Challenge Name"
+    },
+    "challenge_type": {
+      "type": "string",
+      "enum": [
+        "streak",
+        "points",
+        "challenges",
+        "checkins",
+        "custom"
+      ],
+      "title": "Challenge Type"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "target_value": {
+      "type": "number",
+      "title": "Target Value"
+    },
+    "start_date": {
+      "type": "string",
+      "title": "Start Date"
+    },
+    "end_date": {
+      "type": "string",
+      "title": "End Date"
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Created By (Email)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "upcoming",
+        "active",
+        "ended"
+      ],
+      "default": "active",
+      "title": "Status"
+    }
+  },
+  "required": [
+    "squad_id",
+    "challenge_name",
+    "challenge_type",
+    "start_date",
+    "end_date"
+  ]
+}
