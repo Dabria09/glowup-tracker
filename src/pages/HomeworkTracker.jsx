@@ -304,6 +304,7 @@ export default function HomeworkTracker() {
             <p className="text-xs text-gray-400 mb-1">Notes (optional)</p>
             <input type="text" placeholder="e.g. Chapter 5, pages 20-30" value={fNotes} onChange={e => setFNotes(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-2xl px-3 py-2 text-white text-sm outline-none placeholder-gray-500" />
+            <div className="h-4" />
 
 
           </div>
