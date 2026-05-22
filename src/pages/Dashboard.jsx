@@ -121,8 +121,6 @@ export default function Dashboard() {
         }
       }
     }).catch(() => {});
-    const timer = setInterval(() => setTime(getTime()), 30000);
-    return () => clearInterval(timer);
   }, []);
 
   const firstName = user?.full_name?.split(' ')[0] || 'Gorgeous';
@@ -177,8 +175,6 @@ export default function Dashboard() {
             firstName[0]
           )}
         </div>
-        <span className="text-white font-semibold text-sm">{time}</span>
-        <button className="ml-1 text-gray-300 hover:text-white"><MessageCircle size={20} /></button>
         <div className="flex-1" />
         {isEditMode ? (
           <button
