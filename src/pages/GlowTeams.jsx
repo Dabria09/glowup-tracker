@@ -39,8 +39,15 @@ export default function GlowTeams() {
   const [newTeam, setNewTeam] = useState({ name: '', description: '', category: 'Lifestyle & Vibes', emoji: '✨' });
 
   useEffect(() => {
-    base44.auth.me().then(async (u) => {
+    base44.auth.isAuthenticated().then(async (authenticated) => {
+      if (!authenticated) {
+        base44.auth.redirectToLogin();
+        return;
+      }
+      
+      const u = await base44.auth.me();
       setUser(u);
+      
       try {
         const [allTeams, myMemberships, contests] = await Promise.all([
           base44.entities.GlowTeam.list(),
@@ -56,7 +63,7 @@ export default function GlowTeams() {
         setTeams(SAMPLE_TEAMS.map(t => ({ ...t, id: t.name })));
       }
       setLoading(false);
-    }).catch(() => base44.auth.redirectToLogin());
+    });
   }, []);
 
   const filteredTeams = teams.filter(team => {
