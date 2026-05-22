@@ -1,0 +1,62 @@
+{
+  "name": "GlowBoard",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "username": {
+      "type": "string",
+      "title": "Username"
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Glow Style",
+        "Dream Life",
+        "Money Moves",
+        "Career Vision",
+        "Mindset",
+        "Travel Goals",
+        "Home Goals",
+        "Wellness",
+        "Faith & Peace",
+        "Study Grind",
+        "Glow Goals"
+      ],
+      "title": "Category"
+    },
+    "is_trending": {
+      "type": "boolean",
+      "title": "Trending",
+      "default": false
+    },
+    "saves": {
+      "type": "number",
+      "title": "Saves",
+      "default": 0
+    },
+    "saved_by": {
+      "type": "string",
+      "title": "Saved By (JSON array of emails)"
+    }
+  },
+  "required": [
+    "user_email",
+    "image_url",
+    "category"
+  ]
+}

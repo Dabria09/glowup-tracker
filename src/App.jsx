@@ -43,6 +43,7 @@ import Leaderboard from './pages/Leaderboard';
 import GlowFeed from './pages/GlowFeed';
 import GlowTeams from './pages/GlowTeams';
 import GlowSquads from './pages/GlowSquads';
+import GlowBoard from './pages/GlowBoard';
 import TeamContests from './pages/TeamContests';
 import TeamDetail from './pages/TeamDetail';
 import SquadDetail from './pages/SquadDetail';
@@ -101,6 +102,7 @@ const AuthenticatedApp = () => {
       <Route path="/my-glow-link" element={<MyGlowLink />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="/glow-feed" element={<GlowFeed />} />
+      <Route path="/glow-board" element={<GlowBoard />} />
       <Route path="/glow-teams" element={<GlowTeams />} />
       <Route path="/glow-teams/:id" element={<TeamDetail />} />
       <Route path="/glow-squads" element={<GlowSquads />} />
