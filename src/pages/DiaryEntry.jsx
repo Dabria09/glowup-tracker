@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft } from 'lucide-react';
+import AppBackground from '@/components/AppBackground';
 import { toast } from 'sonner';
 
 const STYLE_FONTS = {
@@ -47,15 +48,6 @@ const TEMPLATES = [
 ];
 
 const STICKERS = ['💖', '✨', '🌸', '🦋', '🌙', '⭐', '💫', '🌺', '🎀', '💜', '🌟', '🦄', '💅', '🍓', '🌈'];
-
-const HeartBg = () => (
-  <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-10 z-0">
-    {Array.from({ length: 80 }).map((_, i) => (
-      <span key={i} className="absolute text-pink-300 select-none"
-        style={{ left: `${(i % 10) * 11 + 2}%`, top: `${Math.floor(i / 10) * 13 + 2}%`, fontSize: `${16 + (i % 3) * 6}px` }}>♥</span>
-    ))}
-  </div>
-);
 
 const todayStr = () => {
   const d = new Date();
@@ -139,7 +131,7 @@ export default function DiaryEntry() {
 
   return (
     <div className="min-h-screen text-white pb-10 relative" style={{ backgroundColor: '#1a0a2e', fontFamily: STYLE_FONTS[writingStyle] || 'inherit' }}>
-      <HeartBg />
+      <AppBackground />
       <div className="relative z-10">
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-5 pb-3">

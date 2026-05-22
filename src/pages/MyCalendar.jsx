@@ -2,21 +2,13 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
+import AppBackground from '@/components/AppBackground';
 import { toast } from 'sonner';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const EVENT_COLORS = ['#e91e8c','#9c27b0','#ffc107','#009688','#f44336','#2196f3'];
-
-const HeartBg = () => (
-  <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" style={{ opacity: 0.10 }}>
-    {Array.from({ length: 80 }).map((_, i) => (
-      <span key={i} className="absolute text-gray-400 select-none"
-        style={{ left: `${(i % 10) * 11}%`, top: `${Math.floor(i / 10) * 13}%`, fontSize: '22px' }}>♥</span>
-    ))}
-  </div>
-);
 
 function getDaysInMonth(year, month) {
   return new Date(year, month + 1, 0).getDate();
@@ -95,7 +87,7 @@ export default function MyCalendar() {
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#1a0a2e' }}>
-      <HeartBg />
+      <AppBackground />
       <div className="relative z-10">
         {/* Points */}
         <div className="flex justify-end px-4 pt-4 pb-1">

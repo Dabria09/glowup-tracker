@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
 import { Plus, X, Check } from 'lucide-react';
+import AppBackground from '@/components/AppBackground';
 
 const COLORS = [
   { id: 'pink',   bg: '#7c1f4e', dot: '#e91e8c' },
@@ -12,15 +13,6 @@ const COLORS = [
   { id: 'orange', bg: '#5c2c00', dot: '#ff9800' },
   { id: 'gray',   bg: '#2a2a2a', dot: '#9e9e9e' },
 ];
-
-const HeartBg = () => (
-  <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" style={{ opacity: 0.12 }}>
-    {Array.from({ length: 80 }).map((_, i) => (
-      <span key={i} className="absolute text-gray-400 select-none"
-        style={{ left: `${(i % 10) * 11}%`, top: `${Math.floor(i / 10) * 13}%`, fontSize: '22px' }}>♥</span>
-    ))}
-  </div>
-);
 
 export default function StickyNotes() {
   const [user, setUser] = useState(null);
@@ -64,7 +56,7 @@ export default function StickyNotes() {
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0d0d' }}>
-      <HeartBg />
+      <AppBackground />
       <div className="relative z-10">
         {/* Header */}
         <div className="flex items-end justify-between px-4 pt-4 pb-2">

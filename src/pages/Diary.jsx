@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
+import AppBackground from '@/components/AppBackground';
 import { Download, Lock, Plus, Search } from 'lucide-react';
 
 const MOOD_FILTERS = [
@@ -11,22 +12,6 @@ const MOOD_FILTERS = [
   { label: 'Stressed', emoji: '😤' },
   { label: 'Angry', emoji: '😠' },
 ];
-
-const HeartBg = () => (
-  <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-10 z-0">
-    {Array.from({ length: 80 }).map((_, i) => (
-      <span
-        key={i}
-        className="absolute text-pink-300 select-none"
-        style={{
-          left: `${(i % 10) * 11 + Math.random() * 4}%`,
-          top: `${Math.floor(i / 10) * 13 + Math.random() * 4}%`,
-          fontSize: `${16 + Math.random() * 10}px`,
-        }}
-      >♥</span>
-    ))}
-  </div>
-);
 
 export default function Diary() {
   const navigate = useNavigate();
@@ -57,7 +42,7 @@ export default function Diary() {
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#1a0a2e' }}>
-      <HeartBg />
+      <AppBackground />
       <div className="relative z-10">
         {/* Header */}
         <div className="flex items-start justify-between px-4 pt-6 pb-4">

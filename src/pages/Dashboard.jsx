@@ -91,6 +91,24 @@ export default function Dashboard() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [homeApps, setHomeApps] = useState(WORLD_APPS.filter(a => !a.soon));
 
+  // Persist bg settings to localStorage so all pages share the same look
+  useEffect(() => { localStorage.setItem('ggu_bg_color', bgColor); }, [bgColor]);
+  useEffect(() => { localStorage.setItem('ggu_bg_pattern', bgPattern); }, [bgPattern]);
+  useEffect(() => { if (bgImage) localStorage.setItem('ggu_bg_image', bgImage); else localStorage.removeItem('ggu_bg_image'); }, [bgImage]);
+  useEffect(() => { localStorage.setItem('ggu_bg_image_pos', JSON.stringify(bgImagePos)); }, [bgImagePos]);
+
+  useEffect(() => {
+    // Restore saved bg on mount
+    const savedColor = localStorage.getItem('ggu_bg_color');
+    const savedPattern = localStorage.getItem('ggu_bg_pattern');
+    const savedImage = localStorage.getItem('ggu_bg_image');
+    const savedPos = localStorage.getItem('ggu_bg_image_pos');
+    if (savedColor) setBgColor(savedColor);
+    if (savedPattern) setBgPattern(savedPattern);
+    if (savedImage) setBgImage(savedImage);
+    if (savedPos) { try { setBgImagePos(JSON.parse(savedPos)); } catch {} }
+  }, []);
+
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
