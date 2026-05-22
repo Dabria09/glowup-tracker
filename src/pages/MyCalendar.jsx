@@ -174,7 +174,13 @@ export default function MyCalendar() {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60" onClick={() => setShowForm(false)}>
           <div className="w-full max-w-lg bg-gray-900 border border-white/10 rounded-t-3xl p-6 pb-10" onClick={e => e.stopPropagation()}>
-            <h2 className="text-white font-bold text-lg mb-4">New Event</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-white font-bold text-lg">New Event</h2>
+              <div className="flex gap-2">
+                <button onClick={() => setShowForm(false)} className="px-4 py-1.5 rounded-full border border-white/20 text-gray-400 text-sm font-semibold">Cancel</button>
+                <button onClick={handleSave} className="px-5 py-1.5 rounded-full bg-pink-500 text-white text-sm font-bold">Save</button>
+              </div>
+            </div>
             <p className="text-gray-400 text-xs mb-3">{selectedDate}</p>
             <input
               type="text"
@@ -204,10 +210,7 @@ export default function MyCalendar() {
                   style={{ backgroundColor: c, borderColor: form.color === c ? '#fff' : 'transparent' }} />
               ))}
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => setShowForm(false)} className="flex-1 py-3 rounded-full border border-white/20 text-gray-400 text-sm font-semibold">Cancel</button>
-              <button onClick={handleSave} className="flex-1 py-3 rounded-full bg-pink-500 text-white text-sm font-bold">Save</button>
-            </div>
+
           </div>
         </div>
       )}
