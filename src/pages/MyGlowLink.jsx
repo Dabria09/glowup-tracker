@@ -23,6 +23,23 @@ export default function MyGlowLink() {
   const [postText, setPostText] = useState('');
   const [postVisibility, setPostVisibility] = useState('followers');
   const [postFiles, setPostFiles] = useState([]);
+  
+  // Settings
+  const [username, setUsername] = useState('');
+  const [glowEra, setGlowEra] = useState('Glow Up Era');
+  const [bio, setBio] = useState('');
+  const [motto, setMotto] = useState('');
+  const [links, setLinks] = useState([]);
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  
+  const [achievements, setAchievements] = useState({
+    streak: 7,
+    badges: 3,
+    goals: 2,
+    challenges: 1,
+    days: 30,
+    tier: 'Radiant',
+  });
 
   // Privacy settings
   const [privacy, setPrivacy] = useState({
@@ -39,7 +56,6 @@ export default function MyGlowLink() {
       setUser(u);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
       if (profiles.length) setProfile(profiles[0]);
-      // TODO: Fetch posts, followers, following from entities
       setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
@@ -109,8 +125,8 @@ export default function MyGlowLink() {
             <h2 className="text-sm font-bold tracking-widest text-gray-400 mb-3">YOUR PROFILE</h2>
             <div className="flex items-center justify-between gap-4 rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div className="flex items-center gap-3 flex-1">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-lg font-bold">
-                  {user?.full_name?.[0] || 'G'}
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-lg font-bold flex-shrink-0">
+                  {profilePhoto ? <img src={profilePhoto} alt="profile" className="w-full h-full object-cover rounded-full" /> : user?.full_name?.[0] || 'G'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-white text-sm">{user?.full_name}</p>
@@ -185,7 +201,138 @@ export default function MyGlowLink() {
 
           {/* Settings Tab */}
           {activeTab === 'settings' && (
-            <div className="space-y-5">
+            <div className="space-y-6 pb-6">
+              {/* Glow Link & Profile */}
+              <div>
+                <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">YOUR GLOW LINK</h3>
+                <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <p className="text-xs text-gray-400 mb-2">Your Link</p>
+                  <div className="flex items-center gap-2 mb-3 p-3 rounded-xl bg-black/30">
+                    <span className="text-sm text-yellow-400 font-mono flex-1 truncate">https://gguapp.com/glowlink/{username || 'username'}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full text-sm font-semibold border border-pink-400/50 text-pink-400 hover:bg-pink-400/10 transition">
+                      📋 Copy
+                    </button>
+                    <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full text-sm font-semibold border border-pink-400/50 text-pink-400 hover:bg-pink-400/10 transition">
+                      📤 Share
+                    </button>
+                    <button className="px-3 py-2 rounded-full text-sm font-semibold border border-pink-400/50 text-pink-400 hover:bg-pink-400/10 transition">↗️</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Profile Photo */}
+              <div>
+                <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">PROFILE PHOTO</h3>
+                <p className="text-xs text-gray-400 mb-3">This photo shows on your Glow Link and across the app</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 overflow-hidden flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                    {profilePhoto ? <img src={profilePhoto} alt="profile" className="w-full h-full object-cover" /> : user?.full_name?.[0]}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="px-4 py-2 rounded-full bg-pink-500 text-white font-semibold text-sm cursor-pointer hover:bg-pink-600 transition">
+                      📸 Upload Photo
+                      <input type="file" accept="image/*" onChange={e => e.target.files?.[0] && setProfilePhoto(URL.createObjectURL(e.target.files[0]))} className="hidden" />
+                    </label>
+                    <button className="px-4 py-2 rounded-full border border-red-500/50 text-red-400 font-semibold text-sm hover:bg-red-500/10 transition">Remove Photo</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Username */}
+              <div>
+                <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">USERNAME</h3>
+                <div>
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <span className="text-gray-400">@</span>
+                    <input value={username} onChange={e => setUsername(e.target.value)} placeholder="rasheleria" className="bg-transparent text-white outline-none flex-1" />
+                  </div>
+                  <p className="text-xs text-red-400 mt-1">✕ Already taken</p>
+                  <p className="text-xs text-gray-400 mt-1">Your link: /glowlink/{username}</p>
+                </div>
+              </div>
+
+              {/* Glow Era */}
+              <div>
+                <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">GLOW ERA</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {GLOW_ERAS.map(era => (
+                    <button key={era} onClick={() => setGlowEra(era)} className={`px-3 py-2 rounded-full text-xs font-semibold transition ${glowEra === era ? 'bg-pink-500 text-white' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'}`}>
+                      {era}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bio */}
+              <div>
+                <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">YOUR BIO</h3>
+                <p className="text-xs text-gray-400 mb-2">Tell the world who you are and where you're going... 👑</p>
+                <textarea value={bio} onChange={e => setBio(e.target.value.slice(0, 500))} placeholder="Your bio here..." className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none resize-none min-h-20" />
+                <p className="text-xs text-gray-400 text-right mt-1">{bio.length}/500</p>
+              </div>
+
+              {/* Personal Motto */}
+              <div>
+                <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">PERSONAL MOTTO</h3>
+                <textarea value={motto} onChange={e => setMotto(e.target.value)} placeholder="Your personal motto or favorite quote..." className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none resize-none min-h-16" />
+              </div>
+
+              {/* Custom Links */}
+              <div>
+                <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">YOUR LINKS ({links.length}/3)</h3>
+                {links.map((link, i) => (
+                  <div key={i} className="mb-3 p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <p className="text-xs text-gray-400 mb-1">{link.label}</p>
+                    <p className="text-xs text-gray-500 truncate">{link.url}</p>
+                  </div>
+                ))}
+                {links.length < 3 && (
+                  <button className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                    + Add Link
+                  </button>
+                )}
+              </div>
+
+              {/* Achievements */}
+              <div>
+                <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">HER ACHIEVEMENTS</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <span className="text-2xl block mb-1">🔥</span>
+                    <p className="font-bold text-white text-sm">{achievements.streak} days</p>
+                    <p className="text-xs text-gray-400">Streak</p>
+                  </div>
+                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <span className="text-2xl block mb-1">⭐</span>
+                    <p className="font-bold text-white text-sm">{achievements.badges} earned</p>
+                    <p className="text-xs text-gray-400">Badges</p>
+                  </div>
+                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <span className="text-2xl block mb-1">🎯</span>
+                    <p className="font-bold text-white text-sm">{achievements.goals} active</p>
+                    <p className="text-xs text-gray-400">Goals</p>
+                  </div>
+                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <span className="text-2xl block mb-1">✓</span>
+                    <p className="font-bold text-white text-sm">{achievements.challenges} done</p>
+                    <p className="text-xs text-gray-400">Challenges</p>
+                  </div>
+                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <span className="text-2xl block mb-1">📅</span>
+                    <p className="font-bold text-white text-sm">{achievements.days}+</p>
+                    <p className="text-xs text-gray-400">Days in GGU</p>
+                  </div>
+                  <div className="text-center p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <span className="text-2xl block mb-1">👑</span>
+                    <p className="font-bold text-white text-sm">{achievements.tier}</p>
+                    <p className="text-xs text-gray-400">Tier</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Privacy Controls */}
               <div>
                 <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3">PRIVACY CONTROLS</h3>
                 {[
@@ -207,6 +354,10 @@ export default function MyGlowLink() {
                   </div>
                 ))}
               </div>
+
+              <button className="w-full py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                Save My Glow Link 💜
+              </button>
             </div>
           )}
         </div>
