@@ -1,0 +1,69 @@
+{
+  "name": "GlowSquad",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Squad Name"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "emoji": {
+      "type": "string",
+      "title": "Emoji"
+    },
+    "cover_image": {
+      "type": "string",
+      "title": "Cover Image URL"
+    },
+    "member_count": {
+      "type": "number",
+      "title": "Member Count",
+      "default": 0
+    },
+    "max_members": {
+      "type": "number",
+      "title": "Max Members",
+      "default": 10
+    },
+    "is_private": {
+      "type": "boolean",
+      "title": "Private Squad",
+      "default": true
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Created By (Email)"
+    },
+    "squad_points": {
+      "type": "number",
+      "title": "Squad Points",
+      "default": 0
+    },
+    "current_streak": {
+      "type": "number",
+      "title": "Current Streak (Days)",
+      "default": 0
+    },
+    "longest_streak": {
+      "type": "number",
+      "title": "Longest Streak",
+      "default": 0
+    },
+    "challenges_completed": {
+      "type": "number",
+      "title": "Challenges Completed",
+      "default": 0
+    },
+    "contest_entries": {
+      "type": "number",
+      "title": "Contest Entries",
+      "default": 0
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

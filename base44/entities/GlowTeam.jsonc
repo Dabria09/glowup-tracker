@@ -1,0 +1,59 @@
+{
+  "name": "GlowTeam",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Team Name"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "STEM & Tech",
+        "Entrepreneurship",
+        "Fitness & Wellness",
+        "Faith & Spirituality",
+        "Academic Excellence",
+        "Lifestyle & Vibes",
+        "Arts & Creativity",
+        "Mental Health"
+      ],
+      "title": "Category"
+    },
+    "cover_image": {
+      "type": "string",
+      "title": "Cover Image URL"
+    },
+    "emoji": {
+      "type": "string",
+      "title": "Emoji"
+    },
+    "member_count": {
+      "type": "number",
+      "title": "Member Count",
+      "default": 0
+    },
+    "is_public": {
+      "type": "boolean",
+      "title": "Public Team",
+      "default": true
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Created By (Email)"
+    },
+    "total_points": {
+      "type": "number",
+      "title": "Total Team Points",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ]
+}

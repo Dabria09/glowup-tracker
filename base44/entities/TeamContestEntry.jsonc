@@ -1,0 +1,43 @@
+{
+  "name": "TeamContestEntry",
+  "type": "object",
+  "properties": {
+    "contest_id": {
+      "type": "string",
+      "title": "Contest ID"
+    },
+    "team_id": {
+      "type": "string",
+      "title": "Team ID"
+    },
+    "team_name": {
+      "type": "string",
+      "title": "Team Name"
+    },
+    "team_emoji": {
+      "type": "string",
+      "title": "Team Emoji"
+    },
+    "team_category": {
+      "type": "string",
+      "title": "Team Category"
+    },
+    "current_progress": {
+      "type": "number",
+      "title": "Current Progress",
+      "default": 0
+    },
+    "rank": {
+      "type": "number",
+      "title": "Current Rank"
+    },
+    "entered_date": {
+      "type": "string",
+      "title": "Entered Date"
+    }
+  },
+  "required": [
+    "contest_id",
+    "team_id"
+  ]
+}

@@ -41,6 +41,9 @@ import MealPlanner from './pages/MealPlanner';
 import MyGlowLink from './pages/MyGlowLink';
 import Leaderboard from './pages/Leaderboard';
 import GlowFeed from './pages/GlowFeed';
+import GlowTeams from './pages/GlowTeams';
+import GlowSquads from './pages/GlowSquads';
+import SquadContests from './pages/SquadContests';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -96,6 +99,9 @@ const AuthenticatedApp = () => {
       <Route path="/my-glow-link" element={<MyGlowLink />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="/glow-feed" element={<GlowFeed />} />
+      <Route path="/glow-teams" element={<GlowTeams />} />
+      <Route path="/glow-squads" element={<GlowSquads />} />
+      <Route path="/squad-contests" element={<SquadContests />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

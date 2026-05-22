@@ -1,0 +1,36 @@
+{
+  "name": "SquadMember",
+  "type": "object",
+  "properties": {
+    "squad_id": {
+      "type": "string",
+      "title": "Squad ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "member",
+        "captain"
+      ],
+      "default": "member",
+      "title": "Role"
+    },
+    "joined_date": {
+      "type": "string",
+      "title": "Joined Date"
+    },
+    "personal_streak": {
+      "type": "number",
+      "title": "Personal Streak",
+      "default": 0
+    }
+  },
+  "required": [
+    "squad_id",
+    "user_email"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "ContestEntry",
+  "type": "object",
+  "properties": {
+    "contest_id": {
+      "type": "string",
+      "title": "Contest ID"
+    },
+    "squad_id": {
+      "type": "string",
+      "title": "Squad ID"
+    },
+    "squad_name": {
+      "type": "string",
+      "title": "Squad Name"
+    },
+    "squad_emoji": {
+      "type": "string",
+      "title": "Squad Emoji"
+    },
+    "current_progress": {
+      "type": "number",
+      "title": "Current Progress",
+      "default": 0
+    },
+    "rank": {
+      "type": "number",
+      "title": "Current Rank"
+    },
+    "entered_date": {
+      "type": "string",
+      "title": "Entered Date"
+    }
+  },
+  "required": [
+    "contest_id",
+    "squad_id"
+  ]
+}

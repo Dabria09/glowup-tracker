@@ -1,0 +1,66 @@
+{
+  "name": "TeamContest",
+  "type": "object",
+  "properties": {
+    "contest_name": {
+      "type": "string",
+      "title": "Contest Name"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "start_date": {
+      "type": "string",
+      "title": "Start Date"
+    },
+    "end_date": {
+      "type": "string",
+      "title": "End Date"
+    },
+    "challenge_type": {
+      "type": "string",
+      "enum": [
+        "points",
+        "members",
+        "discussions",
+        "checkins",
+        "custom"
+      ],
+      "title": "Challenge Type"
+    },
+    "target_value": {
+      "type": "number",
+      "title": "Target Value"
+    },
+    "prize_description": {
+      "type": "string",
+      "title": "Prize Description"
+    },
+    "prize_image": {
+      "type": "string",
+      "title": "Prize Image URL"
+    },
+    "participant_count": {
+      "type": "number",
+      "title": "Participant Teams",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "upcoming",
+        "active",
+        "ended"
+      ],
+      "default": "active",
+      "title": "Status"
+    }
+  },
+  "required": [
+    "contest_name",
+    "challenge_type",
+    "start_date",
+    "end_date"
+  ]
+}
