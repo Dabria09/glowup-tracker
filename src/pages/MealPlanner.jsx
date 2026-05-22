@@ -51,7 +51,19 @@ export default function MealPlanner() {
         base44.entities.MealPlan.filter({ user_email: u.email }),
         base44.entities.GroceryItem.filter({ user_email: u.email }),
       ]);
-      setMeals(m);
+      if (m.length === 0) {
+        const sampleMeals = [
+          { user_email: u.email, week_start: toISO(weekStart), day: 'Monday', meal_type: 'Breakfast', meal_name: 'Oatmeal with Berries', notes: 'Add honey', grocery_items: '[]' },
+          { user_email: u.email, week_start: toISO(weekStart), day: 'Monday', meal_type: 'Lunch', meal_name: 'Grilled Chicken Salad', notes: 'Olive oil dressing', grocery_items: '[]' },
+          { user_email: u.email, week_start: toISO(weekStart), day: 'Monday', meal_type: 'Dinner', meal_name: 'Pasta Primavera', notes: '', grocery_items: '[]' },
+          { user_email: u.email, week_start: toISO(weekStart), day: 'Wednesday', meal_type: 'Dinner', meal_name: 'Baked Salmon with Veggies', notes: 'Lemon herb', grocery_items: '[]' },
+          { user_email: u.email, week_start: toISO(weekStart), day: 'Friday', meal_type: 'Dinner', meal_name: 'Tacos', notes: 'Keep it simple', grocery_items: '[]' },
+        ];
+        const created = await base44.entities.MealPlan.bulkCreate(sampleMeals);
+        setMeals(created);
+      } else {
+        setMeals(m);
+      }
       setGroceryItems(g);
       setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());

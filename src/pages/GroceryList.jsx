@@ -34,7 +34,19 @@ export default function GroceryList() {
     base44.auth.me().then(async (u) => {
       setUser(u);
       const data = await base44.entities.GroceryItem.filter({ user_email: u.email });
-      setItems(data);
+      if (data.length === 0) {
+        const sampleItems = [
+          { user_email: u.email, name: 'Spinach', quantity: 1, category: 'Produce', is_checked: false },
+          { user_email: u.email, name: 'Chicken Breast', quantity: 2, category: 'Meat & Seafood', is_checked: false },
+          { user_email: u.email, name: 'Milk', quantity: 1, category: 'Dairy', is_checked: false },
+          { user_email: u.email, name: 'Whole Wheat Bread', quantity: 1, category: 'Bread & Bakery', is_checked: false },
+          { user_email: u.email, name: 'Greek Yogurt', quantity: 1, category: 'Dairy', is_checked: false },
+        ];
+        const created = await base44.entities.GroceryItem.bulkCreate(sampleItems);
+        setItems(created);
+      } else {
+        setItems(data);
+      }
       setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
