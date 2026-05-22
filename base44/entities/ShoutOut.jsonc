@@ -1,0 +1,27 @@
+{
+  "name": "ShoutOut",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "username": {
+      "type": "string",
+      "title": "Display Name"
+    },
+    "content": {
+      "type": "string",
+      "title": "Post Content"
+    },
+    "likes": {
+      "type": "number",
+      "title": "Likes"
+    },
+    "liked_by": {
+      "type": "string",
+      "title": "Liked By (JSON array of emails)"
+    }
+  },
+  "required": []
+}
