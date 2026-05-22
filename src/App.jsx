@@ -39,6 +39,7 @@ import DailyCheckIn from './pages/DailyCheckIn';
 import GroceryList from './pages/GroceryList';
 import MealPlanner from './pages/MealPlanner';
 import MyGlowLink from './pages/MyGlowLink';
+import Leaderboard from './pages/Leaderboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -92,6 +93,7 @@ const AuthenticatedApp = () => {
       <Route path="/grocery-list" element={<GroceryList />} />
       <Route path="/meal-planner" element={<MealPlanner />} />
       <Route path="/my-glow-link" element={<MyGlowLink />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
