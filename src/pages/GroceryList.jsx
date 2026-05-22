@@ -195,6 +195,58 @@ export default function GroceryList() {
           <div className="w-full rounded-t-3xl flex flex-col" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)', maxHeight: 'calc(100vh - 80px)', height: '90vh' }} onClick={e => e.stopPropagation()}>
             {/* Scrollable content */}
             <div className="overflow-y-auto flex-1 p-6 pb-2">
+              <h3 className="text-lg font-bold mb-4">Add Item</h3>
+
+              <div className="mb-4">
+                <label className="text-xs font-bold text-gray-400 mb-2 block">ITEM NAME</label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={e => setNewName(e.target.value)}
+                  placeholder="e.g., Apples"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 mb-2 block">QUANTITY</label>
+                  <input
+                    type="number"
+                    value={newQty}
+                    onChange={e => setNewQty(Math.max(1, parseInt(e.target.value) || 1))}
+                    min="1"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 mb-2 block">CATEGORY</label>
+                  <button
+                    onClick={() => setShowCatPicker(!showCatPicker)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-left flex items-center justify-between"
+                  >
+                    <span>{catEmoji(newCat)} {newCat}</span>
+                    <span className="text-gray-500">↓</span>
+                  </button>
+                </div>
+              </div>
+
+              {showCatPicker && (
+                <div className="mb-4 p-3 rounded-2xl bg-white/5 border border-white/10 grid grid-cols-3 gap-2">
+                  {CATEGORIES.map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => { setNewCat(cat.id); setShowCatPicker(false); }}
+                      className={`p-2 rounded-lg text-center text-xs font-semibold transition ${
+                        newCat === cat.id ? 'bg-pink-500 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                      }`}
+                    >
+                      <div className="text-lg mb-0.5">{cat.emoji}</div>
+                      <div className="truncate">{cat.id}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <button
                 onClick={addItem}
