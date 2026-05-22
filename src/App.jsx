@@ -31,6 +31,7 @@ import VisionBoard from './pages/VisionBoard';
 import SpiritualGlow from './pages/SpiritualGlow';
 import ShoutOuts from './pages/ShoutOuts';
 import CalmCorner from './pages/CalmCorner';
+import GirlsLibrary from './pages/GirlsLibrary';
 import AudioLibrary from './pages/AudioLibrary';
 
 const AuthenticatedApp = () => {
@@ -77,6 +78,7 @@ const AuthenticatedApp = () => {
       <Route path="/spiritual-glow" element={<SpiritualGlow />} />
       <Route path="/shout-outs" element={<ShoutOuts />} />
       <Route path="/calm-corner" element={<CalmCorner />} />
+      <Route path="/girls-library" element={<GirlsLibrary />} />
       <Route path="/audio-library" element={<AudioLibrary />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
