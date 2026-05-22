@@ -33,6 +33,7 @@ import ShoutOuts from './pages/ShoutOuts';
 import CalmCorner from './pages/CalmCorner';
 import GirlsLibrary from './pages/GirlsLibrary';
 import AudioLibrary from './pages/AudioLibrary';
+import WellnessHub from './pages/WellnessHub';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -80,6 +81,7 @@ const AuthenticatedApp = () => {
       <Route path="/calm-corner" element={<CalmCorner />} />
       <Route path="/girls-library" element={<GirlsLibrary />} />
       <Route path="/audio-library" element={<AudioLibrary />} />
+      <Route path="/wellness-hub" element={<WellnessHub />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
