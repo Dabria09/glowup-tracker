@@ -672,9 +672,12 @@ export default function CycleTracker() {
       </div>
 
       {showSetup && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" onClick={() => setShowSetup(false)}>
-          <div className="w-full max-w-lg glass-strong rounded-t-3xl p-5 pb-8" onClick={e => e.stopPropagation()}>
-            <p className="text-white font-bold text-lg mb-4">🌸 Log Period</p>
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center px-4" onClick={() => setShowSetup(false)}>
+          <div className="w-full max-w-lg glass-strong rounded-3xl p-5" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-white font-bold text-lg">🌸 Log Period</p>
+              <button onClick={() => setShowSetup(false)} className="text-gray-400 hover:text-white text-xl leading-none">✕</button>
+            </div>
             <p className="text-xs text-gray-400 mb-1">When did your last period start?</p>
             <input type="date" value={setupDate} onChange={e => setSetupDate(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-2xl px-3 py-2 text-white text-sm outline-none mb-3" />
