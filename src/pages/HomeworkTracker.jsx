@@ -254,9 +254,11 @@ export default function HomeworkTracker() {
 
       {/* Add Assignment Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" onClick={() => setShowForm(false)}>
-          <div className="w-full max-w-lg glass-strong rounded-t-3xl p-4 overflow-y-auto" style={{maxHeight:'88vh', paddingBottom:'40px'}} onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center px-4" onClick={() => setShowForm(false)}>
+          <div className="w-full max-w-lg glass-strong rounded-3xl p-5 flex flex-col" style={{maxHeight:'90vh'}} onClick={e => e.stopPropagation()}>
+
+            {/* Fixed header */}
+            <div className="flex justify-between items-center mb-4 flex-shrink-0">
               <p className="text-white font-bold text-lg">📝 New Assignment</p>
               <div className="flex items-center gap-2">
                 <button onClick={handleAdd} disabled={saving || !fTitle.trim()}
@@ -268,45 +270,48 @@ export default function HomeworkTracker() {
               </div>
             </div>
 
-            <input autoFocus type="text" placeholder="Assignment title" value={fTitle} onChange={e => setFTitle(e.target.value)}
-              className="w-full bg-white/5 border-2 border-pink-500/60 rounded-2xl px-3 py-2 text-white text-sm outline-none placeholder-gray-500 mb-2" />
+            {/* Scrollable form body */}
+            <div className="overflow-y-auto flex-1 pr-1" style={{overflowY:'auto'}}>
 
-            {/* Subject */}
-            <p className="text-xs text-gray-400 mb-1">Subject</p>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {SUBJECTS.filter(s => s.id !== 'All').map(s => (
-                <button key={s.id} onClick={() => setFSubject(s.id)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs border transition ${
-                    fSubject === s.id ? 'bg-pink-500 border-pink-500 text-white' : 'glass border-white/10 text-gray-300'
-                  }`}>
-                  {s.emoji} {s.label}
-                </button>
-              ))}
+              <input autoFocus type="text" placeholder="Assignment title" value={fTitle} onChange={e => setFTitle(e.target.value)}
+                className="w-full bg-white/5 border-2 border-pink-500/60 rounded-2xl px-3 py-2 text-white text-sm outline-none placeholder-gray-500 mb-3" />
+
+              {/* Subject */}
+              <p className="text-xs text-gray-400 mb-1">Subject</p>
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {SUBJECTS.filter(s => s.id !== 'All').map(s => (
+                  <button key={s.id} onClick={() => setFSubject(s.id)}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs border transition ${
+                      fSubject === s.id ? 'bg-pink-500 border-pink-500 text-white' : 'glass border-white/10 text-gray-300'
+                    }`}>
+                    {s.emoji} {s.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Priority */}
+              <p className="text-xs text-gray-400 mb-1">Priority</p>
+              <div className="flex gap-2 mb-3">
+                {PRIORITIES.map(p => (
+                  <button key={p} onClick={() => setFPriority(p)}
+                    className={`flex-1 py-1.5 rounded-2xl text-sm font-semibold border transition ${
+                      fPriority === p ? 'bg-yellow-700/40 border-yellow-500 text-yellow-300' : 'glass border-white/10 text-gray-400'
+                    }`}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+
+              <p className="text-xs text-gray-400 mb-1">Due Date</p>
+              <input type="date" value={fDue} onChange={e => setFDue(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-3 py-2 text-white text-sm outline-none mb-3" />
+
+              <p className="text-xs text-gray-400 mb-1">Notes (optional)</p>
+              <input type="text" placeholder="e.g. Chapter 5, pages 20-30" value={fNotes} onChange={e => setFNotes(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-3 py-2 text-white text-sm outline-none placeholder-gray-500 mb-2" />
+
+              <div className="h-2" />
             </div>
-
-            {/* Priority */}
-            <p className="text-xs text-gray-400 mb-1">Priority</p>
-            <div className="flex gap-2 mb-2">
-              {PRIORITIES.map(p => (
-                <button key={p} onClick={() => setFPriority(p)}
-                  className={`flex-1 py-1.5 rounded-2xl text-sm font-semibold border transition ${
-                    fPriority === p ? 'bg-yellow-700/40 border-yellow-500 text-yellow-300' : 'glass border-white/10 text-gray-400'
-                  }`}>
-                  {p}
-                </button>
-              ))}
-            </div>
-
-            <p className="text-xs text-gray-400 mb-1">Due Date</p>
-            <input type="date" value={fDue} onChange={e => setFDue(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-2xl px-3 py-2 text-white text-sm outline-none mb-2" />
-
-            <p className="text-xs text-gray-400 mb-1">Notes (optional)</p>
-            <input type="text" placeholder="e.g. Chapter 5, pages 20-30" value={fNotes} onChange={e => setFNotes(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-2xl px-3 py-2 text-white text-sm outline-none placeholder-gray-500" />
-            <div className="h-4" />
-
-
           </div>
         </div>
       )}
