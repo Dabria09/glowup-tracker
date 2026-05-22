@@ -25,6 +25,7 @@ import TimeManagement from './pages/TimeManagement';
 import TripPlanner from './pages/TripPlanner';
 import TripDetail from './pages/TripDetail';
 import GlowEventDetail from './pages/GlowEventDetail';
+import HomeworkTracker from './pages/HomeworkTracker';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -64,6 +65,7 @@ const AuthenticatedApp = () => {
       <Route path="/trip-planner" element={<TripPlanner />} />
       <Route path="/trip-planner/:id" element={<TripDetail />} />
       <Route path="/birthday-planner/:id" element={<GlowEventDetail />} />
+      <Route path="/homework-tracker" element={<HomeworkTracker />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

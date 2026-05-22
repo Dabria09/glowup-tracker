@@ -1,0 +1,35 @@
+{
+  "name": "HomeworkTask",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "subject": {
+      "type": "string",
+      "title": "Subject"
+    },
+    "title": {
+      "type": "string",
+      "title": "Assignment Title"
+    },
+    "due_date": {
+      "type": "string",
+      "title": "Due Date"
+    },
+    "priority": {
+      "type": "string",
+      "title": "Priority"
+    },
+    "is_done": {
+      "type": "boolean",
+      "title": "Done"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": []
+}
