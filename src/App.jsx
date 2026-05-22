@@ -19,6 +19,7 @@ import Diary from './pages/Diary';
 import StickyNotes from './pages/StickyNotes';
 import MyCalendar from './pages/MyCalendar';
 import DiaryEntry from './pages/DiaryEntry';
+import CleaningCalendar from './pages/CleaningCalendar';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -52,6 +53,7 @@ const AuthenticatedApp = () => {
       <Route path="/diary/:id" element={<DiaryEntry />} />
       <Route path="/sticky-notes" element={<StickyNotes />} />
       <Route path="/my-calendar" element={<MyCalendar />} />
+      <Route path="/cleaning-calendar" element={<CleaningCalendar />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

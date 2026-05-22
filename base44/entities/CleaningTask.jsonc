@@ -1,0 +1,31 @@
+{
+  "name": "CleaningTask",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "tab": {
+      "type": "string",
+      "title": "Tab (daily/weekly/monthly/seasonal)"
+    },
+    "label": {
+      "type": "string",
+      "title": "Task Label"
+    },
+    "room": {
+      "type": "string",
+      "title": "Room/Category"
+    },
+    "is_checked": {
+      "type": "boolean",
+      "title": "Checked"
+    },
+    "is_custom": {
+      "type": "boolean",
+      "title": "Is Custom Task"
+    }
+  },
+  "required": []
+}
