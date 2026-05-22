@@ -21,6 +21,7 @@ import MyCalendar from './pages/MyCalendar';
 import DiaryEntry from './pages/DiaryEntry';
 import CleaningCalendar from './pages/CleaningCalendar';
 import BirthdayPlanner from './pages/BirthdayPlanner';
+import TimeManagement from './pages/TimeManagement';
 import GlowEventDetail from './pages/GlowEventDetail';
 
 const AuthenticatedApp = () => {
@@ -57,6 +58,7 @@ const AuthenticatedApp = () => {
       <Route path="/my-calendar" element={<MyCalendar />} />
       <Route path="/cleaning-calendar" element={<CleaningCalendar />} />
       <Route path="/birthday-planner" element={<BirthdayPlanner />} />
+      <Route path="/time-management" element={<TimeManagement />} />
       <Route path="/birthday-planner/:id" element={<GlowEventDetail />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

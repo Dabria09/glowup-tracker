@@ -1,0 +1,39 @@
+{
+  "name": "TimeTask",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "priority": {
+      "type": "string",
+      "title": "Priority"
+    },
+    "due_date": {
+      "type": "string",
+      "title": "Due Date"
+    },
+    "est_minutes": {
+      "type": "number",
+      "title": "Est. Minutes"
+    },
+    "is_done": {
+      "type": "boolean",
+      "title": "Done"
+    },
+    "is_urgent": {
+      "type": "boolean",
+      "title": "Urgent"
+    }
+  },
+  "required": []
+}
