@@ -1,0 +1,39 @@
+{
+  "name": "BookClubDiscussion",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "username": {
+      "type": "string",
+      "title": "Username"
+    },
+    "book_id": {
+      "type": "string",
+      "title": "Book ID"
+    },
+    "content": {
+      "type": "string",
+      "title": "Content"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type (discussion/chapter/quote/learned)"
+    },
+    "chapter": {
+      "type": "number",
+      "title": "Chapter Number"
+    },
+    "quote_reference": {
+      "type": "string",
+      "title": "Quote Reference (page/chapter)"
+    },
+    "likes": {
+      "type": "number",
+      "title": "Likes"
+    }
+  },
+  "required": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "BookClubProgress",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "book_id": {
+      "type": "string",
+      "title": "Book ID"
+    },
+    "current_chapter": {
+      "type": "number",
+      "title": "Current Chapter"
+    }
+  },
+  "required": []
+}

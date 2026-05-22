@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import LibraryQuiz from '@/components/LibraryQuiz';
+import BookClub from '@/components/BookClub';
 import QUIZZES from '@/lib/libraryQuizzes';
 import { BookOpen, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 
@@ -375,6 +377,11 @@ export default function GirlsLibrary() {
   const [activeSection, setActiveSection] = useState('resources');
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedResource, setSelectedResource] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const ALL_CATS = Object.keys(CAT_META);
   const filtered = activeCategory === 'all' ? RESOURCES : RESOURCES.filter(r => r.cat === activeCategory);
@@ -440,7 +447,7 @@ export default function GirlsLibrary() {
         </div>
 
         {/* Category Grid (All selected) */}
-        {activeCategory === 'all' && (
+        {activeSection === 'resources' && activeCategory === 'all' && (
           <div className="grid grid-cols-3 gap-3 px-4 pb-4">
             {categoryTiles.map(cat => (
               <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
@@ -453,8 +460,16 @@ export default function GirlsLibrary() {
           </div>
         )}
 
+        {/* Book Club Section */}
+        {activeSection === 'book_club' && user && (
+          <BookClub user={user} />
+        )}
+        {activeSection === 'book_club' && !user && (
+          <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" /></div>
+        )}
+
         {/* Resource List (category selected) */}
-        {activeCategory !== 'all' && (
+        {activeSection === 'resources' && activeCategory !== 'all' && (
           <div className="space-y-3 px-4 pb-4">
             {filtered.map(r => {
               const meta = CAT_META[r.cat];
@@ -482,8 +497,8 @@ export default function GirlsLibrary() {
         )}
       </div>
 
-      {/* Resource Detail */}
-      {selectedResource && (
+      {/* Resource Detail (only for resources tab) */}
+      {activeSection === 'resources' && selectedResource && (
         <div className="fixed inset-0 z-50 overflow-y-auto" style={{ backgroundColor: '#0d0010' }}>
           <div className="flex items-center gap-2 px-4 pt-4 pb-3 sticky top-0 z-10" style={{ backgroundColor: '#0d0010' }}>
             <button onClick={() => setSelectedResource(null)} className="flex items-center gap-1 text-gray-400 text-sm hover:text-white transition">
