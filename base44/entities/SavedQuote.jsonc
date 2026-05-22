@@ -1,0 +1,23 @@
+{
+  "name": "SavedQuote",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "quote_text": {
+      "type": "string",
+      "title": "Quote Text"
+    },
+    "quote_author": {
+      "type": "string",
+      "title": "Author"
+    },
+    "saved_date": {
+      "type": "string",
+      "title": "Date Saved (YYYY-MM-DD)"
+    }
+  },
+  "required": []
+}
