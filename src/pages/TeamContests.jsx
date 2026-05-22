@@ -13,26 +13,38 @@ export default function TeamContests() {
   const [userTeams, setUserTeams] = useState([]);
 
   useEffect(() => {
-    Promise.all([
-      base44.auth.me(),
-      base44.entities.TeamContest.filter({ status: 'active' }),
-      base44.entities.TeamContestEntry.list(),
-      base44.entities.TeamMember.filter({ user_email: base44.auth.me().then(u => u.email).catch(() => '') })
-    ]).then(async ([user, contests, entries, teams]) => {
-      setUserTeams(teams);
-      
-      if (contests.length > 0) {
-        const contest = contests[0];
-        setActiveContest(contest);
-        
-        const sorted = entries
-          .filter(e => e.contest_id === contest.id)
-          .sort((a, b) => b.current_progress - a.current_progress);
-        
-        setLeaderboard(sorted);
+    const loadData = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const user = await base44.auth.me();
+          
+          const [contests, entries, teams] = await Promise.all([
+            base44.entities.TeamContest.filter({ status: 'active' }),
+            base44.entities.TeamContestEntry.list(),
+            base44.entities.TeamMember.filter({ user_email: user.email })
+          ]);
+          
+          setUserTeams(teams);
+          
+          if (contests.length > 0) {
+            const contest = contests[0];
+            setActiveContest(contest);
+            
+            const sorted = entries
+              .filter(e => e.contest_id === contest.id)
+              .sort((a, b) => b.current_progress - a.current_progress);
+            
+            setLeaderboard(sorted);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading contests:', err);
       }
       setLoading(false);
-    }).catch(() => base44.auth.redirectToLogin());
+    };
+    
+    loadData();
   }, []);
 
   if (loading) return (

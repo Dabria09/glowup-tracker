@@ -28,21 +28,33 @@ export default function SquadDetail() {
   });
 
   useEffect(() => {
-    Promise.all([
-      base44.auth.me(),
-      base44.entities.GlowSquad.filter({ id }),
-      base44.entities.SquadMember.filter({ squad_id: id }),
-      base44.entities.SquadChallenge.filter({ squad_id: id })
-    ]).then(async ([u, squads, squadMembers, challenges]) => {
-      setUser(u);
-      if (squads.length > 0) {
-        setSquad(squads[0]);
-        setMembers(squadMembers);
-        setIsMember(squadMembers.some(m => m.user_email === u.email));
-        setSquadChallenges(challenges);
+    const loadData = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const u = await base44.auth.me();
+          setUser(u);
+          
+          const [squads, squadMembers, challenges] = await Promise.all([
+            base44.entities.GlowSquad.filter({ id }),
+            base44.entities.SquadMember.filter({ squad_id: id }),
+            base44.entities.SquadChallenge.filter({ squad_id: id })
+          ]);
+          
+          if (squads.length > 0) {
+            setSquad(squads[0]);
+            setMembers(squadMembers);
+            setIsMember(squadMembers.some(m => m.user_email === u.email));
+            setSquadChallenges(challenges);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading squad:', err);
       }
       setLoading(false);
-    }).catch(() => base44.auth.redirectToLogin());
+    };
+    
+    loadData();
   }, [id]);
 
   if (loading) return (

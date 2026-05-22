@@ -18,23 +18,35 @@ export default function TeamDetail() {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    Promise.all([
-      base44.auth.me(),
-      base44.entities.GlowTeam.filter({ id }),
-      base44.entities.TeamMember.filter({ team_id: id }),
-      base44.entities.TeamDiscussion.filter({ team_id: id }),
-      base44.entities.TeamContestEntry.filter({ team_id: id })
-    ]).then(async ([u, teams, teamMembers, teamDiscussions, entries]) => {
-      setUser(u);
-      if (teams.length > 0) {
-        setTeam(teams[0]);
-        setMembers(teamMembers);
-        setDiscussions(teamDiscussions);
-        setContestEntries(entries);
-        setIsMember(teamMembers.some(m => m.user_email === u.email));
+    const loadData = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const u = await base44.auth.me();
+          setUser(u);
+          
+          const [teams, teamMembers, teamDiscussions, entries] = await Promise.all([
+            base44.entities.GlowTeam.filter({ id }),
+            base44.entities.TeamMember.filter({ team_id: id }),
+            base44.entities.TeamDiscussion.filter({ team_id: id }),
+            base44.entities.TeamContestEntry.filter({ team_id: id })
+          ]);
+          
+          if (teams.length > 0) {
+            setTeam(teams[0]);
+            setMembers(teamMembers);
+            setDiscussions(teamDiscussions);
+            setContestEntries(entries);
+            setIsMember(teamMembers.some(m => m.user_email === u.email));
+          }
+        }
+      } catch (err) {
+        console.error('Error loading team:', err);
       }
       setLoading(false);
-    }).catch(() => base44.auth.redirectToLogin());
+    };
+    
+    loadData();
   }, [id]);
 
   if (loading) return (
