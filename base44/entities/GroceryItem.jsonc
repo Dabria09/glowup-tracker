@@ -1,0 +1,27 @@
+{
+  "name": "GroceryItem",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "name": {
+      "type": "string",
+      "title": "Item Name"
+    },
+    "quantity": {
+      "type": "number",
+      "title": "Quantity"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "is_checked": {
+      "type": "boolean",
+      "title": "Checked"
+    }
+  },
+  "required": []
+}
