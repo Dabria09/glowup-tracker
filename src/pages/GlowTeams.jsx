@@ -39,31 +39,35 @@ export default function GlowTeams() {
   const [newTeam, setNewTeam] = useState({ name: '', description: '', category: 'Lifestyle & Vibes', emoji: '✨' });
 
   useEffect(() => {
-    base44.auth.isAuthenticated().then(async (authenticated) => {
-      if (!authenticated) {
-        base44.auth.redirectToLogin();
-        return;
-      }
+    const loadData = async () => {
+      // Load sample teams first for guest access
+      setTeams(SAMPLE_TEAMS.map(t => ({ ...t, id: t.name })));
       
-      const u = await base44.auth.me();
-      setUser(u);
-      
+      // Try to get authenticated user data
       try {
-        const [allTeams, myMemberships, contests] = await Promise.all([
-          base44.entities.GlowTeam.list(),
-          base44.entities.TeamMember.filter({ user_email: u.email }),
-          base44.entities.TeamContest.filter({ status: 'active' })
-        ]);
-        
-        setTeams(allTeams.length > 0 ? allTeams : SAMPLE_TEAMS.map(t => ({ ...t, id: t.name })));
-        setMyTeams(myMemberships);
-        if (contests.length > 0) setActiveContest(contests[0]);
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const u = await base44.auth.me();
+          setUser(u);
+          
+          const [allTeams, myMemberships, contests] = await Promise.all([
+            base44.entities.GlowTeam.list(),
+            base44.entities.TeamMember.filter({ user_email: u.email }),
+            base44.entities.TeamContest.filter({ status: 'active' })
+          ]);
+          
+          if (allTeams.length > 0) setTeams(allTeams);
+          setMyTeams(myMemberships);
+          if (contests.length > 0) setActiveContest(contests[0]);
+        }
       } catch (err) {
-        console.error('Error loading teams:', err);
-        setTeams(SAMPLE_TEAMS.map(t => ({ ...t, id: t.name })));
+        console.error('Error loading user data:', err);
+        // Keep sample data for guest users
       }
       setLoading(false);
-    });
+    };
+    
+    loadData();
   }, []);
 
   const filteredTeams = teams.filter(team => {

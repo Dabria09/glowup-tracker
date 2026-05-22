@@ -16,21 +16,28 @@ export default function GlowSquads() {
   const [newSquad, setNewSquad] = useState({ name: '', description: '', emoji: '💜', max_members: 10 });
 
   useEffect(() => {
-    base44.auth.me().then(async (u) => {
-      setUser(u);
+    const loadData = async () => {
       try {
-        const [allSquads, myMemberships] = await Promise.all([
-          base44.entities.GlowSquad.list(),
-          base44.entities.SquadMember.filter({ user_email: u.email })
-        ]);
-        
-        setSquads(allSquads);
-        setMySquads(myMemberships);
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const u = await base44.auth.me();
+          setUser(u);
+          
+          const [allSquads, myMemberships] = await Promise.all([
+            base44.entities.GlowSquad.list(),
+            base44.entities.SquadMember.filter({ user_email: u.email })
+          ]);
+          
+          setSquads(allSquads);
+          setMySquads(myMemberships);
+        }
       } catch (err) {
         console.error('Error loading squads:', err);
       }
       setLoading(false);
-    }).catch(() => base44.auth.redirectToLogin());
+    };
+    
+    loadData();
   }, []);
 
   const filteredSquads = squads.filter(squad => 
