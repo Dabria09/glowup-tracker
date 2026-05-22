@@ -1,0 +1,39 @@
+{
+  "name": "Trip",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "name": {
+      "type": "string",
+      "title": "Trip Name"
+    },
+    "trip_type": {
+      "type": "string",
+      "title": "Trip Type"
+    },
+    "trip_type_emoji": {
+      "type": "string",
+      "title": "Trip Type Emoji"
+    },
+    "start_date": {
+      "type": "string",
+      "title": "Start Date"
+    },
+    "end_date": {
+      "type": "string",
+      "title": "End Date"
+    },
+    "budget": {
+      "type": "number",
+      "title": "Budget"
+    },
+    "is_dream": {
+      "type": "boolean",
+      "title": "Is Dream Trip"
+    }
+  },
+  "required": []
+}

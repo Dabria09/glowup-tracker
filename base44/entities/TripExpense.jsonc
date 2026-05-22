@@ -1,0 +1,27 @@
+{
+  "name": "TripExpense",
+  "type": "object",
+  "properties": {
+    "trip_id": {
+      "type": "string",
+      "title": "Trip ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "item": {
+      "type": "string",
+      "title": "Item"
+    },
+    "cost": {
+      "type": "number",
+      "title": "Cost"
+    }
+  },
+  "required": []
+}

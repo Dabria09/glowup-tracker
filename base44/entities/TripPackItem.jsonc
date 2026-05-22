@@ -1,0 +1,23 @@
+{
+  "name": "TripPackItem",
+  "type": "object",
+  "properties": {
+    "trip_id": {
+      "type": "string",
+      "title": "Trip ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "label": {
+      "type": "string",
+      "title": "Label"
+    },
+    "is_packed": {
+      "type": "boolean",
+      "title": "Packed"
+    }
+  },
+  "required": []
+}

@@ -1,0 +1,31 @@
+{
+  "name": "TripActivity",
+  "type": "object",
+  "properties": {
+    "trip_id": {
+      "type": "string",
+      "title": "Trip ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "day_number": {
+      "type": "number",
+      "title": "Day Number"
+    },
+    "time": {
+      "type": "string",
+      "title": "Time"
+    },
+    "activity": {
+      "type": "string",
+      "title": "Activity"
+    },
+    "location": {
+      "type": "string",
+      "title": "Location"
+    }
+  },
+  "required": []
+}
