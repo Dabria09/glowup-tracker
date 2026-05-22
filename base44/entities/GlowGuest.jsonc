@@ -1,0 +1,23 @@
+{
+  "name": "GlowGuest",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "title": "Event ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "name": {
+      "type": "string",
+      "title": "Guest Name"
+    },
+    "is_confirmed": {
+      "type": "boolean",
+      "title": "Confirmed"
+    }
+  },
+  "required": []
+}

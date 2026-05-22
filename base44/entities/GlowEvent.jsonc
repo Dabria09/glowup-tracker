@@ -1,0 +1,39 @@
+{
+  "name": "GlowEvent",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "name": {
+      "type": "string",
+      "title": "Event Name"
+    },
+    "event_type": {
+      "type": "string",
+      "title": "Event Type"
+    },
+    "event_type_emoji": {
+      "type": "string",
+      "title": "Event Type Emoji"
+    },
+    "event_date": {
+      "type": "string",
+      "title": "Event Date"
+    },
+    "budget": {
+      "type": "number",
+      "title": "Total Budget"
+    },
+    "vibe": {
+      "type": "string",
+      "title": "Vibe/Theme"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": []
+}

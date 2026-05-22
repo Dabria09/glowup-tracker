@@ -1,0 +1,27 @@
+{
+  "name": "GlowBudgetItem",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "title": "Event ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount"
+    }
+  },
+  "required": []
+}

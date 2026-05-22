@@ -20,6 +20,8 @@ import StickyNotes from './pages/StickyNotes';
 import MyCalendar from './pages/MyCalendar';
 import DiaryEntry from './pages/DiaryEntry';
 import CleaningCalendar from './pages/CleaningCalendar';
+import BirthdayPlanner from './pages/BirthdayPlanner';
+import GlowEventDetail from './pages/GlowEventDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -54,6 +56,8 @@ const AuthenticatedApp = () => {
       <Route path="/sticky-notes" element={<StickyNotes />} />
       <Route path="/my-calendar" element={<MyCalendar />} />
       <Route path="/cleaning-calendar" element={<CleaningCalendar />} />
+      <Route path="/birthday-planner" element={<BirthdayPlanner />} />
+      <Route path="/birthday-planner/:id" element={<GlowEventDetail />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

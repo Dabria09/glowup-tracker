@@ -1,0 +1,27 @@
+{
+  "name": "GlowTask",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "title": "Event ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "label": {
+      "type": "string",
+      "title": "Task Label"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "is_done": {
+      "type": "boolean",
+      "title": "Done"
+    }
+  },
+  "required": []
+}
