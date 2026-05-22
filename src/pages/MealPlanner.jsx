@@ -254,59 +254,66 @@ export default function MealPlanner() {
       {/* Add Meal Modal */}
       {showAdd && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end" onClick={() => setShowAdd(false)}>
-          <div className="w-full max-h-[90vh] overflow-y-auto rounded-t-3xl p-6 pb-10" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <p className="font-bold text-lg">🍽️ Add Meal — {addDay}</p>
-              <button onClick={() => setShowAdd(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"><X size={16} /></button>
-            </div>
+          <div className="w-full rounded-t-3xl flex flex-col" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)', maxHeight: '88vh' }} onClick={e => e.stopPropagation()}>
 
-            {/* Meal type */}
-            <div className="flex gap-2 mb-4">
-              {MEAL_TYPES.map(t => (
-                <button key={t} onClick={() => setAddType(t)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${addType === t ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-                  style={addType === t ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : {}}>
-                  {MEAL_EMOJIS[t]} {t}
-                </button>
-              ))}
-            </div>
-
-            <label className="block text-sm text-gray-400 mb-1">Meal Name *</label>
-            <input autoFocus value={addName} onChange={e => setAddName(e.target.value)}
-              placeholder="e.g. Grilled Chicken, Pasta, Stir Fry..."
-              className="w-full px-4 py-3 rounded-2xl text-sm text-white outline-none mb-3"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
-
-            <label className="block text-sm text-gray-400 mb-1">Notes (optional)</label>
-            <input value={addNotes} onChange={e => setAddNotes(e.target.value)}
-              placeholder="Recipe link, prep notes..."
-              className="w-full px-4 py-3 rounded-2xl text-sm text-white outline-none mb-4"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
-
-            {/* Link grocery items */}
-            {groceryItems.length > 0 && (
-              <div className="mb-4">
-                <p className="text-sm text-gray-400 mb-2 flex items-center gap-1.5"><ShoppingCart size={13} /> Link grocery items</p>
-                <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                  {groceryItems.map(g => (
-                    <button key={g.id} onClick={() => toggleGrocery(g.id)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-left transition ${addLinked.includes(g.id) ? 'bg-green-900/40 border border-green-600/50' : 'bg-white/5 border border-white/10'}`}>
-                      <span className={`w-4 h-4 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${addLinked.includes(g.id) ? 'bg-green-500 text-white' : 'border border-gray-600'}`}>
-                        {addLinked.includes(g.id) && '✓'}
-                      </span>
-                      <span className={addLinked.includes(g.id) ? 'text-green-300' : 'text-gray-300'}>{g.name}</span>
-                      {g.quantity > 1 && <span className="text-gray-500 text-xs">×{g.quantity}</span>}
-                    </button>
-                  ))}
-                </div>
+            {/* Scrollable content */}
+            <div className="overflow-y-auto flex-1 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="font-bold text-lg">🍽️ Add Meal — {addDay}</p>
+                <button onClick={() => setShowAdd(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"><X size={16} /></button>
               </div>
-            )}
 
-            <button onClick={saveAdd} disabled={!addName.trim()}
-              className="w-full py-4 rounded-2xl font-bold text-white text-sm disabled:opacity-40"
-              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-              Save Meal 🍽️
-            </button>
+              {/* Meal type */}
+              <div className="flex gap-2 mb-4">
+                {MEAL_TYPES.map(t => (
+                  <button key={t} onClick={() => setAddType(t)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-bold transition ${addType === t ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+                    style={addType === t ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : {}}>
+                    {MEAL_EMOJIS[t]} {t}
+                  </button>
+                ))}
+              </div>
+
+              <label className="block text-sm text-gray-400 mb-1">Meal Name *</label>
+              <input autoFocus value={addName} onChange={e => setAddName(e.target.value)}
+                placeholder="e.g. Grilled Chicken, Pasta, Stir Fry..."
+                className="w-full px-4 py-3 rounded-2xl text-sm text-white outline-none mb-3"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
+
+              <label className="block text-sm text-gray-400 mb-1">Notes (optional)</label>
+              <input value={addNotes} onChange={e => setAddNotes(e.target.value)}
+                placeholder="Recipe link, prep notes..."
+                className="w-full px-4 py-3 rounded-2xl text-sm text-white outline-none mb-4"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
+
+              {/* Link grocery items */}
+              {groceryItems.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-400 mb-2 flex items-center gap-1.5"><ShoppingCart size={13} /> Link grocery items</p>
+                  <div className="space-y-1.5">
+                    {groceryItems.map(g => (
+                      <button key={g.id} onClick={() => toggleGrocery(g.id)}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-left transition ${addLinked.includes(g.id) ? 'bg-green-900/40 border border-green-600/50' : 'bg-white/5 border border-white/10'}`}>
+                        <span className={`w-4 h-4 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${addLinked.includes(g.id) ? 'bg-green-500 text-white' : 'border border-gray-600'}`}>
+                          {addLinked.includes(g.id) && '✓'}
+                        </span>
+                        <span className={addLinked.includes(g.id) ? 'text-green-300' : 'text-gray-300'}>{g.name}</span>
+                        {g.quantity > 1 && <span className="text-gray-500 text-xs">×{g.quantity}</span>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Button pinned outside scroll */}
+            <div className="px-6 pb-8 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              <button onClick={saveAdd} disabled={!addName.trim()}
+                className="w-full py-4 rounded-2xl font-bold text-white text-sm disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                Save Meal 🍽️
+              </button>
+            </div>
           </div>
         </div>
       )}
