@@ -410,12 +410,12 @@ export default function MyGlowLink() {
       {/* Post Creation Modal */}
       {showPostForm && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end" onClick={() => setShowPostForm(false)}>
-          <div className="w-full rounded-t-3xl flex flex-col max-h-[90vh]" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
+          <div className="w-full rounded-t-3xl flex flex-col max-h-[90vh] h-full" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
               <h3 className="text-lg font-bold">New Post</h3>
               <button onClick={() => setShowPostForm(false)}><X size={20} /></button>
             </div>
-            <div className="overflow-y-auto flex-1 p-6 space-y-4">
+            <div className="overflow-y-auto p-6 space-y-4 flex-1">
               <textarea value={postText} onChange={e => setPostText(e.target.value)} placeholder="What's on your mind? ✨" className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none min-h-24 resize-none" />
               <div className="flex gap-2 flex-wrap">
                 {postFiles.map((file, i) => (
