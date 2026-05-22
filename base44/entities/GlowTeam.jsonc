@@ -50,6 +50,21 @@
       "type": "number",
       "title": "Total Team Points",
       "default": 0
+    },
+    "contest_entries": {
+      "type": "number",
+      "title": "Contest Entries",
+      "default": 0
+    },
+    "current_streak": {
+      "type": "number",
+      "title": "Current Streak (Days)",
+      "default": 0
+    },
+    "challenges_completed": {
+      "type": "number",
+      "title": "Challenges Completed",
+      "default": 0
     }
   },
   "required": [

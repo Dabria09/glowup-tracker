@@ -43,7 +43,7 @@ import Leaderboard from './pages/Leaderboard';
 import GlowFeed from './pages/GlowFeed';
 import GlowTeams from './pages/GlowTeams';
 import GlowSquads from './pages/GlowSquads';
-import SquadContests from './pages/SquadContests';
+import TeamContests from './pages/TeamContests';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -101,7 +101,7 @@ const AuthenticatedApp = () => {
       <Route path="/glow-feed" element={<GlowFeed />} />
       <Route path="/glow-teams" element={<GlowTeams />} />
       <Route path="/glow-squads" element={<GlowSquads />} />
-      <Route path="/squad-contests" element={<SquadContests />} />
+      <Route path="/team-contests" element={<TeamContests />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Search, Plus, Users, MessageCircle, Trophy, Flame } from 'lucide-react';
+import { ChevronLeft, Search, Plus, Users, Trophy, Flame, MessageCircle } from 'lucide-react';
 
 const TEAM_CATEGORIES = [
   { id: 'all', label: 'All', emoji: '🌟' },
@@ -34,6 +34,7 @@ export default function GlowTeams() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [teams, setTeams] = useState([]);
   const [myTeams, setMyTeams] = useState([]);
+  const [activeContest, setActiveContest] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTeam, setNewTeam] = useState({ name: '', description: '', category: 'Lifestyle & Vibes', emoji: '✨' });
 
@@ -41,13 +42,15 @@ export default function GlowTeams() {
     base44.auth.me().then(async (u) => {
       setUser(u);
       try {
-        const [allTeams, myMemberships] = await Promise.all([
+        const [allTeams, myMemberships, contests] = await Promise.all([
           base44.entities.GlowTeam.list(),
-          base44.entities.TeamMember.filter({ user_email: u.email })
+          base44.entities.TeamMember.filter({ user_email: u.email }),
+          base44.entities.TeamContest.filter({ status: 'active' })
         ]);
         
         setTeams(allTeams.length > 0 ? allTeams : SAMPLE_TEAMS.map(t => ({ ...t, id: t.name })));
         setMyTeams(myMemberships);
+        if (contests.length > 0) setActiveContest(contests[0]);
       } catch (err) {
         console.error('Error loading teams:', err);
         setTeams(SAMPLE_TEAMS.map(t => ({ ...t, id: t.name })));
@@ -75,10 +78,12 @@ export default function GlowTeams() {
         is_public: true,
         created_by: user.email,
         total_points: 0,
+        contest_entries: 0,
+        current_streak: 0,
+        challenges_completed: 0,
       });
       setShowCreateModal(false);
       setNewTeam({ name: '', description: '', category: 'Lifestyle & Vibes', emoji: '✨' });
-      // Refresh teams
       const updated = await base44.entities.GlowTeam.list();
       setTeams(updated);
     } catch (err) {
@@ -125,6 +130,31 @@ export default function GlowTeams() {
             <Plus size={16} /> Create
           </button>
         </div>
+
+        {/* Active Contest Banner */}
+        {activeContest && (
+          <div className="mb-6">
+            <div 
+              onClick={() => navigate('/team-contests')}
+              className="rounded-2xl p-4 bg-gradient-to-r from-yellow-900/50 to-amber-900/50 border border-yellow-500/30 cursor-pointer hover:scale-[1.02] transition"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Trophy className="text-yellow-400" size={18} />
+                <h2 className="font-bold text-white text-sm">ACTIVE TEAM CONTEST</h2>
+              </div>
+              <p className="text-white font-semibold mb-1">{activeContest.contest_name}</p>
+              <p className="text-xs text-gray-300 mb-3">{activeContest.description}</p>
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-gray-400">
+                  Ends: {new Date(activeContest.end_date).toLocaleDateString()}
+                </div>
+                <button className="px-3 py-1.5 rounded-full text-xs font-semibold bg-yellow-500 text-black hover:bg-yellow-400 transition">
+                  View Leaderboard →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Search */}
         <div className="relative mb-5">
@@ -206,6 +236,9 @@ export default function GlowTeams() {
                         <div className="flex items-center gap-3 text-xs text-gray-400">
                           <span className="flex items-center gap-1"><Users size={12} /> {team.member_count || 0} members</span>
                           <span className="flex items-center gap-1"><MessageCircle size={12} /> {team.total_points || 0} pts</span>
+                          {team.challenges_completed > 0 && (
+                            <span className="flex items-center gap-1"><Trophy size={12} /> {team.challenges_completed}</span>
+                          )}
                         </div>
                         {isJoined ? (
                           <button className="px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">

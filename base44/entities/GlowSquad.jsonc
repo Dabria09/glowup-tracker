@@ -56,11 +56,6 @@
       "type": "number",
       "title": "Challenges Completed",
       "default": 0
-    },
-    "contest_entries": {
-      "type": "number",
-      "title": "Contest Entries",
-      "default": 0
     }
   },
   "required": [

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Search, Plus, Users, Trophy, Flame, Star, Heart } from 'lucide-react';
+import { ChevronLeft, Search, Plus, Users, Flame, Star, Heart } from 'lucide-react';
 
 export default function GlowSquads() {
   const navigate = useNavigate();
@@ -12,7 +12,6 @@ export default function GlowSquads() {
   const [search, setSearch] = useState('');
   const [squads, setSquads] = useState([]);
   const [mySquads, setMySquads] = useState([]);
-  const [activeContests, setActiveContests] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newSquad, setNewSquad] = useState({ name: '', description: '', emoji: '💜', max_members: 10 });
 
@@ -20,15 +19,13 @@ export default function GlowSquads() {
     base44.auth.me().then(async (u) => {
       setUser(u);
       try {
-        const [allSquads, myMemberships, contests] = await Promise.all([
+        const [allSquads, myMemberships] = await Promise.all([
           base44.entities.GlowSquad.list(),
-          base44.entities.SquadMember.filter({ user_email: u.email }),
-          base44.entities.SquadContest.filter({ status: 'active' })
+          base44.entities.SquadMember.filter({ user_email: u.email })
         ]);
         
         setSquads(allSquads);
         setMySquads(myMemberships);
-        setActiveContests(contests);
       } catch (err) {
         console.error('Error loading squads:', err);
       }
@@ -55,10 +52,8 @@ export default function GlowSquads() {
         current_streak: 0,
         longest_streak: 0,
         challenges_completed: 0,
-        contest_entries: 0,
       });
       
-      // Add creator as captain
       await base44.entities.SquadMember.create({
         squad_id: squad.id,
         user_email: user.email,
@@ -70,7 +65,6 @@ export default function GlowSquads() {
       setShowCreateModal(false);
       setNewSquad({ name: '', description: '', emoji: '💜', max_members: 10 });
       
-      // Refresh
       const updated = await base44.entities.GlowSquad.list();
       const myUpdated = await base44.entities.SquadMember.filter({ user_email: user.email });
       setSquads(updated);
@@ -120,31 +114,6 @@ export default function GlowSquads() {
           </button>
         </div>
 
-        {/* Active Contests Banner */}
-        {activeContests.length > 0 && (
-          <div className="mb-6">
-            <div className="rounded-2xl p-4 bg-gradient-to-r from-yellow-900/50 to-amber-900/50 border border-yellow-500/30">
-              <div className="flex items-center gap-2 mb-2">
-                <Trophy className="text-yellow-400" size={18} />
-                <h2 className="font-bold text-white text-sm">ACTIVE CONTEST</h2>
-              </div>
-              <p className="text-white font-semibold mb-1">{activeContests[0].contest_name}</p>
-              <p className="text-xs text-gray-300 mb-3">{activeContests[0].description}</p>
-              <div className="flex items-center justify-between">
-                <div className="text-xs text-gray-400">
-                  Ends: {new Date(activeContests[0].end_date).toLocaleDateString()}
-                </div>
-                <button 
-                  onClick={() => navigate('/squad-contests')}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-yellow-500 text-black hover:bg-yellow-400 transition"
-                >
-                  View Leaderboard →
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Search */}
         <div className="relative mb-5">
           <div className="flex items-center backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-4 py-2.5 gap-2">
@@ -190,7 +159,7 @@ export default function GlowSquads() {
                         <div className="flex items-center gap-3 text-xs text-gray-400">
                           <span className="flex items-center gap-1"><Users size={12} /> {squad.member_count}/{squad.max_members} members</span>
                           <span className="flex items-center gap-1"><Star size={12} /> {squad.squad_points} pts</span>
-                          <span className="flex items-center gap-1"><Trophy size={12} /> {squad.challenges_completed} challenges</span>
+                          <span className="flex items-center gap-1"><Flame size={12} /> {squad.challenges_completed} challenges</span>
                         </div>
                       </div>
                     </div>
@@ -204,7 +173,7 @@ export default function GlowSquads() {
         {/* Discover Squads */}
         <div>
           <h2 className="text-sm font-bold tracking-widest text-gray-400 mb-3">DISCOVER SQUADS</h2>
-          {filteredSquads.length === 0 ? (
+          {filteredSquads.filter(s => !mySquads.some(m => m.squad_id === s.id)).length === 0 ? (
             <div className="text-center py-12">
               <span className="text-4xl mb-3 block">✨</span>
               <p className="text-gray-400 text-sm">No squads yet. Create your first squad!</p>
