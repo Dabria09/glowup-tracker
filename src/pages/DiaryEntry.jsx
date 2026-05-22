@@ -4,6 +4,18 @@ import { base44 } from '@/api/base44Client';
 import { ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
+const STYLE_FONTS = {
+  soft_girl: "'Dancing Script', cursive",
+  journal: "'Caveat', cursive",
+  romantic: "'Playfair Display', serif",
+  ceo: "'Poppins', sans-serif",
+  clean_girl: "'Inter', sans-serif",
+  cute_notes: "'Patrick Hand', cursive",
+  dark_feminine: "'Cinzel', serif",
+  dreamy: "'Great Vibes', cursive",
+  modern: "'Space Grotesk', sans-serif",
+};
+
 const WRITING_STYLES = [
   { id: 'soft_girl', label: 'Soft Girl', emoji: '✨' },
   { id: 'journal', label: 'Journal', emoji: '📓' },
@@ -126,7 +138,7 @@ export default function DiaryEntry() {
   );
 
   return (
-    <div className="min-h-screen text-white pb-10 relative" style={{ backgroundColor: '#1a0a2e' }}>
+    <div className="min-h-screen text-white pb-10 relative" style={{ backgroundColor: '#1a0a2e', fontFamily: STYLE_FONTS[writingStyle] || 'inherit' }}>
       <HeartBg />
       <div className="relative z-10">
         {/* Header */}
