@@ -85,6 +85,10 @@ const SECTIONS = [
       { id: 'countdown', label: 'Countdown', gradient: 'from-fuchsia-900 via-purple-900 to-pink-900', route: '/countdown', image: CDN + 'icon-countdown-7HeWEhC3DPLUnHCzG43qTW.webp' },
       { id: 'important_contacts', label: 'Important Contacts', gradient: 'from-teal-900 via-cyan-900 to-blue-900', route: '/important-contacts', image: CDN + 'icon-important-contacts-UbmbL7qNMiaxYU2N3To7LT.webp' },
       { id: 'password_vault', label: 'Password Vault', gradient: 'from-yellow-800 via-amber-900 to-gray-900', route: '/password-vault', image: CDN + 'icon-password-vault-M6NfKgvjrqX84pzi4yKu4c.webp' },
+      { id: 'cycle_tracker_life', label: 'Cycle Tracker', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', route: '/cycle-tracker', image: CDN + 'icon-cycle-tracker-mfEEuehTKonzHUdUSmTMaA.webp' },
+      { id: 'spiritual_glow_life', label: 'Spiritual Glow', gradient: 'from-indigo-900 via-purple-900 to-violet-900', route: '/spiritual-glow', image: CDN + 'icon-spiritual-glow-Y4zxRVLXJn8CpnpefTixYM.webp' },
+      { id: 'homework_tracker_life', label: 'Homework Tracker', gradient: 'from-gray-800 via-slate-900 to-gray-900', route: '/homework-tracker', image: CDN + 'icon-homework-tracker-UzfmPy6kuzvUAsU3vgon39.webp' },
+      { id: 'vision_board_life', label: 'Vision Board', gradient: 'from-pink-900 via-rose-900 to-orange-900', route: '/vision-board', image: MANUS + 'icon-sparkles-magic_5e5bed27.png' },
     ],
   },
   {
