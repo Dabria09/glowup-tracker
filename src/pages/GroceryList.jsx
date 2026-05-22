@@ -137,18 +137,16 @@ export default function GroceryList() {
         )}
 
         {/* Meal Planner link */}
-        {items.length > 0 && (
-          <button onClick={() => navigate('/meal-planner')}
-            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-5"
-            style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)' }}>
-            <span className="text-2xl">🍽️</span>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-bold text-green-300">Meal Planner</p>
-              <p className="text-xs text-gray-500">Plan your week &amp; link these items to meals</p>
-            </div>
-            <span className="text-gray-500 text-lg">›</span>
-          </button>
-        )}
+        <button onClick={() => navigate('/meal-planner')}
+          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-5"
+          style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)' }}>
+          <span className="text-2xl">🍽️</span>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-bold text-green-300">Meal Planner</p>
+            <p className="text-xs text-gray-500">Plan your week &amp; link these items to meals</p>
+          </div>
+          <span className="text-gray-500 text-lg">›</span>
+        </button>
 
         {/* Grouped items */}
         {grouped.map(group => (
