@@ -39,7 +39,7 @@ const SECTIONS = [
     items: [
       { id: 'money_savings', label: 'Money & Savings', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', route: '/money-savings', image: CDN + 'icon-money-tracker-2TYacsiWgAXqNkGsYeqxTn.webp' },
       { id: 'dream_calculator', label: 'Dream Calculator', gradient: 'from-indigo-900 via-purple-900 to-blue-900', route: '/dream-calculator', image: MANUS + 'icon-dream-calculator_0ac76f98.png' },
-      { id: 'vision_board', label: 'Vision Board', gradient: 'from-pink-900 via-rose-900 to-orange-900', route: '/vision-board', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/18bc01519_IMG_4341.jpeg' },
+      { id: 'vision_board', label: 'Vision Board', gradient: 'from-pink-900 via-rose-900 to-orange-900', route: '/vision-board', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/6adb092a1_IMG_4341.jpeg' },
       { id: 'scholarships', label: 'Scholarships', gradient: 'from-amber-900 via-yellow-900 to-orange-900', route: '/scholarships', image: MANUS + 'icon-diploma-education_12164ff4.png' },
       { id: 'grocery_list', label: 'Grocery List', gradient: 'from-yellow-700 via-amber-800 to-orange-800', route: '/grocery-list', image: CDN + 'icon-grocery-list-Sz9GHLVJt4pRGz2JvYmwDw.webp' },
     ],
@@ -88,7 +88,7 @@ const SECTIONS = [
       { id: 'cycle_tracker_life', label: 'Cycle Tracker', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', route: '/cycle-tracker', image: CDN + 'icon-cycle-tracker-mfEEuehTKonzHUdUSmTMaA.webp' },
       { id: 'spiritual_glow_life', label: 'Spiritual Glow', gradient: 'from-indigo-900 via-purple-900 to-violet-900', route: '/spiritual-glow', image: CDN + 'icon-spiritual-glow-Y4zxRVLXJn8CpnpefTixYM.webp' },
       { id: 'homework_tracker_life', label: 'Homework Tracker', gradient: 'from-gray-800 via-slate-900 to-gray-900', route: '/homework-tracker', image: CDN + 'icon-homework-tracker-UzfmPy6kuzvUAsU3vgon39.webp' },
-      { id: 'vision_board_life', label: 'Vision Board', gradient: 'from-pink-900 via-rose-900 to-orange-900', route: '/vision-board', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/18bc01519_IMG_4341.jpeg' },
+      { id: 'vision_board_life', label: 'Vision Board', gradient: 'from-pink-900 via-rose-900 to-orange-900', route: '/vision-board', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/6adb092a1_IMG_4341.jpeg' },
     ],
   },
   {
