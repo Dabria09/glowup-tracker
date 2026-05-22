@@ -40,6 +40,7 @@ import GroceryList from './pages/GroceryList';
 import MealPlanner from './pages/MealPlanner';
 import MyGlowLink from './pages/MyGlowLink';
 import Leaderboard from './pages/Leaderboard';
+import GlowFeed from './pages/GlowFeed';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -94,6 +95,7 @@ const AuthenticatedApp = () => {
       <Route path="/meal-planner" element={<MealPlanner />} />
       <Route path="/my-glow-link" element={<MyGlowLink />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/glow-feed" element={<GlowFeed />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
