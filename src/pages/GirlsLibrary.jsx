@@ -2,7 +2,22 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Search, X, ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronLeft, X } from 'lucide-react';
+
+const SECTION_TABS = [
+  { id: 'resources', label: 'Resources', emoji: '📚' },
+  { id: 'book_club', label: 'Book Club', emoji: '📖' },
+  { id: 'glow_reads', label: 'Glow Reads', emoji: '✨' },
+  { id: 'recommended', label: 'Recommended', emoji: '⭐' },
+  { id: 'audiobooks', label: 'Audiobooks', emoji: '🎧' },
+  { id: 'faith', label: 'Faith & Inspiration', emoji: '🙏' },
+  { id: 'career', label: 'Career & Business', emoji: '💼' },
+  { id: 'confidence', label: 'Confidence & Healing', emoji: '💜' },
+  { id: 'teen_reads', label: 'Teen Reads', emoji: '📕' },
+  { id: 'college', label: 'College & Adulting', emoji: '🎓' },
+  { id: 'journals', label: 'Journals & Workbooks', emoji: '📓' },
+  { id: 'your_voice', label: 'Your Voice', emoji: '🎤' },
+];
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '' },
@@ -103,14 +118,12 @@ const RESOURCES = [
 
 export default function GirlsLibrary() {
   const navigate = useNavigate();
-  const [search, setSearch] = useState('');
+  const [activeSection, setActiveSection] = useState('resources');
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedResource, setSelectedResource] = useState(null);
 
   const filtered = RESOURCES.filter(r => {
-    const matchesCat = activeCategory === 'all' || r.cat === activeCategory;
-    const matchesSearch = !search.trim() || r.title.toLowerCase().includes(search.toLowerCase()) || r.desc.toLowerCase().includes(search.toLowerCase());
-    return matchesCat && matchesSearch;
+    return activeCategory === 'all' || r.cat === activeCategory;
   });
 
   const renderContent = (text) => {
@@ -131,81 +144,73 @@ export default function GirlsLibrary() {
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
-      <div className="fixed inset-0 pointer-events-none z-0"
-        style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='55' height='55'%3E%3Ctext x='8' y='40' font-size='28' fill='rgba(180,50,120,0.1)'%3E%E2%99%A5%3C/text%3E%3C/svg%3E\")" }} />
       <AppBackground />
 
-      <div className="relative z-10 px-4 pt-4">
-        {/* Points */}
-        <div className="flex justify-end mb-2">
-          <div className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1"
-            style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
-          </div>
-        </div>
-
+      <div className="relative z-10">
         {/* Header */}
-        <div className="flex items-center gap-2 mb-1">
-          <button onClick={() => navigate(-1)} className="text-gray-400"><ChevronLeft size={22} /></button>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Girls Library 📚</h1>
-            <p className="text-xs text-gray-400">Knowledge, guides, and resources to help you thrive.</p>
+        <div className="px-4 pt-4 pb-2">
+          <div className="flex items-center gap-2 mb-3">
+            <button onClick={() => navigate(-1)} className="text-gray-400"><ChevronLeft size={22} /></button>
+            <div className="flex items-center gap-2">
+              <BookOpen size={14} className="text-gray-400" />
+              <span className="text-xs font-bold tracking-widest text-gray-400">GIRLS LIBRARY</span>
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-1">Girls Library 📚</h1>
+          <p className="text-sm text-gray-400 mb-4">Knowledge, guides, and curated books to help you thrive.</p>
+
+          {/* Recommended banner */}
+          <div className="rounded-2xl px-4 py-3 mb-4"
+            style={{ background: 'linear-gradient(135deg, rgba(109,40,217,0.5), rgba(139,10,120,0.4))', border: '1px solid rgba(168,85,247,0.3)' }}>
+            <p className="text-xs font-bold text-yellow-300 mb-0.5">✨ Recommended For You</p>
+            <p className="text-xs text-gray-300">Resources handpicked based on your interests and growth stage</p>
           </div>
         </div>
 
-        {/* Recommended banner */}
-        <div className="rounded-2xl px-4 py-3 my-4"
-          style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))', border: '1px solid rgba(236,72,153,0.25)' }}>
-          <p className="text-xs font-bold tracking-widest text-pink-400 mb-0.5">✨ RECOMMENDED FOR YOU</p>
-          <p className="text-xs text-gray-400">Resources handpicked based on your interests and growth stage</p>
-        </div>
-
-        {/* Search */}
-        <div className="flex items-center gap-2 rounded-2xl px-4 py-3 mb-4"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <Search size={16} className="text-gray-500 flex-shrink-0" />
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search resources..."
-            className="flex-1 bg-transparent text-sm text-white outline-none placeholder-gray-500" />
-          {search && <button onClick={() => setSearch('')}><X size={16} className="text-gray-500" /></button>}
-        </div>
-
-        {/* Category filter */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
-          {CATEGORIES.map(cat => (
-            <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${activeCategory === cat.id ? 'text-white' : 'text-gray-400'}`}
-              style={activeCategory === cat.id ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              {cat.emoji} {cat.label}
+        {/* Section Tabs */}
+        <div className="flex gap-2 overflow-x-auto px-4 pb-2 scrollbar-none">
+          {SECTION_TABS.map(tab => (
+            <button key={tab.id} onClick={() => setActiveSection(tab.id)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap`}
+              style={activeSection === tab.id
+                ? { background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff' }
+                : { background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+              {tab.emoji && <span>{tab.emoji}</span>}
+              {tab.label}
             </button>
           ))}
         </div>
 
-        <p className="text-xs text-gray-500 mb-3">{filtered.length} resources</p>
+        {/* Category Filter Chips */}
+        <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-3 scrollbar-none">
+          {CATEGORIES.map(cat => (
+            <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+              className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition whitespace-nowrap`}
+              style={activeCategory === cat.id
+                ? { background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', color: '#fff' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+              {cat.emoji && <span>{cat.emoji}</span>}
+              {cat.label}
+            </button>
+          ))}
+        </div>
 
-        {/* Resource list */}
-        <div className="space-y-2">
+        {/* 2-Column Grid */}
+        <div className="grid grid-cols-2 gap-3 px-4 pt-1">
           {filtered.map(r => (
             <button key={r.id} onClick={() => setSelectedResource(r)}
-              className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition hover:bg-white/5"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl"
-                style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.2)' }}>
-                {r.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-white">{r.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{r.desc}</p>
-              </div>
-              <ChevronRight size={16} className="text-gray-600 flex-shrink-0" />
+              className="flex flex-col items-center justify-center gap-3 rounded-2xl py-8 px-4 text-center transition hover:opacity-80"
+              style={{ background: 'rgba(60,20,80,0.7)', border: '1px solid rgba(255,255,255,0.07)', minHeight: 140 }}>
+              <span className="text-4xl">{r.emoji}</span>
+              <p className="text-xs font-semibold text-gray-200 leading-tight">{CATEGORIES.find(c => c.id === r.cat)?.label || r.cat}</p>
             </button>
           ))}
 
           {filtered.length === 0 && (
-            <div className="text-center py-10">
+            <div className="col-span-2 text-center py-10">
               <p className="text-4xl mb-3">📚</p>
-              <p className="text-white font-semibold">No results found</p>
-              <p className="text-gray-500 text-sm mt-1">Try a different search or category</p>
+              <p className="text-white font-semibold">No resources here yet</p>
+              <p className="text-gray-500 text-sm mt-1">Try a different category</p>
             </div>
           )}
         </div>
