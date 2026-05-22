@@ -144,6 +144,12 @@ export default function MyGlowLink() {
             </div>
           </div>
 
+          {/* Post Creation Button - Always visible at top */}
+          <button onClick={() => setShowPostForm(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-4" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.2), rgba(168,85,247,0.2))', border: '1px solid rgba(236,72,153,0.3)' }}>
+            <Plus size={18} className="text-pink-400" />
+            <span className="text-sm font-semibold text-pink-400">Share a post</span>
+          </button>
+
           {/* Tabs */}
           <div className="flex gap-2 border-b border-white/10">
             <button onClick={() => setActiveTab('timeline')} className={`pb-3 px-4 font-semibold text-sm transition border-b-2 ${activeTab === 'timeline' ? 'text-pink-400 border-pink-400' : 'text-gray-400 border-transparent'}`}>
@@ -157,12 +163,6 @@ export default function MyGlowLink() {
           {/* Timeline Tab */}
           {activeTab === 'timeline' && (
             <div className="space-y-4">
-              {/* Post Creation */}
-              <button onClick={() => setShowPostForm(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.2), rgba(168,85,247,0.2))', border: '1px solid rgba(236,72,153,0.3)' }}>
-                <Plus size={18} className="text-pink-400" />
-                <span className="text-sm font-semibold text-pink-400">Share a post</span>
-              </button>
-
               {/* Posts */}
               {posts.length === 0 ? (
                 <div className="text-center py-12">
