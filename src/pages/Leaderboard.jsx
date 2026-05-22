@@ -25,43 +25,101 @@ export default function Leaderboard() {
   const [teams, setTeams] = useState([]);
   const [circle, setCircle] = useState([]);
 
+  // Calculate points from user activities
+  const calculateUserPoints = async (userEmail) => {
+    try {
+      const [
+        gratitudeEntries,
+        spiritualHabits,
+        shoutouts,
+        diaryEntries,
+        userProfile
+      ] = await Promise.all([
+        base44.entities.GratitudeEntry.filter({ user_email: userEmail }),
+        base44.entities.SpiritualHabit.filter({ user_email: userEmail }),
+        base44.entities.ShoutOut.filter({ user_email: userEmail }),
+        base44.entities.DiaryEntry.filter({ user_email: userEmail }),
+        base44.entities.UserProfile.filter({ user_email: userEmail }).then(r => r[0] || null),
+      ]);
+
+      // Points calculation
+      const checkInPoints = gratitudeEntries.length * 10;
+      const habitPoints = spiritualHabits.filter(h => h.checked_date).length * 5;
+      const shoutoutPointsReceived = shoutouts.reduce((sum, s) => sum + (s.likes || 0), 0) * 3;
+      const shoutoutPointsGiven = shoutouts.length * 2;
+      const journalPoints = diaryEntries.length * 5;
+
+      const totalPoints = checkInPoints + habitPoints + shoutoutPointsReceived + shoutoutPointsGiven + journalPoints;
+      
+      // Weekly points (simplified - would need date filtering in production)
+      const weeklyPoints = Math.floor(totalPoints * 0.4);
+
+      return {
+        total_points: totalPoints,
+        weekly_points: weeklyPoints,
+        check_in_streak: gratitudeEntries.length,
+        journal_entries: diaryEntries.length,
+        shoutouts_received: shoutoutPointsReceived / 3,
+      };
+    } catch (error) {
+      console.error('Error calculating points:', error);
+      return {
+        total_points: 0,
+        weekly_points: 0,
+        check_in_streak: 0,
+        journal_entries: 0,
+        shoutouts_received: 0,
+      };
+    }
+  };
+
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
       try {
-        // Fetch all user profiles to build leaderboard
+        // Fetch all user profiles
         const profiles = await base44.entities.UserProfile.filter({});
         
-        // Calculate points for each user based on activity
-        const leaders = profiles.map((profile, idx) => ({
-          id: profile.id,
-          name: profile.data.username || profile.data.user_email.split('@')[0],
-          username: profile.data.username || 'user' + idx,
-          points: Math.floor(Math.random() * 500) + 50,
-          avatar_url: profile.data.avatar_url,
-        })).sort((a, b) => b.points - a.points);
+        // Calculate points for each user
+        const leadersWithPoints = await Promise.all(
+          profiles.map(async (profile) => {
+            const points = await calculateUserPoints(profile.data.user_email);
+            return {
+              id: profile.id,
+              name: profile.data.username || profile.data.user_email.split('@')[0],
+              username: profile.data.username || 'user',
+              email: profile.data.user_email,
+              points: points.total_points,
+              weeklyPoints: points.weekly_points,
+              avatar_url: profile.data.avatar_url,
+              check_in_streak: points.check_in_streak,
+              journal_entries: points.journal_entries,
+            };
+          })
+        );
 
-        setGlobalLeaders(leaders.slice(0, 10));
-        
-        // Weekly leaders
-        const weekly = leaders.slice(0, 5).map(l => ({
+        // Sort by total points
+        const sorted = leadersWithPoints.sort((a, b) => b.points - a.points);
+
+        setGlobalLeaders(sorted);
+        setWeeklyLeaders(sorted.slice(0, 10).map(l => ({
           ...l,
-          weeklyPoints: Math.floor(l.points * 0.3),
-        }));
-        setWeeklyLeaders(weekly);
+          weeklyPoints: l.weeklyPoints,
+        })));
 
-        // Teams data
+        // Mock teams based on user data
+        const allPoints = sorted.reduce((sum, l) => sum + l.points, 0);
         setTeams([
-          { id: '1', name: 'Glow Getters', memberCount: 12, teamPoints: 2450 },
-          { id: '2', name: 'Shine Squad', memberCount: 8, teamPoints: 1890 },
-          { id: '3', name: 'Radiant Rebels', memberCount: 15, teamPoints: 3100 },
+          { id: '1', name: 'Glow Getters', memberCount: Math.ceil(sorted.length / 3), teamPoints: Math.floor(allPoints * 0.4) },
+          { id: '2', name: 'Shine Squad', memberCount: Math.ceil(sorted.length / 3), teamPoints: Math.floor(allPoints * 0.35) },
+          { id: '3', name: 'Radiant Rebels', memberCount: sorted.length - 2 * Math.ceil(sorted.length / 3), teamPoints: Math.floor(allPoints * 0.25) },
         ]);
 
-        // Circle
-        setCircle(leaders.slice(3, 8).map((l, idx) => ({
+        // Circle - top users similar to current user
+        setCircle(sorted.slice(0, 5).map((l, idx) => ({
           ...l,
-          circlePoints: Math.floor(l.points * 0.8),
-          rank: ['Rising Star', 'Glow Queen', 'Shine Leader', 'Spark', 'Beam'][idx] || 'Member',
+          circlePoints: l.points,
+          rank: ['Glow Queen', 'Shine Leader', 'Rising Star', 'Spark', 'Beam'][idx] || 'Member',
         })));
 
         setLoading(false);

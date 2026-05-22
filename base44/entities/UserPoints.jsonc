@@ -1,0 +1,57 @@
+{
+  "name": "UserPoints",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "total_points": {
+      "type": "number",
+      "title": "Total Points",
+      "default": 0
+    },
+    "weekly_points": {
+      "type": "number",
+      "title": "Weekly Points",
+      "default": 0
+    },
+    "check_in_streak": {
+      "type": "number",
+      "title": "Check-in Streak",
+      "default": 0
+    },
+    "lessons_completed": {
+      "type": "number",
+      "title": "Lessons Completed",
+      "default": 0
+    },
+    "challenges_completed": {
+      "type": "number",
+      "title": "Challenges Completed",
+      "default": 0
+    },
+    "journal_entries": {
+      "type": "number",
+      "title": "Journal Entries",
+      "default": 0
+    },
+    "shoutouts_given": {
+      "type": "number",
+      "title": "Shout-outs Given",
+      "default": 0
+    },
+    "shoutouts_received": {
+      "type": "number",
+      "title": "Shout-outs Received",
+      "default": 0
+    },
+    "last_updated": {
+      "type": "string",
+      "title": "Last Updated"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}
