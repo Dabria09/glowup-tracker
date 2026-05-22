@@ -1,0 +1,31 @@
+{
+  "name": "CalendarEvent",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "event_date": {
+      "type": "string",
+      "title": "Event Date"
+    },
+    "event_time": {
+      "type": "string",
+      "title": "Event Time"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "color": {
+      "type": "string",
+      "title": "Color"
+    }
+  },
+  "required": []
+}

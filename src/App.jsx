@@ -16,6 +16,8 @@ import PasswordVault from './pages/PasswordVault';
 import ImportantContacts from './pages/ImportantContacts';
 import Countdown from './pages/Countdown';
 import Diary from './pages/Diary';
+import StickyNotes from './pages/StickyNotes';
+import MyCalendar from './pages/MyCalendar';
 import DiaryEntry from './pages/DiaryEntry';
 
 const AuthenticatedApp = () => {
@@ -48,6 +50,8 @@ const AuthenticatedApp = () => {
       <Route path="/countdown" element={<Countdown />} />
       <Route path="/diary" element={<Diary />} />
       <Route path="/diary/:id" element={<DiaryEntry />} />
+      <Route path="/sticky-notes" element={<StickyNotes />} />
+      <Route path="/my-calendar" element={<MyCalendar />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

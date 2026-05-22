@@ -1,0 +1,19 @@
+{
+  "name": "StickyNote",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "content": {
+      "type": "string",
+      "title": "Content"
+    },
+    "color": {
+      "type": "string",
+      "title": "Color"
+    }
+  },
+  "required": []
+}
