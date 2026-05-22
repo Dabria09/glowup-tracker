@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Plus, Check, X, Upload, Palette, Layout } from 'lucide-react';
+import { ChevronLeft, Plus, Check, X, Upload, Palette, Layout, Maximize2, Minimize2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const THEMES = [
@@ -42,84 +43,27 @@ function CaptionInline({ item, theme, onSave }) {
   );
 }
 
-function PolaroidCard({ item, theme, onDelete, onCaptionEdit }) {
-  const [editing, setEditing] = useState(false);
-  const [cap, setCap] = useState(item.caption || '');
-  const isWord = !item.image_url && item.caption;
+function ItemControls({ item, theme, onDelete, onCycleSize }) {
+  const sizeIdx = SIZES.indexOf(item.size || 'medium');
+  const canGrow = sizeIdx < SIZES.length - 1;
+  const canShrink = sizeIdx > 0;
   return (
-    <div className="relative group flex flex-col items-center"
-      style={{ background: 'white', padding: '8px 8px 32px 8px', borderRadius: '4px', boxShadow: theme.shadow }}>
-      {item.image_url ? (
-        <img src={item.image_url} alt="" className="w-full object-cover rounded-sm" style={{ aspectRatio: '1/1' }} />
-      ) : isWord ? (
-        <div className="w-full flex items-center justify-center rounded-sm px-2" style={{ aspectRatio: '1/1', background: 'linear-gradient(135deg, #f3e8ff, #fce7f3)' }}>
-          <p className="text-center font-bold break-words" style={{ color: '#7c3aed', fontSize: 'clamp(12px,5vw,22px)', fontFamily: "'Dancing Script', cursive", lineHeight: 1.2 }}>{item.caption}</p>
-        </div>
-      ) : (
-        <div className="w-full bg-gray-100 flex items-center justify-center rounded-sm" style={{ aspectRatio: '1/1' }}>
-          <span className="text-gray-300 text-3xl">🖼️</span>
-        </div>
+    <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+      {canShrink && (
+        <button onClick={(e) => { e.stopPropagation(); onCycleSize(-1); }}
+          className="w-6 h-6 bg-black/60 rounded-full text-white flex items-center justify-center hover:bg-black/80">
+          <Minimize2 size={10} />
+        </button>
       )}
-      {!isWord && (editing ? (
-        <div className="absolute bottom-1 left-0 right-0 flex items-center gap-1 px-1">
-          <input autoFocus value={cap} onChange={e => setCap(e.target.value)}
-            className="flex-1 text-xs text-center text-gray-700 bg-transparent border-b border-gray-300 outline-none" />
-          <button onClick={() => { onCaptionEdit(cap); setEditing(false); }} className="text-green-600"><Check size={12} /></button>
-          <button onClick={() => setEditing(false)} className="text-red-400"><X size={12} /></button>
-        </div>
-      ) : (
-        <p onClick={() => setEditing(true)} className="absolute bottom-1 text-xs text-gray-500 text-center w-full cursor-pointer px-1 truncate"
-          style={{ fontFamily: 'Dancing Script, cursive' }}>
-          {item.caption || 'tap to add caption'}
-        </p>
-      ))}
-      <button onClick={onDelete}
-        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full text-white text-xs items-center justify-center hidden group-hover:flex z-10">
+      {canGrow && (
+        <button onClick={(e) => { e.stopPropagation(); onCycleSize(1); }}
+          className="w-6 h-6 bg-black/60 rounded-full text-white flex items-center justify-center hover:bg-black/80">
+          <Maximize2 size={10} />
+        </button>
+      )}
+      <button onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        className="w-6 h-6 bg-red-500 rounded-full text-white flex items-center justify-center hover:bg-red-600">
         <X size={10} />
-      </button>
-    </div>
-  );
-}
-
-function GlassCard({ item, theme, onDelete, onCaptionEdit, size }) {
-  const [editing, setEditing] = useState(false);
-  const [cap, setCap] = useState(item.caption || '');
-  const sizeClass = size === 'large' ? 'col-span-2' : 'col-span-1';
-  const aspectRatio = size === 'large' ? '16/9' : '1/1';
-  const isWord = !item.image_url && item.caption;
-  return (
-    <div className={`relative group rounded-2xl overflow-hidden ${sizeClass}`}
-      style={{ border: `1px solid ${theme.border}`, boxShadow: theme.shadow, background: theme.cardBg }}>
-      {item.image_url ? (
-        <img src={item.image_url} alt="" className="w-full object-cover" style={{ aspectRatio }} />
-      ) : isWord ? (
-        <div className="w-full flex items-center justify-center px-3" style={{ aspectRatio, background: theme.cardBg }}>
-          <p className="text-center font-bold break-words" style={{ color: theme.accent, fontSize: 'clamp(14px,5vw,26px)', fontFamily: "'Dancing Script', cursive", lineHeight: 1.2, textShadow: `0 0 20px ${theme.accent}60` }}>{item.caption}</p>
-        </div>
-      ) : (
-        <div className="w-full flex items-center justify-center" style={{ aspectRatio, background: theme.cardBg }}>
-          <span className="text-4xl opacity-30">🖼️</span>
-        </div>
-      )}
-      {!isWord && (
-        <div className="px-2 py-1.5" style={{ background: theme.cardBg }}>
-          {editing ? (
-            <div className="flex items-center gap-1">
-              <input autoFocus value={cap} onChange={e => setCap(e.target.value)}
-                className="flex-1 text-xs bg-transparent border-b outline-none" style={{ color: theme.caption, borderColor: theme.accent }} />
-              <button onClick={() => { onCaptionEdit(cap); setEditing(false); }}><Check size={12} style={{ color: theme.accent }} /></button>
-              <button onClick={() => setEditing(false)}><X size={12} className="text-red-400" /></button>
-            </div>
-          ) : (
-            <p onClick={() => setEditing(true)} className="text-xs cursor-pointer truncate" style={{ color: theme.caption, fontFamily: "'Dancing Script', cursive" }}>
-              {item.caption || '✏️ add caption...'}
-            </p>
-          )}
-        </div>
-      )}
-      <button onClick={onDelete}
-        className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 rounded-full text-white items-center justify-center hidden group-hover:flex z-10">
-        <X size={12} />
       </button>
     </div>
   );
@@ -149,10 +93,8 @@ export default function VisionBoard() {
         b = await base44.entities.VisionBoard.create({ user_email: u.email, title: 'My Vision Board', theme: 'dark_glam', layout: 'grid' });
       }
       setBoard(b);
-      const th = THEMES.find(t => t.id === b.theme) || THEMES[0];
-      const ly = LAYOUTS.find(l => l.id === b.layout) || LAYOUTS[0];
-      setActiveTheme(th);
-      setActiveLayout(ly);
+      setActiveTheme(THEMES.find(t => t.id === b.theme) || THEMES[0]);
+      setActiveLayout(LAYOUTS.find(l => l.id === b.layout) || LAYOUTS[0]);
       const boardItems = await base44.entities.VisionBoardItem.filter({ board_id: b.id });
       setItems(boardItems.sort((a, b) => (a.position || 0) - (b.position || 0)));
       setLoading(false);
@@ -185,6 +127,27 @@ export default function VisionBoard() {
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, caption } : i));
   };
 
+  const changeSize = async (item, delta) => {
+    const idx = SIZES.indexOf(item.size || 'medium');
+    const next = SIZES[Math.max(0, Math.min(SIZES.length - 1, idx + delta))];
+    if (next === item.size) return;
+    await base44.entities.VisionBoardItem.update(item.id, { size: next });
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, size: next } : i));
+  };
+
+  const onDragEnd = async (result) => {
+    if (!result.destination) return;
+    const reordered = Array.from(items);
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+    const updated = reordered.map((item, i) => ({ ...item, position: i }));
+    setItems(updated);
+    // Persist positions
+    for (const item of updated) {
+      await base44.entities.VisionBoardItem.update(item.id, { position: item.position });
+    }
+  };
+
   const saveTheme = async (th) => {
     setActiveTheme(th);
     setShowThemes(false);
@@ -212,17 +175,125 @@ export default function VisionBoard() {
     toast.success('Word added! ✨');
   };
 
-  const cycleSize = async (item) => {
-    const next = SIZES[(SIZES.indexOf(item.size || 'medium') + 1) % SIZES.length];
-    await base44.entities.VisionBoardItem.update(item.id, { size: next });
-    setItems(prev => prev.map(i => i.id === item.id ? { ...i, size: next } : i));
-  };
-
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#080810' }}>
       <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" />
     </div>
   );
+
+  const renderItem = (item, provided) => {
+    const isWord = !item.image_url && item.caption;
+    const size = item.size || 'medium';
+    const colSpan = size === 'large' ? 'col-span-2' : size === 'small' ? 'col-span-1' : 'col-span-1';
+    const aspectRatio = size === 'large' ? '16/9' : '1/1';
+
+    if (activeLayout.id === 'polaroid') {
+      return (
+        <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
+          className="relative group flex flex-col items-center"
+          style={{ background: 'white', padding: '8px 8px 32px 8px', borderRadius: '4px', boxShadow: activeTheme.shadow }}>
+          {item.image_url ? (
+            <img src={item.image_url} alt="" className="w-full object-cover rounded-sm" style={{ aspectRatio: '1/1' }} />
+          ) : isWord ? (
+            <div className="w-full flex items-center justify-center rounded-sm px-2" style={{ aspectRatio: '1/1', background: 'linear-gradient(135deg, #f3e8ff, #fce7f3)' }}>
+              <p className="text-center font-bold break-words" style={{ color: '#7c3aed', fontSize: 'clamp(12px,5vw,22px)', fontFamily: "'Dancing Script', cursive", lineHeight: 1.2 }}>{item.caption}</p>
+            </div>
+          ) : (
+            <div className="w-full bg-gray-100 flex items-center justify-center rounded-sm" style={{ aspectRatio: '1/1' }}>
+              <span className="text-gray-300 text-3xl">🖼️</span>
+            </div>
+          )}
+          {!isWord && (
+            <p className="absolute bottom-1 text-xs text-gray-500 text-center w-full cursor-pointer px-1 truncate"
+              style={{ fontFamily: 'Dancing Script, cursive' }}>
+              {item.caption || 'tap to edit'}
+            </p>
+          )}
+          <ItemControls item={item} theme={activeTheme} onDelete={() => deleteItem(item)} onCycleSize={(d) => changeSize(item, d)} />
+        </div>
+      );
+    }
+
+    if (activeLayout.id === 'magazine') {
+      const isHero = items.indexOf(item) === 0;
+      return (
+        <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
+          className="relative group rounded-2xl overflow-hidden"
+          style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow }}>
+          {item.image_url ? (
+            <img src={item.image_url} alt="" className="w-full object-cover"
+              style={{ aspectRatio: isHero ? '16/9' : '3/1', maxHeight: isHero ? 220 : 110 }} />
+          ) : isWord ? (
+            <div className="w-full flex items-center justify-center px-4" style={{ minHeight: isHero ? 120 : 70, background: activeTheme.cardBg }}>
+              <p className="text-center font-bold break-words" style={{ color: activeTheme.accent, fontSize: isHero ? 'clamp(20px,6vw,36px)' : 'clamp(16px,4vw,24px)', fontFamily: "'Dancing Script', cursive", textShadow: `0 0 20px ${activeTheme.accent}60` }}>{item.caption}</p>
+            </div>
+          ) : (
+            <div className="w-full flex items-center justify-center" style={{ aspectRatio: isHero ? '16/9' : '3/1', background: activeTheme.cardBg, minHeight: isHero ? 120 : 60 }}>
+              <span className="text-4xl opacity-20">🖼️</span>
+            </div>
+          )}
+          {!isWord && (
+            <div className="px-3 py-2" style={{ background: activeTheme.cardBg }}>
+              <CaptionInline item={item} theme={activeTheme} onSave={(cap) => updateCaption(item, cap)} />
+            </div>
+          )}
+          <ItemControls item={item} theme={activeTheme} onDelete={() => deleteItem(item)} onCycleSize={(d) => changeSize(item, d)} />
+        </div>
+      );
+    }
+
+    if (activeLayout.id === 'masonry') {
+      return (
+        <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
+          className="relative group rounded-2xl overflow-hidden mb-3"
+          style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow }}>
+          {item.image_url ? (
+            <img src={item.image_url} alt="" className="w-full object-cover"
+              style={{ maxHeight: size === 'large' ? 220 : size === 'small' ? 90 : 140, minHeight: 70 }} />
+          ) : isWord ? (
+            <div className="w-full flex items-center justify-center px-3" style={{ height: 100, background: activeTheme.cardBg }}>
+              <p className="text-center font-bold break-words" style={{ color: activeTheme.accent, fontSize: 'clamp(14px,5vw,24px)', fontFamily: "'Dancing Script', cursive", textShadow: `0 0 16px ${activeTheme.accent}60` }}>{item.caption}</p>
+            </div>
+          ) : (
+            <div className="w-full flex items-center justify-center" style={{ height: 100, background: activeTheme.cardBg }}>
+              <span className="text-3xl opacity-20">🖼️</span>
+            </div>
+          )}
+          {!isWord && (
+            <div className="px-2 py-1.5" style={{ background: activeTheme.cardBg }}>
+              <CaptionInline item={item} theme={activeTheme} onSave={(cap) => updateCaption(item, cap)} />
+            </div>
+          )}
+          <ItemControls item={item} theme={activeTheme} onDelete={() => deleteItem(item)} onCycleSize={(d) => changeSize(item, d)} />
+        </div>
+      );
+    }
+
+    // Default grid
+    return (
+      <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
+        className={`relative group rounded-2xl overflow-hidden ${colSpan}`}
+        style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow, background: activeTheme.cardBg }}>
+        {item.image_url ? (
+          <img src={item.image_url} alt="" className="w-full object-cover" style={{ aspectRatio }} />
+        ) : isWord ? (
+          <div className="w-full flex items-center justify-center px-3" style={{ aspectRatio, background: activeTheme.cardBg }}>
+            <p className="text-center font-bold break-words" style={{ color: activeTheme.accent, fontSize: 'clamp(14px,5vw,26px)', fontFamily: "'Dancing Script', cursive", lineHeight: 1.2, textShadow: `0 0 20px ${activeTheme.accent}60` }}>{item.caption}</p>
+          </div>
+        ) : (
+          <div className="w-full flex items-center justify-center" style={{ aspectRatio, background: activeTheme.cardBg }}>
+            <span className="text-4xl opacity-30">🖼️</span>
+          </div>
+        )}
+        {!isWord && (
+          <div className="px-2 py-1.5" style={{ background: activeTheme.cardBg }}>
+            <CaptionInline item={item} theme={activeTheme} onSave={(cap) => updateCaption(item, cap)} />
+          </div>
+        )}
+        <ItemControls item={item} theme={activeTheme} onDelete={() => deleteItem(item)} onCycleSize={(d) => changeSize(item, d)} />
+      </div>
+    );
+  };
 
   const renderCollage = () => {
     if (items.length === 0) return (
@@ -238,103 +309,79 @@ export default function VisionBoard() {
       </div>
     );
 
-    if (activeLayout.id === 'polaroid') {
-      return (
-        <div className="grid grid-cols-2 gap-4 p-2">
-          {items.map(item => (
-            <PolaroidCard key={item.id} item={item} theme={activeTheme}
-              onDelete={() => deleteItem(item)}
-              onCaptionEdit={(cap) => updateCaption(item, cap)} />
-          ))}
-        </div>
-      );
-    }
-
-    if (activeLayout.id === 'magazine') {
-      return (
-        <div className="space-y-3 p-1">
-          {items.map((item, idx) => {
-            const isHero = idx === 0;
-            const isWord = !item.image_url && item.caption;
-            return (
-              <div key={item.id} className="relative group rounded-2xl overflow-hidden"
-                style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow }}>
-                {item.image_url ? (
-                  <img src={item.image_url} alt="" className="w-full object-cover"
-                    style={{ aspectRatio: isHero ? '16/9' : '3/1', maxHeight: isHero ? 220 : 110 }} />
-                ) : isWord ? (
-                  <div className="w-full flex items-center justify-center px-4" style={{ minHeight: isHero ? 120 : 70, background: activeTheme.cardBg }}>
-                    <p className="text-center font-bold break-words" style={{ color: activeTheme.accent, fontSize: isHero ? 'clamp(20px,6vw,36px)' : 'clamp(16px,4vw,24px)', fontFamily: "'Dancing Script', cursive", textShadow: `0 0 20px ${activeTheme.accent}60` }}>{item.caption}</p>
-                  </div>
-                ) : (
-                  <div className="w-full flex items-center justify-center" style={{ aspectRatio: isHero ? '16/9' : '3/1', background: activeTheme.cardBg, minHeight: isHero ? 120 : 60 }}>
-                    <span className="text-4xl opacity-20">🖼️</span>
-                  </div>
-                )}
-                {!isWord && (
-                  <div className="px-3 py-2" style={{ background: activeTheme.cardBg }}>
-                    <CaptionInline item={item} theme={activeTheme} onSave={(cap) => updateCaption(item, cap)} />
-                  </div>
-                )}
-                <button onClick={() => deleteItem(item)}
-                  className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full text-white items-center justify-center hidden group-hover:flex z-10">
-                  <X size={12} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      );
-    }
-
+    // Masonry: two droppable columns
     if (activeLayout.id === 'masonry') {
       const col1 = items.filter((_, i) => i % 2 === 0);
       const col2 = items.filter((_, i) => i % 2 === 1);
-      const MasonCard = ({ item }) => {
-        const isWord = !item.image_url && item.caption;
-        return (
-          <div className="relative group rounded-2xl overflow-hidden mb-3"
-            style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow }}>
-            {item.image_url ? (
-              <img src={item.image_url} alt="" className="w-full object-cover" style={{ maxHeight: item.size === 'large' ? 200 : 130, minHeight: 80 }} />
-            ) : isWord ? (
-              <div className="w-full flex items-center justify-center px-3" style={{ height: 100, background: activeTheme.cardBg }}>
-                <p className="text-center font-bold break-words" style={{ color: activeTheme.accent, fontSize: 'clamp(14px,5vw,24px)', fontFamily: "'Dancing Script', cursive", textShadow: `0 0 16px ${activeTheme.accent}60` }}>{item.caption}</p>
-              </div>
-            ) : (
-              <div className="w-full flex items-center justify-center" style={{ height: 100, background: activeTheme.cardBg }}>
-                <span className="text-3xl opacity-20">🖼️</span>
-              </div>
-            )}
-            {!isWord && (
-              <div className="px-2 py-1.5" style={{ background: activeTheme.cardBg }}>
-                <CaptionInline item={item} theme={activeTheme} onSave={(cap) => updateCaption(item, cap)} />
-              </div>
-            )}
-            <div className="absolute top-1.5 right-1.5 hidden group-hover:flex gap-1">
-              <button onClick={() => cycleSize(item)} className="w-5 h-5 bg-black/50 rounded-full text-white flex items-center justify-center text-xs">⤡</button>
-              <button onClick={() => deleteItem(item)} className="w-5 h-5 bg-red-500 rounded-full text-white flex items-center justify-center"><X size={10} /></button>
-            </div>
-          </div>
-        );
-      };
       return (
-        <div className="grid grid-cols-2 gap-3 p-1">
-          <div>{col1.map(item => <MasonCard key={item.id} item={item} />)}</div>
-          <div>{col2.map(item => <MasonCard key={item.id} item={item} />)}</div>
-        </div>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="grid grid-cols-2 gap-3 p-1">
+            <Droppable droppableId="col1">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps}>
+                  {col1.map((item, i) => (
+                    <Draggable key={item.id} draggableId={item.id} index={i * 2}>
+                      {(provided) => renderItem(item, provided)}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+            <Droppable droppableId="col2">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps}>
+                  {col2.map((item, i) => (
+                    <Draggable key={item.id} draggableId={item.id} index={i * 2 + 1}>
+                      {(provided) => renderItem(item, provided)}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </div>
+        </DragDropContext>
       );
     }
 
-    // Default: grid
+    // Grid: draggable with col-span support
+    if (activeLayout.id === 'grid') {
+      return (
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="grid" direction="horizontal">
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-2 gap-3 p-1">
+                {items.map((item, i) => (
+                  <Draggable key={item.id} draggableId={item.id} index={i}>
+                    {(provided) => renderItem(item, provided)}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      );
+    }
+
+    // Polaroid & Magazine: vertical list droppable
     return (
-      <div className="grid grid-cols-2 gap-3 p-1">
-        {items.map(item => (
-          <GlassCard key={item.id} item={item} theme={activeTheme} size={item.size || 'medium'}
-            onDelete={() => deleteItem(item)}
-            onCaptionEdit={(cap) => updateCaption(item, cap)} />
-        ))}
-      </div>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="board">
+          {(provided) => (
+            <div ref={provided.innerRef} {...provided.droppableProps}
+              className={activeLayout.id === 'polaroid' ? 'grid grid-cols-2 gap-4 p-2' : 'space-y-3 p-1'}>
+              {items.map((item, i) => (
+                <Draggable key={item.id} draggableId={item.id} index={i}>
+                  {(provided) => renderItem(item, provided)}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
     );
   };
 
@@ -380,16 +427,12 @@ export default function VisionBoard() {
           <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" onClick={() => setShowWordInput(false)}>
             <div className="w-full max-w-lg rounded-t-3xl p-6" style={{ background: activeTheme.bg, border: `1px solid ${activeTheme.border}` }} onClick={e => e.stopPropagation()}>
               <p className="font-bold text-lg mb-1" style={{ color: activeTheme.text }}>Add a Word or Phrase</p>
-              <p className="text-xs mb-4" style={{ color: activeTheme.caption }}>A single word, mantra, or short phrase — displayed as a styled tile on your board</p>
-              <input
-                autoFocus
-                value={wordText}
-                onChange={e => setWordText(e.target.value)}
+              <p className="text-xs mb-4" style={{ color: activeTheme.caption }}>A word, mantra, or short phrase displayed as a styled tile</p>
+              <input autoFocus value={wordText} onChange={e => setWordText(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addWord()}
                 placeholder="e.g. BLESSED, abundance, glow up..."
                 className="w-full px-4 py-3 rounded-2xl text-center text-lg font-bold outline-none mb-4"
-                style={{ background: 'rgba(255,255,255,0.08)', border: `1px solid ${activeTheme.border}`, color: activeTheme.text }}
-              />
+                style={{ background: 'rgba(255,255,255,0.08)', border: `1px solid ${activeTheme.border}`, color: activeTheme.text }} />
               <div className="flex gap-2">
                 <button onClick={() => setShowWordInput(false)}
                   className="flex-1 py-3 rounded-2xl font-semibold text-sm"
@@ -463,9 +506,9 @@ export default function VisionBoard() {
         {items.length > 0 && (
           <div className="rounded-2xl p-4 mb-4 text-sm" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.border}` }}>
             <p className="font-bold mb-2" style={{ color: activeTheme.text }}>💡 Vision Board Tips</p>
-            <p style={{ color: activeTheme.caption }}>• Tap any caption to edit it</p>
+            <p style={{ color: activeTheme.caption }}>• Drag items to reorder them on the board</p>
+            <p style={{ color: activeTheme.caption }}>• Hover/tap an item to resize or delete it</p>
             <p style={{ color: activeTheme.caption }}>• Tap "Aa" to add words, mantras, or affirmations</p>
-            <p style={{ color: activeTheme.caption }}>• In Masonry layout, tap ⤡ to resize photos</p>
             <p style={{ color: activeTheme.caption }}>• Look at your vision board daily to stay motivated 🌟</p>
           </div>
         )}
