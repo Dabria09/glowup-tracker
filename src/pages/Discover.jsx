@@ -76,7 +76,7 @@ const SECTIONS = [
     title: '🌸 My Life',
     items: [
       { id: 'my_calendar', label: 'My Calendar', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/my-calendar', image: CDN + 'icon-my-calendar-55x8hsLegkBBMSVxNXFap5.webp' },
-      { id: 'my_diary', label: 'My Diary', gradient: 'from-pink-800 via-purple-900 to-rose-900', route: '/my-diary', image: CDN + 'icon-my-diary-hV9wyJJ7diLH36nJFHSGb4.webp' },
+      { id: 'my_diary', label: 'My Diary', gradient: 'from-pink-800 via-purple-900 to-rose-900', route: '/diary', image: CDN + 'icon-my-diary-hV9wyJJ7diLH36nJFHSGb4.webp' },
       { id: 'sticky_notes', label: 'Sticky Notes', gradient: 'from-violet-900 via-purple-900 to-fuchsia-900', route: '/sticky-notes', image: CDN + 'icon-ggu-notes-YfCNPjnpsmHMjZkm5VACrP.webp' },
       { id: 'cleaning_calendar', label: 'Cleaning Calendar', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', route: '/cleaning-calendar', image: CDN + 'icon-cleaning-calendar-XC5nXr5kSwExbkzykThJEr.webp' },
       { id: 'birthday_planner', label: 'Birthday Planner', gradient: 'from-pink-800 via-rose-900 to-fuchsia-900', route: '/birthday-planner', image: CDN + 'icon-birthday-planner-Qp8X5ePr97LrHNc2yucHpS.webp' },
