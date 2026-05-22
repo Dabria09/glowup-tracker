@@ -35,6 +35,7 @@ import GirlsLibrary from './pages/GirlsLibrary';
 import AudioLibrary from './pages/AudioLibrary';
 import WellnessHub from './pages/WellnessHub';
 import DailyQuotes from './pages/DailyQuotes';
+import DailyCheckIn from './pages/DailyCheckIn';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -84,6 +85,7 @@ const AuthenticatedApp = () => {
       <Route path="/audio-library" element={<AudioLibrary />} />
       <Route path="/wellness-hub" element={<WellnessHub />} />
       <Route path="/daily-quotes" element={<DailyQuotes />} />
+      <Route path="/daily-checkin" element={<DailyCheckIn />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
