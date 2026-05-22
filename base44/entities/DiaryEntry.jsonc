@@ -1,0 +1,35 @@
+{
+  "name": "DiaryEntry",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "content": {
+      "type": "string",
+      "title": "Content"
+    },
+    "mood": {
+      "type": "string",
+      "title": "Mood"
+    },
+    "writing_style": {
+      "type": "string",
+      "title": "Writing Style"
+    },
+    "tags": {
+      "type": "string",
+      "title": "Tags"
+    },
+    "entry_date": {
+      "type": "string",
+      "title": "Entry Date"
+    }
+  },
+  "required": []
+}

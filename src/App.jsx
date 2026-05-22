@@ -15,6 +15,8 @@ import FitnessTracker from './pages/FitnessTracker';
 import PasswordVault from './pages/PasswordVault';
 import ImportantContacts from './pages/ImportantContacts';
 import Countdown from './pages/Countdown';
+import Diary from './pages/Diary';
+import DiaryEntry from './pages/DiaryEntry';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -44,6 +46,8 @@ const AuthenticatedApp = () => {
       <Route path="/password-vault" element={<PasswordVault />} />
       <Route path="/important-contacts" element={<ImportantContacts />} />
       <Route path="/countdown" element={<Countdown />} />
+      <Route path="/diary" element={<Diary />} />
+      <Route path="/diary/:id" element={<DiaryEntry />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
