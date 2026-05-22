@@ -396,7 +396,7 @@ export default function SquadDetail() {
                     });
                     const updated = await base44.entities.SquadChallenge.filter({ squad_id: squad.id });
                     setSquadChallenges(updated);
-                    alert('Challenge created! Let\\'s go! 💜');
+                    alert("Challenge created! Let's go! 💜");
                   }}
                   className="w-full py-3 rounded-2xl font-bold text-white text-sm bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition"
                 >
