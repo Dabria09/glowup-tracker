@@ -255,7 +255,7 @@ export default function HomeworkTracker() {
       {/* Add Assignment Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" onClick={() => setShowForm(false)}>
-          <div className="w-full max-w-lg glass-strong rounded-t-3xl p-6 pb-10" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-lg glass-strong rounded-t-3xl p-6 pb-10 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <p className="text-white font-bold text-lg">📝 New Assignment</p>
               <div className="flex items-center gap-2">
