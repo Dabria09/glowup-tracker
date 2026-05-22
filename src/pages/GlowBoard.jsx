@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { Plus, Heart, Bookmark, Search, TrendingUp, Grid, User } from 'lucide-react';
+import { Plus, Heart, Bookmark, Search, TrendingUp, Grid, User, Upload, X } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -29,6 +29,8 @@ export default function GlowBoard() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [search, setSearch] = useState('');
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [newPost, setNewPost] = useState({
     image_url: '',
     title: '',
@@ -75,6 +77,23 @@ export default function GlowBoard() {
     setFilteredPosts(filtered);
   }, [selectedCategory, search, posts]);
 
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    try {
+      setUploading(true);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setNewPost({ ...newPost, image_url: file_url });
+      setSelectedFile(file_url);
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmitPost = async () => {
     if (!newPost.image_url.trim() || !newPost.category) return;
     
@@ -93,6 +112,7 @@ export default function GlowBoard() {
       
       setShowSubmitModal(false);
       setNewPost({ image_url: '', title: '', description: '', category: 'Glow Style' });
+      setSelectedFile(null);
       
       const updated = await base44.entities.GlowBoard.list();
       setPosts(updated);
@@ -283,7 +303,50 @@ export default function GlowBoard() {
             </div>
             <div className="overflow-y-auto p-6 space-y-4 flex-1">
               <div>
-                <label className="text-sm font-semibold text-gray-300 mb-2 block">Image URL *</label>
+                <label className="text-sm font-semibold text-gray-300 mb-2 block">Upload Image *</label>
+                <div className="flex items-center gap-3">
+                  <label className="flex-1 cursor-pointer">
+                    <div className="w-full bg-white/5 border border-white/10 border-dashed rounded-2xl px-4 py-6 text-center hover:bg-white/10 transition">
+                      {selectedFile ? (
+                        <div className="relative">
+                          <img src={selectedFile} alt="Preview" className="max-h-40 mx-auto rounded-lg object-cover" />
+                          <button
+                            onClick={() => {
+                              setSelectedFile(null);
+                              setNewPost({ ...newPost, image_url: '' });
+                            }}
+                            className="absolute top-2 right-2 p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="mx-auto text-gray-400 mb-2" size={24} />
+                          <p className="text-sm text-gray-300">Click to upload or paste image URL below</p>
+                          <p className="text-xs text-gray-500 mt-1">Supports JPG, PNG, GIF, WebP</p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                {uploading && (
+                  <p className="text-xs text-pink-400 mt-2 flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+                    Uploading...
+                  </p>
+                )}
+              </div>
+              
+              <div>
+                <label className="text-sm font-semibold text-gray-300 mb-2 block">Or Image URL</label>
                 <input
                   value={newPost.image_url}
                   onChange={e => setNewPost({ ...newPost, image_url: e.target.value })}
@@ -340,7 +403,7 @@ export default function GlowBoard() {
         </div>
       )}
 
-      <BottomNav active="glow" />
+      <BottomNav active="discover" />
     </div>
   );
 }

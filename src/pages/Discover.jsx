@@ -65,7 +65,7 @@ const SECTIONS = [
       { id: 'glow_talk', label: 'Glow Talk', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', route: '/glow-talk', badge: 'Live', image: CDN + 'icon-glow-talk-ewK3HLMfZYVeNKLD3iLrKz.webp' },
       { id: 'glow_squads', label: 'Glow Squads', gradient: 'from-fuchsia-900 via-pink-900 to-purple-900', route: '/glow-squads', image: MANUS + 'icon-glow-squads-v2_61c9bc2b.png' },
       { id: 'glow_teams', label: 'Glow Teams', gradient: 'from-purple-900 via-indigo-900 to-pink-900', route: '/glow-teams', image: MANUS + 'icon-teams_6ca08712.png' },
-      { id: 'glow_board', label: 'Glow Board', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/glow-board', image: CDN + 'icon-glow-board-4XSLLnCWyfrrYDHQ8zApA2.webp' },
+      { id: 'glow_board', label: 'Glow Board', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/glow-board', image: CDN + 'icon-glow-board-4XSLLnCWyfrrYDHQ8zApA2.webp', badge: 'New' },
       { id: 'glow_kitchen', label: 'Glow Kitchen', gradient: 'from-rose-900 via-pink-900 to-fuchsia-900', route: '/glow-kitchen', image: CDN + 'icon-glow-kitchen-WyHBfNCsiaR38BJ6YjES3Q.webp' },
       { id: 'my_glow_link', label: 'My Glow Link™', gradient: 'from-yellow-800 via-amber-900 to-orange-900', route: '/my-glow-link', image: CDN + 'icon-my-glow-link-74jzirPfc7YN8uTh9fGCeE.webp' },
       { id: 'leaderboard', label: 'Leaderboard', gradient: 'from-yellow-800 via-pink-900 to-fuchsia-900', route: '/leaderboard', image: CDN + 'icon-leaderboard-WLMjT77VCu94JhWg7vXfbm.webp' },
