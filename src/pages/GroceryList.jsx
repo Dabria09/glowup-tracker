@@ -157,19 +157,17 @@ export default function GroceryList() {
             <div className="space-y-2">
               {group.items.map(item => (
                 <div key={item.id}
-                  className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-white/10"
+                  onClick={() => toggleItem(item)}
+                  className="flex items-center gap-3 px-4 py-4 rounded-2xl border border-white/10 cursor-pointer active:scale-[0.98] transition-transform"
                   style={{ background: item.is_checked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.07)' }}>
-                  <button
-                    onClick={() => toggleItem(item)}
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${item.is_checked ? 'border-pink-500 bg-pink-500' : 'border-gray-500'}`}
-                  >
+                  <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${item.is_checked ? 'border-pink-500 bg-pink-500' : 'border-gray-500'}`}>
                     {item.is_checked && <span className="text-white text-xs font-bold">✓</span>}
-                  </button>
+                  </div>
                   <span className={`flex-1 text-sm font-medium ${item.is_checked ? 'line-through text-gray-500' : 'text-white'}`}>
                     {item.name}
                     {item.quantity > 1 && <span className="text-gray-400 text-xs ml-1">×{item.quantity}</span>}
                   </span>
-                  <button onClick={() => deleteItem(item.id)} className="text-gray-600 hover:text-red-400 transition">
+                  <button onClick={e => { e.stopPropagation(); deleteItem(item.id); }} className="p-1 text-gray-600 hover:text-red-400 transition">
                     <X size={16} />
                   </button>
                 </div>
