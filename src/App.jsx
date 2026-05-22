@@ -30,6 +30,8 @@ import CycleTracker from './pages/CycleTracker';
 import VisionBoard from './pages/VisionBoard';
 import SpiritualGlow from './pages/SpiritualGlow';
 import ShoutOuts from './pages/ShoutOuts';
+import CalmCorner from './pages/CalmCorner';
+import AudioLibrary from './pages/AudioLibrary';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -74,6 +76,8 @@ const AuthenticatedApp = () => {
       <Route path="/vision-board" element={<VisionBoard />} />
       <Route path="/spiritual-glow" element={<SpiritualGlow />} />
       <Route path="/shout-outs" element={<ShoutOuts />} />
+      <Route path="/calm-corner" element={<CalmCorner />} />
+      <Route path="/audio-library" element={<AudioLibrary />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

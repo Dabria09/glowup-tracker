@@ -1,0 +1,15 @@
+{
+  "name": "Affirmation",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "text": {
+      "type": "string",
+      "title": "Affirmation Text"
+    }
+  },
+  "required": []
+}

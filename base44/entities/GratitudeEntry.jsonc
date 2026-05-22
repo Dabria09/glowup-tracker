@@ -1,0 +1,27 @@
+{
+  "name": "GratitudeEntry",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "entry_date": {
+      "type": "string",
+      "title": "Date"
+    },
+    "item1": {
+      "type": "string",
+      "title": "Gratitude 1"
+    },
+    "item2": {
+      "type": "string",
+      "title": "Gratitude 2"
+    },
+    "item3": {
+      "type": "string",
+      "title": "Gratitude 3"
+    }
+  },
+  "required": []
+}
