@@ -30,7 +30,7 @@ const SECTIONS = [
       { id: 'calm_corner', label: 'Calm Corner', gradient: 'from-amber-900 via-orange-900 to-rose-900', route: '/calm-corner', image: MANUS + 'icon-calm-corner_ef4b2861.png' },
       { id: 'cycle_tracker', label: 'Cycle Tracker', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', route: '/cycle-tracker', image: CDN + 'icon-cycle-tracker-mfEEuehTKonzHUdUSmTMaA.webp' },
       { id: 'glow_checkin', label: 'Glow Check-In', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/daily-checkin', image: MANUS + 'icon-glow-check-in_fe36a2ac.png' },
-      { id: 'daily_focus', label: "Today's Focus", gradient: 'from-violet-900 via-purple-900 to-pink-900', route: '/daily-checkin', badge: 'Daily', image: '', emoji: '⚡' },
+
       { id: 'spiritual_glow', label: 'Spiritual Glow', gradient: 'from-indigo-900 via-purple-900 to-violet-900', route: '/spiritual-glow', image: CDN + 'icon-spiritual-glow-Y4zxRVLXJn8CpnpefTixYM.webp' },
     ],
   },
