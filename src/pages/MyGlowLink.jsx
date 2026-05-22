@@ -192,6 +192,9 @@ export default function MyGlowLink() {
                     <div className="flex gap-4 text-xs text-gray-400">
                       <button className="hover:text-pink-400 transition">❤️ {post.likes}</button>
                       <button className="hover:text-pink-400 transition">💬 {post.comments}</button>
+                      {post.visibility === 'public' && (
+                        <button onClick={() => { alert('Post reshared! 🎉'); }} className="hover:text-pink-400 transition">🔄 Reshare</button>
+                      )}
                     </div>
                   </div>
                 ))
@@ -211,13 +214,13 @@ export default function MyGlowLink() {
                     <span className="text-sm text-yellow-400 font-mono flex-1 truncate">https://gguapp.com/glowlink/{username || 'username'}</span>
                   </div>
                   <div className="flex gap-2">
-                    <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full text-sm font-semibold border border-pink-400/50 text-pink-400 hover:bg-pink-400/10 transition">
+                    <button onClick={() => { navigator.clipboard.writeText(`https://gguapp.com/glowlink/${username || 'username'}`); alert('Link copied! 📋'); }} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full text-sm font-semibold border border-pink-400/50 text-pink-400 hover:bg-pink-400/10 transition">
                       📋 Copy
                     </button>
-                    <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full text-sm font-semibold border border-pink-400/50 text-pink-400 hover:bg-pink-400/10 transition">
+                    <button onClick={() => { if (navigator.share) { navigator.share({ title: 'Check out my Glow Link!', url: `https://gguapp.com/glowlink/${username || 'username'}` }).catch(() => {}); } else { alert('Share not supported on this device'); } }} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full text-sm font-semibold border border-pink-400/50 text-pink-400 hover:bg-pink-400/10 transition">
                       📤 Share
                     </button>
-                    <button className="px-3 py-2 rounded-full text-sm font-semibold border border-pink-400/50 text-pink-400 hover:bg-pink-400/10 transition">↗️</button>
+                    <button onClick={() => window.open(`https://gguapp.com/glowlink/${username || 'username'}`, '_blank')} className="px-3 py-2 rounded-full text-sm font-semibold border border-pink-400/50 text-pink-400 hover:bg-pink-400/10 transition">↗️</button>
                   </div>
                 </div>
               </div>
@@ -235,7 +238,7 @@ export default function MyGlowLink() {
                       📸 Upload Photo
                       <input type="file" accept="image/*" onChange={e => e.target.files?.[0] && setProfilePhoto(URL.createObjectURL(e.target.files[0]))} className="hidden" />
                     </label>
-                    <button className="px-4 py-2 rounded-full border border-red-500/50 text-red-400 font-semibold text-sm hover:bg-red-500/10 transition">Remove Photo</button>
+                    <button onClick={() => setProfilePhoto(null)} className="px-4 py-2 rounded-full border border-red-500/50 text-red-400 font-semibold text-sm hover:bg-red-500/10 transition">Remove Photo</button>
                   </div>
                 </div>
               </div>
@@ -289,7 +292,7 @@ export default function MyGlowLink() {
                   </div>
                 ))}
                 {links.length < 3 && (
-                  <button className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                  <button onClick={() => { const label = prompt('Link label (e.g., TikTok, Instagram):'); const url = prompt('Link URL:'); if (label && url) setLinks(prev => [...prev, { label, url }]); }} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                     + Add Link
                   </button>
                 )}
@@ -355,7 +358,7 @@ export default function MyGlowLink() {
                 ))}
               </div>
 
-              <button className="w-full py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+              <button onClick={async () => { if (user) { await base44.auth.updateMe({ bio, motto }); alert('Glow Link saved!'); } }} className="w-full py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                 Save My Glow Link 💜
               </button>
             </div>
