@@ -337,13 +337,18 @@ export default function CalmCorner() {
 
             <p className="text-xs text-gray-400 mb-3">Quick add a starter affirmation:</p>
             <div className="flex flex-wrap gap-2">
-              {STARTER_AFFIRMATIONS.map((a, i) => (
-                <button key={i} onClick={() => addAffirmation(a)}
-                  className="text-xs px-3 py-2 rounded-full text-gray-300 transition hover:bg-pink-500/20"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  + {a.length > 30 ? a.slice(0, 30) + '...' : a}
-                </button>
-              ))}
+              {STARTER_AFFIRMATIONS.map((a, i) => {
+                const saved = affirmations.some(af => af.text === a);
+                return (
+                  <button key={i} onClick={() => !saved && addAffirmation(a)}
+                    className={`text-xs px-3 py-2 rounded-full transition ${saved ? 'text-pink-300 cursor-default' : 'text-gray-300 hover:bg-pink-500/20'}`}
+                    style={saved
+                      ? { background: 'rgba(236,72,153,0.12)', border: '1px solid rgba(236,72,153,0.35)' }
+                      : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    {saved ? '✓ ' : '+ '}{a.length > 32 ? a.slice(0, 32) + '...' : a}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
