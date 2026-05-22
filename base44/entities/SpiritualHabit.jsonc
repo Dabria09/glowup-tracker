@@ -1,0 +1,23 @@
+{
+  "name": "SpiritualHabit",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "label": {
+      "type": "string",
+      "title": "Habit Label"
+    },
+    "emoji": {
+      "type": "string",
+      "title": "Emoji"
+    },
+    "checked_date": {
+      "type": "string",
+      "title": "Last Checked Date"
+    }
+  },
+  "required": []
+}

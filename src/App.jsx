@@ -28,6 +28,7 @@ import GlowEventDetail from './pages/GlowEventDetail';
 import HomeworkTracker from './pages/HomeworkTracker';
 import CycleTracker from './pages/CycleTracker';
 import VisionBoard from './pages/VisionBoard';
+import SpiritualGlow from './pages/SpiritualGlow';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -70,6 +71,7 @@ const AuthenticatedApp = () => {
       <Route path="/homework-tracker" element={<HomeworkTracker />} />
       <Route path="/cycle-tracker" element={<CycleTracker />} />
       <Route path="/vision-board" element={<VisionBoard />} />
+      <Route path="/spiritual-glow" element={<SpiritualGlow />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

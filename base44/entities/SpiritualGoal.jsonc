@@ -1,0 +1,15 @@
+{
+  "name": "SpiritualGoal",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "goal_text": {
+      "type": "string",
+      "title": "Goal"
+    }
+  },
+  "required": []
+}

@@ -1,0 +1,15 @@
+{
+  "name": "SpiritualProfile",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "faith_path": {
+      "type": "string",
+      "title": "Faith Path"
+    }
+  },
+  "required": []
+}

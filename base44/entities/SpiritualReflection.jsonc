@@ -1,0 +1,23 @@
+{
+  "name": "SpiritualReflection",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "prompt": {
+      "type": "string",
+      "title": "Prompt"
+    },
+    "content": {
+      "type": "string",
+      "title": "Content"
+    },
+    "reflection_date": {
+      "type": "string",
+      "title": "Date"
+    }
+  },
+  "required": []
+}
