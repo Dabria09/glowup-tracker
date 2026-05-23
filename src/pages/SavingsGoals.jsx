@@ -140,24 +140,24 @@ export default function SavingsGoals() {
                         <button onClick={() => handleDelete(g.id)} className="text-gray-600 hover:text-red-400"><Trash2 size={14} /></button>
                       </div>
                     </div>
-                    <div className="w-full rounded-full h-2 mb-2" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                    <div className="w-full rounded-full h-2 mb-3" style={{ background: 'rgba(255,255,255,0.1)' }}>
                       <div className="h-2 rounded-full transition-all" style={{ width: pct + '%', background: done ? '#4ade80' : 'linear-gradient(90deg, #ec4899, #a855f7)' }} />
                     </div>
-                    {!done && g.weekly_commitment > 0 && (
-                      <p className="text-xs text-gray-500">${g.weekly_commitment}/wk · Est. {weeksToComplete(g.target_amount, g.saved_amount, g.weekly_commitment)}</p>
-                    )}
-                    {done && <p className="text-xs text-green-400 font-bold">🎉 Goal reached!</p>}
                     {!done && (
-                      <div className="flex gap-2 mt-3">
+                      <div className="flex gap-2 mb-3">
                         {[10, 25, 50].map(amt => (
                           <button key={amt} onClick={() => addToSaved(g, amt)}
-                            className="flex-1 py-1.5 rounded-xl text-xs font-semibold text-white"
-                            style={{ background: 'rgba(168,85,247,0.25)', border: '1px solid rgba(168,85,247,0.4)' }}>
+                            className="flex-1 py-2 rounded-xl text-sm font-semibold text-white"
+                            style={{ background: 'rgba(168,85,247,0.3)', border: '1px solid rgba(168,85,247,0.5)' }}>
                             +${amt}
                           </button>
                         ))}
                       </div>
                     )}
+                    {!done && g.weekly_commitment > 0 && (
+                      <p className="text-xs text-gray-500 text-center">${g.weekly_commitment}/wk · Est. {weeksToComplete(g.target_amount, g.saved_amount, g.weekly_commitment)}</p>
+                    )}
+                    {done && <p className="text-xs text-green-400 font-bold text-center">🎉 Goal reached!</p>}
                   </div>
                 );
               })}
