@@ -24,6 +24,9 @@ export const CAT_META = {
   good_parenting:   { label: 'Good Parenting',         emoji: '💝', labelColor: '#f472b6', cardBg: 'rgba(131,24,67,0.45)' },
   civic:             { label: 'Civic Education',         emoji: '🗳️', labelColor: '#818cf8', cardBg: 'rgba(49,46,129,0.55)' },
   community:         { label: 'Community & Discussion',   emoji: '💬', labelColor: '#34d399', cardBg: 'rgba(6,78,59,0.5)' },
+  women_health:      { label: "Women's Health",            emoji: '🏥', labelColor: '#fb7185', cardBg: 'rgba(159,18,57,0.4)' },
+  school_career:     { label: 'School & Career Skills',    emoji: '📚', labelColor: '#a3e635', cardBg: 'rgba(26,46,5,0.55)' },
+  mindset_growth:    { label: 'Mindset & Growth',          emoji: '🌱', labelColor: '#fbbf24', cardBg: 'rgba(92,45,5,0.5)' },
 };
 
 export const RESOURCES = [
@@ -627,7 +630,27 @@ const COMMUNITY_RESOURCES = [
     actions: ['Choose a nonpartisan topic and assign sides randomly. Focus on evidence and logic, not emotion.','Pick a position you disagree with. Write the strongest possible argument FOR that position.','The next time you disagree with someone, ask one genuine question before making your counterargument.'] },
 ];
 
-export const RESOURCES_ALL = [...RESOURCES, ...CIVIC_RESOURCES, ...COMMUNITY_RESOURCES];
+const EXTRA_RESOURCES = [
+  { id: 96, cat: 'women_health', emoji: '🏥', title: 'Health Appointments for Girls & Women',
+    desc: 'Your body deserves regular check-ins. Here is your guide.',
+    tips: ['Annual wellness visit every year — even when you feel healthy', 'First gynecology visit recommended between ages 13–15', 'Dental cleanings every 6 months — gum disease is linked to heart disease', 'Mental health checkups are just as important as physical ones', 'Preventive care is covered at no cost under most health insurance plans', 'You have the right to ask questions and request a second opinion'],
+    quick_facts: ['Pap smear starts at age 21. HPV vaccine recommended ages 9–26', 'FQHCs offer care on a sliding scale — many charge $0 for low-income patients', 'Planned Parenthood and school-based clinics offer free or low-cost care'],
+    actions: ['Create a personal health calendar — schedule your annual wellness visit, dental cleaning, and eye exam.', 'Ask a trusted family member about your family health history and write it down.', 'If you lack insurance, research one free or low-cost clinic in your area this week.'] },
+
+  { id: 97, cat: 'school_career', emoji: '📚', title: 'How to Be a Good Student',
+    desc: 'School is your first job. Here is how to show up and win.',
+    tips: ['Attendance matters — missing 2 days a month adds up to 18 days a year', 'Every phone check costs ~23 minutes of refocused attention', 'Active recall (quizzing yourself) beats re-reading every time', 'Sleep consolidates memory — do not sacrifice it for late-night cramming', 'Asking questions is a sign of intelligence, not weakness', 'Consistent effort beats talent every single time'],
+    quick_facts: ['Students who set specific study goals perform significantly better', 'The Pomodoro Technique: 25 minutes focused + 5-minute break = more done in less time', 'Teachers are one of your most underused resources — office hours exist for a reason'],
+    actions: ['Create a weekly study schedule and pick one subject to improve this week.', 'Try the Pomodoro Technique for your next study session and note how it affects focus.', 'Speak to one teacher outside of class this week — ask a question or ask for advice.'] },
+
+  { id: 98, cat: 'mindset_growth', emoji: '🌱', title: 'Trust the Process',
+    desc: 'Stop stressing about the future. Your season is coming.',
+    tips: ['Shift focus from the destination to what you can do today', 'Planning is productive — worrying is unproductive. Know the difference.', 'You cannot control outcomes, but you can always control effort and attitude', 'Delayed gratification is one of the strongest predictors of long-term success', 'Track your inputs (did you show up, study, practice?) not just outputs', 'The girls who made it kept going when results were invisible'],
+    quick_facts: ['Anxiety about the future activates the same brain response as physical danger', 'People who focus on process — not just outcome — perform better and feel happier', 'Social media is everyone else highlight reel — you are not behind. You are on your own timeline.'],
+    actions: ['Write down one big goal and list 3–5 daily habits that move you toward it. Post it where you can see it.', 'Identify something you have been anxious about. Ask: can I act on this right now? If yes, write one step. If no, release it.', 'Research one person you admire — find out how long it took them to make it.'] },
+];
+
+export const RESOURCES_ALL = [...RESOURCES, ...CIVIC_RESOURCES, ...COMMUNITY_RESOURCES, ...EXTRA_RESOURCES];
 
 export const CIVIC_TOPICS = [
   {
