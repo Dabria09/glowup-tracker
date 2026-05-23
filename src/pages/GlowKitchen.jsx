@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Plus, Star, Search, ChevronDown, Printer, ShoppingCart } from 'lucide-react';
+import { ChevronLeft, Plus, Star, Search, ChevronDown, ChevronRight, Printer, ShoppingCart } from 'lucide-react';
 
 const TABS = [
   { id: 'feed', label: 'Feed', emoji: '📸' },
@@ -169,26 +169,100 @@ export default function GlowKitchen() {
 
         {/* Content Section */}
         {activeTab === 'feed' && (
-          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-gray-400">Community food posts coming soon 📸</p>
+          <div className="space-y-4">
+            <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))', border: '1px solid rgba(236,72,153,0.3)' }}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-3xl">📸</span>
+                <div>
+                  <h3 className="font-bold text-white text-lg">Community Kitchen Feed</h3>
+                  <p className="text-xs text-gray-400">Share your culinary creations</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-300 mb-4">Post photos of your favorite meals, kitchen moments, and cooking wins. Get inspired by what others are making!</p>
+              <button className="w-full py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                <Plus size={16} /> Share a Post
+              </button>
+            </div>
+            <div className="text-center py-12 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="text-4xl mb-3">📸</div>
+              <p className="text-gray-400 text-sm">No posts yet</p>
+              <p className="text-gray-500 text-xs mt-1">Be the first to share your kitchen moment!</p>
+            </div>
           </div>
         )}
 
         {activeTab === 'recipes' && (
-          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-gray-400">Recipe library coming soon 👨‍🍳</p>
+          <div className="space-y-4">
+            <div className="relative mb-4">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search recipes..."
+                className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm text-white outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              />
+            </div>
+            {['Quick & Easy', 'Budget-Friendly', 'Healthy Swaps', 'Meal Prep'].map(category => (
+              <div key={category} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <h3 className="font-bold text-white mb-3">{category}</h3>
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                      <span className="text-2xl">👨‍🍳</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-white">Recipe {i}</p>
+                        <p className="text-xs text-gray-400">15 mins • Easy</p>
+                      </div>
+                      <ChevronRight size={16} className="text-gray-500" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         {activeTab === 'budget' && (
-          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-gray-400">Budget meals feed coming soon 💰</p>
+          <div className="space-y-4">
+            <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.15))', border: '1px solid rgba(34,197,94,0.3)' }}>
+              <h3 className="font-bold text-white text-lg mb-2">💚 Eating Healthy on a Budget</h3>
+              <p className="text-sm text-gray-300 mb-4">Delicious meals don't have to be expensive — here's how to eat well for less.</p>
+              <div className="space-y-2 text-sm text-gray-300">
+                <p>✓ Buy frozen fruits and vegetables — same nutrition at a fraction of the cost</p>
+                <p>✓ Choose leafy greens and seasonal produce for best prices</p>
+                <p>✓ Batch cook on Sundays to save time and money throughout the week</p>
+                <p>✓ Use eggs, beans, and lentils as your protein base</p>
+              </div>
+            </div>
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-xs font-bold text-gray-400 mb-3 uppercase">Budget Shopping Tips</p>
+              <div className="space-y-2">
+                {['Rice & Beans', 'Seasonal Produce', 'Eggs & Dairy', 'Frozen Items'].map(item => (
+                  <div key={item} className="flex items-center gap-2 text-sm text-gray-300 p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                    <span className="text-green-400">💚</span> {item}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
         {activeTab === 'cultural' && (
-          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-gray-400">Cultural recipes coming soon 🌍</p>
+          <div className="space-y-4">
+            <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(249,115,22,0.15))', border: '1px solid rgba(249,115,22,0.3)' }}>
+              <h3 className="font-bold text-white text-lg mb-2">🌍 Culinary Traditions Around the World</h3>
+              <p className="text-sm text-gray-300">Explore authentic recipes and cooking techniques from different cultures. Learn to cook like locals!</p>
+            </div>
+            {['African', 'Asian', 'Caribbean', 'European', 'Latin American', 'Middle Eastern'].map(region => (
+              <div key={region} className="flex items-center gap-3 p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <span className="text-2xl">{region === 'African' ? '🍲' : region === 'Asian' ? '🥢' : region === 'Caribbean' ? '🥥' : region === 'European' ? '🍝' : region === 'Latin American' ? '🌮' : '🍆'}</span>
+                <div className="flex-1">
+                  <p className="font-semibold text-white text-sm">{region} Cuisine</p>
+                  <p className="text-xs text-gray-400">Discover authentic recipes & traditions</p>
+                </div>
+                <ChevronRight size={16} className="text-gray-500" />
+              </div>
+            ))}
           </div>
         )}
 
