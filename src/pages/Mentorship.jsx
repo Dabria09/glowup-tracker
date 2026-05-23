@@ -10,6 +10,7 @@ import MentorDirectory from '@/components/mentorship/MentorDirectory';
 import WisdomCard from '@/components/mentorship/WisdomCard';
 import MentorDashboard from '@/components/mentorship/MentorDashboard';
 import MenteeDashboard from '@/components/mentorship/MenteeDashboard';
+import MentorAdminDashboard from '@/components/mentorship/MentorAdminDashboard';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -45,6 +46,7 @@ export default function Mentorship() {
   const [wisdomQuestions, setWisdomQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isMentor, setIsMentor] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -137,23 +139,33 @@ export default function Mentorship() {
           )}
         </div>
 
-        {/* Tier Info Banner */}
+        {/* Admin Actions */}
         {user?.role === 'admin' && (
-          <button
-            onClick={async () => {
-              try {
-                const res = await base44.functions.invoke('updateMentorTiers', {});
-                alert(res.data.message);
-                loadData();
-              } catch (error) {
-                alert('Error updating tiers: ' + error.message);
-              }
-            }}
-            className="w-full mb-6 px-4 py-3 rounded-xl font-semibold text-sm text-white"
-            style={{ background: 'rgba(132, 204, 22, 0.2)', border: '1px solid rgba(132, 204, 22, 0.4)' }}
-          >
-            🔄 Update Mentor Tiers
-          </button>
+          <div className="space-y-3 mb-6">
+            <button
+              onClick={() => setShowAdminDashboard(true)}
+              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+            >
+              <Users size={16} />
+              Manage Mentor Applications
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await base44.functions.invoke('updateMentorTiers', {});
+                  alert(res.data.message);
+                  loadData();
+                } catch (error) {
+                  alert('Error updating tiers: ' + error.message);
+                }
+              }}
+              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white"
+              style={{ background: 'rgba(132, 204, 22, 0.2)', border: '1px solid rgba(132, 204, 22, 0.4)' }}
+            >
+              🔄 Update Mentor Tiers
+            </button>
+          </div>
         )}
 
         {/* Tabs */}
@@ -240,6 +252,11 @@ export default function Mentorship() {
         onSubmitted={() => {
           loadData();
         }}
+      />
+
+      <MentorAdminDashboard
+        isOpen={showAdminDashboard}
+        onClose={() => setShowAdminDashboard(false)}
       />
       
       {showDashboard && (

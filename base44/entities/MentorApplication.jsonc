@@ -51,14 +51,80 @@
       "title": "Application Status",
       "enum": [
         "pending",
+        "background_check",
+        "interview",
         "approved",
-        "rejected"
+        "rejected",
+        "inactive"
       ],
       "default": "pending"
     },
     "submitted_date": {
       "type": "string",
       "title": "Submitted Date"
+    },
+    "agreements_accepted": {
+      "type": "string",
+      "title": "Accepted Agreements (JSON array)",
+      "default": "[]"
+    },
+    "agreements_timestamp": {
+      "type": "string",
+      "title": "Agreements Accepted Date"
+    },
+    "background_check_status": {
+      "type": "string",
+      "title": "Background Check Status",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "cleared",
+        "failed"
+      ],
+      "default": "not_started"
+    },
+    "background_check_date": {
+      "type": "string",
+      "title": "Background Check Date"
+    },
+    "background_check_notes": {
+      "type": "string",
+      "title": "Background Check Notes"
+    },
+    "interview_status": {
+      "type": "string",
+      "title": "Interview Status",
+      "enum": [
+        "not_scheduled",
+        "scheduled",
+        "completed",
+        "no_show"
+      ],
+      "default": "not_scheduled"
+    },
+    "interview_date": {
+      "type": "string",
+      "title": "Interview Date"
+    },
+    "interview_notes": {
+      "type": "string",
+      "title": "Interview Notes"
+    },
+    "interviewer_email": {
+      "type": "string",
+      "title": "Interviewer Email"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "title": "Rejection Reason"
+    },
+    "approved_date": {
+      "type": "string",
+      "title": "Approved Date"
+    },
+    "approved_by": {
+      "type": "string",
+      "title": "Approved By (Email)"
     }
   },
   "required": [
