@@ -11,6 +11,10 @@ export default function MentorDashboard({ user }) {
     totalReviews: 0,
     recentReviews: []
   });
+  const [sessionStats, setSessionStats] = useState({
+    completedSessions: 0,
+    totalHours: 0
+  });
   const [mentorProfile, setMentorProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,17 +48,31 @@ export default function MentorDashboard({ user }) {
       setPendingRequests(pending);
 
       const completedSessions = allSessions.filter(s => 
-        s.status === 'completed' && s.rating && s.rating > 0
+        s.status === 'completed'
       );
       
-      const avgRating = completedSessions.length > 0
-        ? completedSessions.reduce((sum, s) => sum + s.rating, 0) / completedSessions.length
+      const totalHours = completedSessions.reduce((sum, session) => {
+        const sessionDate = new Date(session.session_date);
+        const now = new Date();
+        const diffMs = now - sessionDate;
+        const diffHours = diffMs / (1000 * 60 * 60);
+        return sum + (diffHours > 0 ? Math.min(diffHours, 3) : 1);
+      }, 0);
+      
+      const ratedSessions = completedSessions.filter(s => s.rating && s.rating > 0);
+      const avgRating = ratedSessions.length > 0
+        ? ratedSessions.reduce((sum, s) => sum + s.rating, 0) / ratedSessions.length
         : 0;
       
       setFeedbackStats({
         averageRating: avgRating,
-        totalReviews: completedSessions.length,
-        recentReviews: completedSessions.slice(-5).reverse()
+        totalReviews: ratedSessions.length,
+        recentReviews: ratedSessions.slice(-5).reverse()
+      });
+      
+      setSessionStats({
+        completedSessions: completedSessions.length,
+        totalHours: Math.round(totalHours * 10) / 10
       });
 
       setLoading(false);
@@ -122,6 +140,19 @@ export default function MentorDashboard({ user }) {
       )}
 
       {/* Stats Overview */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="rounded-2xl p-4 text-center" style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.15))', border: '1px solid rgba(34,197,94,0.3)' }}>
+          <Check size={20} className="mx-auto mb-2 text-green-400" />
+          <p className="text-2xl font-bold text-white">{sessionStats.completedSessions}</p>
+          <p className="text-xs text-gray-300">Completed Sessions</p>
+        </div>
+        <div className="rounded-2xl p-4 text-center" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))', border: '1px solid rgba(236,72,153,0.3)' }}>
+          <Clock size={20} className="mx-auto mb-2 text-pink-400" />
+          <p className="text-2xl font-bold text-white">{sessionStats.totalHours}</p>
+          <p className="text-xs text-gray-300">Total Hours</p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <Calendar size={20} className="mx-auto mb-2 text-pink-400" />
