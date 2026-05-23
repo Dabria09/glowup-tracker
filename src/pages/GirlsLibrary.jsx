@@ -12,9 +12,8 @@ import { BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 const SECTION_TABS = [
   { id: 'resources', label: 'Resources', emoji: '📚' },
   { id: 'book_club', label: 'Book Club', emoji: '📖' },
+  { id: 'your_voice', label: 'Your Voice', emoji: '🗳️' },
 ];
-
-
 
 export default function GirlsLibrary() {
   const navigate = useNavigate();
@@ -33,11 +32,14 @@ export default function GirlsLibrary() {
     let list = activeCategory === 'all' ? RESOURCES : RESOURCES.filter(r => r.cat === activeCategory);
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(r => r.title.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q) || CAT_META[r.cat]?.label.toLowerCase().includes(q));
+      list = list.filter(r =>
+        r.title.toLowerCase().includes(q) ||
+        r.desc.toLowerCase().includes(q) ||
+        CAT_META[r.cat]?.label.toLowerCase().includes(q)
+      );
     }
     return list;
   })();
-  const categoryTiles = ALL_CATS.map(id => ({ id, ...CAT_META[id] }));
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
@@ -90,33 +92,57 @@ export default function GirlsLibrary() {
           ))}
         </div>
 
-        {/* Category filter chips */}
-        <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-3 scrollbar-none">
-          <button onClick={() => setActiveCategory('all')}
-            className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition whitespace-nowrap"
-            style={activeCategory === 'all'
-              ? { background: 'rgba(139,92,246,0.4)', border: '1px solid rgba(168,85,247,0.6)', color: '#fff' }
-              : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
-            All
-          </button>
-          {ALL_CATS.map(id => {
-            const m = CAT_META[id];
-            return (
-              <button key={id} onClick={() => setActiveCategory(id)}
-                className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition whitespace-nowrap"
-                style={activeCategory === id
-                  ? { background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', color: '#fff' }
-                  : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
-                <span>{m.emoji}</span>{m.label}
-              </button>
-            );
-          })}
-        </div>
+        {/* Category filter chips — only for resources tab */}
+        {activeSection === 'resources' && (
+          <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-3 scrollbar-none">
+            <button onClick={() => setActiveCategory('all')}
+              className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition whitespace-nowrap"
+              style={activeCategory === 'all'
+                ? { background: 'rgba(139,92,246,0.4)', border: '1px solid rgba(168,85,247,0.6)', color: '#fff' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+              All
+            </button>
+            {ALL_CATS.map(id => {
+              const m = CAT_META[id];
+              return (
+                <button key={id} onClick={() => setActiveCategory(id)}
+                  className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition whitespace-nowrap"
+                  style={activeCategory === id
+                    ? { background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', color: '#fff' }
+                    : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+                  <span>{m.emoji}</span>{m.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Book Club Section */}
         {activeSection === 'book_club' && user && <BookClub user={user} />}
         {activeSection === 'book_club' && !user && (
-          <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" /></div>
+          <div className="flex justify-center py-12">
+            <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* Your Voice Section */}
+        {activeSection === 'your_voice' && (
+          <div className="px-4 pb-6 pt-2">
+            <div className="rounded-2xl p-4 mb-4 flex items-center gap-3"
+              style={{ background: 'linear-gradient(135deg, rgba(109,40,217,0.5), rgba(139,10,120,0.4))', border: '1px solid rgba(168,85,247,0.4)' }}>
+              <span className="text-3xl">🗳️</span>
+              <div>
+                <p className="font-bold text-white text-base">Your Voice</p>
+                <p className="text-xs text-gray-300">Civic education for future leaders — voting, government, laws &amp; rights, and more.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/your-voice')}
+              className="w-full py-3.5 rounded-2xl text-sm font-bold text-white"
+              style={{ background: 'linear-gradient(135deg, #a855f7, #ec4899)' }}>
+              Open Your Voice 🗳️
+            </button>
+          </div>
         )}
 
         {/* Resource List */}
@@ -182,7 +208,7 @@ export default function GirlsLibrary() {
         })()}
       </div>
 
-      {/* Resource Detail (only for resources tab) */}
+      {/* Resource Detail */}
       {activeSection === 'resources' && selectedResource && (
         <div className="fixed inset-0 z-50 overflow-y-auto" style={{ backgroundColor: '#0d0010' }}>
           <div className="flex items-center gap-2 px-4 pt-4 pb-3 sticky top-0 z-10" style={{ backgroundColor: '#0d0010' }}>
