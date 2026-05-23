@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { Plus, Heart, Bookmark, Search, TrendingUp, Grid, User, Upload, X } from 'lucide-react';
+import { Plus, Heart, Bookmark, Search, TrendingUp, Trash2, Upload, X } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -28,6 +28,7 @@ export default function GlowBoard() {
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -62,6 +63,12 @@ export default function GlowBoard() {
   useEffect(() => {
     let filtered = posts;
     
+    if (activeTab === 'saved' && user) {
+      filtered = filtered.filter(post => JSON.parse(post.saved_by || '[]').includes(user.email));
+    } else if (activeTab === 'mine' && user) {
+      filtered = filtered.filter(post => post.user_email === user.email);
+    }
+
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(post => post.category === selectedCategory);
     }
@@ -75,7 +82,7 @@ export default function GlowBoard() {
     }
     
     setFilteredPosts(filtered);
-  }, [selectedCategory, search, posts]);
+  }, [selectedCategory, search, posts, activeTab, user]);
 
   const handleFileSelect = async (e) => {
     const file = e.target.files[0];
@@ -118,6 +125,17 @@ export default function GlowBoard() {
       setPosts(updated);
     } catch (err) {
       console.error('Error creating post:', err);
+    }
+  };
+
+  const handleDelete = async (post) => {
+    if (!window.confirm('Delete this post?')) return;
+    try {
+      await base44.entities.GlowBoard.delete(post.id);
+      const updated = await base44.entities.GlowBoard.list();
+      setPosts(updated);
+    } catch (err) {
+      console.error('Error deleting post:', err);
     }
   };
 
@@ -209,14 +227,21 @@ export default function GlowBoard() {
           ))}
         </div>
 
-        {/* My Saves shortcut */}
+        {/* Tabs */}
         {user && (
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className="mb-4 flex items-center gap-2 text-xs text-pink-400 hover:text-pink-300 transition"
-          >
-            <Bookmark size={14} /> View All Posts
-          </button>
+          <div className="flex gap-2 mb-5">
+            {[{id:'all',label:'All ✨'},{id:'saved',label:'Saved 🔖'},{id:'mine',label:'My Posts 💅'}].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
+                  activeTab === tab.id ? 'bg-pink-500 text-white' : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         )}
 
         {/* Masonry Grid */}
@@ -249,17 +274,24 @@ export default function GlowBoard() {
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[10px] text-gray-400">@{post.username}</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSave(post);
-                        }}
-                        className={`p-1.5 rounded-full ${
-                          isSaved ? 'bg-pink-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
-                        }`}
-                      >
-                        <Bookmark size={14} />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        {user && post.user_email === user.email && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(post); }}
+                            className="p-1.5 rounded-full bg-red-500/80 text-white hover:bg-red-600 transition"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleSave(post); }}
+                          className={`p-1.5 rounded-full ${
+                            isSaved ? 'bg-pink-500 text-white' : 'bg-white/20 text-white hover:bg-white/30'
+                          }`}
+                        >
+                          <Bookmark size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -282,8 +314,12 @@ export default function GlowBoard() {
 
         {filteredPosts.length === 0 && (
           <div className="text-center py-20">
-            <span className="text-5xl mb-4 block">✨</span>
-            <p className="text-gray-400 text-sm">No posts yet. Be the first to submit!</p>
+            <span className="text-5xl mb-4 block">{activeTab === 'saved' ? '🔖' : activeTab === 'mine' ? '💅' : '✨'}</span>
+            <p className="text-gray-400 text-sm">
+              {activeTab === 'saved' ? 'No saved posts yet. Tap 🔖 on any post to save it!' :
+               activeTab === 'mine' ? 'You haven\'t posted yet. Submit your first post!' :
+               'No posts yet. Be the first to submit!'}
+            </p>
           </div>
         )}
 
