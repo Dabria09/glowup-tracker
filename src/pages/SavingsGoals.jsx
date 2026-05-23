@@ -144,20 +144,20 @@ export default function SavingsGoals() {
                       <div className="h-2 rounded-full transition-all" style={{ width: pct + '%', background: done ? '#4ade80' : 'linear-gradient(90deg, #ec4899, #a855f7)' }} />
                     </div>
                     {!done && (
-                      <div className="flex gap-2 mb-3">
+                      <div className="flex gap-2 mb-2">
                         {[10, 25, 50].map(amt => (
                           <button key={amt} onClick={() => addToSaved(g, amt)}
-                            className="flex-1 py-2 rounded-xl text-sm font-semibold text-white"
-                            style={{ background: 'rgba(168,85,247,0.3)', border: '1px solid rgba(168,85,247,0.5)' }}>
+                            className="flex-1 py-1.5 rounded-xl text-xs font-semibold text-white"
+                            style={{ background: 'rgba(168,85,247,0.25)', border: '1px solid rgba(168,85,247,0.4)' }}>
                             +${amt}
                           </button>
                         ))}
                       </div>
                     )}
                     {!done && g.weekly_commitment > 0 && (
-                      <p className="text-xs text-gray-500 text-center">${g.weekly_commitment}/wk · Est. {weeksToComplete(g.target_amount, g.saved_amount, g.weekly_commitment)}</p>
+                      <p className="text-xs text-gray-500">${g.weekly_commitment}/wk · Est. {weeksToComplete(g.target_amount, g.saved_amount, g.weekly_commitment)}</p>
                     )}
-                    {done && <p className="text-xs text-green-400 font-bold text-center">🎉 Goal reached!</p>}
+                    {done && <p className="text-xs text-green-400 font-bold">🎉 Goal reached!</p>}
                   </div>
                 );
               })}
@@ -196,79 +196,81 @@ export default function SavingsGoals() {
 
       {/* Create Goal Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end overflow-y-auto" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => { setShowForm(false); setSelectedTemplate(null); }}>
-          <div className="w-full rounded-t-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto" style={{ background: '#1a0a35' }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-white text-lg">🎯 New Savings Goal</p>
-              <button onClick={() => { setShowForm(false); setSelectedTemplate(null); }}><X size={20} className="text-gray-400" /></button>
-            </div>
-
-            {/* Templates */}
-            <div>
-              <p className="text-xs font-bold text-gray-400 mb-2">QUICK TEMPLATES</p>
-              <div className="grid grid-cols-4 gap-2">
-                {TEMPLATES.map((t, i) => (
-                  <button key={i} onClick={() => applyTemplate(t)}
-                    className="rounded-xl p-2 text-center text-xs font-medium transition"
-                    style={selectedTemplate === t.name
-                      ? { background: 'rgba(168,85,247,0.4)', border: '1px solid rgba(168,85,247,0.7)', color: '#fff' }
-                      : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af' }}>
-                    <div className="text-xl mb-0.5">{t.emoji}</div>
-                    <div className="leading-tight">{t.name}</div>
-                  </button>
-                ))}
+        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => { setShowForm(false); setSelectedTemplate(null); }}>
+          <div className="w-full rounded-t-3xl flex flex-col max-h-[90vh]" style={{ background: '#1a0a35' }} onClick={e => e.stopPropagation()}>
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-white text-lg">🎯 New Savings Goal</p>
+                <button onClick={() => { setShowForm(false); setSelectedTemplate(null); }}><X size={20} className="text-gray-400" /></button>
               </div>
-            </div>
 
-            {/* Emoji picker */}
-            <div>
-              <p className="text-xs font-bold text-gray-400 mb-2">Pick an emoji</p>
-              <div className="grid grid-cols-8 gap-2">
-                {EMOJIS.map((e, i) => (
-                  <button key={i} onClick={() => setForm(f => ({ ...f, emoji: e }))}
-                    className="w-9 h-9 rounded-xl text-xl flex items-center justify-center transition"
-                    style={form.emoji === e
-                      ? { background: 'rgba(168,85,247,0.4)', border: '2px solid rgba(168,85,247,0.8)' }
-                      : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    {e}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              placeholder="Goal name"
-              className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }} />
-
-            <div className="grid grid-cols-2 gap-3">
+              {/* Templates */}
               <div>
-                <p className="text-xs text-gray-400 mb-1">Target Amount ($)</p>
-                <input type="number" value={form.target} onChange={e => setForm(f => ({ ...f, target: e.target.value }))}
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }} />
+                <p className="text-xs font-bold text-gray-400 mb-2">QUICK TEMPLATES</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {TEMPLATES.map((t, i) => (
+                    <button key={i} onClick={() => applyTemplate(t)}
+                      className="rounded-xl p-2 text-center text-xs font-medium transition"
+                      style={selectedTemplate === t.name
+                        ? { background: 'rgba(168,85,247,0.4)', border: '1px solid rgba(168,85,247,0.7)', color: '#fff' }
+                        : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#9ca3af' }}>
+                      <div className="text-xl mb-0.5">{t.emoji}</div>
+                      <div className="leading-tight">{t.name}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-gray-400 mb-1">Already Saved ($)</p>
-                <input type="number" value={form.saved} onChange={e => setForm(f => ({ ...f, saved: e.target.value }))}
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }} />
-              </div>
-            </div>
 
-            <div>
-              <p className="text-xs text-gray-400 mb-1">Weekly Commitment ($) — for completion estimate</p>
-              <input type="number" value={form.weekly} onChange={e => setForm(f => ({ ...f, weekly: e.target.value }))}
+              {/* Emoji picker */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 mb-2">Pick an emoji</p>
+                <div className="grid grid-cols-8 gap-2">
+                  {EMOJIS.map((e, i) => (
+                    <button key={i} onClick={() => setForm(f => ({ ...f, emoji: e }))}
+                      className="w-9 h-9 rounded-xl text-xl flex items-center justify-center transition"
+                      style={form.emoji === e
+                        ? { background: 'rgba(168,85,247,0.4)', border: '2px solid rgba(168,85,247,0.8)' }
+                        : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Goal name"
                 className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                 style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }} />
-              {completion !== null && form.weekly && (
-                <p className="text-xs text-purple-300 mt-1">Est. completion: {completion}</p>
-              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Target Amount ($)</p>
+                  <input type="number" value={form.target} onChange={e => setForm(f => ({ ...f, target: e.target.value }))}
+                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }} />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Already Saved ($)</p>
+                  <input type="number" value={form.saved} onChange={e => setForm(f => ({ ...f, saved: e.target.value }))}
+                    className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }} />
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Weekly Commitment ($) — for completion estimate</p>
+                <input type="number" value={form.weekly} onChange={e => setForm(f => ({ ...f, weekly: e.target.value }))}
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }} />
+                {completion !== null && form.weekly && (
+                  <p className="text-xs text-purple-300 mt-1">Est. completion: {completion}</p>
+                )}
+              </div>
             </div>
 
             <button onClick={handleCreate} disabled={!form.name || !form.target}
-              className="w-full py-4 rounded-2xl font-bold text-white disabled:opacity-40"
-              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+              className="w-full py-4 rounded-t-3xl font-bold text-white disabled:opacity-40 flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
               Create Goal 💰
             </button>
           </div>
