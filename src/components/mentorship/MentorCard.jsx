@@ -1,4 +1,4 @@
-import { Star, MapPin, Calendar, Video, Phone, MessageCircle } from 'lucide-react';
+import { Star, MapPin, Calendar, Video, Phone, MessageCircle, User } from 'lucide-react';
 import TierBadge, { getTierConfig } from './TierBadge';
 
 const sessionTypeIcons = {
@@ -17,9 +17,13 @@ export default function MentorCard({ mentor, onBookSession, onStartChat }) {
   return (
     <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
       <div className="flex items-start gap-4">
-        <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold"
-          style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-          {mentor.full_name?.charAt(0) || 'M'}
+        <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold overflow-hidden flex-shrink-0"
+          style={{ background: mentor.avatar_url ? 'transparent' : 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+          {mentor.avatar_url ? (
+            <img src={mentor.avatar_url} alt={mentor.full_name} className="w-full h-full object-cover" />
+          ) : (
+            <User size={32} className="text-white/50" />
+          )}
         </div>
         
         <div className="flex-1">
@@ -41,8 +45,11 @@ export default function MentorCard({ mentor, onBookSession, onStartChat }) {
             </div>
           </div>
 
+          {mentor.bio && (
+            <p className="text-xs text-gray-300 mt-2 line-clamp-3">{mentor.bio}</p>
+          )}
           {mentor.expertise && (
-            <p className="text-xs text-gray-300 mt-2 line-clamp-2">{mentor.expertise}</p>
+            <p className="text-xs text-gray-400 mt-2 line-clamp-2"><span className="font-semibold">Expertise:</span> {mentor.expertise}</p>
           )}
 
           <div className="flex flex-wrap gap-2 mt-3">

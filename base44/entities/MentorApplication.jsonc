@@ -42,6 +42,10 @@
       "type": "string",
       "title": "Session Type"
     },
+    "avatar_url": {
+      "type": "string",
+      "title": "Avatar URL"
+    },
     "status": {
       "type": "string",
       "title": "Application Status",

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Upload, User } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const CATEGORIES = ['Career', 'Education', 'Business', 'Wellness', 'Faith', 'Relationships'];
@@ -17,17 +17,59 @@ export default function MentorApplicationModal({ isOpen, onClose, user, onSubmit
     why_mentor: '',
     availability: '',
     session_type: '',
+    avatar_url: '',
   });
   const [loading, setLoading] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadAvatar = async () => {
+    if (!avatarFile) return null;
+    
+    try {
+      setUploading(true);
+      const response = await base44.integrations.Core.UploadFile({ file: avatarFile });
+      setUploading(false);
+      return response.file_url;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      setUploading(false);
+      return null;
+    }
+  };
 
   const handleSubmit = async () => {
     if (!formData.full_name || !formData.categories.length || !formData.why_mentor) return;
+    if (!formData.bio || formData.bio.length < 50) {
+      alert('Please write a bio with at least 50 characters');
+      return;
+    }
 
     try {
       setLoading(true);
+      let avatarUrl = formData.avatar_url;
+      
+      if (avatarFile) {
+        avatarUrl = await uploadAvatar();
+      }
+
       await base44.entities.MentorApplication.create({
         user_email: user.email,
         ...formData,
+        avatar_url: avatarUrl,
         categories: JSON.stringify(formData.categories),
         submitted_date: new Date().toISOString(),
         status: 'pending',
@@ -61,7 +103,41 @@ export default function MentorApplicationModal({ isOpen, onClose, user, onSubmit
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl p-4 mb-4" style={{ background: 'rgba(132, 204, 22, 0.1)', border: '1px solid rgba(132, 204, 22, 0.3)' }}>
+          {/* Profile Picture Upload */}
+          <div>
+            <label className="text-xs font-bold text-gray-400 mb-2 block">Profile Picture</label>
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold overflow-hidden flex-shrink-0"
+                style={{ background: avatarPreview || formData.avatar_url ? 'transparent' : 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                {avatarPreview || formData.avatar_url ? (
+                  <img src={avatarPreview || formData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={32} className="text-white/50" />
+                )}
+              </div>
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                  id="avatar-upload"
+                  disabled={uploading}
+                />
+                <label
+                  htmlFor="avatar-upload"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm text-white cursor-pointer transition hover:opacity-80"
+                  style={{ background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)' }}
+                >
+                  <Upload size={16} />
+                  {uploading ? 'Uploading...' : 'Choose Photo'}
+                </label>
+                <p className="text-xs text-gray-400 mt-1">Recommended: 400x400px</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(132, 204, 22, 0.1)', border: '1px solid rgba(132, 204, 22, 0.3)' }}>
             <h3 className="font-bold text-white text-sm mb-2">🌱 Mentor Tier Progression</h3>
             <p className="text-xs text-gray-300 mb-3">All mentors start at Seed tier and progress based on sessions and ratings:</p>
             <div className="grid grid-cols-1 gap-2 text-xs">
@@ -94,15 +170,21 @@ export default function MentorApplicationModal({ isOpen, onClose, user, onSubmit
           </div>
 
           <div>
-            <label className="text-xs font-bold text-gray-400 mb-2 block">Bio</label>
+            <label className="text-xs font-bold text-gray-400 mb-2 block">About Me *</label>
             <textarea
               value={formData.bio}
               onChange={(e) => setFormData({...formData, bio: e.target.value})}
-              placeholder="Tell us about yourself..."
+              placeholder="Share your story, background, and what makes you unique as a mentor... (minimum 50 characters)"
               className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-              rows={3}
+              rows={4}
             />
+            <p className="text-xs text-gray-400 mt-1">This will be visible on your mentor profile</p>
+            {formData.bio && formData.bio.length < 50 && (
+              <p className="text-xs text-red-400 mt-1">
+                Minimum 50 characters required ({formData.bio.length}/50)
+              </p>
+            )}
           </div>
 
           <div>
