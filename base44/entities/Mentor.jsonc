@@ -60,6 +60,18 @@
       "title": "Featured (Ms. Glow Wisdom)",
       "default": false
     },
+    "mentor_tier": {
+      "type": "string",
+      "title": "Mentor Tier",
+      "enum": [
+        "seed",
+        "sprout",
+        "bloom",
+        "radiant",
+        "luminary"
+      ],
+      "default": "seed"
+    },
     "rating": {
       "type": "number",
       "title": "Average Rating",

@@ -115,6 +115,25 @@ export default function Mentorship() {
           </button>
         </div>
 
+        {/* Tier Info Banner */}
+        {user?.role === 'admin' && (
+          <button
+            onClick={async () => {
+              try {
+                const res = await base44.functions.invoke('updateMentorTiers', {});
+                alert(res.data.message);
+                loadData();
+              } catch (error) {
+                alert('Error updating tiers: ' + error.message);
+              }
+            }}
+            className="w-full mb-6 px-4 py-3 rounded-xl font-semibold text-sm text-white"
+            style={{ background: 'rgba(132, 204, 22, 0.2)', border: '1px solid rgba(132, 204, 22, 0.4)' }}
+          >
+            🔄 Update Mentor Tiers
+          </button>
+        )}
+
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
           <button

@@ -61,8 +61,19 @@ export default function MentorApplicationModal({ isOpen, onClose, user, onSubmit
         </div>
 
         <div className="space-y-4">
-          <div>
-            <label className="text-xs font-bold text-gray-400 mb-2 block">Full Name *</label>
+          <div className="rounded-2xl p-4 mb-4" style={{ background: 'rgba(132, 204, 22, 0.1)', border: '1px solid rgba(132, 204, 22, 0.3)' }}>
+            <h3 className="font-bold text-white text-sm mb-2">🌱 Mentor Tier Progression</h3>
+            <p className="text-xs text-gray-300 mb-3">All mentors start at Seed tier and progress based on sessions and ratings:</p>
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              <div className="flex items-center gap-2"><span>🌱</span><span className="text-green-400">Seed</span><span className="text-gray-500">→ Starting out</span></div>
+              <div className="flex items-center gap-2"><span>🌿</span><span className="text-green-500">Sprout</span><span className="text-gray-500">→ 3-5 sessions</span></div>
+              <div className="flex items-center gap-2"><span>🌸</span><span className="text-pink-400">Bloom</span><span className="text-gray-500">→ 6-15 sessions</span></div>
+              <div className="flex items-center gap-2"><span>✨</span><span className="text-yellow-400">Radiant</span><span className="text-gray-500">→ 16-30 sessions, 4.5+ rating</span></div>
+              <div className="flex items-center gap-2"><span>👑</span><span className="text-purple-400">Luminary</span><span className="text-gray-500">→ 31+ sessions, 4.8+ rating</span></div>
+            </div>
+          </div>
+        <div>
+          <label className="text-xs font-bold text-gray-400 mb-2 block">Full Name *</label>
             <input
               value={formData.full_name}
               onChange={(e) => setFormData({...formData, full_name: e.target.value})}

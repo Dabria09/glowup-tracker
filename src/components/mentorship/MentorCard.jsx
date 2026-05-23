@@ -1,4 +1,5 @@
 import { Star, MapPin, Calendar, Video, Phone, MessageCircle } from 'lucide-react';
+import TierBadge, { getTierConfig } from './TierBadge';
 
 const sessionTypeIcons = {
   'Video Call': Video,
@@ -10,6 +11,8 @@ const sessionTypeIcons = {
 export default function MentorCard({ mentor, onBookSession, onStartChat }) {
   const categories = JSON.parse(mentor.categories || '[]');
   const SessionIcon = sessionTypeIcons[mentor.session_type] || Video;
+  const tier = mentor.mentor_tier || 'seed';
+  const tierConfig = getTierConfig(tier);
 
   return (
     <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -25,11 +28,17 @@ export default function MentorCard({ mentor, onBookSession, onStartChat }) {
               <h3 className="font-bold text-white">{mentor.full_name}</h3>
               {mentor.title && <p className="text-xs text-gray-400">{mentor.title}</p>}
             </div>
-            {mentor.is_featured && (
-              <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b' }}>
-                👑 Ms. Glow
+            <div className="flex flex-col items-end gap-1">
+              {mentor.is_featured && (
+                <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b' }}>
+                  👑 Ms. Glow
+                </span>
+              )}
+              <span className="px-2 py-1 rounded-full text-xs font-bold"
+                style={{ background: tierConfig.bg, color: tierConfig.color, border: `1px solid ${tierConfig.border}` }}>
+                {tierConfig.emoji} {tierConfig.label}
               </span>
-            )}
+            </div>
           </div>
 
           {mentor.expertise && (
