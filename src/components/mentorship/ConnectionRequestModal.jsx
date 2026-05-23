@@ -1,24 +1,39 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Calendar, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function ConnectionRequestModal({ isOpen, onClose, mentor, user, onSubmitted }) {
   const [formData, setFormData] = useState({
     topic: '',
-    availability: '',
+    session_date: '',
+    session_time: '',
     message: '',
   });
   const [loading, setLoading] = useState(false);
 
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour <= 20; hour++) {
+      const time12 = hour > 12 ? `${hour - 12}:00 PM` : hour === 12 ? '12:00 PM' : `${hour}:00 AM`;
+      slots.push({ value: `${hour}:00`, label: time12 });
+      slots.push({ value: `${hour}:30`, label: time12.replace(':00', ':30') });
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+  const minDate = new Date().toISOString().split('T')[0];
+
   const handleSubmit = async () => {
-    if (!formData.topic.trim() || !formData.availability) return;
+    if (!formData.topic.trim() || !formData.session_date || !formData.session_time) return;
 
     try {
       setLoading(true);
+      const sessionDateTime = `${formData.session_date}T${formData.session_time}`;
       await base44.entities.MentorSession.create({
         mentee_email: user.email,
         mentor_email: mentor.user_email,
-        session_date: formData.availability,
+        session_date: sessionDateTime,
         topic: formData.topic.trim(),
         notes: formData.message.trim(),
         status: 'scheduled',
@@ -60,21 +75,37 @@ export default function ConnectionRequestModal({ isOpen, onClose, mentor, user, 
             />
           </div>
 
-          <div>
-            <label className="text-xs font-bold text-gray-400 mb-2 block">Your Availability *</label>
-            <select
-              value={formData.availability}
-              onChange={(e) => setFormData({...formData, availability: e.target.value})}
-              className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-            >
-              <option value="">Select your availability</option>
-              <option value="Weekdays - Morning">Weekdays - Morning</option>
-              <option value="Weekdays - Afternoon">Weekdays - Afternoon</option>
-              <option value="Weekdays - Evening">Weekdays - Evening</option>
-              <option value="Weekends">Weekends</option>
-              <option value="Flexible">Flexible</option>
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-gray-400 mb-2 block flex items-center gap-1">
+                <Calendar size={12} /> Select Date *
+              </label>
+              <input
+                type="date"
+                value={formData.session_date}
+                onChange={(e) => setFormData({...formData, session_date: e.target.value})}
+                min={minDate}
+                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-gray-400 mb-2 block flex items-center gap-1">
+                <Clock size={12} /> Select Time *
+              </label>
+              <select
+                value={formData.session_time}
+                onChange={(e) => setFormData({...formData, session_time: e.target.value})}
+                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                <option value="">Pick a time</option>
+                {timeSlots.map(slot => (
+                  <option key={slot.value} value={slot.value}>{slot.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
@@ -91,7 +122,7 @@ export default function ConnectionRequestModal({ isOpen, onClose, mentor, user, 
 
           <button
             onClick={handleSubmit}
-            disabled={!formData.topic.trim() || !formData.availability || loading}
+            disabled={!formData.topic.trim() || !formData.session_date || !formData.session_time || loading}
             className="w-full py-4 rounded-2xl font-bold text-white disabled:opacity-40"
             style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
           >
