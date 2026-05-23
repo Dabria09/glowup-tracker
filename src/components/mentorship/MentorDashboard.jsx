@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Star, Users, MessageCircle, Check, X, TrendingUp, Award } from 'lucide-react';
+import { Calendar, Clock, Star, Users, MessageCircle, Check, X, TrendingUp, Award, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import TierBadge, { getTierConfig } from './TierBadge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import MentorAdminDashboard from './MentorAdminDashboard';
 
 export default function MentorDashboard({ user }) {
   const [upcomingSessions, setUpcomingSessions] = useState([]);
@@ -26,6 +27,7 @@ export default function MentorDashboard({ user }) {
   const [mentorProfile, setMentorProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showInsights, setShowInsights] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -173,6 +175,28 @@ export default function MentorDashboard({ user }) {
             <TierBadge tier={mentorProfile.mentor_tier || 'seed'} size="md" />
           </div>
         </div>
+      )}
+
+      {/* Admin: Manage Applications */}
+      {user?.role === 'admin' && (
+        <button
+          onClick={() => setShowAdminDashboard(true)}
+          className="w-full mb-6 rounded-2xl p-5 flex items-center justify-between"
+          style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.2), rgba(168,85,247,0.2))', border: '1px solid rgba(236,72,153,0.3)' }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(236,72,153,0.3)' }}>
+              <FileText size={20} className="text-pink-400" />
+            </div>
+            <div className="text-left">
+              <h3 className="font-bold text-white">Manage Mentor Applications</h3>
+              <p className="text-xs text-gray-400">Review and approve new mentors</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-gray-400">Admin Access</p>
+          </div>
+        </button>
       )}
 
       {/* Stats Overview */}
@@ -486,6 +510,11 @@ export default function MentorDashboard({ user }) {
           </div>
         </div>
       )}
+
+      <MentorAdminDashboard
+        isOpen={showAdminDashboard}
+        onClose={() => setShowAdminDashboard(false)}
+      />
     </div>
   );
 }

@@ -154,31 +154,21 @@ export default function Mentorship() {
 
         {/* Admin Actions */}
         {user?.role === 'admin' && (
-          <div className="space-y-3 mb-6">
-            <button
-              onClick={() => setShowAdminDashboard(true)}
-              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
-              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
-            >
-              <Users size={16} />
-              Manage Mentor Applications
-            </button>
-            <button
-              onClick={async () => {
-                try {
-                  const res = await base44.functions.invoke('updateMentorTiers', {});
-                  alert(res.data.message);
-                  loadData();
-                } catch (error) {
-                  alert('Error updating tiers: ' + error.message);
-                }
-              }}
-              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white"
-              style={{ background: 'rgba(132, 204, 22, 0.2)', border: '1px solid rgba(132, 204, 22, 0.4)' }}
-            >
-              🔄 Update Mentor Tiers
-            </button>
-          </div>
+          <button
+            onClick={async () => {
+              try {
+                const res = await base44.functions.invoke('updateMentorTiers', {});
+                alert(res.data.message);
+                loadData();
+              } catch (error) {
+                alert('Error updating tiers: ' + error.message);
+              }
+            }}
+            className="w-full mb-6 px-4 py-3 rounded-xl font-semibold text-sm text-white"
+            style={{ background: 'rgba(132, 204, 22, 0.2)', border: '1px solid rgba(132, 204, 22, 0.4)' }}
+          >
+            🔄 Update Mentor Tiers
+          </button>
         )}
 
         {/* Tabs */}
