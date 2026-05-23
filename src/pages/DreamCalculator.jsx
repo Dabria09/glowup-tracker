@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import DreamReport from '@/components/dream/DreamReport';
 import { CAREER_CATEGORIES, LIFESTYLE_CATEGORIES, KIDS_OPTIONS } from '@/lib/dreamCalculatorData';
-import { ChevronLeft, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { ChevronLeft, Search, X, ChevronDown } from 'lucide-react';
 
 const STEP = ({ n, label }) => (
   <div className="flex items-center gap-3 mb-4">
@@ -19,7 +19,6 @@ const STEP = ({ n, label }) => (
 export default function DreamCalculator() {
   const navigate = useNavigate();
   const [selectedCareer, setSelectedCareer] = useState(null);
-  const [openCat, setOpenCat] = useState(null);
   const [careerSearch, setCareerSearch] = useState('');
   const [spouseEnabled, setSpouseEnabled] = useState(false);
   const [spouseIncome, setSpouseIncome] = useState(60000);
@@ -36,10 +35,18 @@ export default function DreamCalculator() {
 
   const kidsCost = KIDS_OPTIONS.find(k => k.value === kids)?.cost || 0;
 
-  const allCareers = CAREER_CATEGORIES.flatMap(c => c.careers.map(j => ({ ...j, catLabel: c.label })));
-  const searchResults = careerSearch.trim()
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const allCareers = CAREER_CATEGORIES.flatMap(c => c.careers.map(j => ({ ...j, catLabel: c.label, catId: c.id })));
+  const filteredCareers = careerSearch.trim()
     ? allCareers.filter(c => c.name.toLowerCase().includes(careerSearch.toLowerCase()) || c.catLabel.toLowerCase().includes(careerSearch.toLowerCase()))
-    : [];
+    : allCareers;
+
+  useEffect(() => {
+    const handleClick = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false); };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   return (
     <div className="min-h-screen text-white pb-32 relative" style={{ backgroundColor: '#0d0010' }}>
@@ -64,82 +71,69 @@ export default function DreamCalculator() {
 
         {/* STEP 1: Career */}
         <div className="px-4 mb-6">
-          <STEP n={1} label="Choose Your Career" />
+          <STEP n={1} label="Choose Your Dream Career" />
 
-          {/* Search */}
-          <div className="relative mb-3">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={careerSearch}
-              onChange={e => setCareerSearch(e.target.value)}
-              placeholder="Search careers..."
-              className="w-full rounded-2xl pl-9 pr-4 py-3 text-sm text-white outline-none"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-            />
-            {careerSearch && (
-              <button onClick={() => setCareerSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">✕</button>
+          {/* Searchable Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition"
+              style={{ background: 'rgba(20,10,35,0.8)', border: '1px solid rgba(168,85,247,0.3)' }}>
+              {selectedCareer ? (
+                <>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-white">{selectedCareer.name}</p>
+                    <p className="text-xs text-purple-300">{selectedCareer.catLabel} • ${(selectedCareer.salary / 1000).toFixed(0)}K/yr avg</p>
+                  </div>
+                  <button onClick={e => { e.stopPropagation(); setSelectedCareer(null); setCareerSearch(''); }} className="text-gray-400 hover:text-white">
+                    <X size={16} />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Search size={15} className="text-gray-500" />
+                  <span className="text-gray-400 text-sm flex-1">Select a career...</span>
+                  <ChevronDown size={16} className="text-gray-400" />
+                </>
+              )}
+            </button>
+
+            {dropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1 rounded-2xl overflow-hidden z-50 shadow-2xl"
+                style={{ background: 'rgba(15,8,30,0.98)', border: '1px solid rgba(168,85,247,0.3)', maxHeight: 360 }}>
+                <div className="p-3 border-b border-white/10">
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input type="text" value={careerSearch} onChange={e => setCareerSearch(e.target.value)}
+                      placeholder="Search all careers..." autoFocus
+                      className="w-full rounded-xl pl-9 pr-4 py-2 text-sm text-white outline-none"
+                      style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }} />
+                    {careerSearch && <button onClick={() => setCareerSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><X size={12} /></button>}
+                  </div>
+                </div>
+                <div className="overflow-y-auto" style={{ maxHeight: 280 }}>
+                  {filteredCareers.length === 0 && <p className="text-center text-gray-500 text-sm py-6">No careers found</p>}
+                  {filteredCareers.map((c, i) => (
+                    <button key={i} onClick={() => { setSelectedCareer(c); setDropdownOpen(false); setCareerSearch(''); }}
+                      className="w-full flex items-center justify-between px-4 py-3 border-b border-white/5 text-left transition hover:bg-white/5"
+                      style={selectedCareer?.name === c.name ? { background: 'rgba(168,85,247,0.2)' } : {}}>
+                      <div>
+                        <p className="text-sm font-semibold text-white">{c.name}</p>
+                        <p className="text-xs text-gray-500">{c.catLabel}</p>
+                      </div>
+                      <span className="text-sm font-bold text-green-400 flex-shrink-0 ml-4">${(c.salary / 1000).toFixed(0)}K/yr</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Search results */}
-          {careerSearch.trim() ? (
-            <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(20,10,35,0.8)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              {searchResults.length === 0 ? (
-                <p className="text-center text-gray-500 text-sm py-6">No careers found</p>
-              ) : (
-                searchResults.map((c, i) => (
-                  <button key={i} onClick={() => { setSelectedCareer(c); setCareerSearch(''); }}
-                    className="w-full flex items-center justify-between px-4 py-3 border-b border-white/5 text-left transition"
-                    style={selectedCareer?.name === c.name ? { background: 'rgba(168,85,247,0.25)' } : {}}>
-                    <div>
-                      <p className="text-sm font-semibold text-white">{c.name}</p>
-                      <p className="text-xs text-gray-500">{c.catLabel}</p>
-                    </div>
-                    <span className="text-sm font-bold text-purple-300">${(c.salary / 1000).toFixed(0)}K/yr</span>
-                  </button>
-                ))
-              )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {CAREER_CATEGORIES.map(cat => (
-                <div key={cat.id} className="rounded-2xl overflow-hidden" style={{ background: 'rgba(20,10,35,0.8)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <button onClick={() => setOpenCat(openCat === cat.id ? null : cat.id)}
-                    className="w-full flex items-center gap-3 px-4 py-3.5">
-                    <span className="text-xl">{cat.emoji}</span>
-                    <span className="flex-1 text-left font-semibold text-sm text-white">{cat.label}</span>
-                    {openCat === cat.id ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
-                  </button>
-                  {openCat === cat.id && (
-                    <div className="border-t border-white/5">
-                      {cat.careers.map((c, i) => {
-                        const isSelected = selectedCareer?.name === c.name;
-                        return (
-                          <button key={i} onClick={() => setSelectedCareer(c)}
-                            className="w-full flex items-center justify-between px-4 py-3 border-b border-white/5 text-left transition"
-                            style={isSelected ? { background: 'linear-gradient(135deg, rgba(168,85,247,0.35), rgba(236,72,153,0.25))', borderLeft: '3px solid #ec4899' } : {}}>
-                            <p className={`text-sm ${isSelected ? 'font-bold text-white' : 'text-gray-300'}`}>{c.name}</p>
-                            <span className={`text-sm font-bold flex-shrink-0 ml-4 ${isSelected ? 'text-white' : 'text-gray-400'}`}>
-                              ${(c.salary / 1000).toFixed(0)}K/yr
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Selected career summary */}
           {selectedCareer && (
-            <div className="mt-3 rounded-2xl px-4 py-3 flex items-center gap-3" style={{ background: 'rgba(168,85,247,0.2)', border: '1px solid rgba(168,85,247,0.4)' }}>
+            <div className="mt-3 rounded-2xl px-4 py-3 flex items-center gap-3" style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
               <span className="text-2xl">💼</span>
               <div className="flex-1">
                 <p className="font-bold text-white text-sm">{selectedCareer.name}</p>
-                <p className="text-xs text-purple-300">{selectedCareer.edu}</p>
+                <p className="text-xs text-gray-400">{selectedCareer.edu}</p>
               </div>
               <div className="text-right">
                 <p className="font-bold text-white text-sm">${(selectedCareer.salary / 1000).toFixed(0)}K/yr</p>
