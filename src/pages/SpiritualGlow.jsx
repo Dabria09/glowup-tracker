@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Trash2, Plus, Edit3, Check, X } from 'lucide-react';
+import { ChevronLeft, Trash2, Plus, Edit3, Check, X, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -105,8 +105,20 @@ const BOUNDARIES = [
   { emoji: '🌊', text: 'I respond with grace, even when I\'m tested' },
 ];
 
-const TABS = ['My Path', 'My Plan', 'Reflect', 'Habits', 'Boundaries'];
-const TAB_ICONS = { 'My Path': '☆', 'My Plan': '♡', 'Reflect': '✏️', 'Habits': '✦', 'Boundaries': '🛡' };
+const SUGGESTED_PRAYERS = [
+  { emoji: '🙏', text: 'Grant me peace in moments of chaos' },
+  { emoji: '💛', text: 'Help me forgive those who have hurt me' },
+  { emoji: '🛡️', text: 'Protect my loved ones from harm' },
+  { emoji: '✨', text: 'Guide me toward my highest purpose' },
+  { emoji: '🌸', text: 'Let me be a source of kindness today' },
+  { emoji: '💪', text: 'Give me strength to overcome my challenges' },
+  { emoji: '🕊️', text: 'Fill my heart with gratitude and joy' },
+  { emoji: '🌟', text: 'Help me shine my light in the world' },
+  { emoji: '🤍', text: 'Bless those who are suffering' },
+  { emoji: '🌅', text: 'Let each day bring me closer to my dreams' },
+];
+
+const TABS = ['My Path', 'My Plan', 'Reflect', 'Habits', 'Boundaries', 'Prayer List'];
 
 export default function SpiritualGlow() {
   const navigate = useNavigate();
@@ -116,6 +128,7 @@ export default function SpiritualGlow() {
   const [goals, setGoals] = useState([]);
   const [reflections, setReflections] = useState([]);
   const [habits, setHabits] = useState([]);
+  const [prayers, setPrayers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // My Plan state
@@ -129,19 +142,24 @@ export default function SpiritualGlow() {
   // Habits state
   const [newHabit, setNewHabit] = useState('');
 
+  // Prayer List state
+  const [newPrayer, setNewPrayer] = useState('');
+
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
-      const [profiles, goalList, reflList, habitList] = await Promise.all([
+      const [profiles, goalList, reflList, habitList, prayerList] = await Promise.all([
         base44.entities.SpiritualProfile.filter({ user_email: u.email }),
         base44.entities.SpiritualGoal.filter({ user_email: u.email }),
         base44.entities.SpiritualReflection.filter({ user_email: u.email }),
         base44.entities.SpiritualHabit.filter({ user_email: u.email }),
+        base44.entities.SavedQuote.filter({ user_email: u.email, quote_type: 'prayer' }),
       ]);
       setProfile(profiles[0] || null);
       setGoals(goalList);
       setReflections(reflList.sort((a, b) => (b.reflection_date || '').localeCompare(a.reflection_date || '')));
       setHabits(habitList);
+      setPrayers(prayerList.sort((a, b) => (b.created_date || '').localeCompare(a.created_date || '')));
       setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
@@ -215,6 +233,20 @@ export default function SpiritualGlow() {
     setHabits(prev => prev.filter(h => h.id !== habit.id));
   };
 
+  // ── PRAYER LIST ──
+  const addPrayer = async (text) => {
+    if (!text.trim()) return;
+    const p = await base44.entities.SavedQuote.create({ user_email: user.email, quote_text: text.trim(), quote_type: 'prayer' });
+    setPrayers(prev => [p, ...prev]);
+    setNewPrayer('');
+    toast.success('Prayer added 🙏');
+  };
+
+  const deletePrayer = async (p) => {
+    await base44.entities.SavedQuote.delete(p.id);
+    setPrayers(prev => prev.filter(x => x.id !== p.id));
+  };
+
   const selectedPath = FAITH_PATHS.find(p => p.id === profile?.faith_path);
   const checkedToday = habits.filter(h => h.checked_date === TODAY).length;
   const suggestedGoalsFiltered = SUGGESTED_GOALS.filter(sg => !goals.some(g => g.goal_text === sg.text));
@@ -259,7 +291,7 @@ export default function SpiritualGlow() {
                   ? 'text-white'
                   : 'text-gray-400'
               }`}
-              style={activeTab === tab ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              style={activeTab === tab ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : { background: 'rgba(255,255,2555,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
               {tab}
             </button>
           ))}
@@ -529,6 +561,60 @@ export default function SpiritualGlow() {
                 <p key={i} className="text-sm text-gray-300 mb-1.5 flex items-start gap-2">
                   <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span> {tip}
                 </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── PRAYER LIST ── */}
+        {activeTab === 'Prayer List' && (
+          <div>
+            <h2 className="text-xl font-bold text-white mb-1">My Prayer List 🙏</h2>
+            <p className="text-sm text-gray-400 mb-4">A sacred space for your prayers, intentions, and gratitude. Add prayers for yourself, loved ones, or anything on your heart.</p>
+
+            {prayers.length > 0 && (
+              <div className="rounded-2xl p-4 mb-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="flex justify-between items-center mb-3">
+                  <p className="font-bold text-white">My Prayers ({prayers.length})</p>
+                  <Heart size={16} className="text-pink-400" />
+                </div>
+                <div className="space-y-2">
+                  {prayers.map(p => (
+                    <div key={p.id} className="flex items-start gap-3 py-2 border-b border-white/5 last:border-0">
+                      <Heart size={14} className="text-pink-400 flex-shrink-0 mt-0.5" />
+                      <p className="flex-1 text-sm text-white">{p.quote_text}</p>
+                      <button onClick={() => deletePrayer(p)} className="text-gray-600 hover:text-red-400 flex-shrink-0">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Add prayer input */}
+            <div className="flex gap-2 mb-5">
+              <input value={newPrayer} onChange={e => setNewPrayer(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addPrayer(newPrayer)}
+                placeholder="Add a prayer or intention..."
+                className="flex-1 rounded-2xl px-4 py-3 text-sm text-white outline-none placeholder-gray-500"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} />
+              <button onClick={() => addPrayer(newPrayer)}
+                className="w-11 h-11 rounded-full bg-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <Plus size={20} />
+              </button>
+            </div>
+
+            <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">SUGGESTED PRAYERS — TAP TO ADD</p>
+            <div className="space-y-2">
+              {SUGGESTED_PRAYERS.map((prayer, i) => (
+                <button key={i} onClick={() => addPrayer(prayer.text)}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-left transition hover:bg-white/5"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <span className="text-xl flex-shrink-0">{prayer.emoji}</span>
+                  <span className="flex-1 text-sm text-gray-200">{prayer.text}</span>
+                  <Plus size={16} className="text-gray-500 flex-shrink-0" />
+                </button>
               ))}
             </div>
           </div>
