@@ -299,7 +299,17 @@ export default function GlowBoard() {
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
               <h3 className="text-lg font-bold">Submit to Glow Board</h3>
-              <button onClick={() => setShowSubmitModal(false)}><Plus size={20} className="rotate-45" /></button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSubmitPost}
+                  disabled={!newPost.image_url.trim() || !newPost.category}
+                  className="px-4 py-2 rounded-full font-bold text-white text-sm disabled:opacity-40 transition"
+                  style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+                >
+                  Submit ✨
+                </button>
+                <button onClick={() => setShowSubmitModal(false)}><Plus size={20} className="rotate-45" /></button>
+              </div>
             </div>
             <div className="overflow-y-auto p-6 space-y-4 flex-1">
               <div>
@@ -391,16 +401,7 @@ export default function GlowBoard() {
                 </div>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-white/10 flex-shrink-0">
-              <button
-                onClick={handleSubmitPost}
-                disabled={!newPost.image_url.trim() || !newPost.category}
-                className="w-full py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-40 transition"
-                style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
-              >
-                Submit Post ✨
-              </button>
-            </div>
+
           </div>
         </div>
       )}
