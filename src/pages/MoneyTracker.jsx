@@ -221,8 +221,8 @@ export default function MoneyTracker() {
       {/* Add Entry Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowForm(false)}>
-          <div className="w-full rounded-t-3xl flex flex-col max-h-[90vh]" style={{ background: '#1a0a30' }} onClick={e => e.stopPropagation()}>
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div className="w-full rounded-t-3xl flex flex-col max-h-[85vh]" style={{ background: '#1a0a30' }} onClick={e => e.stopPropagation()}>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 pb-4">
               <div className="flex items-center justify-between">
                 <p className="font-bold text-white text-lg">Add Entry</p>
                 <button onClick={() => setShowForm(false)}><X size={20} className="text-gray-400" /></button>

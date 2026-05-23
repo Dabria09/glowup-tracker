@@ -197,8 +197,8 @@ export default function SavingsGoals() {
       {/* Create Goal Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => { setShowForm(false); setSelectedTemplate(null); }}>
-          <div className="w-full rounded-t-3xl flex flex-col max-h-[90vh]" style={{ background: '#1a0a35' }} onClick={e => e.stopPropagation()}>
-            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <div className="w-full rounded-t-3xl flex flex-col max-h-[85vh]" style={{ background: '#1a0a35' }} onClick={e => e.stopPropagation()}>
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-4">
               <div className="flex items-center justify-between">
                 <p className="font-bold text-white text-lg">🎯 New Savings Goal</p>
                 <button onClick={() => { setShowForm(false); setSelectedTemplate(null); }}><X size={20} className="text-gray-400" /></button>
