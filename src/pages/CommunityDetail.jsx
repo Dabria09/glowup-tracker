@@ -14,6 +14,7 @@ const COMMUNITY_TYPES = {
 
 const TABS = [
   { id: 'feed', label: 'Feed', icon: MessageCircle },
+  { id: 'chat', label: 'Chat', icon: MessageCircle },
   { id: 'members', label: 'Members', icon: Users },
   { id: 'events', label: 'Events', icon: Calendar },
   { id: 'about', label: 'About', icon: Star },
@@ -35,6 +36,8 @@ export default function CommunityDetail() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [recentActivity, setRecentActivity] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
     loadData();
@@ -71,10 +74,26 @@ export default function CommunityDetail() {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       const recentPosts = communityPosts.filter(p => new Date(p.created_date) > sevenDaysAgo);
       const recentMembers = communityMembers.filter(m => new Date(m.joined_date) > sevenDaysAgo);
+      
+      // Calculate growth metrics
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const membersLast30Days = communityMembers.filter(m => new Date(m.joined_date) > thirtyDaysAgo).length;
+      const membersPrevious30Days = communityMembers.filter(m => {
+        const d = new Date(m.joined_date);
+        return d <= thirtyDaysAgo && d > new Date(thirtyDaysAgo.getTime() - 30 * 24 * 60 * 60 * 1000);
+      }).length;
+      const growthRate = membersPrevious30Days > 0 ? Math.round(((membersLast30Days - membersPrevious30Days) / membersPrevious30Days) * 100) : membersLast30Days > 0 ? 100 : 0;
+      
       setRecentActivity([
         { type: 'posts', count: recentPosts.length, label: 'New Posts' },
         { type: 'members', count: recentMembers.length, label: 'New Members' },
+        { type: 'growth', count: growthRate > 0 ? `+${growthRate}%` : `${growthRate}%`, label: 'Growth' },
       ]);
+
+      // Load chat messages (recent posts for chat view)
+      const recentChat = await base44.entities.CommunityPost.filter({ community_id: id }, '-created_date');
+      setChatMessages(recentChat.slice(0, 50)); // Limit to last 50 messages
     } catch (error) {
       console.error('Error loading community:', error);
     }
@@ -163,6 +182,20 @@ export default function CommunityDetail() {
     loadData();
   }
 
+  async function handleSendMessage() {
+    if (!newMessage.trim() || !user) return;
+    await base44.entities.CommunityPost.create({
+      community_id: id,
+      user_email: user.email,
+      username: user.full_name || user.email.split('@')[0],
+      content: newMessage,
+      likes: 0,
+      liked_by: '[]',
+    });
+    setNewMessage('');
+    loadData();
+  }
+
   if (!community) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0d0010' }}>
@@ -199,10 +232,10 @@ export default function CommunityDetail() {
                  <span className="flex items-center gap-1"><Star size={12} /> {COMMUNITY_TYPES[community.type]?.label || 'Community'}</span>
                </div>
                {/* Recent Activity Summary */}
-               <div className="flex items-center gap-3 text-xs">
+               <div className="flex flex-wrap gap-2 text-xs">
                  {recentActivity.map((activity, i) => (
                    <span key={i} className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)', color: '#d8b4fe' }}>
-                     {activity.type === 'posts' ? '💬' : '👥'} {activity.count} {activity.label} (7d)
+                     {activity.type === 'posts' ? '💬' : activity.type === 'growth' ? '📈' : '👥'} {activity.count} {activity.label} (7d)
                    </span>
                  ))}
                </div>
@@ -239,7 +272,7 @@ export default function CommunityDetail() {
 
         {/* Tabs */}
         <div className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-none">
-          {TABS.map(tab => {
+          {TABS.filter(tab => tab.id !== 'chat' || isMember).map(tab => {
             const Icon = tab.icon;
             return (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -255,6 +288,75 @@ export default function CommunityDetail() {
 
         {/* Tab Content */}
         <div className="px-4 pb-6">
+          {activeTab === 'chat' && (
+            <div className="space-y-3">
+              {!isMember ? (
+                <div className="text-center py-16">
+                  <div className="text-5xl mb-4">🔒</div>
+                  <p className="text-white font-bold mb-2">Join to Access Chat</p>
+                  <p className="text-gray-400 text-sm mb-4">You need to be a member of this community to participate in group conversations</p>
+                  <button onClick={handleJoin} className="px-6 py-3 rounded-xl text-sm font-bold text-white"
+                    style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                    Join Community 💜
+                  </button>
+                </div>
+              ) : (
+            <div className="space-y-3">
+              {/* Chat Messages */}
+              <div className="space-y-2 mb-4" style={{ maxHeight: '50vh', overflowY: 'auto' }}>
+                {chatMessages.length === 0 ? (
+                  <div className="text-center py-10">
+                    <div className="text-4xl mb-3">💬</div>
+                    <p className="text-gray-400 text-sm">No messages yet. Start the conversation!</p>
+                  </div>
+                ) : (
+                  chatMessages.map(msg => {
+                    const isMyMessage = user && msg.user_email === user.email;
+                    return (
+                      <div key={msg.id} className={`flex gap-2 ${isMyMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                          <span className="text-xs font-bold text-white">
+                            {msg.username?.[0]?.toUpperCase() || 'U'}
+                          </span>
+                        </div>
+                        <div className={`max-w-[75%] rounded-2xl p-3 ${isMyMessage ? 'rounded-br-none' : 'rounded-bl-none'}`}
+                          style={{ background: isMyMessage ? 'rgba(168,85,247,0.4)' : 'rgba(255,255,255,0.08)' }}>
+                          <p className="text-xs font-semibold mb-1" style={{ color: isMyMessage ? '#fff' : '#d8b4fe' }}>
+                            {msg.username}
+                          </p>
+                          <p className="text-sm text-white">{msg.content}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(msg.created_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Message Input */}
+              <div className="flex gap-2 items-center">
+                <input
+                  value={newMessage}
+                  onChange={e => setNewMessage(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && handleSendMessage()}
+                  placeholder="Type a message..."
+                  className="flex-1 rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+                />
+                <button onClick={handleSendMessage} disabled={!newMessage.trim()}
+                  className="w-12 h-12 rounded-xl flex items-center justify-center disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                  <Send size={18} className="text-white" />
+                </button>
+              </div>
+            </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'feed' && (
             <div className="space-y-4">
               {/* Create Post Button */}
