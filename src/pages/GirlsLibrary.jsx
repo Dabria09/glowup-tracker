@@ -433,6 +433,36 @@ const RESOURCES = [
     desc: 'Every parent needs to know how to recognize, prevent, and respond to child abuse.',
     tips: ['Teach body safety early using correct anatomical names','Teach children that secrets about bodies are never okay — only surprises are okay','Know the signs: behavioral changes, age-inappropriate knowledge, withdrawal','Most abuse is perpetrated by someone the family knows and trusts','Believe children when they disclose — your response determines whether they tell again'],
     actions: ['Read "My Body Belongs to Me" with young children','Have age-appropriate conversations about body safety regularly','Know the Childhelp National Child Abuse Hotline: 1-800-422-4453','Research Darkness to Light\'s Stewards of Children program for parents','Review who has unsupervised access to your child and trust your instincts'] },
+
+  { id: 77, cat: 'healthy_eating', emoji: '🥗', title: 'Eating for Energy & Glow',
+    desc: 'What you eat directly affects your skin, mood, focus, and energy. Here\'s how to fuel your body right.',
+    tips: ['Eat protein at every meal to stabilize blood sugar and reduce cravings','Hydration affects your skin, focus, and energy more than any supplement','Ultra-processed foods cause energy crashes, acne, and brain fog','Eating colorful fruits and vegetables gives your body antioxidants that fight inflammation','You don\'t need to diet — you need to nourish'],
+    actions: ['Drink a full glass of water first thing every morning before anything else','Add one fruit or vegetable to every meal this week','Swap one processed snack for a whole food alternative (apple + almond butter, etc.)','Meal prep simple protein-based snacks for the week on Sunday','Track how different foods make you feel for 7 days — you\'ll notice patterns'] },
+
+  { id: 78, cat: 'healthy_eating', emoji: '🚫', title: 'Breaking Bad Eating Habits',
+    desc: 'Emotional eating, skipping meals, and diet culture are real — here\'s how to build a healthier relationship with food.',
+    tips: ['Skipping meals slows your metabolism and increases bingeing later','Eating out of boredom or stress is emotional eating — pause and identify the real need','Food is not a reward or punishment — it\'s fuel and enjoyment','Diet culture profits from your insecurity — don\'t buy into it','Progress over perfection: one healthy choice at a time'],
+    actions: ['Eat breakfast every day for one week and note the difference in your energy','Identify your top 3 emotional eating triggers and a healthy alternative for each','Stop labeling food as "good" or "bad" — all foods can fit in moderation','Plan and prep 3 nutritious meals this week before the week starts','Talk to a doctor or dietitian if your relationship with food causes distress'] },
+
+  { id: 79, cat: 'healthy_eating', emoji: '💧', title: 'Hydration: Why Water Is Everything',
+    desc: 'Most girls are chronically dehydrated — and it\'s affecting their skin, mood, and focus without them knowing.',
+    tips: ['Even mild dehydration causes fatigue, headaches, and poor focus','Your skin clears up significantly when you drink enough water consistently','The 8x8 rule: aim for 8 glasses of 8oz water per day as a baseline','Coffee, soda, and energy drinks are diuretics — they cause dehydration','Hunger is often actually thirst — drink water before reaching for a snack'],
+    actions: ['Buy a 32oz water bottle and aim to fill it twice daily','Set hourly phone reminders to drink water if you forget','Drink a full glass of water before every meal','Replace one sugary drink per day with water or herbal tea','Add lemon, cucumber, or fruit to your water if plain water feels boring'] },
+
+  { id: 80, cat: 'time_mgmt', emoji: '⏰', title: 'Time Management 101',
+    desc: 'You have the same 24 hours as everyone else. Here\'s how to use them intentionally.',
+    tips: ['Time blocking — scheduling tasks into specific time slots — doubles productivity','Your hardest task should be done first, when your energy is highest','Saying yes to everything means saying no to your priorities','A 10-minute weekly planning session saves hours of confusion during the week','Done is better than perfect — perfectionism is procrastination in disguise'],
+    actions: ['Write down your top 3 priorities for tomorrow before you go to sleep tonight','Try time blocking your schedule for one week using Google Calendar or a planner','Identify your biggest time waster and cut it by 50% this week','Do a weekly Sunday planning session: review the week and plan the next one','Say no to one non-essential commitment this week'] },
+
+  { id: 81, cat: 'time_mgmt', emoji: '📵', title: 'Beating Procrastination',
+    desc: 'Procrastination is not a character flaw — it\'s a habit you can break.',
+    tips: ['Procrastination is usually caused by anxiety or overwhelm — not laziness','The 2-minute rule: if it takes less than 2 minutes, do it right now','Start with 5 minutes only — getting started is the hardest part','Break large tasks into tiny, non-scary next steps','Accountability — telling someone your plan — dramatically increases follow-through'],
+    actions: ['Identify one task you\'ve been avoiding and do just 5 minutes on it right now','Break your biggest current project into 10 small steps and do step 1 today','Tell a friend or accountability partner your deadline','Remove your biggest distraction (phone, social media) during work blocks','Reward yourself after completing a task — build positive associations with getting things done'] },
+
+  { id: 82, cat: 'time_mgmt', emoji: '🗓️', title: 'Planning Your Week Like a Boss',
+    desc: 'The most productive girls don\'t work harder — they plan smarter.',
+    tips: ['Weekly planning is the most high-leverage 15 minutes you can invest','Identify your MIT (Most Important Task) for each day the night before','Schedule self-care, rest, and fun — not just work and obligations','Batch similar tasks together to reduce mental switching costs','Review what went wrong last week before planning the next one — iterate and improve'],
+    actions: ['Set a Sunday planning ritual: review last week, plan this week','Use a planner, journal, or digital calendar — whichever you\'ll actually use','Write your top 3 priorities for the week every Sunday night','Schedule study blocks, workouts, and rest the same way you schedule appointments','End each day with a 5-minute review: what got done, what moves to tomorrow'] },
 ];
 
 export default function GirlsLibrary() {
