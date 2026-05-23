@@ -1,0 +1,40 @@
+{
+  "name": "MoneyEntry",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "enum": [
+        "income",
+        "expense",
+        "savings"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount"
+    },
+    "entry_date": {
+      "type": "string",
+      "title": "Date"
+    }
+  },
+  "required": [
+    "user_email",
+    "type",
+    "amount"
+  ]
+}

@@ -50,6 +50,8 @@ import TeamContests from './pages/TeamContests';
 import TeamDetail from './pages/TeamDetail';
 import SquadDetail from './pages/SquadDetail';
 import DreamCalculator from './pages/DreamCalculator';
+import MoneyTracker from './pages/MoneyTracker';
+import SavingsGoals from './pages/SavingsGoals';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -114,6 +116,8 @@ const AuthenticatedApp = () => {
       <Route path="/glow-squads/:id" element={<SquadDetail />} />
       <Route path="/team-contests" element={<TeamContests />} />
       <Route path="/dream-calculator" element={<DreamCalculator />} />
+      <Route path="/money-tracker" element={<MoneyTracker />} />
+      <Route path="/savings-goals" element={<SavingsGoals />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

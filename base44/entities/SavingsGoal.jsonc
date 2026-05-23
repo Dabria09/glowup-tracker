@@ -1,0 +1,36 @@
+{
+  "name": "SavingsGoal",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "name": {
+      "type": "string",
+      "title": "Goal Name"
+    },
+    "emoji": {
+      "type": "string",
+      "title": "Emoji"
+    },
+    "target_amount": {
+      "type": "number",
+      "title": "Target Amount"
+    },
+    "saved_amount": {
+      "type": "number",
+      "title": "Already Saved",
+      "default": 0
+    },
+    "weekly_commitment": {
+      "type": "number",
+      "title": "Weekly Commitment"
+    }
+  },
+  "required": [
+    "user_email",
+    "name",
+    "target_amount"
+  ]
+}
