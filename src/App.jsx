@@ -57,6 +57,7 @@ import CommunityHub from './pages/CommunityHub';
 import CommunityDetail from './pages/CommunityDetail';
 import AdminLogs from './pages/AdminLogs';
 import GlowKitchen from './pages/GlowKitchen';
+import Mentorship from './pages/Mentorship';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -128,6 +129,7 @@ const AuthenticatedApp = () => {
       <Route path="/community-hub/:id" element={<CommunityDetail />} />
       <Route path="/admin-logs" element={<AdminLogs />} />
       <Route path="/glow-kitchen" element={<GlowKitchen />} />
+      <Route path="/mentorship" element={<Mentorship />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
