@@ -1,0 +1,57 @@
+{
+  "name": "SessionReport",
+  "type": "object",
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "title": "Session ID"
+    },
+    "mentor_email": {
+      "type": "string",
+      "title": "Mentor Email"
+    },
+    "mentee_email": {
+      "type": "string",
+      "title": "Mentee Email"
+    },
+    "session_date": {
+      "type": "string",
+      "title": "Session Date"
+    },
+    "topics_covered": {
+      "type": "string",
+      "title": "Topics Covered"
+    },
+    "achievements": {
+      "type": "string",
+      "title": "Achievements"
+    },
+    "challenges": {
+      "type": "string",
+      "title": "Challenges"
+    },
+    "next_steps": {
+      "type": "string",
+      "title": "Next Steps"
+    },
+    "safety_concerns": {
+      "type": "boolean",
+      "title": "Any Safety Concerns",
+      "default": false
+    },
+    "safety_notes": {
+      "type": "string",
+      "title": "Safety Notes"
+    },
+    "submitted_date": {
+      "type": "string",
+      "title": "Submitted Date"
+    }
+  },
+  "required": [
+    "session_id",
+    "mentor_email",
+    "mentee_email",
+    "session_date"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "name": "PeerMentoringCircle",
+  "type": "object",
+  "properties": {
+    "circle_id": {
+      "type": "string",
+      "title": "Circle ID"
+    },
+    "title": {
+      "type": "string",
+      "title": "Circle Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "mentor_email": {
+      "type": "string",
+      "title": "Lead Mentor Email"
+    },
+    "member_emails": {
+      "type": "string",
+      "title": "Member Emails (JSON array)"
+    },
+    "max_members": {
+      "type": "number",
+      "title": "Maximum Members",
+      "default": 5
+    },
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "meeting_schedule": {
+      "type": "string",
+      "title": "Meeting Schedule"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "forming",
+        "active",
+        "paused",
+        "completed"
+      ],
+      "default": "forming",
+      "title": "Status"
+    },
+    "created_date": {
+      "type": "string",
+      "title": "Created Date"
+    }
+  },
+  "required": [
+    "title",
+    "mentor_email",
+    "category"
+  ]
+}

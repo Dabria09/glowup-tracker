@@ -1,0 +1,62 @@
+{
+  "name": "MentorshipProgram",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Program Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "duration_weeks": {
+      "type": "number",
+      "title": "Duration (Weeks)"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "mentor_email": {
+      "type": "string",
+      "title": "Mentor Email"
+    },
+    "max_mentees": {
+      "type": "number",
+      "title": "Maximum Mentees"
+    },
+    "curriculum": {
+      "type": "string",
+      "title": "Curriculum (JSON array of modules)"
+    },
+    "enrolled_mentees": {
+      "type": "string",
+      "title": "Enrolled Mentee Emails (JSON array)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "completed",
+        "archived"
+      ],
+      "default": "draft",
+      "title": "Status"
+    },
+    "start_date": {
+      "type": "string",
+      "title": "Start Date"
+    },
+    "end_date": {
+      "type": "string",
+      "title": "End Date"
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "mentor_email"
+  ]
+}

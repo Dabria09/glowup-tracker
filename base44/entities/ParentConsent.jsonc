@@ -1,0 +1,46 @@
+{
+  "name": "ParentConsent",
+  "type": "object",
+  "properties": {
+    "parent_email": {
+      "type": "string",
+      "title": "Parent Email"
+    },
+    "teen_email": {
+      "type": "string",
+      "title": "Teen Email"
+    },
+    "consent_type": {
+      "type": "string",
+      "enum": [
+        "mentorship",
+        "video_sessions",
+        "data_sharing",
+        "all"
+      ],
+      "title": "Consent Type"
+    },
+    "is_consent_given": {
+      "type": "boolean",
+      "title": "Consent Given",
+      "default": false
+    },
+    "consent_date": {
+      "type": "string",
+      "title": "Consent Date"
+    },
+    "expiry_date": {
+      "type": "string",
+      "title": "Expiry Date"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "parent_email",
+    "teen_email",
+    "consent_type"
+  ]
+}

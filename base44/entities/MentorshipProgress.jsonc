@@ -1,0 +1,49 @@
+{
+  "name": "MentorshipProgress",
+  "type": "object",
+  "properties": {
+    "mentee_email": {
+      "type": "string",
+      "title": "Mentee Email"
+    },
+    "mentor_email": {
+      "type": "string",
+      "title": "Mentor Email"
+    },
+    "goal": {
+      "type": "string",
+      "title": "Goal"
+    },
+    "milestones": {
+      "type": "string",
+      "title": "Milestones (JSON array)"
+    },
+    "current_milestone": {
+      "type": "number",
+      "title": "Current Milestone Index",
+      "default": 0
+    },
+    "progress_percentage": {
+      "type": "number",
+      "title": "Progress Percentage",
+      "default": 0
+    },
+    "notes": {
+      "type": "string",
+      "title": "Progress Notes"
+    },
+    "created_date": {
+      "type": "string",
+      "title": "Created Date"
+    },
+    "updated_date": {
+      "type": "string",
+      "title": "Updated Date"
+    }
+  },
+  "required": [
+    "mentee_email",
+    "mentor_email",
+    "goal"
+  ]
+}

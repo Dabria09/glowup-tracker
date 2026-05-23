@@ -1,0 +1,45 @@
+{
+  "name": "MentorshipBadge",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "badge_id": {
+      "type": "string",
+      "title": "Badge ID"
+    },
+    "badge_name": {
+      "type": "string",
+      "title": "Badge Name"
+    },
+    "badge_icon": {
+      "type": "string",
+      "title": "Badge Icon (emoji)"
+    },
+    "badge_description": {
+      "type": "string",
+      "title": "Badge Description"
+    },
+    "earned_date": {
+      "type": "string",
+      "title": "Earned Date"
+    },
+    "badge_tier": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "silver",
+        "gold",
+        "platinum"
+      ],
+      "title": "Badge Tier"
+    }
+  },
+  "required": [
+    "user_email",
+    "badge_id",
+    "badge_name"
+  ]
+}

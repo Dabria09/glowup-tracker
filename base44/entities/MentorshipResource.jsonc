@@ -1,0 +1,51 @@
+{
+  "name": "MentorshipResource",
+  "type": "object",
+  "properties": {
+    "mentor_email": {
+      "type": "string",
+      "title": "Mentor Email"
+    },
+    "mentee_email": {
+      "type": "string",
+      "title": "Mentee Email"
+    },
+    "title": {
+      "type": "string",
+      "title": "Resource Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "resource_type": {
+      "type": "string",
+      "enum": [
+        "file",
+        "link",
+        "video",
+        "document",
+        "assignment"
+      ],
+      "title": "Resource Type"
+    },
+    "url": {
+      "type": "string",
+      "title": "Resource URL"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category"
+    },
+    "shared_date": {
+      "type": "string",
+      "title": "Shared Date"
+    }
+  },
+  "required": [
+    "mentor_email",
+    "mentee_email",
+    "title",
+    "resource_type"
+  ]
+}

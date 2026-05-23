@@ -1,0 +1,50 @@
+{
+  "name": "SuccessStory",
+  "type": "object",
+  "properties": {
+    "mentee_email": {
+      "type": "string",
+      "title": "Mentee Email"
+    },
+    "mentor_email": {
+      "type": "string",
+      "title": "Mentor Email"
+    },
+    "title": {
+      "type": "string",
+      "title": "Story Title"
+    },
+    "story": {
+      "type": "string",
+      "title": "Success Story"
+    },
+    "outcome": {
+      "type": "string",
+      "title": "Outcome/Impact"
+    },
+    "before_after": {
+      "type": "string",
+      "title": "Before & After"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "title": "Featured Story",
+      "default": false
+    },
+    "is_approved": {
+      "type": "boolean",
+      "title": "Approved for Public",
+      "default": false
+    },
+    "submitted_date": {
+      "type": "string",
+      "title": "Submitted Date"
+    }
+  },
+  "required": [
+    "mentee_email",
+    "mentor_email",
+    "title",
+    "story"
+  ]
+}

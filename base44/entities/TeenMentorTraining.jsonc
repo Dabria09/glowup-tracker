@@ -1,0 +1,45 @@
+{
+  "name": "TeenMentorTraining",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "module_id": {
+      "type": "string",
+      "title": "Module ID"
+    },
+    "module_title": {
+      "type": "string",
+      "title": "Module Title"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed"
+      ],
+      "default": "not_started",
+      "title": "Status"
+    },
+    "quiz_score": {
+      "type": "number",
+      "title": "Quiz Score"
+    },
+    "completed_date": {
+      "type": "string",
+      "title": "Completed Date"
+    },
+    "started_date": {
+      "type": "string",
+      "title": "Started Date"
+    }
+  },
+  "required": [
+    "user_email",
+    "module_id",
+    "module_title"
+  ]
+}
