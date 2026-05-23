@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AgoraRoom from '@/components/AgoraRoom';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
@@ -23,6 +24,7 @@ export default function GlowTalk() {
   const [activeTab, setActiveTab] = useState('live');
   const [showCreate, setShowCreate] = useState(false);
   const [joining, setJoining] = useState(null);
+  const [activeRoom, setActiveRoom] = useState(null);
   const [newRoom, setNewRoom] = useState({
     title: '', description: '', category: 'General', room_type: 'Community Room',
     max_listeners: 25, is_public: true, scheduled_at: '',
@@ -50,7 +52,7 @@ export default function GlowTalk() {
   const handleCreate = async () => {
     if (!newRoom.title.trim() || !user) return;
     const status = newRoom.scheduled_at ? 'scheduled' : 'live';
-    await base44.entities.GlowRoom.create({
+    const created = await base44.entities.GlowRoom.create({
       ...newRoom,
       host_email: user.email,
       host_name: user.full_name || user.email.split('@')[0],
@@ -62,6 +64,7 @@ export default function GlowTalk() {
     setNewRoom({ title: '', description: '', category: 'General', room_type: 'Community Room', max_listeners: 25, is_public: true, scheduled_at: '' });
     const updated = await base44.entities.GlowRoom.list('-created_date', 50);
     setRooms(updated);
+    if (status === 'live') setActiveRoom(created);
   };
 
   const handleJoin = async (room) => {
@@ -78,6 +81,7 @@ export default function GlowTalk() {
       setRooms(updated);
     }
     setJoining(null);
+    setActiveRoom(room);
   };
 
   const handleLeave = async (room) => {
@@ -95,6 +99,11 @@ export default function GlowTalk() {
   const isInRoom = (room) => user && JSON.parse(room.listeners || '[]').includes(user.email);
   const isHost = (room) => user && room.host_email === user.email;
 
+  const handleAgoraLeave = async () => {
+    if (activeRoom) await handleLeave(activeRoom);
+    setActiveRoom(null);
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#080810' }}>
       <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" />
@@ -102,6 +111,8 @@ export default function GlowTalk() {
   );
 
   return (
+    <>
+    {activeRoom && <AgoraRoom room={activeRoom} user={user} onLeave={handleAgoraLeave} />}
     <div className="min-h-screen text-white pb-24 relative overflow-y-auto" style={{ backgroundColor: '#080810' }}>
       <AppBackground />
 
@@ -354,5 +365,6 @@ export default function GlowTalk() {
 
       <BottomNav active="discover" />
     </div>
+    </>
   );
 }
