@@ -15,7 +15,32 @@ const HEALTHY_GUIDES = [
       'Limit sugary drinks (soda, juice, energy drinks) — they spike blood sugar and crash energy',
       'Add lemon, mint, or cucumber to water if plain water feels boring'
     ],
-    tips: ['Dehydration causes brain fog, breakouts, fatigue, and mood swings. Water is literally a glow-up.']
+    foods_to_eat: [
+      'Water (obviously!)',
+      'Coconut water (natural electrolytes)',
+      'Herbal teas (hibiscus, peppermint, chamomile)',
+      'Watermelon',
+      'Cucumber',
+      'Strawberries',
+      'Cantaloupe',
+      'Celery',
+      'Lettuce',
+      'Zucchini',
+      'Tomatoes',
+      'Bell peppers',
+      'Grapefruit',
+      'Oranges',
+      'Peaches'
+    ],
+    foods_to_limit: [
+      'Soda and sugary drinks',
+      'Energy drinks',
+      'Excessive coffee (more than 2 cups)',
+      'Alcohol (dehydrates)',
+      'Salty processed snacks (increase water loss)',
+      'High-sodium fast food'
+    ],
+    tips: ['Dehydration causes brain fog, breakouts, fatigue, and mood swings. Water is literally a glow-up.', 'Set hourly water reminders on your phone. Your future glowing skin will thank you!']
   },
   {
     id: 'anti-inflammatory',
@@ -31,7 +56,34 @@ const HEALTHY_GUIDES = [
       'Limit processed foods, fast food, and refined sugars — they cause inflammation',
       'Add leafy greens daily: spinach, kale, arugula, collard greens'
     ],
-    tips: ['Chronic inflammation is linked to acne, fatigue, mood issues, and long-term health problems. Food is medicine.']
+    foods_to_eat: [
+      'Blueberries and raspberries',
+      'Salmon and sardines',
+      'Walnuts and almonds',
+      'Turmeric (with black pepper)',
+      'Ginger',
+      'Extra virgin olive oil',
+      'Spinach and kale',
+      'Broccoli',
+      'Cherries',
+      'Dark chocolate (70%+ cacao)',
+      'Green tea',
+      'Tomatoes',
+      'Avocado',
+      'Sweet potatoes',
+      'Garlic'
+    ],
+    foods_to_limit: [
+      'Processed meats (hot dogs, deli meat)',
+      'Fried foods',
+      'Refined carbs (white bread, pastries)',
+      'Sugary snacks and candy',
+      'Vegetable oils (soybean, corn oil)',
+      'Excessive alcohol',
+      'Fast food',
+      'Artificial trans fats'
+    ],
+    tips: ['Chronic inflammation is linked to acne, fatigue, mood issues, and long-term health problems. Food is medicine.', 'Add a pinch of black pepper to turmeric — it increases absorption by 2000%!']
   },
   {
     id: 'gut-health',
@@ -47,7 +99,34 @@ const HEALTHY_GUIDES = [
       'Chew your food thoroughly — digestion starts in your mouth',
       'Manage stress — the gut-brain connection means anxiety shows up in your stomach'
     ],
-    tips: ['70% of your immune system lives in your gut. A healthy gut = clearer skin, better mood, more energy.']
+    foods_to_eat: [
+      'Greek yogurt with live cultures',
+      'Kefir',
+      'Kimchi',
+      'Sauerkraut (refrigerated, not shelf-stable)',
+      'Miso',
+      'Tempeh',
+      'Oats and oatmeal',
+      'Beans and lentils',
+      'Bananas',
+      'Garlic and onions',
+      'Asparagus',
+      'Apples',
+      'Flaxseeds',
+      'Jerusalem artichokes',
+      'Dandelion greens'
+    ],
+    foods_to_limit: [
+      'Artificial sweeteners (aspartame, sucralose)',
+      'Ultra-processed foods',
+      'Excessive sugar',
+      'Fried and greasy foods',
+      'Excessive red meat',
+      'Alcohol (kills good bacteria)',
+      'Dairy (if you\'re sensitive)',
+      'Gluten (if you\'re sensitive)'
+    ],
+    tips: ['70% of your immune system lives in your gut. A healthy gut = clearer skin, better mood, more energy.', 'Eat a variety of colorful plants — aim for 30 different plants per week for optimal gut diversity.']
   },
   {
     id: 'glowing-skin',
@@ -63,7 +142,34 @@ const HEALTHY_GUIDES = [
       'Limit dairy and high-glycemic foods if you\'re acne-prone — they can trigger breakouts',
       'Drink green tea — packed with antioxidants that protect skin cells'
     ],
-    tips: ['The best skincare routine starts in the kitchen. What you eat shows up on your face.']
+    foods_to_eat: [
+      'Oranges and citrus fruits',
+      'Red bell peppers',
+      'Strawberries and kiwi',
+      'Almonds and sunflower seeds',
+      'Avocado',
+      'Pumpkin seeds',
+      'Chickpeas and lentils',
+      'Bone broth',
+      'Sweet potatoes (beta-carotene)',
+      'Carrots',
+      'Spinach and Swiss chard',
+      'Walnuts',
+      'Green tea',
+      'Dark leafy greens',
+      'Pomegranate'
+    ],
+    foods_to_limit: [
+      'Dairy (if acne-prone)',
+      'High-glycemic foods (white bread, sugary cereals)',
+      'Processed snacks',
+      'Excessive sugar',
+      'Fast food',
+      'Whey protein (can trigger breakouts)',
+      'Iodine-rich foods in excess (can worsen acne)',
+      'Alcohol (dehydrates skin)'
+    ],
+    tips: ['The best skincare routine starts in the kitchen. What you eat shows up on your face.', 'Swap your afternoon candy for a handful of walnuts — omega-3s fight inflammation that causes breakouts.']
   },
   {
     id: 'budget-healthy',
@@ -79,7 +185,34 @@ const HEALTHY_GUIDES = [
       'Buy in-season produce — it\'s cheaper, fresher, and more nutritious',
       'Meal prep on Sundays to avoid expensive last-minute food decisions'
     ],
-    tips: ['A bag of dried lentils, a dozen eggs, frozen spinach, and oats can fuel you for a week for under $15.']
+    foods_to_eat: [
+      'Dried beans and lentils',
+      'Eggs',
+      'Oats',
+      'Frozen vegetables',
+      'Frozen fruits',
+      'Brown rice',
+      'Canned tuna (in water)',
+      'Peanut butter (natural)',
+      'Sweet potatoes',
+      'Bananas',
+      'Cabbage',
+      'Carrots',
+      'Onions',
+      'Garlic',
+      'Canned tomatoes'
+    ],
+    foods_to_limit: [
+      'Pre-cut vegetables (paying for convenience)',
+      'Single-serving snacks',
+      'Bottled smoothies and juices',
+      'Instant oatmeal packets (loaded with sugar)',
+      'Energy bars',
+      'Fancy flavored waters',
+      'Imported out-of-season produce',
+      'Pre-made meals'
+    ],
+    tips: ['A bag of dried lentils, a dozen eggs, frozen spinach, and oats can fuel you for a week for under $15.', 'Shop the perimeter of the grocery store — that\'s where the whole, affordable foods live.']
   }
 ];
 
@@ -161,13 +294,44 @@ export default function HealthyTabContent({ expandedGuide, setExpandedGuide }) {
                     ))}
                   </ul>
                 </div>
-                {guide.tips.length > 0 && (
+
+                {guide.foods_to_eat && (
                   <div>
-                    <p className="text-xs font-bold text-gray-400 mb-2 uppercase">Glow Tip</p>
-                    <p className="text-xs text-gray-300 flex gap-2">
-                      <span className="flex-shrink-0">💡</span>
-                      {guide.tips[0]}
-                    </p>
+                    <p className="text-xs font-bold text-green-400 mb-2 uppercase">🥗 Foods to Eat</p>
+                    <div className="flex flex-wrap gap-2">
+                      {guide.foods_to_eat.map((food, i) => (
+                        <span key={i} className="text-xs px-3 py-1.5 rounded-full" style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.3)', color: '#86efac' }}>
+                          {food}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {guide.foods_to_limit && (
+                  <div>
+                    <p className="text-xs font-bold text-red-400 mb-2 uppercase">🚫 Foods to Limit</p>
+                    <div className="flex flex-wrap gap-2">
+                      {guide.foods_to_limit.map((food, i) => (
+                        <span key={i} className="text-xs px-3 py-1.5 rounded-full" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }}>
+                          {food}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {guide.tips && guide.tips.length > 0 && (
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 mb-2 uppercase">💡 Glow Tips</p>
+                    <div className="space-y-2">
+                      {guide.tips.map((tip, i) => (
+                        <p key={i} className="text-xs text-gray-300 flex gap-2">
+                          <span className="flex-shrink-0">✨</span>
+                          {tip}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
