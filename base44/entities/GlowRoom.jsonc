@@ -1,0 +1,97 @@
+{
+  "name": "GlowRoom",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Room Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Topic / Description"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "General",
+        "Glow Up",
+        "Faith & Spirituality",
+        "STEM & Tech",
+        "Mental Health",
+        "Entrepreneurship",
+        "Fitness",
+        "Study Grind",
+        "Career",
+        "Relationships"
+      ]
+    },
+    "room_type": {
+      "type": "string",
+      "title": "Room Type",
+      "enum": [
+        "Community Room",
+        "Panel Room",
+        "Mentor Talk",
+        "Study Room",
+        "Prayer Room"
+      ],
+      "default": "Community Room"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "live",
+        "scheduled",
+        "ended"
+      ],
+      "default": "live"
+    },
+    "host_email": {
+      "type": "string",
+      "title": "Host Email"
+    },
+    "host_name": {
+      "type": "string",
+      "title": "Host Name"
+    },
+    "is_public": {
+      "type": "boolean",
+      "title": "Public Room",
+      "default": true
+    },
+    "max_listeners": {
+      "type": "number",
+      "title": "Max Listeners",
+      "default": 25
+    },
+    "listener_count": {
+      "type": "number",
+      "title": "Current Listeners",
+      "default": 0
+    },
+    "listeners": {
+      "type": "string",
+      "title": "Listeners (JSON array of emails)",
+      "default": "[]"
+    },
+    "scheduled_at": {
+      "type": "string",
+      "title": "Scheduled Time"
+    },
+    "recording_url": {
+      "type": "string",
+      "title": "Recording URL"
+    },
+    "ended_at": {
+      "type": "string",
+      "title": "Ended At"
+    }
+  },
+  "required": [
+    "title",
+    "host_email",
+    "category"
+  ]
+}
