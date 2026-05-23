@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Search, Star, Video, Phone, MessageCircle, MapPin } from 'lucide-react';
 import ConnectionRequestModal from './ConnectionRequestModal';
 import ChatModal from './ChatModal';
+import ReviewsSection from './ReviewsSection';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -26,6 +27,7 @@ export default function MentorDirectory({ mentors, user }) {
   const [selectedMentor, setSelectedMentor] = useState(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
 
   const filteredMentors = mentors.filter(mentor => {
     const categories = JSON.parse(mentor.categories || '[]');
@@ -46,6 +48,11 @@ export default function MentorDirectory({ mentors, user }) {
   const handleStartChat = (mentor) => {
     setSelectedMentor(mentor);
     setShowChatModal(true);
+  };
+
+  const handleViewReviews = (mentor) => {
+    setSelectedMentor(mentor);
+    setShowReviews(true);
   };
 
   return (
@@ -154,6 +161,13 @@ export default function MentorDirectory({ mentors, user }) {
 
                     <div className="flex gap-2 mt-3">
                       <button
+                        onClick={() => handleViewReviews(mentor)}
+                        className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
+                        style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+                      >
+                        <Star size={14} /> Reviews
+                      </button>
+                      <button
                         onClick={() => handleStartChat(mentor)}
                         className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
                         style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
@@ -194,6 +208,31 @@ export default function MentorDirectory({ mentors, user }) {
         user={user}
         mentor={selectedMentor}
       />
+      {showReviews && selectedMentor && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end"
+          style={{ background: 'rgba(0,0,0,0.7)' }}
+          onClick={() => setShowReviews(false)}
+        >
+          <div
+            className="w-full max-h-[80vh] overflow-y-auto rounded-t-3xl p-6"
+            style={{ background: '#1a0a30' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-white text-lg">⭐ Reviews for {selectedMentor.full_name}</h2>
+              <button onClick={() => setShowReviews(false)}>
+                <span className="text-2xl text-gray-400">×</span>
+              </button>
+            </div>
+            <ReviewsSection
+              mentor={selectedMentor}
+              user={user}
+              onReviewSubmitted={() => {}}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }
