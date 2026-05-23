@@ -41,6 +41,9 @@ export default function MealPlanner() {
   const [addType, setAddType] = useState('Dinner');
   const [addName, setAddName] = useState('');
   const [addNotes, setAddNotes] = useState('');
+  const [addCalories, setAddCalories] = useState('');
+  const [addProtein, setAddProtein] = useState('');
+  const [addCarbs, setAddCarbs] = useState('');
   const [addLinked, setAddLinked] = useState([]);
   const [activeDay, setActiveDay] = useState(DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1]);
 
@@ -82,6 +85,9 @@ export default function MealPlanner() {
     setAddType('Dinner');
     setAddName('');
     setAddNotes('');
+    setAddCalories('');
+    setAddProtein('');
+    setAddCarbs('');
     setAddLinked([]);
     setShowAdd(true);
   };
@@ -96,6 +102,9 @@ export default function MealPlanner() {
       meal_name: addName.trim(),
       notes: addNotes.trim(),
       grocery_items: JSON.stringify(addLinked),
+      calories: addCalories ? Number(addCalories) : null,
+      protein: addProtein ? Number(addProtein) : null,
+      carbs: addCarbs ? Number(addCarbs) : null,
     });
     setMeals(prev => [...prev, meal]);
     setShowAdd(false);
@@ -214,6 +223,41 @@ export default function MealPlanner() {
             <ChevronRight size={18} />
           </button>
         </div>
+
+        {/* Nutrition Summary for Active Day */}
+        {(() => {
+          const dayMealsList = dayMeals(activeDay);
+          const totalCalories = dayMealsList.reduce((sum, m) => sum + (m.calories || 0), 0);
+          const totalProtein = dayMealsList.reduce((sum, m) => sum + (m.protein || 0), 0);
+          const totalCarbs = dayMealsList.reduce((sum, m) => sum + (m.carbs || 0), 0);
+          const hasNutrition = dayMealsList.some(m => m.calories || m.protein || m.carbs);
+
+          return hasNutrition ? (
+            <div className="mb-5 rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))', border: '1px solid rgba(236,72,153,0.3)' }}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-2xl">📊</span>
+                <div>
+                  <h3 className="font-bold text-white text-sm">{activeDay} Nutrition Summary</h3>
+                  <p className="text-xs text-gray-400">Total for all meals</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <p className="text-xs text-gray-400 mb-1">Calories</p>
+                  <p className="text-lg font-bold text-white">{totalCalories}</p>
+                </div>
+                <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <p className="text-xs text-gray-400 mb-1">Protein</p>
+                  <p className="text-lg font-bold text-green-300">{totalProtein}g</p>
+                </div>
+                <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <p className="text-xs text-gray-400 mb-1">Carbs</p>
+                  <p className="text-lg font-bold text-blue-300">{totalCarbs}g</p>
+                </div>
+              </div>
+            </div>
+          ) : null;
+        })()}
 
         {/* Day tabs */}
         <div className="flex gap-1.5 mb-5 overflow-x-auto pb-1 scrollbar-hide">
@@ -369,6 +413,39 @@ export default function MealPlanner() {
                   placeholder="Recipe notes, ingredients, etc."
                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none resize-none min-h-20"
                 />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 mb-2 block">CALORIES</label>
+                  <input
+                    type="number"
+                    value={addCalories}
+                    onChange={e => setAddCalories(e.target.value)}
+                    placeholder="0"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 mb-2 block">PROTEIN (g)</label>
+                  <input
+                    type="number"
+                    value={addProtein}
+                    onChange={e => setAddProtein(e.target.value)}
+                    placeholder="0"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 mb-2 block">CARBS (g)</label>
+                  <input
+                    type="number"
+                    value={addCarbs}
+                    onChange={e => setAddCarbs(e.target.value)}
+                    placeholder="0"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none"
+                  />
+                </div>
               </div>
 
               <div>

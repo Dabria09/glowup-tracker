@@ -29,6 +29,18 @@
     "grocery_items": {
       "type": "string",
       "title": "Linked Grocery Item IDs (JSON array)"
+    },
+    "calories": {
+      "type": "number",
+      "title": "Calories"
+    },
+    "protein": {
+      "type": "number",
+      "title": "Protein (g)"
+    },
+    "carbs": {
+      "type": "number",
+      "title": "Carbs (g)"
     }
   },
   "required": []
