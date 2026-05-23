@@ -11,6 +11,8 @@ import WisdomCard from '@/components/mentorship/WisdomCard';
 import MentorDashboard from '@/components/mentorship/MentorDashboard';
 import MenteeDashboard from '@/components/mentorship/MenteeDashboard';
 import MentorAdminDashboard from '@/components/mentorship/MentorAdminDashboard';
+import MentorMatchingModal from '@/components/mentorship/MentorMatchingModal';
+import SessionBookingModal from '@/components/mentorship/SessionBookingModal';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -47,6 +49,9 @@ export default function Mentorship() {
   const [loading, setLoading] = useState(true);
   const [isMentor, setIsMentor] = useState(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
+  const [showMatchingModal, setShowMatchingModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -122,22 +127,30 @@ export default function Mentorship() {
             <span>{isMentor ? 'Mentor Dashboard' : 'Mentee Dashboard'}</span>
           </button>
           <button
+            onClick={() => setShowMatchingModal(true)}
+            className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
+            style={{ background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)' }}
+          >
+            <span className="mr-2">🎯</span>Find Match
+          </button>
+          <button
             onClick={() => setShowQuestionModal(true)}
             className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80"
             style={{ background: '#06b6d440', border: '1px solid #06b6d480' }}
           >
             <span className="mr-2">💌</span>Ask Anonymously
           </button>
-          {!isMentor && (
-            <button
-              onClick={() => setShowApplicationModal(true)}
-              className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80"
-              style={{ background: '#f59e0b40', border: '1px solid #f59e0b80' }}
-            >
-              <span className="mr-2">✨</span>Become a Mentor
-            </button>
-          )}
         </div>
+        
+        {!isMentor && (
+          <button
+            onClick={() => setShowApplicationModal(true)}
+            className="w-full mb-6 px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
+            style={{ background: '#f59e0b40', border: '1px solid #f59e0b80' }}
+          >
+            <span className="mr-2">✨</span>Become a Mentor
+          </button>
+        )}
 
         {/* Admin Actions */}
         {user?.role === 'admin' && (
@@ -257,6 +270,27 @@ export default function Mentorship() {
       <MentorAdminDashboard
         isOpen={showAdminDashboard}
         onClose={() => setShowAdminDashboard(false)}
+      />
+
+      <MentorMatchingModal
+        isOpen={showMatchingModal}
+        onClose={() => setShowMatchingModal(false)}
+        user={user}
+        onMatched={(mentor) => {
+          setSelectedMentor(mentor);
+          setShowMatchingModal(false);
+          setShowBookingModal(true);
+        }}
+      />
+
+      <SessionBookingModal
+        isOpen={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        mentor={selectedMentor}
+        user={user}
+        onBooked={() => {
+          loadData();
+        }}
       />
       
       {showDashboard && (
