@@ -548,55 +548,73 @@ export default function GirlsLibrary() {
           })}
         </div>
 
-        {/* Category Grid (All selected) */}
-        {activeSection === 'resources' && activeCategory === 'all' && (
-          <div className="grid grid-cols-3 gap-3 px-4 pb-4">
-            {categoryTiles.map(cat => (
-              <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                className="flex flex-col items-center justify-center gap-2 rounded-2xl py-6 px-2 text-center transition hover:opacity-80"
-                style={{ background: 'rgba(50,15,80,0.7)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <span className="text-3xl">{cat.emoji}</span>
-                <p className="text-xs font-semibold text-gray-200 leading-tight">{cat.label}</p>
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* Book Club Section */}
-        {activeSection === 'book_club' && user && (
-          <BookClub user={user} />
-        )}
+        {activeSection === 'book_club' && user && <BookClub user={user} />}
         {activeSection === 'book_club' && !user && (
           <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" /></div>
         )}
 
-        {/* Resource List (category selected or search active) */}
-        {activeSection === 'resources' && (activeCategory !== 'all' || search.trim()) && (
-          <div className="space-y-3 px-4 pb-4">
-            {filtered.map(r => {
-              const meta = CAT_META[r.cat];
-              return (
-                <button key={r.id} onClick={() => setSelectedResource(r)}
-                  className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition hover:opacity-90"
-                  style={{ background: meta.cardBg, border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl"
-                    style={{ background: 'rgba(255,255,255,0.08)' }}>
-                    {r.emoji}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold mb-0.5" style={{ color: meta.labelColor }}>{meta.label}</p>
-                    <p className="font-bold text-sm text-white leading-snug">{r.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">{r.desc}</p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Heart size={15} className="text-gray-600" />
-                    <ChevronRight size={16} className="text-gray-500" />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
+        {/* Resource List */}
+        {activeSection === 'resources' && (() => {
+          if (activeCategory === 'all' && !search.trim()) {
+            return (
+              <div className="px-4 pb-6 space-y-7">
+                {ALL_CATS.filter(catId => RESOURCES.some(r => r.cat === catId)).map(catId => {
+                  const meta = CAT_META[catId];
+                  const catResources = RESOURCES.filter(r => r.cat === catId);
+                  return (
+                    <div key={catId}>
+                      <div className="flex items-center gap-2 mb-3 px-1">
+                        <span className="text-lg">{meta.emoji}</span>
+                        <h3 className="text-sm font-bold tracking-wide" style={{ color: meta.labelColor }}>{meta.label}</h3>
+                        <span className="text-xs text-gray-600 ml-auto">{catResources.length} articles</span>
+                      </div>
+                      <div className="space-y-2">
+                        {catResources.map(r => (
+                          <button key={r.id} onClick={() => setSelectedResource(r)}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition active:opacity-80"
+                            style={{ background: meta.cardBg, border: '1px solid rgba(255,255,255,0.07)' }}>
+                            <span className="text-xl flex-shrink-0">{r.emoji}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm text-white leading-snug">{r.title}</p>
+                              <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{r.desc}</p>
+                            </div>
+                            <ChevronRight size={15} className="text-gray-500 flex-shrink-0" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          }
+          return (
+            <div className="space-y-2 px-4 pb-6">
+              {search.trim() && <p className="text-xs text-gray-500 mb-3">{filtered.length} result{filtered.length !== 1 ? 's' : ''} for &ldquo;{search}&rdquo;</p>}
+              {filtered.length === 0 && <div className="text-center py-12 text-gray-500 text-sm">No resources found</div>}
+              {filtered.map(r => {
+                const meta = CAT_META[r.cat];
+                return (
+                  <button key={r.id} onClick={() => setSelectedResource(r)}
+                    className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition hover:opacity-90"
+                    style={{ background: meta.cardBg, border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl"
+                      style={{ background: 'rgba(255,255,255,0.08)' }}>
+                      {r.emoji}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold mb-0.5" style={{ color: meta.labelColor }}>{meta.label}</p>
+                      <p className="font-bold text-sm text-white leading-snug">{r.title}</p>
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">{r.desc}</p>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-500 flex-shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Resource Detail (only for resources tab) */}
