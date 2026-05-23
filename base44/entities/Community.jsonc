@@ -1,0 +1,55 @@
+{
+  "name": "Community",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Community Name"
+    },
+    "type": {
+      "type": "string",
+      "title": "Community Type",
+      "enum": [
+        "school",
+        "organization",
+        "location",
+        "interest"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Created By (Email)"
+    },
+    "member_count": {
+      "type": "number",
+      "title": "Member Count",
+      "default": 0
+    },
+    "is_public": {
+      "type": "boolean",
+      "title": "Public Community",
+      "default": true
+    },
+    "cover_image": {
+      "type": "string",
+      "title": "Cover Image URL"
+    },
+    "rules": {
+      "type": "string",
+      "title": "Community Rules (JSON array)"
+    },
+    "admins": {
+      "type": "string",
+      "title": "Admins (JSON array of emails)"
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "created_by"
+  ]
+}
