@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Star, MessageCircle, BookOpen, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, Star, MessageCircle, BookOpen, TrendingUp, CheckCircle, Hourglass, History } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function MenteeDashboard({ user }) {
+  const [pendingRequests, setPendingRequests] = useState([]);
   const [upcomingSessions, setUpcomingSessions] = useState([]);
-  const [pastSessions, setPastSessions] = useState([]);
-  const [mentorInfo, setMentorInfo] = useState(null);
+  const [completedSessions, setCompletedSessions] = useState([]);
+  const [mentors, setMentors] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,26 +19,37 @@ export default function MenteeDashboard({ user }) {
         mentee_email: user.email,
       });
       
+      const now = new Date();
+      
+      // Pending requests (status: pending)
+      const pending = sessions.filter(s => s.status === 'pending');
+      setPendingRequests(pending);
+
+      // Upcoming sessions (status: scheduled, future date)
       const upcoming = sessions
-        .filter(s => s.status === 'scheduled' && new Date(s.session_date) > new Date())
-        .sort((a, b) => new Date(a.session_date) - new Date(b.session_date))
-        .slice(0, 5);
+        .filter(s => s.status === 'scheduled' && new Date(s.session_date) > now)
+        .sort((a, b) => new Date(a.session_date) - new Date(b.session_date));
       setUpcomingSessions(upcoming);
 
-      const past = sessions
-        .filter(s => s.status === 'completed' || new Date(s.session_date) < new Date())
-        .sort((a, b) => new Date(b.session_date) - new Date(a.session_date))
-        .slice(0, 5);
-      setPastSessions(past);
+      // Completed sessions (status: completed)
+      const completed = sessions
+        .filter(s => 
+        s.status === 'completed' || (s.status === 'scheduled' && new Date(s.session_date) < now)
+      );
+      setCompletedSessions(completed.sort((a, b) => new Date(b.session_date) - new Date(a.session_date)));
 
-      if (upcoming.length > 0) {
-        const mentors = await base44.entities.Mentor.filter({ 
-          user_email: upcoming[0].mentor_email 
-        });
+      // Fetch mentor info for all unique mentor emails
+      const allMentorEmails = [...pending, ...upcoming, ...completed].map(s => s.mentor_email);
+      const uniqueEmails = [...new Set(allMentorEmails)];
+      
+      const mentorData = {};
+      for (const email of uniqueEmails) {
+        const mentors = await base44.entities.Mentor.filter({ user_email: email });
         if (mentors.length > 0) {
-          setMentorInfo(mentors[0]);
+          mentorData[email] = mentors[0];
         }
       }
+      setMentors(mentorData);
 
       setLoading(false);
     } catch (error) {
@@ -68,6 +80,14 @@ export default function MenteeDashboard({ user }) {
     });
   };
 
+  const getMentorName = (email) => {
+    return mentors[email]?.full_name || email.split('@')[0];
+  };
+
+  const getMentorAvatar = (email) => {
+    return mentors[email]?.avatar_url;
+  };
+
   if (loading) {
     return (
       <div className="text-center py-10">
@@ -76,6 +96,10 @@ export default function MenteeDashboard({ user }) {
       </div>
     );
   }
+
+  const totalCompleted = completedSessions.length;
+  const totalUpcoming = upcomingSessions.length;
+  const totalPending = pendingRequests.length;
 
   return (
     <div className="space-y-6">
@@ -87,68 +111,70 @@ export default function MenteeDashboard({ user }) {
           </div>
           <div>
             <h2 className="text-xl font-bold text-white">Welcome back!</h2>
-            <p className="text-sm text-gray-300">Ready to learn and grow?</p>
+            <p className="text-sm text-gray-300">Track your mentorship journey</p>
           </div>
         </div>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <Calendar size={20} className="mx-auto mb-2 text-blue-400" />
-          <p className="text-2xl font-bold text-white">{upcomingSessions.length}</p>
+        <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}>
+          <Hourglass size={18} className="mx-auto mb-1 text-amber-400" />
+          <p className="text-xl font-bold text-white">{totalPending}</p>
+          <p className="text-xs text-gray-400">Pending</p>
+        </div>
+        <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' }}>
+          <Calendar size={18} className="mx-auto mb-1 text-blue-400" />
+          <p className="text-xl font-bold text-white">{totalUpcoming}</p>
           <p className="text-xs text-gray-400">Upcoming</p>
         </div>
-        <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <CheckCircle size={20} className="mx-auto mb-2 text-green-400" />
-          <p className="text-2xl font-bold text-white">{pastSessions.filter(s => s.status === 'completed').length}</p>
+        <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
+          <CheckCircle size={18} className="mx-auto mb-1 text-green-400" />
+          <p className="text-xl font-bold text-white">{totalCompleted}</p>
           <p className="text-xs text-gray-400">Completed</p>
-        </div>
-        <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <Star size={20} className="mx-auto mb-2 text-yellow-400" />
-          <p className="text-2xl font-bold text-white">{pastSessions.filter(s => s.rating).length}</p>
-          <p className="text-xs text-gray-400">Reviewed</p>
         </div>
       </div>
 
-      {/* Next Session */}
-      {upcomingSessions.length > 0 && (
-        <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(147,51,234,0.1))', border: '1px solid rgba(59,130,246,0.3)' }}>
+      {/* Pending Requests */}
+      {totalPending > 0 && (
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-white flex items-center gap-2">
-              <Clock size={18} className="text-blue-400" />
-              Next Session
+              <Hourglass size={18} className="text-amber-400" />
+              Pending Requests
             </h3>
+            <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b' }}>
+              {totalPending}
+            </span>
           </div>
           
-          <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold overflow-hidden"
-                style={{ background: mentorInfo?.avatar_url ? 'transparent' : 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-                {mentorInfo?.avatar_url ? (
-                  <img src={mentorInfo.avatar_url} alt={mentorInfo.full_name} className="w-full h-full object-cover" />
-                ) : (
-                  mentorInfo?.full_name?.charAt(0) || 'M'
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-white">{mentorInfo?.full_name || upcomingSessions[0].mentor_email.split('@')[0]}</p>
-                {mentorInfo?.title && <p className="text-xs text-gray-400">{mentorInfo.title}</p>}
-                <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <Calendar size={12} />
-                    {formatDate(upcomingSessions[0].session_date)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock size={12} />
-                    {formatTime(upcomingSessions[0].session_date)}
-                  </span>
+          <div className="space-y-3">
+            {pendingRequests.map(session => (
+              <div key={session.id} className="rounded-xl p-4" style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-white">{getMentorName(session.mentor_email)}</p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Calendar size={12} />
+                        {formatDate(session.session_date)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock size={12} />
+                        {formatTime(session.session_date)}
+                      </span>
+                    </div>
+                    {session.topic && (
+                      <p className="text-xs text-gray-500 mt-2">📝 {session.topic}</p>
+                    )}
+                    <p className="text-xs text-amber-400 mt-2 flex items-center gap-1">
+                      <Hourglass size={10} />
+                      Awaiting mentor approval
+                    </p>
+                  </div>
                 </div>
-                {upcomingSessions[0].topic && (
-                  <p className="text-xs text-gray-500 mt-2">📝 {upcomingSessions[0].topic}</p>
-                )}
               </div>
-            </div>
+            ))}
           </div>
         </div>
       )}
@@ -158,11 +184,16 @@ export default function MenteeDashboard({ user }) {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-white flex items-center gap-2">
             <Calendar size={18} className="text-blue-400" />
-            My Sessions
+            Upcoming Sessions
           </h3>
+          {totalUpcoming > 0 && (
+            <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(59,130,246,0.2)', color: '#3b82f6' }}>
+              {totalUpcoming}
+            </span>
+          )}
         </div>
         
-        {upcomingSessions.length === 0 ? (
+        {totalUpcoming === 0 ? (
           <div className="text-center py-8">
             <Calendar size={40} className="mx-auto mb-3 text-gray-600" />
             <p className="text-sm text-gray-400">No upcoming sessions</p>
@@ -171,10 +202,21 @@ export default function MenteeDashboard({ user }) {
         ) : (
           <div className="space-y-3">
             {upcomingSessions.map(session => (
-              <div key={session.id} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="flex items-start justify-between">
+              <div key={session.id} className="rounded-xl p-4" style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold overflow-hidden flex-shrink-0"
+                    style={{ background: getMentorAvatar(session.mentor_email) ? 'transparent' : 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                    {getMentorAvatar(session.mentor_email) ? (
+                      <img src={getMentorAvatar(session.mentor_email)} alt={getMentorName(session.mentor_email)} className="w-full h-full object-cover" />
+                    ) : (
+                      getMentorName(session.mentor_email).charAt(0)
+                    )}
+                  </div>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-white">{session.mentor_email.split('@')[0]}</p>
+                    <p className="text-sm font-semibold text-white">{getMentorName(session.mentor_email)}</p>
+                    {mentors[session.mentor_email]?.title && (
+                      <p className="text-xs text-gray-400">{mentors[session.mentor_email].title}</p>
+                    )}
                     <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
                       <span className="flex items-center gap-1">
                         <Clock size={12} />
@@ -196,32 +238,50 @@ export default function MenteeDashboard({ user }) {
         )}
       </div>
 
-      {/* Past Sessions */}
-      {pastSessions.length > 0 && (
+      {/* Session History */}
+      {totalCompleted > 0 && (
         <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-white flex items-center gap-2">
-              <TrendingUp size={18} className="text-purple-400" />
-              Recent Sessions
+              <History size={18} className="text-purple-400" />
+              Session History
             </h3>
+            <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(168,85,247,0.2)', color: '#a855f7' }}>
+              {totalCompleted}
+            </span>
           </div>
           
           <div className="space-y-3">
-            {pastSessions.slice(0, 3).map(session => (
-              <div key={session.id} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            {completedSessions.slice(0, 10).map(session => (
+              <div key={session.id} className="rounded-xl p-4" style={{ background: 'rgba(168,85,247,0.05)', border: '1px solid rgba(168,85,247,0.2)' }}>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-white">{session.mentor_email.split('@')[0]}</p>
-                    <p className="text-xs text-gray-400">{formatDate(session.session_date)}</p>
-                  </div>
-                  {session.rating ? (
-                    <div className="flex items-center gap-1">
-                      <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-bold text-white">{session.rating}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold overflow-hidden"
+                      style={{ background: getMentorAvatar(session.mentor_email) ? 'transparent' : 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                      {getMentorAvatar(session.mentor_email) ? (
+                        <img src={getMentorAvatar(session.mentor_email)} alt={getMentorName(session.mentor_email)} className="w-full h-full object-cover" />
+                      ) : (
+                        getMentorName(session.mentor_email).charAt(0)
+                      )}
                     </div>
-                  ) : (
-                    <span className="text-xs text-gray-500">No review</span>
-                  )}
+                    <div>
+                      <p className="text-sm font-semibold text-white">{getMentorName(session.mentor_email)}</p>
+                      <p className="text-xs text-gray-400">{formatDate(session.session_date)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {session.rating ? (
+                      <div className="flex items-center gap-1">
+                        <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm font-bold text-white">{session.rating}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-500">No review</span>
+                    )}
+                    {session.status === 'completed' && (
+                      <CheckCircle size={16} className="text-green-400" />
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -229,24 +289,5 @@ export default function MenteeDashboard({ user }) {
         </div>
       )}
     </div>
-  );
-}
-
-function CheckCircle({ size, className }) {
-  return (
-    <svg 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
   );
 }
