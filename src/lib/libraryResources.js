@@ -23,6 +23,7 @@ export const CAT_META = {
   parenthood:       { label: 'Parenthood',             emoji: '👶', labelColor: '#f472b6', cardBg: 'rgba(131,24,67,0.45)' },
   good_parenting:   { label: 'Good Parenting',         emoji: '💝', labelColor: '#f472b6', cardBg: 'rgba(131,24,67,0.45)' },
   civic:             { label: 'Civic Education',         emoji: '🗳️', labelColor: '#818cf8', cardBg: 'rgba(49,46,129,0.55)' },
+  community:         { label: 'Community & Discussion',   emoji: '💬', labelColor: '#34d399', cardBg: 'rgba(6,78,59,0.5)' },
 };
 
 export const RESOURCES = [
@@ -618,7 +619,15 @@ const CIVIC_RESOURCES = [
     actions: ['Choose one issue you care about. Write a letter to your mayor, school board member, or state representative.','Find one organization already working on an issue you care about.','Write a short advocacy plan: what\'s the problem, who has the power to change it, and what\'s one action you could take?'] },
 ];
 
-export const RESOURCES_ALL = [...RESOURCES, ...CIVIC_RESOURCES];
+const COMMUNITY_RESOURCES = [
+  { id: 95, cat: 'community', emoji: '💬', title: 'Debate & Respectful Discussion',
+    desc: 'Strong opinions + respectful dialogue = real progress.',
+    tips: ['Listening is more important than talking in productive debates','Attacking a person instead of their argument is called an ad hominem fallacy','The strongest arguments acknowledge the strongest counterarguments','Changing your mind based on evidence is a sign of intelligence, not weakness','Use I-statements instead of you-accusations','Acknowledge what the other person got right before explaining where you disagree'],
+    quick_facts: ['Ad hominem: attacking the person instead of their argument','Straw man: misrepresenting an argument to make it easier to attack','False dichotomy: presenting only two options when more exist','Steelmanning: presenting the strongest possible version of an opposing argument'],
+    actions: ['Choose a nonpartisan topic and assign sides randomly. Focus on evidence and logic, not emotion.','Pick a position you disagree with. Write the strongest possible argument FOR that position.','The next time you disagree with someone, ask one genuine question before making your counterargument.'] },
+];
+
+export const RESOURCES_ALL = [...RESOURCES, ...CIVIC_RESOURCES, ...COMMUNITY_RESOURCES];
 
 export const CIVIC_TOPICS = [
   {
