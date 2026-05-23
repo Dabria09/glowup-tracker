@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Search, Plus, Users, Flame, Star, Heart } from 'lucide-react';
+import { ChevronLeft, Search, Plus, Users, Flame, Star, Heart, Trash2 } from 'lucide-react';
 
 export default function GlowSquads() {
   const navigate = useNavigate();
@@ -96,6 +96,24 @@ export default function GlowSquads() {
     }
   };
 
+  const handleDeleteSquad = async (squad, e) => {
+    e.stopPropagation();
+    if (!confirm(`Are you sure you want to delete "${squad.name}"? This will remove all members and challenges.`)) return;
+    try {
+      // Delete all members first
+      const members = await base44.entities.SquadMember.filter({ squad_id: squad.id });
+      for (const member of members) {
+        await base44.entities.SquadMember.delete(member.id);
+      }
+      // Delete the squad
+      await base44.entities.GlowSquad.delete(squad.id);
+      setSquads(prev => prev.filter(s => s.id !== squad.id));
+      setMySquads(prev => prev.filter(m => m.squad_id !== squad.id));
+    } catch (err) {
+      console.error('Error deleting squad:', err);
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#080810' }}>
       <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" />
@@ -156,11 +174,18 @@ export default function GlowSquads() {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
                           <p className="font-semibold text-white text-sm">{squad.name}</p>
-                          {squad.current_streak > 0 && (
-                            <div className="flex items-center gap-1 text-xs text-orange-400">
-                              <Flame size={12} /> {squad.current_streak} day streak
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {squad.current_streak > 0 && (
+                              <div className="flex items-center gap-1 text-xs text-orange-400">
+                                <Flame size={12} /> {squad.current_streak} day streak
+                              </div>
+                            )}
+                            {squad.created_by === user?.email && (
+                              <button onClick={(e) => handleDeleteSquad(squad, e)} className="text-gray-500 hover:text-red-400">
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <p className="text-xs text-gray-400 mb-2">{squad.description || 'Private squad'}</p>
                         <div className="flex items-center gap-3 text-xs text-gray-400">

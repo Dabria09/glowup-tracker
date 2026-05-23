@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Search, Plus, Users, Trophy, Flame, MessageCircle } from 'lucide-react';
+import { ChevronLeft, Search, Plus, Users, Trophy, Flame, MessageCircle, Trash2 } from 'lucide-react';
 
 const TEAM_CATEGORIES = [
   { id: 'all', label: 'All', emoji: '🌟' },
@@ -117,6 +117,24 @@ export default function GlowTeams() {
     }
   };
 
+  const handleDeleteTeam = async (team, e) => {
+    e.stopPropagation();
+    if (!confirm(`Are you sure you want to delete "${team.name}"? This will remove all members and discussions.`)) return;
+    try {
+      // Delete all members first
+      const members = await base44.entities.TeamMember.filter({ team_id: team.id });
+      for (const member of members) {
+        await base44.entities.TeamMember.delete(member.id);
+      }
+      // Delete the team
+      await base44.entities.GlowTeam.delete(team.id);
+      setTeams(prev => prev.filter(t => t.id !== team.id));
+      setMyTeams(prev => prev.filter(m => m.team_id !== team.id));
+    } catch (err) {
+      console.error('Error deleting team:', err);
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#080810' }}>
       <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" />
@@ -212,7 +230,14 @@ export default function GlowTeams() {
                     className="rounded-2xl p-4 cursor-pointer transition hover:scale-[1.02]"
                     style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
                   >
-                    <div className="text-2xl mb-2">{team.emoji || '🌟'}</div>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="text-2xl">{team.emoji || '🌟'}</div>
+                      {team.created_by === user?.email && (
+                        <button onClick={(e) => handleDeleteTeam(team, e)} className="text-gray-500 hover:text-red-400">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                     <p className="font-semibold text-white text-sm mb-1">{team.name}</p>
                     <div className="flex items-center gap-1 text-xs text-gray-400">
                       <Users size={12} /> {team.member_count || 0} members
