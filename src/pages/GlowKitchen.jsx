@@ -9,6 +9,7 @@ import AddRecipeModal from '@/components/glow-kitchen/AddRecipeModal';
 import PostModal from '@/components/glow-kitchen/PostModal';
 import KitchenPostCard from '@/components/glow-kitchen/KitchenPostCard';
 import HealthyTabContent from './GlowKitchenHealthy';
+import Mentorship from './Mentorship';
 
 const TABS = [
   { id: 'feed', label: 'Feed', emoji: '📸' },
@@ -20,6 +21,35 @@ const TABS = [
   { id: 'healthy', label: 'Healthy', emoji: '🥗' },
   { id: 'mentorship', label: 'Mentorship', emoji: '👩‍🍳', important: true },
 ];
+
+function MentorshipTabContent() {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl p-6 text-center" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))', border: '2px solid rgba(236,72,153,0.3)' }}>
+        <div className="text-5xl mb-3">👩‍🍳</div>
+        <h2 className="text-2xl font-bold text-white mb-2">Cooking Mentorship</h2>
+        <p className="text-sm text-gray-300 leading-relaxed mb-4">
+          Get 1-on-1 guidance from experienced cooks in our community.
+        </p>
+        <button
+          onClick={() => navigate('/mentorship')}
+          className="px-8 py-3 rounded-full font-bold text-white text-sm"
+          style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+        >
+          👩‍🍳 Go to Mentorship Hub
+        </button>
+      </div>
+      
+      <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <p className="text-xs text-gray-400 text-center">
+          Visit the full Mentorship Hub to find mentors, ask questions anonymously, or become a mentor yourself.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 const KITCHEN_BASICS = [
   {
@@ -679,53 +709,7 @@ export default function GlowKitchen() {
         )}
 
         {activeTab === 'mentorship' && (
-          <div className="space-y-4">
-            <div className="rounded-2xl p-6 text-center" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))', border: '2px solid rgba(236,72,153,0.3)' }}>
-              <div className="text-5xl mb-3">👩‍🍳</div>
-              <h2 className="text-2xl font-bold text-white mb-2">Cooking Mentorship</h2>
-              <p className="text-sm text-gray-300 leading-relaxed">
-                Get 1-on-1 guidance from experienced cooks in our community. Learn at your own pace, ask questions, and level up your kitchen skills.
-              </p>
-              <div className="flex gap-3 mt-5 justify-center">
-                <button className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-white text-sm"
-                  style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-                  <Plus size={16} /> Request a Mentor
-                </button>
-                <button className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-white text-sm"
-                  style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                  🎓 Become a Mentor
-                </button>
-              </div>
-            </div>
-
-            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <p className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">How It Works</p>
-              <div className="space-y-3">
-                {[
-                  { num: '1', text: 'Submit a request with your cooking topic and availability' },
-                  { num: '2', text: 'We match you with an experienced mentor from our community' },
-                  { num: '3', text: 'Connect for a 1-on-1 session online or in-person' },
-                  { num: '4', text: 'Learn, cook, and grow your kitchen confidence!' },
-                ].map((item) => (
-                  <div key={item.num} className="flex gap-3">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(236, 72, 153, 0.2)' }}>
-                      <span className="text-xs font-bold text-pink-400">{item.num}</span>
-                    </div>
-                    <p className="text-sm text-gray-300 mt-0.5">{item.text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <p className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">Available Mentors</p>
-              <div className="text-center py-8">
-                <div className="text-3xl mb-2">👨‍🍳</div>
-                <p className="text-gray-400 text-sm">Mentors coming soon!</p>
-                <p className="text-gray-500 text-xs mt-1">Submit a request and we'll match you with the right mentor.</p>
-              </div>
-            </div>
-          </div>
+          <MentorshipTabContent />
         )}
 
         {activeTab === 'grocery' && (
