@@ -364,8 +364,8 @@ export default function YourVoice() {
   useEffect(() => { localStorage.setItem('ggu_civic_stage', stage); }, [stage]);
   useEffect(() => { localStorage.setItem('ggu_civic_completed', JSON.stringify(completed)); }, [completed]);
 
-  const visibleTopics = CIVIC_TOPICS.filter(t => t.id === 'debate_discussion' && t.stages.includes(stage)).filter(t => activeCat === 'All' || t.category === activeCat);
-  const stageTopics = CIVIC_TOPICS.filter(t => t.id === 'debate_discussion' && t.stages.includes(stage));
+  const visibleTopics = CIVIC_TOPICS.filter(t => t.stages.includes(stage)).filter(t => activeCat === 'All' || t.category === activeCat);
+  const stageTopics = CIVIC_TOPICS.filter(t => t.stages.includes(stage));
   const completedCount = stageTopics.filter(t => completed.includes(t.id)).length;
   const quizCount = stageTopics.reduce((sum, t) => sum + t.quiz.length, 0);
   const progressPct = stageTopics.length > 0 ? Math.round((completedCount / stageTopics.length) * 100) : 0;
