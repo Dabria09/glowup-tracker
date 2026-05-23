@@ -1,19 +1,52 @@
 import { useState, useEffect, useRef } from 'react';
 import AgoraRTC from 'agora-rtc-sdk-ng';
 import { base44 } from '@/api/base44Client';
-import { Mic, MicOff, PhoneOff, Users, Volume2 } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, Users, Camera } from 'lucide-react';
 
 AgoraRTC.setLogLevel(4); // suppress logs
+
+function Avatar({ name, photoUrl, size = 16, speaking = false }) {
+  return (
+    <div className={`relative rounded-full flex-shrink-0 ${speaking ? 'ring-2 ring-green-400 ring-offset-2 ring-offset-transparent' : ''}`}
+      style={{ width: size, height: size }}>
+      {photoUrl ? (
+        <img src={photoUrl} alt={name} className="w-full h-full rounded-full object-cover" />
+      ) : (
+        <div className="w-full h-full rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white font-bold"
+          style={{ fontSize: size * 0.35 }}>
+          {name?.[0]?.toUpperCase() || '?'}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AgoraRoom({ room, user, onLeave }) {
   const [joined, setJoined] = useState(false);
   const [muted, setMuted] = useState(false);
   const [participants, setParticipants] = useState([]);
+  const [profiles, setProfiles] = useState({});
   const [error, setError] = useState(null);
   const [connecting, setConnecting] = useState(true);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [myPhoto, setMyPhoto] = useState(null);
 
   const clientRef = useRef(null);
   const localTrackRef = useRef(null);
+
+  // Load profiles for all room listeners
+  useEffect(() => {
+    const loadProfiles = async () => {
+      const emails = JSON.parse(room.listeners || '[]');
+      if (!emails.length) return;
+      const allProfiles = await base44.entities.UserProfile.list();
+      const map = {};
+      allProfiles.forEach(p => { map[p.user_email] = p; });
+      setProfiles(map);
+      if (map[user.email]?.avatar_url) setMyPhoto(map[user.email].avatar_url);
+    };
+    loadProfiles();
+  }, []);
 
   useEffect(() => {
     let client;
@@ -76,6 +109,22 @@ export default function AgoraRoom({ room, user, onLeave }) {
     };
   }, []);
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    // Save to UserProfile
+    const existing = await base44.entities.UserProfile.filter({ user_email: user.email });
+    if (existing.length > 0) {
+      await base44.entities.UserProfile.update(existing[0].id, { avatar_url: file_url });
+    } else {
+      await base44.entities.UserProfile.create({ user_email: user.email, avatar_url: file_url });
+    }
+    setMyPhoto(file_url);
+    setUploadingPhoto(false);
+  };
+
   const toggleMute = async () => {
     if (localTrackRef.current) {
       await localTrackRef.current.setMuted(!muted);
@@ -131,28 +180,32 @@ export default function AgoraRoom({ room, user, onLeave }) {
             {/* Self */}
             <div className="flex flex-col items-center gap-2 mb-6">
               <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white">
-                  {user.full_name?.[0]?.toUpperCase() || '?'}
-                </div>
-                {!muted && (
-                  <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                    <Mic size={10} className="text-white" />
-                  </span>
-                )}
+                <Avatar name={user.full_name} photoUrl={myPhoto} size={64} speaking={!muted} />
+                <label className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center cursor-pointer hover:bg-pink-600 transition">
+                  {uploadingPhoto ? (
+                    <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Camera size={12} className="text-white" />
+                  )}
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                </label>
               </div>
               <span className="text-xs text-white font-semibold">You</span>
             </div>
 
             {/* Remote participants */}
             <div className="grid grid-cols-3 gap-4">
-              {participants.map(p => (
-                <div key={p.uid} className="flex flex-col items-center gap-2">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-                    <Volume2 size={20} className="text-white" />
+              {JSON.parse(room.listeners || '[]').filter(e => e !== user.email).map(email => {
+                const profile = profiles[email];
+                return (
+                  <div key={email} className="flex flex-col items-center gap-2">
+                    <Avatar name={email} photoUrl={profile?.avatar_url} size={56} />
+                    <span className="text-xs text-gray-300 truncate max-w-[60px]">
+                      {profile?.username || email.split('@')[0]}
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-300">Listener</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
