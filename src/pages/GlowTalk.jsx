@@ -264,9 +264,9 @@ export default function GlowTalk() {
 
       {/* Create Room Modal */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-end" onClick={() => setShowCreate(false)}>
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center px-4" onClick={() => setShowCreate(false)}>
           <div
-            className="w-full rounded-t-3xl flex flex-col max-h-[92vh]"
+            className="w-full rounded-3xl flex flex-col max-h-[85vh]"
             style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }}
             onClick={e => e.stopPropagation()}
           >
