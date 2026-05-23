@@ -461,6 +461,52 @@ export default function GlowKitchen() {
 
         {activeTab === 'healthy' && (
           <div className="space-y-4">
+            {/* 10 Easy Healthy Swaps Card */}
+            <button
+              onClick={() => setExpandedGuide(expandedGuide === 'swaps' ? null : 'swaps')}
+              className="w-full text-left"
+            >
+              <div className="flex items-center gap-3 px-4 py-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.2), rgba(16,185,129,0.2))', border: '1px solid rgba(34,197,94,0.3)' }}>
+                <span className="text-2xl flex-shrink-0">✅</span>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white text-sm">10 Easy Healthy Swaps</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Small changes = big results</p>
+                </div>
+                <ChevronDown size={16} className={`text-gray-500 transition ${expandedGuide === 'swaps' ? 'rotate-180' : ''}`} />
+              </div>
+              {expandedGuide === 'swaps' && (
+                <div className="mt-2 px-4 py-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="space-y-3">
+                    {[
+                      { old: 'White rice', new: 'Brown rice or quinoa', benefit: 'More fiber, keeps you full longer' },
+                      { old: 'Soda', new: 'Sparkling water + lemon', benefit: 'Zero sugar, still refreshing' },
+                      { old: 'Chips', new: 'Air-popped popcorn or rice cakes', benefit: 'Less fat, more volume' },
+                      { old: 'Sugary cereal', new: 'Oats with fruit + honey', benefit: 'Sustained energy for hours' },
+                      { old: 'Store-bought dressing', new: 'Olive oil + lemon + garlic', benefit: 'No preservatives, anti-inflammatory' },
+                      { old: 'Candy bar', new: 'Dark chocolate + almonds', benefit: 'Antioxidants + healthy fat' },
+                      { old: 'White bread', new: 'Whole grain or sourdough', benefit: 'More nutrients, slower digestion' },
+                      { old: 'Flavored yogurt', new: 'Plain Greek yogurt + berries', benefit: 'Less sugar, more protein' },
+                      { old: 'Frying', new: 'Air frying or baking', benefit: 'Same crunch, way less oil' },
+                      { old: 'Juice', new: 'Whole fruit', benefit: 'Fiber intact, less sugar spike' },
+                    ].map((swap, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(34,197,94,0.3)' }}>
+                          <span className="text-xs font-bold text-green-400">✓</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-300">
+                            <span className="line-through text-gray-500">{swap.old}</span>
+                            <span className="text-green-400 font-semibold"> → {swap.new}</span>
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">{swap.benefit}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </button>
+
             {loadingData ? (
               <div className="text-center py-10">
                 <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
