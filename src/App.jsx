@@ -52,6 +52,7 @@ import SquadDetail from './pages/SquadDetail';
 import DreamCalculator from './pages/DreamCalculator';
 import MoneyTracker from './pages/MoneyTracker';
 import SavingsGoals from './pages/SavingsGoals';
+import MockVote from './pages/MockVote';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -118,6 +119,7 @@ const AuthenticatedApp = () => {
       <Route path="/dream-calculator" element={<DreamCalculator />} />
       <Route path="/money-tracker" element={<MoneyTracker />} />
       <Route path="/savings-goals" element={<SavingsGoals />} />
+      <Route path="/mock-vote" element={<MockVote />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

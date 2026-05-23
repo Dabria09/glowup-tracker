@@ -268,11 +268,13 @@ export default function SavingsGoals() {
               </div>
             </div>
 
-            <button onClick={handleCreate} disabled={!form.name || !form.target}
-              className="w-full py-4 rounded-t-3xl font-bold text-white disabled:opacity-40 flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-              Create Goal 💰
-            </button>
+            <div className="border-t border-white/10 p-5 flex-shrink-0">
+              <button onClick={handleCreate} disabled={!form.name || !form.target}
+                className="w-full py-4 rounded-xl font-bold text-white disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                Create Goal 💰
+              </button>
+            </div>
           </div>
         </div>
       )}
