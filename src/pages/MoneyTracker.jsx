@@ -221,48 +221,52 @@ export default function MoneyTracker() {
       {/* Add Entry Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowForm(false)}>
-          <div className="w-full rounded-t-3xl p-6 space-y-4" style={{ background: '#1a0a30' }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-white text-lg">Add Entry</p>
-              <button onClick={() => setShowForm(false)}><X size={20} className="text-gray-400" /></button>
+          <div className="w-full rounded-t-3xl flex flex-col max-h-[90vh]" style={{ background: '#1a0a30' }} onClick={e => e.stopPropagation()}>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-white text-lg">Add Entry</p>
+                <button onClick={() => setShowForm(false)}><X size={20} className="text-gray-400" /></button>
+              </div>
+              {/* Type selector */}
+              <div className="grid grid-cols-3 gap-2">
+                {[{ v: 'income', label: '💚 Income' }, { v: 'expense', label: '🔴 Expense' }, { v: 'savings', label: '💛 Savings' }].map(t => (
+                  <button key={t.v} onClick={() => setForm(f => ({ ...f, type: t.v, category: '' }))}
+                    className="py-2 rounded-xl text-sm font-semibold transition"
+                    style={form.type === t.v
+                      ? { background: 'rgba(168,85,247,0.4)', border: '1px solid rgba(168,85,247,0.7)', color: '#fff' }
+                      : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              {/* Category */}
+              <div className="flex flex-wrap gap-2">
+                {cats.map(c => (
+                  <button key={c} onClick={() => setForm(f => ({ ...f, category: c }))}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium transition"
+                    style={form.category === c
+                      ? { background: 'rgba(236,72,153,0.4)', border: '1px solid rgba(236,72,153,0.6)', color: '#fff' }
+                      : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+                    {c}
+                  </button>
+                ))}
+              </div>
+              <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Description (optional)"
+                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
+              <input type="number" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+                placeholder="Amount ($)"
+                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
             </div>
-            {/* Type selector */}
-            <div className="grid grid-cols-3 gap-2">
-              {[{ v: 'income', label: '💚 Income' }, { v: 'expense', label: '🔴 Expense' }, { v: 'savings', label: '💛 Savings' }].map(t => (
-                <button key={t.v} onClick={() => setForm(f => ({ ...f, type: t.v, category: '' }))}
-                  className="py-2 rounded-xl text-sm font-semibold transition"
-                  style={form.type === t.v
-                    ? { background: 'rgba(168,85,247,0.4)', border: '1px solid rgba(168,85,247,0.7)', color: '#fff' }
-                    : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
-                  {t.label}
-                </button>
-              ))}
+            <div className="border-t border-white/10 p-6 flex-shrink-0">
+              <button onClick={handleAdd} disabled={!form.amount}
+                className="w-full py-4 rounded-2xl font-bold text-white disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                Add Entry 💰
+              </button>
             </div>
-            {/* Category */}
-            <div className="flex flex-wrap gap-2">
-              {cats.map(c => (
-                <button key={c} onClick={() => setForm(f => ({ ...f, category: c }))}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium transition"
-                  style={form.category === c
-                    ? { background: 'rgba(236,72,153,0.4)', border: '1px solid rgba(236,72,153,0.6)', color: '#fff' }
-                    : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
-                  {c}
-                </button>
-              ))}
-            </div>
-            <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="Description (optional)"
-              className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
-            <input type="number" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-              placeholder="Amount ($)"
-              className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
-            <button onClick={handleAdd} disabled={!form.amount}
-              className="w-full py-4 rounded-2xl font-bold text-white disabled:opacity-40"
-              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-              Add Entry 💰
-            </button>
           </div>
         </div>
       )}
