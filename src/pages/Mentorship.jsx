@@ -3,14 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Search, Users, Plus, MessageCircle, BookOpen, LayoutDashboard } from 'lucide-react';
+import { ChevronLeft, Search, Users, Plus, MessageCircle, BookOpen, LayoutDashboard, Star } from 'lucide-react';
 import MentorApplicationModal from '@/components/mentorship/MentorApplicationModal';
+import TeenMentorApplicationModal from '@/components/mentorship/TeenMentorApplicationModal';
 import AnonymousQuestionModal from '@/components/mentorship/AnonymousQuestionModal';
 import MentorDirectory from '@/components/mentorship/MentorDirectory';
 import WisdomCard from '@/components/mentorship/WisdomCard';
 import MentorDashboard from '@/components/mentorship/MentorDashboard';
 import MenteeDashboard from '@/components/mentorship/MenteeDashboard';
 import MentorAdminDashboard from '@/components/mentorship/MentorAdminDashboard';
+import TeenMentorAdminDashboard from '@/components/mentorship/TeenMentorAdminDashboard';
 import MentorMatchingModal from '@/components/mentorship/MentorMatchingModal';
 import SessionBookingModal from '@/components/mentorship/SessionBookingModal';
 
@@ -42,13 +44,16 @@ export default function Mentorship() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [showTeenApplicationModal, setShowTeenApplicationModal] = useState(false);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [mentors, setMentors] = useState([]);
   const [wisdomQuestions, setWisdomQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isMentor, setIsMentor] = useState(false);
+  const [isTeenMentor, setIsTeenMentor] = useState(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
+  const [showTeenAdminDashboard, setShowTeenAdminDashboard] = useState(false);
   const [showMatchingModal, setShowMatchingModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedMentor, setSelectedMentor] = useState(null);
@@ -65,6 +70,10 @@ export default function Mentorship() {
       // Check if user is a mentor
       const mentorData = await base44.entities.Mentor.filter({ user_email: u.email, is_approved: true });
       setIsMentor(mentorData.length > 0);
+
+      // Check if user is a teen mentor
+      const teenMentorData = await base44.entities.TeenMentor.filter({ user_email: u.email, is_approved: true });
+      setIsTeenMentor(teenMentorData.length > 0);
 
       const mentorsData = await base44.entities.Mentor.filter({ is_approved: true });
       setMentors(mentorsData);
@@ -142,33 +151,61 @@ export default function Mentorship() {
           </button>
         </div>
         
-        {!isMentor && (
-          <button
-            onClick={() => setShowApplicationModal(true)}
-            className="w-full mb-6 px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
-            style={{ background: '#f59e0b40', border: '1px solid #f59e0b80' }}
-          >
-            <span className="mr-2">✨</span>Become a Mentor
-          </button>
+        {/* Become a Mentor Options */}
+        {!isMentor && !isTeenMentor && (
+          <div className="space-y-3 mb-6">
+            <button
+              onClick={() => setShowApplicationModal(true)}
+              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
+              style={{ background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)' }}
+            >
+              <span className="mr-2">✨</span>Become a Mentor (Women)
+            </button>
+            <button
+              onClick={() => setShowTeenApplicationModal(true)}
+              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
+              style={{ background: 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.4)' }}
+            >
+              <span className="mr-2">🌟</span>Become a Teen Mentor (Ages 13-19)
+            </button>
+          </div>
         )}
 
         {/* Admin Actions */}
         {user?.role === 'admin' && (
-          <button
-            onClick={async () => {
-              try {
-                const res = await base44.functions.invoke('updateMentorTiers', {});
-                alert(res.data.message);
-                loadData();
-              } catch (error) {
-                alert('Error updating tiers: ' + error.message);
-              }
-            }}
-            className="w-full mb-6 px-4 py-3 rounded-xl font-semibold text-sm text-white"
-            style={{ background: 'rgba(132, 204, 22, 0.2)', border: '1px solid rgba(132, 204, 22, 0.4)' }}
-          >
-            🔄 Update Mentor Tiers
-          </button>
+          <div className="space-y-3 mb-6">
+            <button
+              onClick={() => setShowAdminDashboard(true)}
+              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+            >
+              <Users size={16} />
+              Manage Women Mentor Applications
+            </button>
+            <button
+              onClick={() => setShowTeenAdminDashboard(true)}
+              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+            >
+              <Star size={16} />
+              Manage Teen Mentor Applications
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await base44.functions.invoke('updateMentorTiers', {});
+                  alert(res.data.message);
+                  loadData();
+                } catch (error) {
+                  alert('Error updating tiers: ' + error.message);
+                }
+              }}
+              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white"
+              style={{ background: 'rgba(132, 204, 22, 0.2)', border: '1px solid rgba(132, 204, 22, 0.4)' }}
+            >
+              🔄 Update Mentor Tiers
+            </button>
+          </div>
         )}
 
         {/* Tabs */}
@@ -248,6 +285,14 @@ export default function Mentorship() {
           loadData();
         }}
       />
+      <TeenMentorApplicationModal
+        isOpen={showTeenApplicationModal}
+        onClose={() => setShowTeenApplicationModal(false)}
+        user={user}
+        onSubmitted={() => {
+          loadData();
+        }}
+      />
       <AnonymousQuestionModal
         isOpen={showQuestionModal}
         onClose={() => setShowQuestionModal(false)}
@@ -260,6 +305,10 @@ export default function Mentorship() {
       <MentorAdminDashboard
         isOpen={showAdminDashboard}
         onClose={() => setShowAdminDashboard(false)}
+      />
+      <TeenMentorAdminDashboard
+        isOpen={showTeenAdminDashboard}
+        onClose={() => setShowTeenAdminDashboard(false)}
       />
 
       <MentorMatchingModal
@@ -296,14 +345,14 @@ export default function Mentorship() {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-bold text-white text-lg flex items-center gap-2">
-                <LayoutDashboard size={20} className={isMentor ? 'text-pink-400' : 'text-blue-400'} />
-                {isMentor ? 'Mentor Dashboard' : 'Mentee Dashboard'}
+                <LayoutDashboard size={20} className={isMentor || isTeenMentor ? 'text-pink-400' : 'text-blue-400'} />
+                {isMentor ? 'Women Mentor Dashboard' : isTeenMentor ? 'Teen Mentor Dashboard' : 'Mentee Dashboard'}
               </h2>
               <button onClick={() => setShowDashboard(false)}>
                 <span className="text-2xl text-gray-400">×</span>
               </button>
             </div>
-            {isMentor ? (
+            {isMentor || isTeenMentor ? (
               <MentorDashboard user={user} />
             ) : (
               <MenteeDashboard user={user} />

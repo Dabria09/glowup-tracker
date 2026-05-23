@@ -35,7 +35,14 @@ export default function MentorDashboard({ user }) {
 
   const loadData = async () => {
     try {
-      const mentorData = await base44.entities.Mentor.filter({ user_email: user.email });
+      // Try to load women mentor profile first
+      let mentorData = await base44.entities.Mentor.filter({ user_email: user.email });
+      
+      // If not found, try teen mentor profile
+      if (mentorData.length === 0) {
+        mentorData = await base44.entities.TeenMentor.filter({ user_email: user.email });
+      }
+      
       if (mentorData.length > 0) {
         setMentorProfile(mentorData[0]);
       }
@@ -45,16 +52,21 @@ export default function MentorDashboard({ user }) {
         status: 'scheduled'
       });
       
+      // Also check for teen mentor sessions if needed
+      let allSessions = sessions;
+      if (mentorData.length === 0) {
+        const teenSessions = await base44.entities.MentorSession.filter({
+          mentor_email: user.email
+        });
+        allSessions = teenSessions;
+      }
+      
       const upcoming = sessions
         .filter(s => new Date(s.session_date) > new Date())
         .sort((a, b) => new Date(a.session_date) - new Date(b.session_date))
         .slice(0, 5);
       setUpcomingSessions(upcoming);
 
-      const allSessions = await base44.entities.MentorSession.filter({
-        mentor_email: user.email
-      });
-      
       const pending = allSessions.filter(s => s.status === 'pending');
       setPendingRequests(pending);
 
@@ -170,9 +182,12 @@ export default function MentorDashboard({ user }) {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-white">Welcome back, {mentorProfile.full_name}!</h2>
-              <p className="text-sm text-gray-300 mt-1">{mentorProfile.title || 'Mentor'}</p>
+              <p className="text-sm text-gray-300 mt-1">
+                {mentorProfile.title || (mentorProfile.grade ? `Grade ${mentorProfile.grade}` : 'Teen Mentor')}
+              </p>
             </div>
-            <TierBadge tier={mentorProfile.mentor_tier || 'seed'} size="md" />
+            {mentorProfile.mentor_tier && <TierBadge tier={mentorProfile.mentor_tier || 'seed'} size="md" />}
+            {mentorProfile.age && <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b' }}>Age {mentorProfile.age}</span>}
           </div>
         </div>
       )}

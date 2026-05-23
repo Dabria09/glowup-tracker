@@ -1,0 +1,75 @@
+{
+  "name": "TeenMentor",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "full_name": {
+      "type": "string",
+      "title": "Full Name"
+    },
+    "age": {
+      "type": "number",
+      "title": "Age"
+    },
+    "grade": {
+      "type": "string",
+      "title": "Grade Level"
+    },
+    "bio": {
+      "type": "string",
+      "title": "Bio"
+    },
+    "categories": {
+      "type": "string",
+      "title": "Categories (JSON array)"
+    },
+    "availability": {
+      "type": "string",
+      "title": "Availability",
+      "enum": [
+        "Weekly",
+        "Bi-weekly",
+        "Monthly",
+        "One-time"
+      ]
+    },
+    "session_type": {
+      "type": "string",
+      "title": "Session Type",
+      "enum": [
+        "Video Call",
+        "Phone Call",
+        "Chat",
+        "In-person"
+      ]
+    },
+    "is_approved": {
+      "type": "boolean",
+      "title": "Approved",
+      "default": false
+    },
+    "rating": {
+      "type": "number",
+      "title": "Average Rating",
+      "default": 0
+    },
+    "sessions_count": {
+      "type": "number",
+      "title": "Sessions Completed",
+      "default": 0
+    },
+    "avatar_url": {
+      "type": "string",
+      "title": "Avatar URL"
+    }
+  },
+  "required": [
+    "user_email",
+    "full_name",
+    "age",
+    "categories"
+  ]
+}
