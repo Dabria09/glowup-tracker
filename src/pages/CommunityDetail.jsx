@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy, Flag } from 'lucide-react';
+import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy, Flag, Check } from 'lucide-react';
 
 const COMMUNITY_TYPES = {
   school: { emoji: '🏫', color: '#ec4899' },
@@ -38,6 +38,8 @@ export default function CommunityDetail() {
   const [recentActivity, setRecentActivity] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -220,6 +222,13 @@ export default function CommunityDetail() {
     });
     setNewMessage('');
     loadData();
+  }
+
+  async function handleRoleChange(memberId, newRole) {
+    await base44.entities.CommunityMember.update(memberId, { role: newRole });
+    loadData();
+    setShowRoleModal(false);
+    setSelectedMember(null);
   }
 
   async function handleReportPost(post) {
@@ -438,7 +447,7 @@ export default function CommunityDetail() {
                           </div>
                           <div className="relative">
                             <button className="text-gray-500 hover:text-white"><MoreVertical size={16} /></button>
-                            {(post.user_email === user?.email || isAdmin) && (
+                            {(post.user_email === user?.email || isAdmin || (members.find(m => m.user_email === user?.email)?.role === 'moderator')) && (
                               <button onClick={() => handleDeletePost(post.id)} className="absolute right-0 top-8 text-xs text-red-400 bg-gray-900 px-2 py-1 rounded shadow-lg whitespace-nowrap">
                                 Delete
                               </button>
@@ -492,12 +501,30 @@ export default function CommunityDetail() {
                       <p className="text-sm font-semibold text-white">{member.user_email?.split('@')[0] || 'Member'}</p>
                       <p className="text-xs text-gray-500">Joined {new Date(member.joined_date).toLocaleDateString()}</p>
                     </div>
-                    {member.role === 'admin' && (
-                      <span className="text-xs font-semibold text-purple-400 px-2 py-1 rounded-full"
-                        style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
-                        Admin
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const roleColors = {
+                          admin: { bg: 'rgba(168,85,247,0.2)', border: 'rgba(168,85,247,0.4)', text: 'text-purple-300' },
+                          moderator: { bg: 'rgba(59,130,246,0.2)', border: 'rgba(59,130,246,0.4)', text: 'text-blue-300' },
+                          member: { bg: 'rgba(255,255,255,0.1)', border: 'rgba(255,255,255,0.2)', text: 'text-gray-400' },
+                        };
+                        const roleColor = roleColors[member.role] || roleColors.member;
+                        return (
+                          <>
+                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${roleColor.text}`}
+                              style={{ background: roleColor.bg, border: `1px solid ${roleColor.border}` }}>
+                              {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                            </span>
+                            {isAdmin && member.user_email !== user?.email && (
+                              <button onClick={() => { setSelectedMember(member); setShowRoleModal(true); }}
+                                className="text-xs text-gray-400 hover:text-white px-2 py-1">
+                                Edit
+                              </button>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
                 ))
               )}
@@ -638,6 +665,44 @@ export default function CommunityDetail() {
                 style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                 <Mail size={18} /> Send Invitation
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Role Management Modal */}
+      {showRoleModal && selectedMember && (
+        <div className="fixed inset-0 z-[100]" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowRoleModal(false)}>
+          <div className="fixed bottom-0 left-0 right-0 flex flex-col max-h-[40vh] mb-20" style={{ background: '#1a0a30' }} onClick={e => e.stopPropagation()}>
+            <div className="p-6 flex-1">
+              <div className="flex items-center justify-between mb-4">
+                <p className="font-bold text-white text-lg">Manage Role</p>
+                <button onClick={() => setShowRoleModal(false)}><ChevronLeft size={20} className="text-gray-400 rotate-180" /></button>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">Change role for {selectedMember.user_email?.split('@')[0]}</p>
+              <div className="space-y-2">
+                {[
+                  { role: 'admin', label: 'Admin', desc: 'Full control over community' },
+                  { role: 'moderator', label: 'Moderator', desc: 'Can delete posts and manage members' },
+                  { role: 'member', label: 'Member', desc: 'Regular community member' },
+                ].map(r => (
+                  <button key={r.role} onClick={() => handleRoleChange(selectedMember.id, r.role)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition ${
+                      selectedMember.role === r.role ? 'bg-purple-500/20 border-purple-500/40' : 'bg-white/5 border-white/10'
+                    }`}
+                    style={{ border: '1px solid' }}>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-white">{r.label}</p>
+                      <p className="text-xs text-gray-400">{r.desc}</p>
+                    </div>
+                    {selectedMember.role === r.role && (
+                      <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
+                        <Check size={12} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
