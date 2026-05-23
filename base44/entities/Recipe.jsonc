@@ -1,0 +1,95 @@
+{
+  "name": "Recipe",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "title": {
+      "type": "string",
+      "title": "Recipe Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "Quick & Easy",
+        "Budget-Friendly",
+        "Healthy Swaps",
+        "Meal Prep",
+        "Cultural"
+      ]
+    },
+    "cuisine": {
+      "type": "string",
+      "title": "Cuisine Type",
+      "enum": [
+        "African",
+        "Asian",
+        "Caribbean",
+        "European",
+        "Latin American",
+        "Middle Eastern",
+        "American"
+      ]
+    },
+    "prep_time": {
+      "type": "number",
+      "title": "Prep Time (minutes)"
+    },
+    "cook_time": {
+      "type": "number",
+      "title": "Cook Time (minutes)"
+    },
+    "servings": {
+      "type": "number",
+      "title": "Servings"
+    },
+    "difficulty": {
+      "type": "string",
+      "title": "Difficulty",
+      "enum": [
+        "Easy",
+        "Medium",
+        "Hard"
+      ],
+      "default": "Easy"
+    },
+    "ingredients": {
+      "type": "string",
+      "title": "Ingredients (JSON array)"
+    },
+    "instructions": {
+      "type": "string",
+      "title": "Instructions (JSON array of steps)"
+    },
+    "tips": {
+      "type": "string",
+      "title": "Tips (JSON array)"
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL"
+    },
+    "is_public": {
+      "type": "boolean",
+      "title": "Public Recipe",
+      "default": true
+    },
+    "likes": {
+      "type": "number",
+      "title": "Likes",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_email",
+    "title",
+    "category"
+  ]
+}

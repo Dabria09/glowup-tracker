@@ -1,0 +1,46 @@
+{
+  "name": "KitchenBasic",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Skill Title"
+    },
+    "emoji": {
+      "type": "string",
+      "title": "Emoji"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "Safety",
+        "Technique",
+        "Prep",
+        "Cooking Methods",
+        "Seasoning",
+        "Food Safety"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "steps": {
+      "type": "string",
+      "title": "Steps (JSON array)"
+    },
+    "tips": {
+      "type": "string",
+      "title": "Tips (JSON array)"
+    },
+    "video_url": {
+      "type": "string",
+      "title": "Video URL"
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ]
+}

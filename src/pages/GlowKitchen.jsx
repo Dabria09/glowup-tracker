@@ -50,28 +50,55 @@ export default function GlowKitchen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [shoppingList, setShoppingList] = useState([]);
   const [mealPlanLoaded, setMealPlanLoaded] = useState(false);
+  const [basics, setBasics] = useState([]);
+  const [healthyGuides, setHealthyGuides] = useState([]);
+  const [recipes, setRecipes] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
-    base44.auth.me().then(async (u) => {
-      setUser(u);
-      // Load meal plans and generate shopping list
-      const mealPlans = await base44.entities.MealPlan.filter({ user_email: u.email });
-      const groceryItems = await base44.entities.GroceryItem.filter({ user_email: u.email });
-      
-      // Extract all linked grocery items from meal plans
-      const allGroceryIds = new Set();
-      mealPlans.forEach(meal => {
-        try {
-          const ids = JSON.parse(meal.grocery_items || '[]');
-          ids.forEach(id => allGroceryIds.add(id));
-        } catch {}
-      });
-      
-      // Get the actual grocery items
-      const linkedItems = groceryItems.filter(g => allGroceryIds.has(g.id));
-      setShoppingList(linkedItems);
-      setMealPlanLoaded(true);
-    }).catch(() => base44.auth.redirectToLogin());
+    const loadData = async () => {
+      try {
+        const u = await base44.auth.me();
+        setUser(u);
+        
+        // Load meal plans and generate shopping list
+        const mealPlans = await base44.entities.MealPlan.filter({ user_email: u.email });
+        const groceryItems = await base44.entities.GroceryItem.filter({ user_email: u.email });
+        
+        // Extract all linked grocery items from meal plans
+        const allGroceryIds = new Set();
+        mealPlans.forEach(meal => {
+          try {
+            const ids = JSON.parse(meal.grocery_items || '[]');
+            ids.forEach(id => allGroceryIds.add(id));
+          } catch {}
+        });
+        
+        // Get the actual grocery items
+        const linkedItems = groceryItems.filter(g => allGroceryIds.has(g.id));
+        setShoppingList(linkedItems);
+        setMealPlanLoaded(true);
+        
+        // Load kitchen basics
+        const basicsData = await base44.entities.KitchenBasic.list();
+        setBasics(basicsData);
+        
+        // Load healthy guides
+        const guidesData = await base44.entities.HealthyGuide.list();
+        setHealthyGuides(guidesData);
+        
+        // Load recipes (public + user's own)
+        const recipesData = await base44.entities.Recipe.filter({ is_public: true });
+        setRecipes(recipesData);
+        
+        setLoadingData(false);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setLoadingData(false);
+      }
+    };
+    
+    loadData();
   }, []);
 
   const handlePrintShoppingList = () => {
@@ -114,7 +141,7 @@ export default function GlowKitchen() {
   };
 
   const activeTabData = TABS.find(t => t.id === activeTab);
-  const filteredSkills = BASICS_SKILLS.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredSkills = basics.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
@@ -196,29 +223,49 @@ export default function GlowKitchen() {
             <div className="relative mb-4">
               <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
               <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 type="text"
                 placeholder="Search recipes..."
                 className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm text-white outline-none"
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
               />
             </div>
-            {['Quick & Easy', 'Budget-Friendly', 'Healthy Swaps', 'Meal Prep'].map(category => (
-              <div key={category} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <h3 className="font-bold text-white mb-3">{category}</h3>
-                <div className="space-y-2">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                      <span className="text-2xl">👨‍🍳</span>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-white">Recipe {i}</p>
-                        <p className="text-xs text-gray-400">15 mins • Easy</p>
-                      </div>
-                      <ChevronRight size={16} className="text-gray-500" />
-                    </div>
-                  ))}
-                </div>
+            
+            {loadingData ? (
+              <div className="text-center py-10">
+                <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading recipes...</p>
               </div>
-            ))}
+            ) : recipes.length === 0 ? (
+              <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="text-4xl mb-3">👨‍🍳</div>
+                <p className="text-gray-400 text-sm">No recipes yet</p>
+                <p className="text-gray-500 text-xs mt-1">Check back soon for delicious recipes!</p>
+              </div>
+            ) : (
+              ['Quick & Easy', 'Budget-Friendly', 'Healthy Swaps', 'Meal Prep', 'Cultural'].map(category => {
+                const categoryRecipes = recipes.filter(r => r.category === category && r.title.toLowerCase().includes(searchQuery.toLowerCase()));
+                if (categoryRecipes.length === 0) return null;
+                return (
+                  <div key={category} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <h3 className="font-bold text-white mb-3">{category}</h3>
+                    <div className="space-y-2">
+                      {categoryRecipes.map(recipe => (
+                        <div key={recipe.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          <span className="text-2xl">👨‍🍳</span>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-white">{recipe.title}</p>
+                            <p className="text-xs text-gray-400">{recipe.prep_time + recipe.cook_time} mins • {recipe.difficulty}</p>
+                          </div>
+                          <ChevronRight size={16} className="text-gray-500" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
 
@@ -234,12 +281,31 @@ export default function GlowKitchen() {
                 <p>✓ Use eggs, beans, and lentils as your protein base</p>
               </div>
             </div>
+            
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-xs font-bold text-gray-400 mb-3 uppercase">Budget-Friendly Recipes</p>
+              <div className="space-y-2">
+                {recipes.filter(r => r.category === 'Budget-Friendly').map(recipe => (
+                  <div key={recipe.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <span className="text-2xl">💚</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-white">{recipe.title}</p>
+                      <p className="text-xs text-gray-400">{recipe.servings} servings • {recipe.prep_time + recipe.cook_time} mins</p>
+                    </div>
+                  </div>
+                ))}
+                {recipes.filter(r => r.category === 'Budget-Friendly').length === 0 && (
+                  <p className="text-xs text-gray-500 text-center py-4">Budget recipes coming soon!</p>
+                )}
+              </div>
+            </div>
+            
             <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <p className="text-xs font-bold text-gray-400 mb-3 uppercase">Budget Shopping Tips</p>
               <div className="space-y-2">
-                {['Rice & Beans', 'Seasonal Produce', 'Eggs & Dairy', 'Frozen Items'].map(item => (
+                {['Rice & Beans', 'Seasonal Produce', 'Eggs & Dairy', 'Frozen Items', 'Bulk Grains', 'Dried Legumes'].map(item => (
                   <div key={item} className="flex items-center gap-2 text-sm text-gray-300 p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                    <span className="text-green-400">💚</span> {item}
+                    <span className="text-green-400">✓</span> {item}
                   </div>
                 ))}
               </div>
@@ -253,16 +319,41 @@ export default function GlowKitchen() {
               <h3 className="font-bold text-white text-lg mb-2">🌍 Culinary Traditions Around the World</h3>
               <p className="text-sm text-gray-300">Explore authentic recipes and cooking techniques from different cultures. Learn to cook like locals!</p>
             </div>
-            {['African', 'Asian', 'Caribbean', 'European', 'Latin American', 'Middle Eastern'].map(region => (
-              <div key={region} className="flex items-center gap-3 p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <span className="text-2xl">{region === 'African' ? '🍲' : region === 'Asian' ? '🥢' : region === 'Caribbean' ? '🥥' : region === 'European' ? '🍝' : region === 'Latin American' ? '🌮' : '🍆'}</span>
-                <div className="flex-1">
-                  <p className="font-semibold text-white text-sm">{region} Cuisine</p>
-                  <p className="text-xs text-gray-400">Discover authentic recipes & traditions</p>
+            
+            {['African', 'Asian', 'Caribbean', 'European', 'Latin American', 'Middle Eastern'].map(region => {
+              const regionRecipes = recipes.filter(r => r.cuisine === region);
+              if (regionRecipes.length === 0) return null;
+              return (
+                <div key={region} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl">{region === 'African' ? '🍲' : region === 'Asian' ? '🥢' : region === 'Caribbean' ? '🥥' : region === 'European' ? '🍝' : region === 'Latin American' ? '🌮' : '🍆'}</span>
+                    <div>
+                      <p className="font-semibold text-white text-sm">{region} Cuisine</p>
+                      <p className="text-xs text-gray-400">{regionRecipes.length} recipe{regionRecipes.length !== 1 ? 's' : ''}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {regionRecipes.map(recipe => (
+                      <div key={recipe.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <span className="text-xl">👨‍🍳</span>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-white">{recipe.title}</p>
+                          <p className="text-xs text-gray-400">{recipe.prep_time + recipe.cook_time} mins • {recipe.difficulty}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <ChevronRight size={16} className="text-gray-500" />
+              );
+            })}
+            
+            {recipes.filter(r => ['African', 'Asian', 'Caribbean', 'European', 'Latin American', 'Middle Eastern'].includes(r.cuisine)).length === 0 && (
+              <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="text-4xl mb-3">🌍</div>
+                <p className="text-gray-400 text-sm">Cultural recipes coming soon!</p>
+                <p className="text-gray-500 text-xs mt-1">Explore cuisines from around the world</p>
               </div>
-            ))}
+            )}
           </div>
         )}
 
@@ -289,60 +380,162 @@ export default function GlowKitchen() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              {filteredSkills.map((skill, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setExpandedSkill(expandedSkill === idx ? null : idx)}
-                  className="w-full text-left"
-                >
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <span className="text-lg flex-shrink-0">{skill.emoji}</span>
-                    <span className="flex-1 font-semibold text-sm text-white">{skill.title}</span>
-                    <ChevronDown size={16} className={`text-gray-500 transition ${expandedSkill === idx ? 'rotate-180' : ''}`} />
-                  </div>
-                  {expandedSkill === idx && (
-                    <div className="mt-2 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <p className="text-xs text-gray-400">Step-by-step instructions and tips for {skill.title.toLowerCase()}</p>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
+            {loadingData ? (
+              <div className="text-center py-10">
+                <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading skills...</p>
+              </div>
+            ) : filteredSkills.length === 0 ? (
+              <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="text-4xl mb-3">⭐</div>
+                <p className="text-gray-400 text-sm">No skills found</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredSkills.map((skill, idx) => {
+                  const steps = JSON.parse(skill.steps || '[]');
+                  const tips = JSON.parse(skill.tips || '[]');
+                  return (
+                    <button
+                      key={skill.id}
+                      onClick={() => setExpandedSkill(expandedSkill === skill.id ? null : skill.id)}
+                      className="w-full text-left"
+                    >
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <span className="text-lg flex-shrink-0">{skill.emoji}</span>
+                        <div className="flex-1 text-left">
+                          <p className="font-semibold text-sm text-white">{skill.title}</p>
+                          <p className="text-xs text-gray-500">{skill.category}</p>
+                        </div>
+                        <ChevronDown size={16} className={`text-gray-500 transition ${expandedSkill === skill.id ? 'rotate-180' : ''}`} />
+                      </div>
+                      {expandedSkill === skill.id && (
+                        <div className="mt-2 px-4 py-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          <p className="text-sm text-gray-300 mb-3">{skill.description}</p>
+                          <div className="mb-3">
+                            <p className="text-xs font-bold text-gray-400 mb-2 uppercase">Steps:</p>
+                            <ol className="space-y-1">
+                              {steps.map((step, i) => (
+                                <li key={i} className="text-xs text-gray-300 flex gap-2">
+                                  <span className="text-pink-400 font-bold">{i + 1}.</span>
+                                  {step}
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                          {tips.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold text-gray-400 mb-2 uppercase">Pro Tips:</p>
+                              <ul className="space-y-1">
+                                {tips.map((tip, i) => (
+                                  <li key={i} className="text-xs text-gray-300 flex gap-2">
+                                    <span className="text-green-400">✓</span>
+                                    {tip}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'healthy' && (
           <div className="space-y-3">
-            {HEALTHY_GUIDES.map((guide) => (
-              <button
-                key={guide.id}
-                onClick={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
-                className="w-full text-left"
-              >
-                <div className="flex items-center gap-3 px-4 py-4 rounded-2xl" style={{ background: guide.color, border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <span className="text-2xl flex-shrink-0">{guide.emoji}</span>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-white text-sm">{guide.title}</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">Actionable habits & tips</p>
-                  </div>
-                  <ChevronDown size={16} className={`text-gray-500 transition ${expandedGuide === guide.id ? 'rotate-180' : ''}`} />
-                </div>
-                {expandedGuide === guide.id && (
-                  <div className="mt-2 px-4 py-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <div className="space-y-2">
-                      <p className="text-xs font-bold text-gray-400 uppercase">Daily Habits</p>
-                      {[1, 2, 3, 4, 5, 6].map((n) => (
-                        <div key={n} className="flex gap-2 text-xs text-gray-300">
-                          <span className="text-green-400 flex-shrink-0">✓</span>
-                          <span>Habit {n} for better {guide.title.toLowerCase()}</span>
-                        </div>
-                      ))}
+            {loadingData ? (
+              <div className="text-center py-10">
+                <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading guides...</p>
+              </div>
+            ) : healthyGuides.length === 0 ? (
+              <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="text-4xl mb-3">🥗</div>
+                <p className="text-gray-400 text-sm">No guides available</p>
+              </div>
+            ) : (
+              healthyGuides.map((guide) => {
+                const habits = JSON.parse(guide.daily_habits || '[]');
+                const tips = JSON.parse(guide.tips || '[]');
+                const foodsToEat = JSON.parse(guide.foods_to_eat || '[]');
+                const foodsToAvoid = JSON.parse(guide.foods_to_avoid || '[]');
+                return (
+                  <button
+                    key={guide.id}
+                    onClick={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-center gap-3 px-4 py-4 rounded-2xl" style={{ background: guide.color, border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <span className="text-2xl flex-shrink-0">{guide.emoji}</span>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-white text-sm">{guide.title}</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">{guide.description}</p>
+                      </div>
+                      <ChevronDown size={16} className={`text-gray-500 transition ${expandedGuide === guide.id ? 'rotate-180' : ''}`} />
                     </div>
-                  </div>
-                )}
-              </button>
-            ))}
+                    {expandedGuide === guide.id && (
+                      <div className="mt-2 px-4 py-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div className="space-y-4">
+                          <div>
+                            <p className="text-xs font-bold text-gray-400 mb-2 uppercase">Daily Habits</p>
+                            <ul className="space-y-1">
+                              {habits.map((habit, i) => (
+                                <li key={i} className="text-xs text-gray-300 flex gap-2">
+                                  <span className="text-green-400 flex-shrink-0">✓</span>
+                                  {habit}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          {tips.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold text-gray-400 mb-2 uppercase">Pro Tips</p>
+                              <ul className="space-y-1">
+                                {tips.map((tip, i) => (
+                                  <li key={i} className="text-xs text-gray-300 flex gap-2">
+                                    <span className="text-blue-400 flex-shrink-0">💡</span>
+                                    {tip}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {foodsToEat.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold text-green-400 mb-2 uppercase">Foods to Eat</p>
+                              <div className="flex flex-wrap gap-2">
+                                {foodsToEat.map((food, i) => (
+                                  <span key={i} className="text-xs px-2 py-1 rounded-full bg-green-900/30 text-green-300 border border-green-700/50">
+                                    {food}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {foodsToAvoid.length > 0 && (
+                            <div>
+                              <p className="text-xs font-bold text-red-400 mb-2 uppercase">Foods to Limit</p>
+                              <div className="flex flex-wrap gap-2">
+                                {foodsToAvoid.map((food, i) => (
+                                  <span key={i} className="text-xs px-2 py-1 rounded-full bg-red-900/30 text-red-300 border border-red-700/50">
+                                    {food}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </button>
+                );
+              })
+            )}
           </div>
         )}
 

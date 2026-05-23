@@ -1,0 +1,46 @@
+{
+  "name": "HealthyGuide",
+  "type": "object",
+  "properties": {
+    "guide_id": {
+      "type": "string",
+      "title": "Guide ID"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "emoji": {
+      "type": "string",
+      "title": "Emoji"
+    },
+    "color": {
+      "type": "string",
+      "title": "Card Color"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "daily_habits": {
+      "type": "string",
+      "title": "Daily Habits (JSON array)"
+    },
+    "tips": {
+      "type": "string",
+      "title": "Tips (JSON array)"
+    },
+    "foods_to_eat": {
+      "type": "string",
+      "title": "Foods to Eat (JSON array)"
+    },
+    "foods_to_avoid": {
+      "type": "string",
+      "title": "Foods to Avoid (JSON array)"
+    }
+  },
+  "required": [
+    "guide_id",
+    "title"
+  ]
+}
