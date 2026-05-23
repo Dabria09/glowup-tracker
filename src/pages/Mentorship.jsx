@@ -6,7 +6,7 @@ import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Search, Users, Plus, MessageCircle, BookOpen } from 'lucide-react';
 import MentorApplicationModal from '@/components/mentorship/MentorApplicationModal';
 import AnonymousQuestionModal from '@/components/mentorship/AnonymousQuestionModal';
-import MentorCard from '@/components/mentorship/MentorCard';
+import MentorDirectory from '@/components/mentorship/MentorDirectory';
 import WisdomCard from '@/components/mentorship/WisdomCard';
 
 const CATEGORIES = [
@@ -149,47 +149,6 @@ export default function Mentorship() {
           </button>
         </div>
 
-        {/* Category Filters (Mentors tab only) */}
-        {activeTab === 'mentors' && (
-          <>
-            <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
-              {CATEGORIES.map(cat => {
-                const isActive = activeCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition ${
-                      isActive
-                        ? 'text-white'
-                        : 'text-gray-400 hover:text-gray-200'
-                    }`}
-                    style={
-                      isActive
-                        ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' }
-                        : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }
-                    }
-                  >
-                    {cat.emoji} {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Search Bar */}
-            <div className="mb-6 relative">
-              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search mentors..."
-                className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm text-white outline-none"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-              />
-            </div>
-          </>
-        )}
-
         {/* Content */}
         {loading ? (
           <div className="text-center py-20">
@@ -197,27 +156,7 @@ export default function Mentorship() {
             <p className="text-gray-400 text-sm">Loading...</p>
           </div>
         ) : activeTab === 'mentors' ? (
-          filteredMentors.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <div className="text-5xl mb-4">✨</div>
-              <h2 className="text-xl font-bold text-white mb-2">Mentors Coming Soon</h2>
-              <p className="text-sm text-gray-400 text-center mb-4">We're reviewing applications now. Check back soon!</p>
-              <button
-                onClick={() => setShowApplicationModal(true)}
-                className="px-6 py-3 rounded-full font-semibold text-sm text-white"
-                style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
-              >
-                <Plus size={16} className="inline mr-2" />
-                Apply to be a Mentor
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredMentors.map(mentor => (
-                <MentorCard key={mentor.id} mentor={mentor} onBookSession={handleBookSession} />
-              ))}
-            </div>
-          )
+          <MentorDirectory mentors={mentors} user={user} />
         ) : (
           wisdomQuestions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
