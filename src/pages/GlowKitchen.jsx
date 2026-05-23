@@ -507,6 +507,87 @@ export default function GlowKitchen() {
               )}
             </button>
 
+            {/* Hardcoded guides: Balanced Eating & Mindful Eating */}
+            {[
+              {
+                id: 'balanced-eating',
+                emoji: '🌈',
+                title: 'Balanced Eating',
+                description: 'Eat a variety of foods from every food group every day',
+                color: 'linear-gradient(135deg, rgba(34,197,94,0.2), rgba(168,85,247,0.2))',
+                daily_habits: JSON.stringify([
+                  'Fill half your plate with colorful fruits and vegetables at every meal',
+                  'Choose whole grains (brown rice, oats, whole wheat bread) over white/refined grains',
+                  'Include a protein source at every meal: eggs, beans, chicken, tofu, Greek yogurt',
+                  'Add healthy fats daily: avocado, nuts, seeds, olive oil',
+                  'Eat 3 balanced meals and 1-2 snacks — skipping meals leads to overeating later',
+                  'Aim for 5+ different colored fruit/veggies per day (each color = different nutrients)'
+                ]),
+                tips: JSON.stringify(['The 80/20 rule: eat nutritious foods 80% of the time, enjoy your faves guilt-free 20% of the time 💚'])
+              },
+              {
+                id: 'mindful-eating',
+                emoji: '🧘',
+                title: 'Mindful Eating',
+                description: 'Pay attention to what, when, and why you eat — your body knows best',
+                color: 'linear-gradient(135deg, rgba(168,85,247,0.2), rgba(236,72,153,0.2))',
+                daily_habits: JSON.stringify([
+                  'Eat slowly — it takes 20 minutes for your brain to register fullness',
+                  'Put your phone down during meals and actually taste your food',
+                  'Check in with your hunger before eating: are you actually hungry or just bored/stressed?',
+                  'Stop eating when you\'re 80% full — not stuffed',
+                  'Notice how different foods make you feel (energized vs. sluggish)',
+                  'Don\'t label foods as \'good\' or \'bad\' — all foods can fit in a healthy lifestyle'
+                ]),
+                tips: JSON.stringify(['Mindful eating reduces overeating, improves digestion, and helps you enjoy food more 💜'])
+              }
+            ].map((guide) => {
+              const habits = JSON.parse(guide.daily_habits || '[]');
+              const guideTips = JSON.parse(guide.tips || '[]');
+              return (
+                <button
+                  key={guide.id}
+                  onClick={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-center gap-3 px-4 py-4 rounded-2xl" style={{ background: guide.color, border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <span className="text-2xl flex-shrink-0">{guide.emoji}</span>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-white text-sm">{guide.title}</h3>
+                      <p className="text-xs text-gray-400 mt-0.5">{guide.description}</p>
+                    </div>
+                    <ChevronDown size={16} className={`text-gray-500 transition ${expandedGuide === guide.id ? 'rotate-180' : ''}`} />
+                  </div>
+                  {expandedGuide === guide.id && (
+                    <div className="mt-2 px-4 py-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-xs font-bold text-gray-400 mb-2 uppercase">Daily Habits</p>
+                          <ul className="space-y-2">
+                            {habits.map((habit, i) => (
+                              <li key={i} className="text-xs text-gray-300 flex gap-2">
+                                <span className="text-green-400 font-bold flex-shrink-0">{i + 1}.</span>
+                                {habit}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        {guideTips.length > 0 && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-400 mb-2 uppercase">Pro Tip</p>
+                            <p className="text-xs text-gray-300 flex gap-2">
+                              <span className="flex-shrink-0">💡</span>
+                              {guideTips[0]}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+
             {loadingData ? (
               <div className="text-center py-10">
                 <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
