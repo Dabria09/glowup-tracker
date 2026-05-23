@@ -21,6 +21,10 @@ const SECTION_TABS = [
   { id: 'college', label: 'College & Adulting', emoji: '🎓' },
   { id: 'journals', label: 'Journals & Workbooks', emoji: '📓' },
   { id: 'your_voice', label: 'Your Voice', emoji: '🎤' },
+  { id: 'mindset_growth', label: 'Mindset & Growth', emoji: '🧠' },
+  { id: 'health_wellness', label: 'Health & Wellness', emoji: '💪' },
+  { id: 'relationships_safety', label: 'Relationships & Safety', emoji: '🛡️' },
+  { id: 'school_career', label: 'School & Career Skills', emoji: '🎓' },
 ];
 
 const CAT_META = {
@@ -43,6 +47,10 @@ const CAT_META = {
   life_skills:     { label: 'Life Skills',            emoji: '🏛️', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
   healthy_eating:  { label: 'Healthy Eating',         emoji: '🥗', labelColor: '#4ade80', cardBg: 'rgba(6,78,59,0.45)' },
   time_mgmt:       { label: 'Time Management',        emoji: '⏰', labelColor: '#c084fc', cardBg: 'rgba(88,28,135,0.55)' },
+  adhd:            { label: 'ADHD',                   emoji: '⚡', labelColor: '#fbbf24', cardBg: 'rgba(120,53,15,0.5)' },
+  caring_for_pets: { label: 'Caring for Pets',        emoji: '🐾', labelColor: '#4ade80', cardBg: 'rgba(6,78,59,0.45)' },
+  parenthood:      { label: 'Parenthood',             emoji: '👶', labelColor: '#f472b6', cardBg: 'rgba(131,24,67,0.45)' },
+  good_parenting:  { label: 'Good Parenting',         emoji: '💝', labelColor: '#f472b6', cardBg: 'rgba(131,24,67,0.45)' },
 };
 
 const RESOURCES = [
@@ -370,6 +378,61 @@ const RESOURCES = [
     desc: 'No is not the end of your story. Learn how to handle rejection with grace and resilience.',
     tips: ['Rejection is redirection — it often protects you from what wasn\'t right for you','Don\'t take rejection personally — often it has nothing to do with your worth','Every successful person has a rejection story — sometimes hundreds','How you respond to "no" says more about you than the rejection itself','Give yourself 24 hours to feel it, then move forward'],
     actions: ['Journal about your last major rejection: what did you learn?','Apply to something you\'re afraid of being rejected from this month','Practice celebrating your efforts regardless of the outcome','Read about a successful person\'s rejection story (J.K. Rowling, Michael Jordan)','Reframe your last rejection: "What door did this close? What door might it open?"'] },
+
+  { id: 66, cat: 'adhd', emoji: '⚡', title: 'Understanding ADHD',
+    desc: 'ADHD is not a flaw — it\'s a different way of thinking. Learn what it means and how to work with your brain.',
+    tips: ['ADHD affects focus, impulse control, and time perception — not intelligence','Girls with ADHD are often underdiagnosed because symptoms look different than in boys','Hyperfocus is a real ADHD trait — use it as a superpower','Your brain needs structure, not shame','Medication is one tool — not the only one, and not for everyone'],
+    actions: ['Talk to a doctor or school counselor if you suspect you have ADHD','Research the difference between ADHD-Inattentive and ADHD-Combined types','Try body doubling (working alongside someone) for focus','Use timers and alarms to manage transitions between tasks','Build external structure: planners, checklists, and visual reminders'] },
+
+  { id: 67, cat: 'adhd', emoji: '📋', title: 'ADHD Study Strategies That Actually Work',
+    desc: 'Standard study advice doesn\'t always work for ADHD brains. Here\'s what actually does.',
+    tips: ['Short focused bursts work better than long study sessions for ADHD brains','Movement before studying improves focus significantly','Visual timers make time feel real and manageable','Remove distractions BEFORE you start — not after you\'re already distracted','Background music or brown noise can help ADHD brains focus'],
+    actions: ['Try the Pomodoro method: 15 min on, 5 min break','Use a visual timer app like Forest or Focusmate','Study in a distraction-free environment — phone in another room','Try walking while reviewing notes or flashcards','Ask your school about accommodations like extended time or a quiet testing room'] },
+
+  { id: 68, cat: 'adhd', emoji: '💊', title: 'Managing ADHD Without Shame',
+    desc: 'Living with ADHD means building systems that work for YOUR brain — not forcing yourself into neurotypical boxes.',
+    tips: ['Shame spirals are common with ADHD — break the cycle with self-compassion','You are not lazy. You are not broken. Your brain works differently.','Consistent routines reduce the mental load of ADHD significantly','Accountability partners and coaches are powerful ADHD tools','Many successful women — CEOs, athletes, artists — have ADHD'],
+    actions: ['Build a simple morning routine you can follow on autopilot','Find an accountability partner who understands your brain','Follow ADHD creators who normalize the experience (e.g. @HowToADHD)','Research IEPs and 504 plans at your school for academic support','Practice self-compassion: "I am not behind. I am learning how my brain works."'] },
+
+  { id: 69, cat: 'caring_for_pets', emoji: '🐾', title: 'Basic Pet Care 101',
+    desc: 'Owning a pet is one of the most rewarding responsibilities you can have. Learn the basics to keep your pet happy and healthy.',
+    tips: ['Pets need consistent feeding, water, and veterinary care — not just when convenient','Spaying or neutering your pet prevents health issues and overpopulation','Annual vet checkups catch health problems before they become emergencies','Pets need mental stimulation and exercise — not just food and shelter','A pet\'s behavior reflects the care and training it receives'],
+    actions: ['Set up a consistent daily feeding and exercise schedule for your pet','Schedule an annual vet checkup if you haven\'t already','Research your specific pet\'s needs: diet, exercise, grooming, and lifespan','Invest in proper ID tags and microchipping for safety','Learn the signs of illness in your pet species so you catch problems early'] },
+
+  { id: 70, cat: 'caring_for_pets', emoji: '🐕', title: 'Dog Care & Training Basics',
+    desc: 'Dogs are loyal companions — but they need structure, love, and training to thrive.',
+    tips: ['Consistency is the key to dog training — same rules every time','Positive reinforcement works better than punishment','Dogs need daily exercise — a tired dog is a well-behaved dog','Socialization early in life prevents fear and aggression later','Never leave dogs in hot cars — even for a few minutes'],
+    actions: ['Establish house rules for your dog and stick to them consistently','Research basic commands: sit, stay, come, leave it, and down','Sign up for a beginner obedience class if you have a new puppy','Create a daily walk and play schedule for your dog','Puppy-proof your home and yard for their safety'] },
+
+  { id: 71, cat: 'caring_for_pets', emoji: '🐈', title: 'Cat Care Essentials',
+    desc: 'Cats are independent but deeply loving — and they have real needs that require your attention.',
+    tips: ['Indoor cats live significantly longer than outdoor cats','Clean the litter box daily — cats avoid dirty boxes','Cats need scratch posts to maintain claw health','Regular brushing reduces shedding and hairballs','Cats can develop stress-related illnesses — they need a calm environment'],
+    actions: ['Set up a litter box area and clean it every day','Buy a scratching post near where your cat likes to scratch','Schedule an annual vet visit including vaccinations','Provide climbing spaces and window perches for mental stimulation','Learn the signs of stress in cats: hiding, over-grooming, or litter box issues'] },
+
+  { id: 72, cat: 'parenthood', emoji: '👶', title: 'Teen Pregnancy: What You Need to Know',
+    desc: 'Honest, non-judgmental information about teen pregnancy — because knowledge protects you.',
+    tips: ['Pregnancy can occur even with contraception — no method is 100% effective except abstinence','Early prenatal care dramatically improves outcomes for mom and baby','You are not alone — there are resources and support systems for teen moms','Your education does not have to end — many schools have programs for pregnant teens','Making an informed decision requires all the facts'],
+    actions: ['Take a pregnancy test if you\'re concerned — the sooner you know, the more options you have','Call 1-800-672-2296 (Option Line) for free, confidential pregnancy support','Talk to a trusted adult, doctor, or counselor right away','Research your state\'s laws and available resources for pregnant teens','Know that you have rights: at school, medically, and legally'] },
+
+  { id: 73, cat: 'parenthood', emoji: '💪', title: 'If You\'re Already a Teen Mom',
+    desc: 'Being a teen mom is hard — but it doesn\'t define your ceiling. Here\'s how to keep moving forward.',
+    tips: ['Your child needs you to take care of yourself first','Accepting help is strength — not weakness','Your education is one of the greatest gifts you can give your child','Financial assistance programs exist specifically for young parents','You are building a legacy — not just surviving'],
+    actions: ['Apply for WIC, SNAP, Medicaid, and childcare assistance in your state','Research GED programs or online school options if needed','Connect with a teen parent support group in your community','Create a realistic budget that includes childcare, food, and housing','Identify one long-term goal and take one small step toward it every week'] },
+
+  { id: 74, cat: 'good_parenting', emoji: '💝', title: 'What Makes a Good Parent',
+    desc: 'Parenting is one of the most important things anyone will ever do. Here\'s what actually matters.',
+    tips: ['Consistency and presence matter more than perfection','Children need to feel safe, seen, heard, and loved — every day','Your child learns from watching you — not just listening to you','Repair matters: how you recover from conflict teaches resilience','Love is not just a feeling — it\'s an action expressed every day'],
+    actions: ['Put your phone down for 30 minutes of undivided attention with your child each day','Learn the difference between discipline and punishment','Read "The Whole-Brain Child" by Daniel Siegel','Apologize to your child when you\'re wrong — it teaches accountability','Identify your own childhood wounds so they don\'t become your child\'s'] },
+
+  { id: 75, cat: 'good_parenting', emoji: '🧠', title: 'Raising Emotionally Intelligent Kids',
+    desc: 'Emotional intelligence is one of the greatest gifts you can give a child — and it starts with you.',
+    tips: ['Name feelings out loud: "It sounds like you\'re feeling frustrated"','Allow children to feel emotions without immediately trying to fix them','Children learn emotional regulation by watching adults regulate emotions','Validate before you redirect: "I understand you\'re upset AND we still can\'t..."','Read-alouds about emotions build emotional vocabulary in young children'],
+    actions: ['Practice naming your own emotions out loud in front of your child','Use feeling charts or emotion cards with younger children','Watch "Inside Out" together and discuss the emotions as a family','Respond to tantrums with calm — even when it\'s hard','Create a calm-down corner in your home with sensory tools and books'] },
+
+  { id: 76, cat: 'good_parenting', emoji: '🛡️', title: 'Protecting Your Child from Abuse',
+    desc: 'Every parent needs to know how to recognize, prevent, and respond to child abuse.',
+    tips: ['Teach body safety early using correct anatomical names','Teach children that secrets about bodies are never okay — only surprises are okay','Know the signs: behavioral changes, age-inappropriate knowledge, withdrawal','Most abuse is perpetrated by someone the family knows and trusts','Believe children when they disclose — your response determines whether they tell again'],
+    actions: ['Read "My Body Belongs to Me" with young children','Have age-appropriate conversations about body safety regularly','Know the Childhelp National Child Abuse Hotline: 1-800-422-4453','Research Darkness to Light\'s Stewards of Children program for parents','Review who has unsupervised access to your child and trust your instincts'] },
 ];
 
 export default function GirlsLibrary() {
