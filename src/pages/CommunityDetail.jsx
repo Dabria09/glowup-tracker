@@ -503,17 +503,18 @@ export default function CommunityDetail() {
                     </div>
                     <div className="flex items-center gap-2">
                       {(() => {
-                        const roleColors = {
-                          admin: { bg: 'rgba(168,85,247,0.2)', border: 'rgba(168,85,247,0.4)', text: 'text-purple-300' },
-                          moderator: { bg: 'rgba(59,130,246,0.2)', border: 'rgba(59,130,246,0.4)', text: 'text-blue-300' },
-                          member: { bg: 'rgba(255,255,255,0.1)', border: 'rgba(255,255,255,0.2)', text: 'text-gray-400' },
+                        const roleBadges = {
+                          admin: { emoji: '👑', label: 'Admin', bg: 'rgba(168,85,247,0.2)', border: 'rgba(168,85,247,0.4)', text: 'text-purple-300' },
+                          moderator: { emoji: '🛡️', label: 'Moderator', bg: 'rgba(59,130,246,0.2)', border: 'rgba(59,130,246,0.4)', text: 'text-blue-300' },
+                          member: { emoji: '💜', label: 'Member', bg: 'rgba(255,255,255,0.1)', border: 'rgba(255,255,255,0.2)', text: 'text-gray-400' },
                         };
-                        const roleColor = roleColors[member.role] || roleColors.member;
+                        const roleBadge = roleBadges[member.role] || roleBadges.member;
                         return (
                           <>
-                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${roleColor.text}`}
-                              style={{ background: roleColor.bg, border: `1px solid ${roleColor.border}` }}>
-                              {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                            <span className={`text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1 ${roleBadge.text}`}
+                              style={{ background: roleBadge.bg, border: `1px solid ${roleBadge.border}` }}>
+                              <span className="text-xs">{roleBadge.emoji}</span>
+                              {roleBadge.label}
                             </span>
                             {isAdmin && member.user_email !== user?.email && (
                               <button onClick={() => { setSelectedMember(member); setShowRoleModal(true); }}
