@@ -56,6 +56,7 @@ import MockVote from './pages/MockVote';
 import CommunityHub from './pages/CommunityHub';
 import CommunityDetail from './pages/CommunityDetail';
 import AdminLogs from './pages/AdminLogs';
+import GlowKitchen from './pages/GlowKitchen';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -126,6 +127,7 @@ const AuthenticatedApp = () => {
       <Route path="/community-hub" element={<CommunityHub />} />
       <Route path="/community-hub/:id" element={<CommunityDetail />} />
       <Route path="/admin-logs" element={<AdminLogs />} />
+      <Route path="/glow-kitchen" element={<GlowKitchen />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
