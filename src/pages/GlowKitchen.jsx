@@ -253,8 +253,6 @@ export default function GlowKitchen() {
   const [culturalPosts, setCulturalPosts] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
 
-  const [basicsToShow, setBasicsToShow] = useState(KITCHEN_BASICS);
-
   const loadData = async () => {
     try {
       const u = await base44.auth.me();
