@@ -1,11 +1,29 @@
-import { useState } from 'react';
-import { X, Image as ImageIcon, Plus } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { X, Image as ImageIcon, Plus, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function PostModal({ isOpen, onClose, user, onPostCreated }) {
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [uploadedImage, setUploadedImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setUploadedImage(file_url);
+      setImageUrl(file_url);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!content.trim()) return;
@@ -17,11 +35,12 @@ export default function PostModal({ isOpen, onClose, user, onPostCreated }) {
       await base44.integrations.Core.SendEmail({
         to: user.email,
         subject: '🍽️ Kitchen Post Shared!',
-        body: `Your post was shared: "${content}"`
+        body: `Your post was shared: "${content}"${imageUrl ? `\n\nImage: ${imageUrl}` : ''}`
       });
       
       setContent('');
       setImageUrl('');
+      setUploadedImage(null);
       onPostCreated();
       onClose();
     } catch (error) {
@@ -67,21 +86,47 @@ export default function PostModal({ isOpen, onClose, user, onPostCreated }) {
 
           <div>
             <label className="text-xs font-bold text-gray-400 mb-2 block">Add an image (optional)</label>
-            <div className="relative">
+            
+            {/* Upload Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={loading}
+              className="w-full py-3 rounded-xl border-2 border-dashed border-gray-600 text-gray-400 hover:border-pink-500 hover:text-pink-400 transition flex items-center justify-center gap-2"
+              style={{ background: 'rgba(255,255,255,0.02)' }}
+            >
+              <Upload size={18} />
+              {uploadedImage ? 'Change Image' : 'Upload from Device'}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+
+            {/* URL Input (alternative) */}
+            <div className="mt-3">
               <input
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="Paste image URL..."
+                placeholder="Or paste image URL..."
                 className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
               />
             </div>
-            {imageUrl && (
+
+            {/* Image Preview */}
+            {(uploadedImage || imageUrl) && (
               <img
                 src={imageUrl}
                 alt="Preview"
                 className="w-full h-40 object-cover rounded-xl mt-3"
-                onError={() => setImageUrl('')}
+                onError={() => {
+                  setImageUrl('');
+                  setUploadedImage(null);
+                }}
               />
             )}
           </div>
