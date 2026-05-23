@@ -79,9 +79,9 @@ export default function MoneyTracker() {
   const fmt = (n) => '$' + n.toFixed(2);
 
   return (
-    <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
+    <div className="min-h-screen text-white relative" style={{ backgroundColor: '#0d0010' }}>
       <AppBackground />
-      <div className="relative z-10">
+      <div className="relative z-10 pb-24">
         {/* Header */}
         <div className="px-4 pt-4 pb-2">
           <div className="flex items-center justify-between mb-1">
@@ -220,9 +220,9 @@ export default function MoneyTracker() {
 
       {/* Add Entry Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowForm(false)}>
-          <div className="w-full rounded-t-3xl flex flex-col max-h-[85vh]" style={{ background: '#1a0a30' }} onClick={e => e.stopPropagation()}>
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 pb-4">
+        <div className="fixed inset-0 z-[100]" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowForm(false)}>
+          <div className="fixed bottom-0 left-0 right-0 flex flex-col max-h-[75vh] mb-20" style={{ background: '#1a0a30' }} onClick={e => e.stopPropagation()}>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <p className="font-bold text-white text-lg">Add Entry</p>
                 <button onClick={() => setShowForm(false)}><X size={20} className="text-gray-400" /></button>
