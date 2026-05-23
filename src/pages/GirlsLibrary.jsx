@@ -11,20 +11,6 @@ import { BookOpen, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 const SECTION_TABS = [
   { id: 'resources', label: 'Resources', emoji: '📚' },
   { id: 'book_club', label: 'Book Club', emoji: '📖' },
-  { id: 'glow_reads', label: 'Glow Reads', emoji: '✨' },
-  { id: 'recommended', label: 'Recommended', emoji: '⭐' },
-  { id: 'audiobooks', label: 'Audiobooks', emoji: '🎧' },
-  { id: 'faith', label: 'Faith & Inspiration', emoji: '🙏' },
-  { id: 'career', label: 'Career & Business', emoji: '💼' },
-  { id: 'confidence', label: 'Confidence & Healing', emoji: '💜' },
-  { id: 'teen_reads', label: 'Teen Reads', emoji: '📕' },
-  { id: 'college', label: 'College & Adulting', emoji: '🎓' },
-  { id: 'journals', label: 'Journals & Workbooks', emoji: '📓' },
-  { id: 'your_voice', label: 'Your Voice', emoji: '🎤' },
-  { id: 'mindset_growth', label: 'Mindset & Growth', emoji: '🧠' },
-  { id: 'health_wellness', label: 'Health & Wellness', emoji: '💪' },
-  { id: 'relationships_safety', label: 'Relationships & Safety', emoji: '🛡️' },
-  { id: 'school_career', label: 'School & Career Skills', emoji: '🎓' },
 ];
 
 const CAT_META = {
@@ -471,13 +457,21 @@ export default function GirlsLibrary() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedResource, setSelectedResource] = useState(null);
   const [user, setUser] = useState(null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
   const ALL_CATS = Object.keys(CAT_META);
-  const filtered = activeCategory === 'all' ? RESOURCES : RESOURCES.filter(r => r.cat === activeCategory);
+  const filtered = (() => {
+    let list = activeCategory === 'all' ? RESOURCES : RESOURCES.filter(r => r.cat === activeCategory);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(r => r.title.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q) || CAT_META[r.cat]?.label.toLowerCase().includes(q));
+    }
+    return list;
+  })();
   const categoryTiles = ALL_CATS.map(id => ({ id, ...CAT_META[id] }));
 
   return (
@@ -500,6 +494,21 @@ export default function GirlsLibrary() {
             style={{ background: 'linear-gradient(135deg, rgba(109,40,217,0.4), rgba(139,10,120,0.3))', border: '1px solid rgba(168,85,247,0.25)' }}>
             <p className="text-xs font-bold text-yellow-300 mb-0.5">✨ Recommended For You</p>
             <p className="text-xs text-gray-300">Resources handpicked based on your interests and growth stage</p>
+          </div>
+          {/* Search */}
+          <div className="relative mt-3">
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search resources..."
+              className="w-full rounded-2xl px-4 py-3 pl-10 text-sm text-white outline-none"
+              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+            />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">✕</button>
+            )}
           </div>
         </div>
 
@@ -561,8 +570,8 @@ export default function GirlsLibrary() {
           <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" /></div>
         )}
 
-        {/* Resource List (category selected) */}
-        {activeSection === 'resources' && activeCategory !== 'all' && (
+        {/* Resource List (category selected or search active) */}
+        {activeSection === 'resources' && (activeCategory !== 'all' || search.trim()) && (
           <div className="space-y-3 px-4 pb-4">
             {filtered.map(r => {
               const meta = CAT_META[r.cat];
