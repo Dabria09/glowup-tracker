@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Plus, Star } from 'lucide-react';
+import { ChevronLeft, Plus, Star, Search, ChevronDown } from 'lucide-react';
 
 const TABS = [
+  { id: 'feed', label: 'Feed', emoji: '📸' },
+  { id: 'recipes', label: 'Recipes', emoji: '👨‍🍳' },
   { id: 'grocery', label: 'Grocery', emoji: '🛒' },
   { id: 'budget', label: 'Budget', emoji: '💰' },
   { id: 'cultural', label: 'Cultural', emoji: '🌍' },
@@ -14,16 +16,45 @@ const TABS = [
   { id: 'healthy', label: 'Healthy', emoji: '🥗' },
 ];
 
+const BASICS_SKILLS = [
+  { title: 'Knife Safety Basics', emoji: '🔪' },
+  { title: 'Mise en Place', emoji: '📋' },
+  { title: 'Knife Mastery: The Pinch Grip', emoji: '🖐️' },
+  { title: 'How to Meal Prep for the Week', emoji: '🍱' },
+  { title: 'How to Make a Smoothie', emoji: '🥤' },
+  { title: 'Sautéing: Quick & Flavorful', emoji: '🍳' },
+  { title: 'Roasting: Oven Magic', emoji: '🍗' },
+  { title: 'Boiling & Simmering', emoji: '🫖' },
+  { title: 'Salt: The Flavor Enhancer', emoji: '🧂' },
+  { title: 'Fat: Flavor Carrier & Texture Builder', emoji: '🧈' },
+  { title: 'Acid: The Secret Brightener', emoji: '🍋' },
+  { title: 'Heat: Controlling Texture & Flavor', emoji: '🔥' },
+  { title: 'Using a Meat Thermometer', emoji: '🌡️' },
+  { title: 'Preventing Cross-Contamination', emoji: '🧼' },
+];
+
+const HEALTHY_GUIDES = [
+  { id: 'hydration', title: 'Hydration & Water', emoji: '💧', color: 'rgba(59,130,246,0.1)' },
+  { id: 'antiflame', title: 'Anti-Inflammatory Eating', emoji: '🔥', color: 'rgba(236,72,153,0.1)' },
+  { id: 'gut', title: 'Gut Health', emoji: '🧠', color: 'rgba(251,146,60,0.1)' },
+  { id: 'skin', title: 'Eat for Glowing Skin', emoji: '✨', color: 'rgba(251,146,60,0.1)' },
+  { id: 'budget', title: 'Eating Healthy on a Budget', emoji: '💚', color: 'rgba(34,197,94,0.1)' },
+];
+
 export default function GlowKitchen() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('mentoring');
   const [user, setUser] = useState(null);
+  const [expandedSkill, setExpandedSkill] = useState(null);
+  const [expandedGuide, setExpandedGuide] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     base44.auth.me().then(u => setUser(u)).catch(() => base44.auth.redirectToLogin());
   }, []);
 
   const activeTabData = TABS.find(t => t.id === activeTab);
+  const filteredSkills = BASICS_SKILLS.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
@@ -77,6 +108,110 @@ export default function GlowKitchen() {
         </div>
 
         {/* Content Section */}
+        {activeTab === 'feed' && (
+          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-gray-400">Community food posts coming soon 📸</p>
+          </div>
+        )}
+
+        {activeTab === 'recipes' && (
+          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-gray-400">Recipe library coming soon 👨‍🍳</p>
+          </div>
+        )}
+
+        {activeTab === 'budget' && (
+          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-gray-400">Budget meals feed coming soon 💰</p>
+          </div>
+        )}
+
+        {activeTab === 'cultural' && (
+          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-gray-400">Cultural recipes coming soon 🌍</p>
+          </div>
+        )}
+
+        {activeTab === 'basics' && (
+          <div className="space-y-4">
+            <div className="relative mb-4">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search skills..."
+                className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm text-white outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              />
+            </div>
+
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-3xl">⭐</span>
+                <div>
+                  <h3 className="font-bold text-white">Kitchen Basics for Beginners</h3>
+                  <p className="text-xs text-gray-400">{filteredSkills.length} skills to master</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {filteredSkills.map((skill, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setExpandedSkill(expandedSkill === idx ? null : idx)}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <span className="text-lg flex-shrink-0">{skill.emoji}</span>
+                    <span className="flex-1 font-semibold text-sm text-white">{skill.title}</span>
+                    <ChevronDown size={16} className={`text-gray-500 transition ${expandedSkill === idx ? 'rotate-180' : ''}`} />
+                  </div>
+                  {expandedSkill === idx && (
+                    <div className="mt-2 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <p className="text-xs text-gray-400">Step-by-step instructions and tips for {skill.title.toLowerCase()}</p>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'healthy' && (
+          <div className="space-y-3">
+            {HEALTHY_GUIDES.map((guide) => (
+              <button
+                key={guide.id}
+                onClick={() => setExpandedGuide(expandedGuide === guide.id ? null : guide.id)}
+                className="w-full text-left"
+              >
+                <div className="flex items-center gap-3 px-4 py-4 rounded-2xl" style={{ background: guide.color, border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <span className="text-2xl flex-shrink-0">{guide.emoji}</span>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-white text-sm">{guide.title}</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Actionable habits & tips</p>
+                  </div>
+                  <ChevronDown size={16} className={`text-gray-500 transition ${expandedGuide === guide.id ? 'rotate-180' : ''}`} />
+                </div>
+                {expandedGuide === guide.id && (
+                  <div className="mt-2 px-4 py-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold text-gray-400 uppercase">Daily Habits</p>
+                      {[1, 2, 3, 4, 5, 6].map((n) => (
+                        <div key={n} className="flex gap-2 text-xs text-gray-300">
+                          <span className="text-green-400 flex-shrink-0">✓</span>
+                          <span>Habit {n} for better {guide.title.toLowerCase()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
         {activeTab === 'mentoring' && (
           <div className="space-y-4">
             <div className="rounded-2xl p-6 text-center" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))', border: '2px solid rgba(236,72,153,0.3)' }}>
