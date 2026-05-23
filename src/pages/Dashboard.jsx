@@ -7,6 +7,7 @@ import { Search, MessageCircle, ChevronRight, X } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import CustomizeModal from '@/components/CustomizeModal';
 import AvatarPreview from '@/components/avatar/AvatarPreview';
+import NutritionSummary from '@/components/Dashboard/NutritionSummary';
 
 const WORLD_APPS = [
   { id: 'grow', icon: '⭐', label: 'Grow', bg: 'bg-green-900', route: '/grow' },
@@ -221,6 +222,11 @@ export default function Dashboard() {
           </div>
           <ChevronRight size={18} className="text-gray-400 flex-shrink-0" />
         </button>
+      </div>
+
+      {/* Nutrition Summary Widget */}
+      <div className="px-4 mb-5">
+        <NutritionSummary />
       </div>
 
       {/* Quick Access */}
