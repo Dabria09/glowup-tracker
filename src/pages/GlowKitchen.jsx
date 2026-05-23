@@ -262,35 +262,7 @@ export default function GlowKitchen() {
           </div>
         )}
 
-        {activeTab === 'grocery' && (
-          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-gray-400">Grocery section coming soon</p>
-          </div>
-        )}
 
-        {activeTab === 'budget' && (
-          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-gray-400">Budget meals section coming soon</p>
-          </div>
-        )}
-
-        {activeTab === 'cultural' && (
-          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-gray-400">Cultural recipes section coming soon</p>
-          </div>
-        )}
-
-        {activeTab === 'basics' && (
-          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-gray-400">Cooking basics section coming soon</p>
-          </div>
-        )}
-
-        {activeTab === 'healthy' && (
-          <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-gray-400">Healthy eating section coming soon</p>
-          </div>
-        )}
       </div>
 
       <BottomNav active="discover" />
