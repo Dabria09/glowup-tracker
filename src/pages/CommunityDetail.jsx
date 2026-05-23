@@ -182,6 +182,32 @@ export default function CommunityDetail() {
     loadData();
   }
 
+  async function handleDeletePost(postId) {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    await base44.entities.CommunityPost.delete(postId);
+    loadData();
+  }
+
+  async function handleDeleteCommunity() {
+    if (!confirm('Are you sure you want to delete this community? This will remove all posts, members, and events. This action cannot be undone.')) return;
+    // Delete all related records first
+    const postsToDelete = await base44.entities.CommunityPost.filter({ community_id: id });
+    for (const post of postsToDelete) {
+      await base44.entities.CommunityPost.delete(post.id);
+    }
+    const membersToDelete = await base44.entities.CommunityMember.filter({ community_id: id });
+    for (const member of membersToDelete) {
+      await base44.entities.CommunityMember.delete(member.id);
+    }
+    const eventsToDelete = await base44.entities.CommunityEvent.filter({ community_id: id });
+    for (const event of eventsToDelete) {
+      await base44.entities.CommunityEvent.delete(event.id);
+    }
+    // Delete the community
+    await base44.entities.Community.delete(id);
+    navigate('/community-hub');
+  }
+
   async function handleSendMessage() {
     if (!newMessage.trim() || !user) return;
     await base44.entities.CommunityPost.create({
@@ -396,7 +422,14 @@ export default function CommunityDetail() {
                             <p className="text-sm font-semibold text-white">{post.username}</p>
                             <p className="text-xs text-gray-500">{new Date(post.created_date).toLocaleDateString()}</p>
                           </div>
-                          <button className="text-gray-500"><MoreVertical size={16} /></button>
+                          <div className="relative">
+                            <button className="text-gray-500 hover:text-white"><MoreVertical size={16} /></button>
+                            {(post.user_email === user?.email || isAdmin) && (
+                              <button onClick={() => handleDeletePost(post.id)} className="absolute right-0 top-8 text-xs text-red-400 bg-gray-900 px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                                Delete
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <p className="text-sm text-gray-200 mb-3">{post.content}</p>
                         <div className="flex items-center gap-4">
@@ -519,11 +552,18 @@ export default function CommunityDetail() {
               )}
 
               {isAdmin && (
-                <button onClick={() => navigate(`/community-hub/${id}/settings`)}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white"
-                  style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                  <Settings size={16} /> Manage Community
-                </button>
+                <div className="space-y-3">
+                  <button onClick={() => navigate(`/community-hub/${id}/settings`)}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white"
+                    style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                    <Settings size={16} /> Manage Community
+                  </button>
+                  <button onClick={handleDeleteCommunity}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white"
+                    style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5' }}>
+                    <MoreVertical size={16} /> Delete Community
+                  </button>
+                </div>
               )}
             </div>
           )}
