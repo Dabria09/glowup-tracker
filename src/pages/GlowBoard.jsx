@@ -390,6 +390,8 @@ export default function GlowBoard() {
                   ))}
                 </div>
               </div>
+            </div>
+            <div className="px-6 py-4 border-t border-white/10 flex-shrink-0">
               <button
                 onClick={handleSubmitPost}
                 disabled={!newPost.image_url.trim() || !newPost.category}
