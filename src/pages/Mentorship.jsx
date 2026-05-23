@@ -9,6 +9,7 @@ import AnonymousQuestionModal from '@/components/mentorship/AnonymousQuestionMod
 import MentorDirectory from '@/components/mentorship/MentorDirectory';
 import WisdomCard from '@/components/mentorship/WisdomCard';
 import MentorDashboard from '@/components/mentorship/MentorDashboard';
+import MenteeDashboard from '@/components/mentorship/MenteeDashboard';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -39,6 +40,7 @@ export default function Mentorship() {
   const [mentors, setMentors] = useState([]);
   const [wisdomQuestions, setWisdomQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isMentor, setIsMentor] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -48,6 +50,10 @@ export default function Mentorship() {
     try {
       const u = await base44.auth.me();
       setUser(u);
+
+      // Check if user is a mentor
+      const mentorData = await base44.entities.Mentor.filter({ user_email: u.email, is_approved: true });
+      setIsMentor(mentorData.length > 0);
 
       const mentorsData = await base44.entities.Mentor.filter({ is_approved: true });
       setMentors(mentorsData);
@@ -104,10 +110,10 @@ export default function Mentorship() {
           <button
             onClick={() => setShowDashboard(true)}
             className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
-            style={{ background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)' }}
+            style={{ background: isMentor ? 'rgba(236,72,153,0.2)' : 'rgba(59,130,246,0.2)', border: isMentor ? '1px solid rgba(236,72,153,0.4)' : '1px solid rgba(59,130,246,0.4)' }}
           >
             <LayoutDashboard size={16} />
-            <span>My Dashboard</span>
+            <span>{isMentor ? 'Mentor Dashboard' : 'Mentee Dashboard'}</span>
           </button>
           <button
             onClick={() => setShowQuestionModal(true)}
@@ -116,13 +122,15 @@ export default function Mentorship() {
           >
             <span className="mr-2">💌</span>Ask Anonymously
           </button>
-          <button
-            onClick={() => setShowApplicationModal(true)}
-            className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80"
-            style={{ background: '#f59e0b40', border: '1px solid #f59e0b80' }}
-          >
-            <span className="mr-2">✨</span>Become a Mentor
-          </button>
+          {!isMentor && (
+            <button
+              onClick={() => setShowApplicationModal(true)}
+              className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80"
+              style={{ background: '#f59e0b40', border: '1px solid #f59e0b80' }}
+            >
+              <span className="mr-2">✨</span>Become a Mentor
+            </button>
+          )}
         </div>
 
         {/* Tier Info Banner */}
@@ -243,14 +251,18 @@ export default function Mentorship() {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-bold text-white text-lg flex items-center gap-2">
-                <LayoutDashboard size={20} className="text-pink-400" />
-                Mentor Dashboard
+                <LayoutDashboard size={20} className={isMentor ? 'text-pink-400' : 'text-blue-400'} />
+                {isMentor ? 'Mentor Dashboard' : 'Mentee Dashboard'}
               </h2>
               <button onClick={() => setShowDashboard(false)}>
                 <span className="text-2xl text-gray-400">×</span>
               </button>
             </div>
-            <MentorDashboard user={user} />
+            {isMentor ? (
+              <MentorDashboard user={user} />
+            ) : (
+              <MenteeDashboard user={user} />
+            )}
           </div>
         </div>
       )}
