@@ -55,6 +55,7 @@ import SavingsGoals from './pages/SavingsGoals';
 import MockVote from './pages/MockVote';
 import CommunityHub from './pages/CommunityHub';
 import CommunityDetail from './pages/CommunityDetail';
+import AdminLogs from './pages/AdminLogs';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -124,6 +125,7 @@ const AuthenticatedApp = () => {
       <Route path="/mock-vote" element={<MockVote />} />
       <Route path="/community-hub" element={<CommunityHub />} />
       <Route path="/community-hub/:id" element={<CommunityDetail />} />
+      <Route path="/admin-logs" element={<AdminLogs />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
