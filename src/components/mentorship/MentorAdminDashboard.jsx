@@ -61,16 +61,49 @@ export default function MentorAdminDashboard({ isOpen, onClose }) {
   const handleApprove = async (app) => {
     if (!confirm('Are you sure you want to approve this mentor?')) return;
     
-    const user = await base44.auth.me();
-    await updateApplication(app.id, {
-      status: 'approved',
-      approved_date: new Date().toISOString(),
-      approved_by: user.email,
-      background_check_status: 'cleared',
-      background_check_date: new Date().toISOString(),
-      interview_status: 'completed',
-      interview_date: new Date().toISOString(),
-    });
+    try {
+      setActionLoading(true);
+      const user = await base44.auth.me();
+      
+      // Create Mentor entity record
+      await base44.entities.Mentor.create({
+        user_email: app.user_email,
+        full_name: app.full_name,
+        title: app.title || '',
+        bio: app.bio || '',
+        categories: app.categories,
+        expertise: app.expertise || '',
+        experience_years: app.experience_years || 0,
+        availability: app.availability || '',
+        session_type: app.session_type || 'Video Call',
+        avatar_url: app.avatar_url || '',
+        is_approved: true,
+        mentor_tier: 'seed',
+        rating: 0,
+        sessions_count: 0,
+        social_links: '[]',
+      });
+      
+      // Update application status
+      await base44.entities.MentorApplication.update(app.id, {
+        status: 'approved',
+        approved_date: new Date().toISOString(),
+        approved_by: user.email,
+        background_check_status: 'cleared',
+        background_check_date: new Date().toISOString(),
+        interview_status: 'completed',
+        interview_date: new Date().toISOString(),
+      });
+      
+      await loadApplications();
+      setSelectedApp(null);
+      setActionLoading(false);
+      alert('Mentor approved successfully!');
+    } catch (error) {
+      console.error('Error approving mentor:', error);
+      setActionLoading(false);
+      alert('Error approving mentor: ' + error.message);
+    }
   };
 
   const handleReject = () => {
