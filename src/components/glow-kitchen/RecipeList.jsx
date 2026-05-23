@@ -2,6 +2,27 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, Plus, Star, Clock, Users, ChefHat } from 'lucide-react';
 
+const ImageWithFallback = ({ src, alt, className }) => {
+  const [hasError, setHasError] = useState(false);
+  
+  if (!src || hasError) {
+    return (
+      <div className={`${className} flex items-center justify-center`} style={{ background: 'rgba(236,72,153,0.2)' }}>
+        <ChefHat size={28} className="text-pink-400" />
+      </div>
+    );
+  }
+  
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={() => setHasError(true)}
+    />
+  );
+};
+
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '🍳' },
   { id: 'Quick & Easy', label: 'Quick', emoji: '⚡' },
@@ -98,17 +119,11 @@ export default function RecipeList({ recipes, user, onAddRecipe }) {
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
               <div className="flex gap-3">
-                {recipe.image_url ? (
-                  <img
-                    src={recipe.image_url}
-                    alt={recipe.title}
-                    className="w-20 h-20 rounded-xl object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-20 h-20 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(236,72,153,0.2)' }}>
-                    <ChefHat size={24} className="text-pink-400" />
-                  </div>
-                )}
+               <ImageWithFallback
+                 src={recipe.image_url}
+                 alt={recipe.title}
+                 className="w-20 h-20 rounded-xl object-cover flex-shrink-0"
+               />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-white text-sm mb-1 truncate">{recipe.title}</h3>
                   <p className="text-xs text-gray-400 mb-2 line-clamp-2">{recipe.description}</p>
@@ -166,12 +181,12 @@ export default function RecipeList({ recipes, user, onAddRecipe }) {
             </div>
 
             {selectedRecipe.image_url && (
-              <img
-                src={selectedRecipe.image_url}
-                alt={selectedRecipe.title}
-                className="w-full h-48 object-cover rounded-2xl mb-4"
-              />
-            )}
+               <ImageWithFallback
+                 src={selectedRecipe.image_url}
+                 alt={selectedRecipe.title}
+                 className="w-full h-48 object-cover rounded-2xl mb-4"
+               />
+             )}
 
             <h3 className="text-xl font-bold text-white mb-2">{selectedRecipe.title}</h3>
             <p className="text-sm text-gray-400 mb-4">{selectedRecipe.description}</p>

@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Plus, Star, Search, ChevronDown, ChevronRight, Printer, ShoppingCart } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Plus, Star, Search, ShoppingCart, Printer } from 'lucide-react';
 import RecipeList from '@/components/glow-kitchen/RecipeList';
 import AddRecipeModal from '@/components/glow-kitchen/AddRecipeModal';
+import PostModal from '@/components/glow-kitchen/PostModal';
 
 const TABS = [
   { id: 'feed', label: 'Feed', emoji: '📸' },
@@ -18,45 +19,21 @@ const TABS = [
   { id: 'healthy', label: 'Healthy', emoji: '🥗' },
 ];
 
-const BASICS_SKILLS = [
-  { title: 'Knife Safety Basics', emoji: '🔪' },
-  { title: 'Mise en Place', emoji: '📋' },
-  { title: 'Knife Mastery: The Pinch Grip', emoji: '🖐️' },
-  { title: 'How to Meal Prep for the Week', emoji: '🍱' },
-  { title: 'How to Make a Smoothie', emoji: '🥤' },
-  { title: 'Sautéing: Quick & Flavorful', emoji: '🍳' },
-  { title: 'Roasting: Oven Magic', emoji: '🍗' },
-  { title: 'Boiling & Simmering', emoji: '🫖' },
-  { title: 'Salt: The Flavor Enhancer', emoji: '🧂' },
-  { title: 'Fat: Flavor Carrier & Texture Builder', emoji: '🧈' },
-  { title: 'Acid: The Secret Brightener', emoji: '🍋' },
-  { title: 'Heat: Controlling Texture & Flavor', emoji: '🔥' },
-  { title: 'Using a Meat Thermometer', emoji: '🌡️' },
-  { title: 'Preventing Cross-Contamination', emoji: '🧼' },
-];
-
-const HEALTHY_GUIDES = [
-  { id: 'hydration', title: 'Hydration & Water', emoji: '💧', color: 'rgba(59,130,246,0.1)' },
-  { id: 'antiflame', title: 'Anti-Inflammatory Eating', emoji: '🔥', color: 'rgba(236,72,153,0.1)' },
-  { id: 'gut', title: 'Gut Health', emoji: '🧠', color: 'rgba(251,146,60,0.1)' },
-  { id: 'skin', title: 'Eat for Glowing Skin', emoji: '✨', color: 'rgba(251,146,60,0.1)' },
-  { id: 'budget', title: 'Eating Healthy on a Budget', emoji: '💚', color: 'rgba(34,197,94,0.1)' },
-];
-
 export default function GlowKitchen() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('mentoring');
+  const [activeTab, setActiveTab] = useState('recipes');
   const [user, setUser] = useState(null);
   const [expandedSkill, setExpandedSkill] = useState(null);
   const [expandedGuide, setExpandedGuide] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAddRecipe, setShowAddRecipe] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
   const [shoppingList, setShoppingList] = useState([]);
   const [mealPlanLoaded, setMealPlanLoaded] = useState(false);
   const [basics, setBasics] = useState([]);
   const [healthyGuides, setHealthyGuides] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [showAddRecipe, setShowAddRecipe] = useState(false);
 
   const loadData = async () => {
     try {
@@ -89,9 +66,10 @@ export default function GlowKitchen() {
       const guidesData = await base44.entities.HealthyGuide.list();
       setHealthyGuides(guidesData);
       
-      // Load recipes (public + user's own)
+      // Load recipes (public + user's own) - remove duplicates by id
       const recipesData = await base44.entities.Recipe.filter({ is_public: true });
-      setRecipes(recipesData);
+      const uniqueRecipes = Array.from(new Map(recipesData.map(r => [r.id, r])).values());
+      setRecipes(uniqueRecipes);
       
       setLoadingData(false);
     } catch (error) {
@@ -209,7 +187,7 @@ export default function GlowKitchen() {
                 </div>
               </div>
               <p className="text-sm text-gray-300 mb-4">Post photos of your favorite meals, kitchen moments, and cooking wins. Get inspired by what others are making!</p>
-              <button className="w-full py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+              <button onClick={() => setShowPostModal(true)} className="w-full py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                 <Plus size={16} /> Share a Post
               </button>
             </div>
@@ -361,7 +339,7 @@ export default function GlowKitchen() {
               </div>
             ) : (
               <div className="space-y-2">
-                {filteredSkills.map((skill, idx) => {
+                {filteredSkills.map((skill) => {
                   const steps = JSON.parse(skill.steps || '[]');
                   const tips = JSON.parse(skill.tips || '[]');
                   return (
@@ -430,7 +408,7 @@ export default function GlowKitchen() {
             ) : (
               healthyGuides.map((guide) => {
                 const habits = JSON.parse(guide.daily_habits || '[]');
-                const tips = JSON.parse(guide.tips || '[]');
+                const guideTips = JSON.parse(guide.tips || '[]');
                 const foodsToEat = JSON.parse(guide.foods_to_eat || '[]');
                 const foodsToAvoid = JSON.parse(guide.foods_to_avoid || '[]');
                 return (
@@ -461,11 +439,11 @@ export default function GlowKitchen() {
                               ))}
                             </ul>
                           </div>
-                          {tips.length > 0 && (
+                          {guideTips.length > 0 && (
                             <div>
                               <p className="text-xs font-bold text-gray-400 mb-2 uppercase">Pro Tips</p>
                               <ul className="space-y-1">
-                                {tips.map((tip, i) => (
+                                {guideTips.map((tip, i) => (
                                   <li key={i} className="text-xs text-gray-300 flex gap-2">
                                     <span className="text-blue-400 flex-shrink-0">💡</span>
                                     {tip}
@@ -639,6 +617,12 @@ export default function GlowKitchen() {
           loadData();
           setShowAddRecipe(false);
         }}
+      />
+      <PostModal
+        isOpen={showPostModal}
+        onClose={() => setShowPostModal(false)}
+        user={user}
+        onPostCreated={() => setShowPostModal(false)}
       />
     </div>
   );
