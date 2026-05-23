@@ -327,20 +327,20 @@ export default function GlowTalk() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Schedule (optional)</label>
+                  <label className="text-xs font-semibold text-gray-300 mb-1 block">Schedule (optional)</label>
                   <input
                     type="datetime-local"
                     value={newRoom.scheduled_at}
                     onChange={e => setNewRoom({ ...newRoom, scheduled_at: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-2 py-2 text-white text-xs outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Max Listeners</label>
+                  <label className="text-xs font-semibold text-gray-300 mb-1 block">Max Listeners</label>
                   <select
                     value={newRoom.max_listeners}
                     onChange={e => setNewRoom({ ...newRoom, max_listeners: e.target.value === 'Unlimited' ? 9999 : Number(e.target.value) })}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white outline-none"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-2 py-2 text-white text-xs outline-none"
                   >
                     {MAX_OPTIONS.map(m => <option key={m} value={m} style={{ background: '#1a0a2e' }}>{m} {m !== 'Unlimited' ? 'listeners' : ''}</option>)}
                   </select>
