@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Star, Users, MessageCircle, Check, X } from 'lucide-react';
+import { Calendar, Clock, Star, Users, MessageCircle, Check, X, TrendingUp, Award } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import TierBadge, { getTierConfig } from './TierBadge';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function MentorDashboard({ user }) {
   const [upcomingSessions, setUpcomingSessions] = useState([]);
@@ -9,7 +10,14 @@ export default function MentorDashboard({ user }) {
   const [feedbackStats, setFeedbackStats] = useState({
     averageRating: 0,
     totalReviews: 0,
-    recentReviews: []
+    recentReviews: [],
+    ratingTrend: []
+  });
+  const [sessionSummary, setSessionSummary] = useState({
+    totalCompleted: 0,
+    totalHours: 0,
+    thisMonthCompleted: 0,
+    thisMonthHours: 0
   });
   const [sessionStats, setSessionStats] = useState({
     completedSessions: 0,
@@ -17,6 +25,7 @@ export default function MentorDashboard({ user }) {
   });
   const [mentorProfile, setMentorProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showInsights, setShowInsights] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -51,28 +60,55 @@ export default function MentorDashboard({ user }) {
         s.status === 'completed'
       );
       
-      const totalHours = completedSessions.reduce((sum, session) => {
-        const sessionDate = new Date(session.session_date);
-        const now = new Date();
-        const diffMs = now - sessionDate;
-        const diffHours = diffMs / (1000 * 60 * 60);
-        return sum + (diffHours > 0 ? Math.min(diffHours, 3) : 1);
-      }, 0);
-      
       const ratedSessions = completedSessions.filter(s => s.rating && s.rating > 0);
       const avgRating = ratedSessions.length > 0
         ? ratedSessions.reduce((sum, s) => sum + s.rating, 0) / ratedSessions.length
         : 0;
       
-      setFeedbackStats({
-        averageRating: avgRating,
-        totalReviews: ratedSessions.length,
-        recentReviews: ratedSessions.slice(-5).reverse()
+      const now = new Date();
+      const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const thisMonthSessions = completedSessions.filter(s => new Date(s.session_date) >= thisMonthStart);
+      
+      const totalHours = completedSessions.reduce((sum, session) => 1, 0);
+      const thisMonthHours = thisMonthSessions.reduce((sum, session) => 1, 0);
+      
+      setSessionSummary({
+        totalCompleted: completedSessions.length,
+        totalHours: totalHours,
+        thisMonthCompleted: thisMonthSessions.length,
+        thisMonthHours: thisMonthHours
       });
       
       setSessionStats({
         completedSessions: completedSessions.length,
         totalHours: Math.round(totalHours * 10) / 10
+      });
+      
+      const monthlyRatings = {};
+      ratedSessions.forEach(session => {
+        const date = new Date(session.session_date);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (!monthlyRatings[monthKey]) {
+          monthlyRatings[monthKey] = { month: monthKey, total: 0, count: 0 };
+        }
+        monthlyRatings[monthKey].total += session.rating;
+        monthlyRatings[monthKey].count += 1;
+      });
+      
+      const ratingTrend = Object.values(monthlyRatings)
+        .sort((a, b) => a.month.localeCompare(b.month))
+        .slice(-6)
+        .map(data => ({
+          month: data.month,
+          rating: parseFloat((data.total / data.count).toFixed(2)),
+          sessions: data.count
+        }));
+      
+      setFeedbackStats({
+        averageRating: avgRating,
+        totalReviews: ratedSessions.length,
+        recentReviews: ratedSessions.slice(-5).reverse(),
+        ratingTrend
       });
 
       setLoading(false);
@@ -269,6 +305,27 @@ export default function MentorDashboard({ user }) {
         </div>
       )}
 
+      {/* Performance Insights Button */}
+      <button
+        onClick={() => setShowInsights(true)}
+        className="w-full rounded-2xl p-5 flex items-center justify-between"
+        style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.2), rgba(236,72,153,0.2))', border: '1px solid rgba(168,85,247,0.3)' }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.3)' }}>
+            <TrendingUp size={20} className="text-purple-400" />
+          </div>
+          <div className="text-left">
+            <h3 className="font-bold text-white">Performance Insights</h3>
+            <p className="text-xs text-gray-400">View your mentoring trends and stats</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-2xl font-bold text-white">{sessionSummary.totalHours}h</p>
+          <p className="text-xs text-gray-400">Total mentored</p>
+        </div>
+      </button>
+
       {/* Recent Feedback */}
       <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="flex items-center justify-between mb-4">
@@ -306,6 +363,129 @@ export default function MentorDashboard({ user }) {
           </div>
         )}
       </div>
+
+      {/* Performance Insights Modal */}
+      {showInsights && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end"
+          style={{ background: 'rgba(0,0,0,0.7)' }}
+          onClick={() => setShowInsights(false)}
+        >
+          <div
+            className="w-full max-h-[90vh] overflow-y-auto rounded-t-3xl p-6"
+            style={{ background: '#1a0a30' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-bold text-white text-lg flex items-center gap-2">
+                <TrendingUp size={20} className="text-purple-400" />
+                Performance Insights
+              </h2>
+              <button onClick={() => setShowInsights(false)}>
+                <span className="text-2xl text-gray-400">×</span>
+              </button>
+            </div>
+
+            {/* Session Summary */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="rounded-2xl p-4" style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.3)' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Award size={18} className="text-pink-400" />
+                  <p className="text-xs text-gray-400">Total Completed</p>
+                </div>
+                <p className="text-3xl font-bold text-white">{sessionSummary.totalCompleted}</p>
+                <p className="text-xs text-gray-500 mt-1">{sessionSummary.thisMonthCompleted} this month</p>
+              </div>
+              <div className="rounded-2xl p-4" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock size={18} className="text-purple-400" />
+                  <p className="text-xs text-gray-400">Total Hours</p>
+                </div>
+                <p className="text-3xl font-bold text-white">{sessionSummary.totalHours}h</p>
+                <p className="text-xs text-gray-500 mt-1">{sessionSummary.thisMonthHours}h this month</p>
+              </div>
+            </div>
+
+            {/* Rating Trend Chart */}
+            <div className="rounded-2xl p-5 mb-6" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                <TrendingUp size={18} className="text-yellow-400" />
+                Rating Trends (Last 6 Months)
+              </h3>
+              {feedbackStats.ratingTrend.length > 0 ? (
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={feedbackStats.ratingTrend}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke="#6b7280" 
+                        fontSize={10}
+                        tickFormatter={(month) => month.slice(5)}
+                      />
+                      <YAxis 
+                        stroke="#6b7280" 
+                        fontSize={10}
+                        domain={[0, 5]}
+                        tickCount={6}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: 'rgba(20, 10, 40, 0.95)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: '8px',
+                          fontSize: '12px'
+                        }}
+                        labelStyle={{ color: '#ec4899', marginBottom: '4px' }}
+                        formatter={(value, name) => [value, name === 'rating' ? 'Average Rating' : 'Sessions']}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="rating"
+                        stroke="#ec4899"
+                        strokeWidth={2}
+                        dot={{ fill: '#ec4899', strokeWidth: 2 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="text-center py-10">
+                  <TrendingUp size={40} className="mx-auto mb-3 text-gray-600" />
+                  <p className="text-sm text-gray-400">Not enough data yet</p>
+                </div>
+              )}
+            </div>
+
+            {/* All Time Stats */}
+            <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <h3 className="font-bold text-white mb-4">All-Time Summary</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">Total Sessions Completed</span>
+                  <span className="text-lg font-bold text-white">{sessionSummary.totalCompleted}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">Total Hours Mentored</span>
+                  <span className="text-lg font-bold text-white">{sessionSummary.totalHours}h</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">Average Rating</span>
+                  <div className="flex items-center gap-2">
+                    <Star size={16} className="fill-yellow-400 text-yellow-400" />
+                    <span className="text-lg font-bold text-white">{feedbackStats.averageRating.toFixed(1)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">Total Reviews</span>
+                  <span className="text-lg font-bold text-white">{feedbackStats.totalReviews}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
