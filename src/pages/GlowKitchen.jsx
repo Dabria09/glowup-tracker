@@ -4,6 +4,8 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Plus, Star, Search, ChevronDown, ChevronRight, Printer, ShoppingCart } from 'lucide-react';
+import RecipeList from '@/components/glow-kitchen/RecipeList';
+import AddRecipeModal from '@/components/glow-kitchen/AddRecipeModal';
 
 const TABS = [
   { id: 'feed', label: 'Feed', emoji: '📸' },
@@ -54,50 +56,51 @@ export default function GlowKitchen() {
   const [healthyGuides, setHealthyGuides] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [showAddRecipe, setShowAddRecipe] = useState(false);
+
+  const loadData = async () => {
+    try {
+      const u = await base44.auth.me();
+      setUser(u);
+      
+      // Load meal plans and generate shopping list
+      const mealPlans = await base44.entities.MealPlan.filter({ user_email: u.email });
+      const groceryItems = await base44.entities.GroceryItem.filter({ user_email: u.email });
+      
+      // Extract all linked grocery items from meal plans
+      const allGroceryIds = new Set();
+      mealPlans.forEach(meal => {
+        try {
+          const ids = JSON.parse(meal.grocery_items || '[]');
+          ids.forEach(id => allGroceryIds.add(id));
+        } catch {}
+      });
+      
+      // Get the actual grocery items
+      const linkedItems = groceryItems.filter(g => allGroceryIds.has(g.id));
+      setShoppingList(linkedItems);
+      setMealPlanLoaded(true);
+      
+      // Load kitchen basics
+      const basicsData = await base44.entities.KitchenBasic.list();
+      setBasics(basicsData);
+      
+      // Load healthy guides
+      const guidesData = await base44.entities.HealthyGuide.list();
+      setHealthyGuides(guidesData);
+      
+      // Load recipes (public + user's own)
+      const recipesData = await base44.entities.Recipe.filter({ is_public: true });
+      setRecipes(recipesData);
+      
+      setLoadingData(false);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      setLoadingData(false);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const u = await base44.auth.me();
-        setUser(u);
-        
-        // Load meal plans and generate shopping list
-        const mealPlans = await base44.entities.MealPlan.filter({ user_email: u.email });
-        const groceryItems = await base44.entities.GroceryItem.filter({ user_email: u.email });
-        
-        // Extract all linked grocery items from meal plans
-        const allGroceryIds = new Set();
-        mealPlans.forEach(meal => {
-          try {
-            const ids = JSON.parse(meal.grocery_items || '[]');
-            ids.forEach(id => allGroceryIds.add(id));
-          } catch {}
-        });
-        
-        // Get the actual grocery items
-        const linkedItems = groceryItems.filter(g => allGroceryIds.has(g.id));
-        setShoppingList(linkedItems);
-        setMealPlanLoaded(true);
-        
-        // Load kitchen basics
-        const basicsData = await base44.entities.KitchenBasic.list();
-        setBasics(basicsData);
-        
-        // Load healthy guides
-        const guidesData = await base44.entities.HealthyGuide.list();
-        setHealthyGuides(guidesData);
-        
-        // Load recipes (public + user's own)
-        const recipesData = await base44.entities.Recipe.filter({ is_public: true });
-        setRecipes(recipesData);
-        
-        setLoadingData(false);
-      } catch (error) {
-        console.error('Error loading data:', error);
-        setLoadingData(false);
-      }
-    };
-    
     loadData();
   }, []);
 
@@ -219,52 +222,18 @@ export default function GlowKitchen() {
         )}
 
         {activeTab === 'recipes' && (
-          <div className="space-y-4">
-            <div className="relative mb-4">
-              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                type="text"
-                placeholder="Search recipes..."
-                className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm text-white outline-none"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-              />
-            </div>
-            
+          <div>
             {loadingData ? (
               <div className="text-center py-10">
                 <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
                 <p className="text-gray-400 text-sm">Loading recipes...</p>
               </div>
-            ) : recipes.length === 0 ? (
-              <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <div className="text-4xl mb-3">👨‍🍳</div>
-                <p className="text-gray-400 text-sm">No recipes yet</p>
-                <p className="text-gray-500 text-xs mt-1">Check back soon for delicious recipes!</p>
-              </div>
             ) : (
-              ['Quick & Easy', 'Budget-Friendly', 'Healthy Swaps', 'Meal Prep', 'Cultural'].map(category => {
-                const categoryRecipes = recipes.filter(r => r.category === category && r.title.toLowerCase().includes(searchQuery.toLowerCase()));
-                if (categoryRecipes.length === 0) return null;
-                return (
-                  <div key={category} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <h3 className="font-bold text-white mb-3">{category}</h3>
-                    <div className="space-y-2">
-                      {categoryRecipes.map(recipe => (
-                        <div key={recipe.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                          <span className="text-2xl">👨‍🍳</span>
-                          <div className="flex-1">
-                            <p className="text-sm font-semibold text-white">{recipe.title}</p>
-                            <p className="text-xs text-gray-400">{recipe.prep_time + recipe.cook_time} mins • {recipe.difficulty}</p>
-                          </div>
-                          <ChevronRight size={16} className="text-gray-500" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })
+              <RecipeList
+                recipes={recipes}
+                user={user}
+                onAddRecipe={() => setShowAddRecipe(true)}
+              />
             )}
           </div>
         )}
@@ -661,6 +630,16 @@ export default function GlowKitchen() {
       </div>
 
       <BottomNav active="discover" />
+
+      <AddRecipeModal
+        isOpen={showAddRecipe}
+        onClose={() => setShowAddRecipe(false)}
+        user={user}
+        onRecipeAdded={() => {
+          loadData();
+          setShowAddRecipe(false);
+        }}
+      />
     </div>
   );
 }
