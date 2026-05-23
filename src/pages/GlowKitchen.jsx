@@ -461,39 +461,6 @@ export default function GlowKitchen() {
 
         {activeTab === 'healthy' && (
           <div className="space-y-4">
-            {/* Quick Swaps Reference Table */}
-            <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.15))', border: '1px solid rgba(34,197,94,0.3)' }}>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-3xl">🔄</span>
-                <div>
-                  <h3 className="font-bold text-white text-lg">Quick Healthy Swaps</h3>
-                  <p className="text-xs text-gray-400">10 simple substitutions for healthier eating</p>
-                </div>
-              </div>
-              <div className="grid gap-2">
-                {[
-                  { swap: 'White rice → Cauliflower rice', benefit: 'Lower carbs, more fiber' },
-                  { swap: 'Pasta → Zucchini noodles', benefit: 'Lighter, nutrient-dense' },
-                  { swap: 'Sour cream → Greek yogurt', benefit: 'More protein, less fat' },
-                  { swap: 'White bread → Whole grain/lettuce wraps', benefit: 'More fiber, nutrients' },
-                  { swap: 'Soda → Sparkling water with lemon', benefit: 'No sugar, hydrating' },
-                  { swap: 'Potato chips → Air-popped popcorn', benefit: 'Whole grain, less fat' },
-                  { swap: 'Ice cream → Frozen banana "nice cream"', benefit: 'Natural sweetness, potassium' },
-                  { swap: 'Mayonnaise → Avocado mash', benefit: 'Healthy fats, creaminess' },
-                  { swap: 'Sugar → Honey or maple syrup', benefit: 'Natural, trace minerals' },
-                  { swap: 'Ground beef → Lentils or turkey', benefit: 'Lean protein, fiber' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-white">{item.swap}</p>
-                      <p className="text-xs text-green-300">{item.benefit}</p>
-                    </div>
-                    <span className="text-lg">✅</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {loadingData ? (
               <div className="text-center py-10">
                 <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
@@ -702,7 +669,6 @@ export default function GlowKitchen() {
             </div>
           </div>
         )}
-
 
       </div>
 
