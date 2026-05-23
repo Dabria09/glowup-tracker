@@ -1,0 +1,37 @@
+{
+  "name": "CommunityMember",
+  "type": "object",
+  "properties": {
+    "community_id": {
+      "type": "string",
+      "title": "Community ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "role": {
+      "type": "string",
+      "title": "Role",
+      "enum": [
+        "member",
+        "admin",
+        "moderator"
+      ],
+      "default": "member"
+    },
+    "joined_date": {
+      "type": "string",
+      "title": "Joined Date"
+    },
+    "contribution_points": {
+      "type": "number",
+      "title": "Contribution Points",
+      "default": 0
+    }
+  },
+  "required": [
+    "community_id",
+    "user_email"
+  ]
+}

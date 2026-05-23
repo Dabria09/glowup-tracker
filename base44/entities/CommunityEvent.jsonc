@@ -1,0 +1,54 @@
+{
+  "name": "CommunityEvent",
+  "type": "object",
+  "properties": {
+    "community_id": {
+      "type": "string",
+      "title": "Community ID"
+    },
+    "title": {
+      "type": "string",
+      "title": "Event Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "event_date": {
+      "type": "string",
+      "title": "Event Date"
+    },
+    "time": {
+      "type": "string",
+      "title": "Time"
+    },
+    "location": {
+      "type": "string",
+      "title": "Location"
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Created By (Email)"
+    },
+    "attendee_count": {
+      "type": "number",
+      "title": "Attendee Count",
+      "default": 0
+    },
+    "is_virtual": {
+      "type": "boolean",
+      "title": "Virtual Event",
+      "default": false
+    },
+    "link": {
+      "type": "string",
+      "title": "Event Link"
+    }
+  },
+  "required": [
+    "community_id",
+    "title",
+    "event_date",
+    "created_by"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "CommunityPost",
+  "type": "object",
+  "properties": {
+    "community_id": {
+      "type": "string",
+      "title": "Community ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "username": {
+      "type": "string",
+      "title": "Username"
+    },
+    "content": {
+      "type": "string",
+      "title": "Post Content"
+    },
+    "likes": {
+      "type": "number",
+      "title": "Likes",
+      "default": 0
+    },
+    "liked_by": {
+      "type": "string",
+      "title": "Liked By (JSON array of emails)"
+    },
+    "media_urls": {
+      "type": "string",
+      "title": "Media URLs (JSON array)"
+    }
+  },
+  "required": [
+    "community_id",
+    "user_email",
+    "content"
+  ]
+}

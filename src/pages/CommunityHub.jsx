@@ -97,7 +97,7 @@ export default function CommunityHub() {
                       <p className="font-bold text-white text-sm">{c.name}</p>
                       <p className="text-xs text-gray-500">{c.member_count || 1} members</p>
                     </div>
-                    <button className="text-xs font-semibold text-pink-400 px-3 py-1.5 rounded-full" style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.3)' }}>
+                    <button onClick={() => navigate(`/community-hub/${c.id}`)} className="text-xs font-semibold text-pink-400 px-3 py-1.5 rounded-full" style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.3)' }}>
                       Open
                     </button>
                   </div>
@@ -120,7 +120,7 @@ export default function CommunityHub() {
                     <p className="text-xs text-gray-500">{c.description}</p>
                     <p className="text-xs text-gray-600 mt-0.5">{c.members.toLocaleString()} members</p>
                   </div>
-                  <button className="text-xs font-semibold text-purple-400 px-3 py-1.5 rounded-full" style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
+                  <button onClick={() => navigate(`/community-hub/${c.id}`)} className="text-xs font-semibold text-purple-400 px-3 py-1.5 rounded-full" style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
                     Join
                   </button>
                 </div>
