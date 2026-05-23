@@ -478,8 +478,18 @@ export default function YourVoice() {
           </div>
 
           {/* CTA Banner */}
-          {stage === 'glow_women' ? (
-            <button className="w-full rounded-2xl p-4 text-left" style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)', boxShadow: '0 4px 20px rgba(22,163,74,0.4)' }}>
+          <button onClick={() => navigate('/mock-vote')} className="w-full rounded-2xl p-4 text-left mb-3" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 4px 20px rgba(245,158,11,0.4)' }}>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">🗳️</span>
+              <div>
+                <p className="font-bold text-white text-sm">Mock Vote: What Matters to You?</p>
+                <p className="text-xs text-yellow-100">Practice your civic voice — vote on issues that affect your school and community.</p>
+              </div>
+            </div>
+            <p className="text-sm font-bold text-white text-center">Cast Your Mock Vote →</p>
+          </button>
+          {stage === 'glow_women' && (
+            <a href="https://www.vote.gov" target="_blank" rel="noopener noreferrer" className="block w-full rounded-2xl p-4 text-left" style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)', boxShadow: '0 4px 20px rgba(22,163,74,0.4)' }}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-2xl">📋</span>
                 <div>
@@ -488,18 +498,7 @@ export default function YourVoice() {
                 </div>
               </div>
               <p className="text-sm font-bold text-white text-center">Register at vote.gov →</p>
-            </button>
-          ) : (
-            <button className="w-full rounded-2xl p-4 text-left" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 4px 20px rgba(245,158,11,0.4)' }}>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">🗳️</span>
-                <div>
-                  <p className="font-bold text-white text-sm">Mock Vote: What Matters to You?</p>
-                  <p className="text-xs text-yellow-100">Practice your civic voice — vote on issues that affect your school and community.</p>
-                </div>
-              </div>
-              <p className="text-sm font-bold text-white text-center">Cast Your Mock Vote →</p>
-            </button>
+            </a>
           )}
 
           {/* Topic List */}
