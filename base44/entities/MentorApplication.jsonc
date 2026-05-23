@@ -1,0 +1,66 @@
+{
+  "name": "MentorApplication",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "full_name": {
+      "type": "string",
+      "title": "Full Name"
+    },
+    "title": {
+      "type": "string",
+      "title": "Professional Title"
+    },
+    "bio": {
+      "type": "string",
+      "title": "Bio"
+    },
+    "categories": {
+      "type": "string",
+      "title": "Categories (JSON array)"
+    },
+    "expertise": {
+      "type": "string",
+      "title": "Areas of Expertise"
+    },
+    "experience_years": {
+      "type": "number",
+      "title": "Years of Experience"
+    },
+    "why_mentor": {
+      "type": "string",
+      "title": "Why Do You Want to Mentor?"
+    },
+    "availability": {
+      "type": "string",
+      "title": "Availability"
+    },
+    "session_type": {
+      "type": "string",
+      "title": "Session Type"
+    },
+    "status": {
+      "type": "string",
+      "title": "Application Status",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "submitted_date": {
+      "type": "string",
+      "title": "Submitted Date"
+    }
+  },
+  "required": [
+    "user_email",
+    "full_name",
+    "categories",
+    "why_mentor"
+  ]
+}

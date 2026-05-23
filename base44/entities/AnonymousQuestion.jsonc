@@ -1,0 +1,66 @@
+{
+  "name": "AnonymousQuestion",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email (hidden)"
+    },
+    "question": {
+      "type": "string",
+      "title": "Question"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "Career",
+        "Education",
+        "Business",
+        "Wellness",
+        "Faith",
+        "Relationships"
+      ]
+    },
+    "assigned_mentor_email": {
+      "type": "string",
+      "title": "Assigned Mentor Email"
+    },
+    "answer": {
+      "type": "string",
+      "title": "Mentor Answer"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "pending",
+        "answered",
+        "archived"
+      ],
+      "default": "pending"
+    },
+    "is_public": {
+      "type": "boolean",
+      "title": "Show in Wisdom Library",
+      "default": false
+    },
+    "helpful_count": {
+      "type": "number",
+      "title": "Helpful Count",
+      "default": 0
+    },
+    "submitted_date": {
+      "type": "string",
+      "title": "Submitted Date"
+    },
+    "answered_date": {
+      "type": "string",
+      "title": "Answered Date"
+    }
+  },
+  "required": [
+    "question",
+    "category"
+  ]
+}

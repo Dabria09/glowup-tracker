@@ -1,0 +1,53 @@
+{
+  "name": "MentorSession",
+  "type": "object",
+  "properties": {
+    "mentee_email": {
+      "type": "string",
+      "title": "Mentee Email"
+    },
+    "mentor_email": {
+      "type": "string",
+      "title": "Mentor Email"
+    },
+    "session_date": {
+      "type": "string",
+      "title": "Session Date"
+    },
+    "session_type": {
+      "type": "string",
+      "title": "Session Type"
+    },
+    "topic": {
+      "type": "string",
+      "title": "Session Topic"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Session Notes"
+    },
+    "rating": {
+      "type": "number",
+      "title": "Rating (1-5)"
+    },
+    "feedback": {
+      "type": "string",
+      "title": "Feedback"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "scheduled",
+        "completed",
+        "cancelled"
+      ],
+      "default": "scheduled"
+    }
+  },
+  "required": [
+    "mentee_email",
+    "mentor_email",
+    "session_date"
+  ]
+}

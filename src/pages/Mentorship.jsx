@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Search, Users } from 'lucide-react';
+import { ChevronLeft, Search, Users, Plus, MessageCircle, BookOpen } from 'lucide-react';
+import MentorApplicationModal from '@/components/mentorship/MentorApplicationModal';
+import AnonymousQuestionModal from '@/components/mentorship/AnonymousQuestionModal';
+import MentorCard from '@/components/mentorship/MentorCard';
+import WisdomCard from '@/components/mentorship/WisdomCard';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -23,8 +28,56 @@ const ACTION_BUTTONS = [
 
 export default function Mentorship() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('mentors');
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const [mentors, setMentors] = useState([]);
+  const [wisdomQuestions, setWisdomQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const u = await base44.auth.me();
+      setUser(u);
+
+      const mentorsData = await base44.entities.Mentor.filter({ is_approved: true });
+      setMentors(mentorsData);
+
+      const questionsData = await base44.entities.AnonymousQuestion.filter({ 
+        status: 'answered',
+        is_public: true
+      });
+      setWisdomQuestions(questionsData.sort((a, b) => (b.helpful_count || 0) - (a.helpful_count || 0)));
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      setLoading(false);
+    }
+  };
+
+  const handleBookSession = (mentor) => {
+    // TODO: Implement booking flow
+    console.log('Booking session with:', mentor);
+  };
+
+  const filteredMentors = mentors.filter(mentor => {
+    const categories = JSON.parse(mentor.categories || '[]');
+    const matchesCategory = activeCategory === 'all' || 
+      categories.some(c => c.toLowerCase().includes(activeCategory));
+    const matchesSearch = searchQuery === '' || 
+      mentor.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mentor.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mentor.expertise?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
@@ -46,63 +99,168 @@ export default function Mentorship() {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-          {ACTION_BUTTONS.map(btn => (
-            <button
-              key={btn.id}
-              className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80"
-              style={{ background: `${btn.color}40`, border: `1px solid ${btn.color}80` }}
-            >
-              <span className="mr-2">{btn.emoji}</span>{btn.label}
-            </button>
-          ))}
+          <button
+            onClick={() => setShowQuestionModal(true)}
+            className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80"
+            style={{ background: '#06b6d440', border: '1px solid #06b6d480' }}
+          >
+            <span className="mr-2">💌</span>Ask Anonymously
+          </button>
+          <button
+            onClick={() => setShowApplicationModal(true)}
+            className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80"
+            style={{ background: '#f59e0b40', border: '1px solid #f59e0b80' }}
+          >
+            <span className="mr-2">✨</span>Become a Mentor
+          </button>
         </div>
 
-        {/* Category Filters */}
-        <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
-          {CATEGORIES.map(cat => {
-            const isActive = activeCategory === cat.id;
-            return (
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('mentors')}
+            className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition ${
+              activeTab === 'mentors'
+                ? 'text-white'
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
+            style={
+              activeTab === 'mentors'
+                ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }
+            }
+          >
+            <span className="mr-2">🔍</span>Find a Mentor
+          </button>
+          <button
+            onClick={() => setActiveTab('wisdom')}
+            className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition ${
+              activeTab === 'wisdom'
+                ? 'text-white'
+                : 'text-gray-400 hover:text-gray-200'
+            }`}
+            style={
+              activeTab === 'wisdom'
+                ? { background: 'linear-gradient(135deg, #a855f7, #ec4899)' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }
+            }
+          >
+            <span className="mr-2">👑</span>Ms. Glow Wisdom
+          </button>
+        </div>
+
+        {/* Category Filters (Mentors tab only) */}
+        {activeTab === 'mentors' && (
+          <>
+            <div className="flex overflow-x-auto gap-2 mb-6 pb-2 scrollbar-hide">
+              {CATEGORIES.map(cat => {
+                const isActive = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition ${
+                      isActive
+                        ? 'text-white'
+                        : 'text-gray-400 hover:text-gray-200'
+                    }`}
+                    style={
+                      isActive
+                        ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' }
+                        : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }
+                    }
+                  >
+                    {cat.emoji} {cat.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Search Bar */}
+            <div className="mb-6 relative">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search mentors..."
+                className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm text-white outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Content */}
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+            <p className="text-gray-400 text-sm">Loading...</p>
+          </div>
+        ) : activeTab === 'mentors' ? (
+          filteredMentors.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="text-5xl mb-4">✨</div>
+              <h2 className="text-xl font-bold text-white mb-2">Mentors Coming Soon</h2>
+              <p className="text-sm text-gray-400 text-center mb-4">We're reviewing applications now. Check back soon!</p>
               <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition ${
-                  isActive
-                    ? 'text-white'
-                    : 'text-gray-400 hover:text-gray-200'
-                }`}
-                style={
-                  isActive
-                    ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' }
-                    : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }
-                }
+                onClick={() => setShowApplicationModal(true)}
+                className="px-6 py-3 rounded-full font-semibold text-sm text-white"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
               >
-                {cat.emoji} {cat.label}
+                <Plus size={16} className="inline mr-2" />
+                Apply to be a Mentor
               </button>
-            );
-          })}
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-6 relative">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search mentors..."
-            className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm text-white outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-          />
-        </div>
-
-        {/* Empty State */}
-        <div className="flex flex-col items-center justify-center py-20 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="text-5xl mb-4 animate-bounce">✨</div>
-          <h2 className="text-xl font-bold text-white mb-2">Mentors Coming Soon</h2>
-          <p className="text-sm text-gray-400 text-center">We're reviewing applications now. Check back soon!</p>
-        </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredMentors.map(mentor => (
+                <MentorCard key={mentor.id} mentor={mentor} onBookSession={handleBookSession} />
+              ))}
+            </div>
+          )
+        ) : (
+          wisdomQuestions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="text-5xl mb-4">👑</div>
+              <h2 className="text-xl font-bold text-white mb-2">Wisdom Library</h2>
+              <p className="text-sm text-gray-400 text-center mb-4">Anonymous questions answered by our expert mentors.</p>
+              <button
+                onClick={() => setShowQuestionModal(true)}
+                className="px-6 py-3 rounded-full font-semibold text-sm text-white"
+                style={{ background: 'linear-gradient(135deg, #06b6d4, #0891b2)' }}
+              >
+                <MessageCircle size={16} className="inline mr-2" />
+                Ask a Question
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {wisdomQuestions.map(q => (
+                <WisdomCard key={q.id} question={q} user={user} />
+              ))}
+            </div>
+          )
+        )}
       </div>
 
       <BottomNav active="discover" />
+
+      <MentorApplicationModal
+        isOpen={showApplicationModal}
+        onClose={() => setShowApplicationModal(false)}
+        user={user}
+        onSubmitted={() => {
+          loadData();
+        }}
+      />
+      <AnonymousQuestionModal
+        isOpen={showQuestionModal}
+        onClose={() => setShowQuestionModal(false)}
+        user={user}
+        onSubmitted={() => {
+          loadData();
+        }}
+      />
     </div>
   );
 }
