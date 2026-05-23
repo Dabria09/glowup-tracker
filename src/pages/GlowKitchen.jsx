@@ -16,9 +16,9 @@ const TABS = [
   { id: 'grocery', label: 'Grocery', emoji: '🛒' },
   { id: 'budget', label: 'Budget', emoji: '💰' },
   { id: 'cultural', label: 'Cultural', emoji: '🌍' },
-  { id: 'mentoring', label: 'Mentoring', emoji: '👩‍🍳', important: true },
   { id: 'basics', label: 'Basics', emoji: '⭐' },
   { id: 'healthy', label: 'Healthy', emoji: '🥗' },
+  { id: 'mentorship', label: 'Mentorship', emoji: '👩‍🍳', important: true },
 ];
 
 const KITCHEN_BASICS = [
@@ -678,11 +678,11 @@ export default function GlowKitchen() {
           <HealthyTabContent expandedGuide={expandedGuide} setExpandedGuide={setExpandedGuide} />
         )}
 
-        {activeTab === 'mentoring' && (
+        {activeTab === 'mentorship' && (
           <div className="space-y-4">
             <div className="rounded-2xl p-6 text-center" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))', border: '2px solid rgba(236,72,153,0.3)' }}>
               <div className="text-5xl mb-3">👩‍🍳</div>
-              <h2 className="text-2xl font-bold text-white mb-2">Cooking Mentoring</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">Cooking Mentorship</h2>
               <p className="text-sm text-gray-300 leading-relaxed">
                 Get 1-on-1 guidance from experienced cooks in our community. Learn at your own pace, ask questions, and level up your kitchen skills.
               </p>
