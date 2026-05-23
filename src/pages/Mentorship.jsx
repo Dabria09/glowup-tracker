@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Search, Users, Plus, MessageCircle, BookOpen } from 'lucide-react';
+import { ChevronLeft, Search, Users, Plus, MessageCircle, BookOpen, LayoutDashboard } from 'lucide-react';
 import MentorApplicationModal from '@/components/mentorship/MentorApplicationModal';
 import AnonymousQuestionModal from '@/components/mentorship/AnonymousQuestionModal';
 import MentorDirectory from '@/components/mentorship/MentorDirectory';
 import WisdomCard from '@/components/mentorship/WisdomCard';
+import MentorDashboard from '@/components/mentorship/MentorDashboard';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -34,6 +35,7 @@ export default function Mentorship() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
   const [mentors, setMentors] = useState([]);
   const [wisdomQuestions, setWisdomQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +100,15 @@ export default function Mentorship() {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <button
+            onClick={() => setShowDashboard(true)}
+            className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
+            style={{ background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)' }}
+          >
+            <LayoutDashboard size={16} />
+            <span>My Dashboard</span>
+          </button>
           <button
             onClick={() => setShowQuestionModal(true)}
             className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80"
@@ -219,6 +229,31 @@ export default function Mentorship() {
           loadData();
         }}
       />
+      
+      {showDashboard && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end"
+          style={{ background: 'rgba(0,0,0,0.7)' }}
+          onClick={() => setShowDashboard(false)}
+        >
+          <div
+            className="w-full max-h-[90vh] overflow-y-auto rounded-t-3xl p-6"
+            style={{ background: '#1a0a30' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-bold text-white text-lg flex items-center gap-2">
+                <LayoutDashboard size={20} className="text-pink-400" />
+                Mentor Dashboard
+              </h2>
+              <button onClick={() => setShowDashboard(false)}>
+                <span className="text-2xl text-gray-400">×</span>
+              </button>
+            </div>
+            <MentorDashboard user={user} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
