@@ -1,0 +1,38 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "conversation_id": {
+      "type": "string",
+      "title": "Conversation ID"
+    },
+    "sender_email": {
+      "type": "string",
+      "title": "Sender Email"
+    },
+    "receiver_email": {
+      "type": "string",
+      "title": "Receiver Email"
+    },
+    "content": {
+      "type": "string",
+      "title": "Message Content"
+    },
+    "timestamp": {
+      "type": "string",
+      "title": "Timestamp"
+    },
+    "is_read": {
+      "type": "boolean",
+      "title": "Is Read",
+      "default": false
+    }
+  },
+  "required": [
+    "conversation_id",
+    "sender_email",
+    "receiver_email",
+    "content",
+    "timestamp"
+  ]
+}

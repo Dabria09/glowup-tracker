@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, Star, Video, Phone, MessageCircle, MapPin } from 'lucide-react';
 import ConnectionRequestModal from './ConnectionRequestModal';
+import ChatModal from './ChatModal';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -24,6 +25,7 @@ export default function MentorDirectory({ mentors, user }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMentor, setSelectedMentor] = useState(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
 
   const filteredMentors = mentors.filter(mentor => {
     const categories = JSON.parse(mentor.categories || '[]');
@@ -39,6 +41,11 @@ export default function MentorDirectory({ mentors, user }) {
   const handleBookSession = (mentor) => {
     setSelectedMentor(mentor);
     setShowRequestModal(true);
+  };
+
+  const handleStartChat = (mentor) => {
+    setSelectedMentor(mentor);
+    setShowChatModal(true);
   };
 
   return (
@@ -145,13 +152,22 @@ export default function MentorDirectory({ mentors, user }) {
                       </span>
                     </div>
 
-                    <button
-                      onClick={() => handleBookSession(mentor)}
-                      className="w-full mt-3 py-2.5 rounded-xl font-semibold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
-                    >
-                      🔗 Request Connection
-                    </button>
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => handleStartChat(mentor)}
+                        className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
+                        style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+                      >
+                        <MessageCircle size={14} /> Chat
+                      </button>
+                      <button
+                        onClick={() => handleBookSession(mentor)}
+                        className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white"
+                        style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+                      >
+                        🔗 Request
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -168,6 +184,15 @@ export default function MentorDirectory({ mentors, user }) {
         onSubmitted={() => {
           // Refresh data or show success message
         }}
+      />
+      <ChatModal
+        isOpen={showChatModal}
+        onClose={() => {
+          setShowChatModal(false);
+          setSelectedMentor(null);
+        }}
+        user={user}
+        mentor={selectedMentor}
       />
     </>
   );

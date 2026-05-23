@@ -7,7 +7,7 @@ const sessionTypeIcons = {
   'In-person': MapPin,
 };
 
-export default function MentorCard({ mentor, onBookSession }) {
+export default function MentorCard({ mentor, onBookSession, onStartChat }) {
   const categories = JSON.parse(mentor.categories || '[]');
   const SessionIcon = sessionTypeIcons[mentor.session_type] || Video;
 
@@ -61,13 +61,22 @@ export default function MentorCard({ mentor, onBookSession }) {
             </span>
           </div>
 
-          <button
-            onClick={() => onBookSession(mentor)}
-            className="w-full mt-3 py-2.5 rounded-xl font-semibold text-sm text-white"
-            style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
-          >
-            Book Session
-          </button>
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={() => onStartChat && onStartChat(mentor)}
+              className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
+              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+            >
+              <MessageCircle size={14} /> Chat
+            </button>
+            <button
+              onClick={() => onBookSession(mentor)}
+              className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white"
+              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+            >
+              Book
+            </button>
+          </div>
         </div>
       </div>
     </div>
