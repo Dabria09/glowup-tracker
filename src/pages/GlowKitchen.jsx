@@ -21,6 +21,219 @@ const TABS = [
   { id: 'healthy', label: 'Healthy', emoji: '🥗' },
 ];
 
+const KITCHEN_BASICS = [
+  {
+    id: 'knife-safety',
+    emoji: '🔪',
+    title: 'Knife Safety Basics',
+    category: 'Safety',
+    description: 'Essential knife safety techniques to prevent injuries',
+    steps: [
+      'Always curl fingers under (the \'claw\' grip)',
+      'Keep knife sharp — dull knives slip and cut you',
+      'Never catch a falling knife — step back',
+      'Cut away from your body',
+      'Keep your cutting board stable (wet towel underneath)',
+      'Store knives in a block, not loose in a drawer'
+    ]
+  },
+  {
+    id: 'mise-en-place',
+    emoji: '👨‍🍳',
+    title: 'Mise en Place (Everything in Its Place)',
+    category: 'Prep',
+    description: 'The pro kitchen habit that prevents burning and mistakes',
+    steps: [
+      'French for \'everything in its place\' — the #1 pro kitchen habit',
+      'Read the full recipe BEFORE you start cooking',
+      'Chop, measure, and prep ALL ingredients before turning on the stove',
+      'Arrange ingredients in the order you\'ll use them',
+      'This prevents burning garlic while scrambling to chop onions',
+      'Clean as you go — a clear workspace = a clear mind'
+    ]
+  },
+  {
+    id: 'pinch-grip',
+    emoji: '✌️',
+    title: 'Knife Mastery: The Pinch Grip',
+    category: 'Technique',
+    description: 'Master the pinch grip for full knife control',
+    steps: [
+      'Hold the blade between your thumb and index finger — not the handle',
+      'This \'pinch grip\' gives you full control and reduces fatigue',
+      'Curl your other hand\'s fingertips under (the \'claw\')',
+      'The knuckles guide the blade — never your fingertips',
+      'Keep your blade sharp — a dull knife is more dangerous',
+      'Practice on soft vegetables like zucchini before moving to harder ones'
+    ]
+  },
+  {
+    id: 'meal-prep-week',
+    emoji: '🥗',
+    title: 'How to Meal Prep for the Week',
+    category: 'Prep',
+    description: 'Prepare meals efficiently for the whole week',
+    steps: [
+      'Pick 1–2 proteins, 2 grains, 3–4 vegetables',
+      'Cook proteins and grains in large batches Sunday',
+      'Wash, chop, and store vegetables in containers',
+      'Mix and match throughout the week for different meals',
+      'Prep sauces and dressings in small jars',
+      'Label everything with day it was made'
+    ]
+  },
+  {
+    id: 'smoothie',
+    emoji: '🍓',
+    title: 'How to Make a Smoothie',
+    category: 'Technique',
+    description: 'Create delicious and nutritious smoothies every time',
+    steps: [
+      'Start with liquid: 1 cup milk, juice, or water',
+      'Add frozen fruit: berries, mango, banana (frozen = thicker)',
+      'Add protein: Greek yogurt, nut butter, or protein powder',
+      'Add extras: spinach (you won\'t taste it!), chia seeds, honey',
+      'Blend on high 60 seconds until smooth',
+      'Taste and adjust — add more liquid if too thick'
+    ]
+  },
+  {
+    id: 'sauteing',
+    emoji: '🍳',
+    title: 'Sautéing: Quick & Flavorful',
+    category: 'Cooking Methods',
+    description: 'Master the art of sautéing for flavorful meals',
+    steps: [
+      'Heat the pan FIRST on medium-high, then add oil',
+      'Oil should shimmer — if it smokes, it\'s too hot',
+      'Add food in a single layer — don\'t crowd the pan',
+      'Crowding causes steaming instead of browning',
+      'Stir or toss frequently to cook evenly',
+      'Season at the end — salt draws out moisture mid-cook'
+    ]
+  },
+  {
+    id: 'roasting',
+    emoji: '🥔',
+    title: 'Roasting: Oven Magic',
+    category: 'Cooking Methods',
+    description: 'Create caramelized, delicious roasted foods',
+    steps: [
+      'Preheat oven to 400°F (200°C) or higher for roasting',
+      'Toss vegetables or meat in oil, salt, and pepper',
+      'Spread in a single layer on a sheet pan — no overlapping',
+      'High heat caramelizes the outside for sweet, savory flavor',
+      'Flip halfway through for even browning',
+      'Vegetables: 20–30 min. Chicken thighs: 35–45 min.'
+    ]
+  },
+  {
+    id: 'boiling-simmering',
+    emoji: '💧',
+    title: 'Boiling & Simmering',
+    category: 'Cooking Methods',
+    description: 'Use boiling and simmering for perfect results',
+    steps: [
+      'Boiling (212°F/100°C): vigorous bubbles — use for pasta, blanching',
+      'Always salt pasta water generously — it should taste like the sea',
+      'Simmering (180–200°F): gentle bubbles — use for soups, beans, grains',
+      'Bring to a boil first, then reduce heat to simmer',
+      'Keep a lid on to retain heat and speed up cooking',
+      'Al dente pasta: cook 1–2 minutes less than the package says'
+    ]
+  },
+  {
+    id: 'salt',
+    emoji: '🧂',
+    title: 'Salt: The Flavor Enhancer',
+    category: 'Seasoning',
+    description: 'Use salt to bring out natural flavors',
+    steps: [
+      'Salt doesn\'t make food salty — it enhances natural flavors',
+      'Season in layers: a little salt at each stage of cooking',
+      'Taste as you go — add salt gradually, you can\'t take it back',
+      'Different salts: kosher salt for cooking, flaky salt for finishing',
+      'Under-salted food tastes flat and dull',
+      'Salt pasta water, blanching water, and dough — not just the final dish'
+    ]
+  },
+  {
+    id: 'fat',
+    emoji: '🧈',
+    title: 'Fat: Flavor Carrier & Texture Builder',
+    category: 'Seasoning',
+    description: 'Understand how fat builds flavor and texture',
+    steps: [
+      'Fat carries flavor compounds — food without fat tastes bland',
+      'Olive oil: great for sautéing, dressings, and finishing',
+      'Butter: best for baking, finishing sauces, and pan sauces',
+      'Avocado oil: high smoke point — ideal for high-heat cooking',
+      'Fat prevents food from sticking to pans',
+      'A drizzle of good olive oil or butter at the end elevates any dish'
+    ]
+  },
+  {
+    id: 'acid',
+    emoji: '🍋',
+    title: 'Acid: The Secret Brightener',
+    category: 'Seasoning',
+    description: 'Use acid to brighten and balance flavors',
+    steps: [
+      'If a dish tastes flat or heavy, it usually needs acid — not more salt',
+      'Acid sources: lemon juice, lime juice, vinegar, tomatoes, yogurt',
+      'Add a squeeze of lemon to soups, pasta, roasted veggies, and fish',
+      'Acid balances richness — it cuts through fatty or heavy dishes',
+      'Add acid at the END of cooking for the brightest flavor',
+      'Try: red wine vinegar in salad dressings, lime juice in tacos'
+    ]
+  },
+  {
+    id: 'heat-control',
+    emoji: '🔥',
+    title: 'Heat: Controlling Texture & Flavor',
+    category: 'Cooking Methods',
+    description: 'Master heat control for perfect cooking results',
+    steps: [
+      'Heat dictates texture — too high burns outside before inside cooks',
+      'Low & slow: ideal for tough cuts, braises, and slow-cooked sauces',
+      'High heat: for searing, stir-frying, and caramelizing',
+      'The Maillard reaction (browning) creates complex, savory flavors',
+      'Let your pan fully preheat before adding food',
+      'Resting meat after cooking lets juices redistribute — don\'t skip this'
+    ]
+  },
+  {
+    id: 'cross-contamination',
+    emoji: '🧼',
+    title: 'Preventing Cross-Contamination',
+    category: 'Food Safety',
+    description: 'Keep your kitchen safe from food-borne illness',
+    steps: [
+      'Use SEPARATE cutting boards for raw meat and ready-to-eat foods',
+      'Never put cooked food back on a plate that held raw meat',
+      'Wash hands thoroughly for 20 seconds after handling raw protein',
+      'Clean and sanitize cutting boards between uses',
+      'Store raw meat on the BOTTOM shelf of the fridge',
+      'Never rinse raw chicken — it splashes bacteria around your sink'
+    ]
+  },
+  {
+    id: 'meat-thermometer',
+    emoji: '🌡️',
+    title: 'Using a Meat Thermometer',
+    category: 'Food Safety',
+    description: 'Ensure meat is safely cooked every time',
+    steps: [
+      'Never guess if meat is done — always use an instant-read thermometer',
+      'Chicken & poultry: must reach 165°F (74°C) internal temperature',
+      'Ground beef: must reach 160°F (71°C)',
+      'Pork: 145°F (63°C) with a 3-minute rest',
+      'Fish: 145°F (63°C) or until flesh flakes easily',
+      'Insert thermometer into the thickest part, away from bone'
+    ]
+  }
+];
+
 export default function GlowKitchen() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('recipes');
@@ -39,6 +252,8 @@ export default function GlowKitchen() {
   const [budgetPosts, setBudgetPosts] = useState([]);
   const [culturalPosts, setCulturalPosts] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
+
+  const [basicsToShow, setBasicsToShow] = useState(KITCHEN_BASICS);
 
   const loadData = async () => {
     try {
@@ -63,9 +278,9 @@ export default function GlowKitchen() {
       setShoppingList(linkedItems);
       setMealPlanLoaded(true);
       
-      // Load kitchen basics
+      // Load kitchen basics from database or use defaults
       const basicsData = await base44.entities.KitchenBasic.list();
-      setBasics(basicsData);
+      setBasics(basicsData.length > 0 ? basicsData : KITCHEN_BASICS);
       
       // Load healthy guides
       const guidesData = await base44.entities.HealthyGuide.list();
@@ -168,7 +383,8 @@ export default function GlowKitchen() {
   };
 
   const activeTabData = TABS.find(t => t.id === activeTab);
-  const filteredSkills = basics.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const allBasics = basics.length > 0 ? basics : KITCHEN_BASICS;
+  const filteredSkills = allBasics.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
@@ -419,7 +635,7 @@ export default function GlowKitchen() {
                         <span className="text-lg flex-shrink-0">{skill.emoji}</span>
                         <div className="flex-1 text-left">
                           <p className="font-semibold text-sm text-white">{skill.title}</p>
-                          <p className="text-xs text-gray-500">{skill.category}</p>
+                          <p className="text-xs text-gray-500">{skill.category || 'Kitchen Skill'}</p>
                         </div>
                         <ChevronDown size={16} className={`text-gray-500 transition ${expandedSkill === skill.id ? 'rotate-180' : ''}`} />
                       </div>
