@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Plus, Star, Search, ChevronDown } from 'lucide-react';
+import { ChevronLeft, Plus, Star, Search, ChevronDown, Printer, ShoppingCart } from 'lucide-react';
 
 const TABS = [
   { id: 'feed', label: 'Feed', emoji: '📸' },
@@ -48,10 +48,70 @@ export default function GlowKitchen() {
   const [expandedSkill, setExpandedSkill] = useState(null);
   const [expandedGuide, setExpandedGuide] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [shoppingList, setShoppingList] = useState([]);
+  const [mealPlanLoaded, setMealPlanLoaded] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(u => setUser(u)).catch(() => base44.auth.redirectToLogin());
+    base44.auth.me().then(async (u) => {
+      setUser(u);
+      // Load meal plans and generate shopping list
+      const mealPlans = await base44.entities.MealPlan.filter({ user_email: u.email });
+      const groceryItems = await base44.entities.GroceryItem.filter({ user_email: u.email });
+      
+      // Extract all linked grocery items from meal plans
+      const allGroceryIds = new Set();
+      mealPlans.forEach(meal => {
+        try {
+          const ids = JSON.parse(meal.grocery_items || '[]');
+          ids.forEach(id => allGroceryIds.add(id));
+        } catch {}
+      });
+      
+      // Get the actual grocery items
+      const linkedItems = groceryItems.filter(g => allGroceryIds.has(g.id));
+      setShoppingList(linkedItems);
+      setMealPlanLoaded(true);
+    }).catch(() => base44.auth.redirectToLogin());
   }, []);
+
+  const handlePrintShoppingList = () => {
+    const printWindow = window.open('', '_blank');
+    const listItems = shoppingList.map(g => `• ${g.name}${g.quantity > 1 ? ` (x${g.quantity})` : ''}`).join('\n');
+    
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Shopping List - Glow Kitchen</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+            h1 { color: #8b2d88; border-bottom: 3px solid #8b2d88; padding-bottom: 10px; }
+            ul { line-height: 1.8; }
+            .date { color: #666; font-size: 14px; margin-top: 5px; }
+            @media print {
+              body { padding: 20px; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>🛒 Shopping List - Glow Kitchen</h1>
+          <p class="date">Generated on ${new Date().toLocaleDateString()}</p>
+          
+          <div class="section">
+            <ul>
+              ${shoppingList.length > 0 ? listItems : '<li>No items in shopping list</li>'}
+            </ul>
+          </div>
+          
+          <button class="no-print" onclick="window.print()" style="margin-top: 30px; padding: 12px 24px; background: #8b2d88; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+            🖨️ Print This Page
+          </button>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+  };
 
   const activeTabData = TABS.find(t => t.id === activeTab);
   const filteredSkills = BASICS_SKILLS.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -257,6 +317,74 @@ export default function GlowKitchen() {
                 <div className="text-3xl mb-2">👨‍🍳</div>
                 <p className="text-gray-400 text-sm">Mentors coming soon!</p>
                 <p className="text-gray-500 text-xs mt-1">Submit a request and we'll match you with the right mentor.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'grocery' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-white text-lg">🛒 Auto-Generated Shopping List</h3>
+                <p className="text-xs text-gray-400">From your meal plans</p>
+              </div>
+              <button onClick={handlePrintShoppingList} className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white"
+                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                <Printer size={14} /> Print
+              </button>
+            </div>
+
+            {!mealPlanLoaded ? (
+              <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading your shopping list...</p>
+              </div>
+            ) : shoppingList.length === 0 ? (
+              <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="text-4xl mb-3">🛒</div>
+                <p className="text-gray-400 text-sm mb-2">No items in your shopping list</p>
+                <p className="text-gray-500 text-xs">Add meals with linked grocery items to auto-generate your list</p>
+                <button onClick={() => navigate('/meal-planner')} className="mt-4 px-6 py-2.5 rounded-full text-xs font-bold text-white"
+                  style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                  Go to Meal Planner
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {shoppingList.map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'rgba(52,211,153,0.2)' }}>
+                      <ShoppingCart size={14} className="text-green-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-white">{item.name}</p>
+                      {item.quantity > 1 && (
+                        <p className="text-xs text-gray-400">Quantity: {item.quantity}</p>
+                      )}
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-xs font-bold ${item.is_checked ? 'bg-green-900/50 text-green-400' : 'bg-gray-700 text-gray-300'}`}>
+                      {item.is_checked ? '✓ Got it' : 'To buy'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="rounded-2xl p-4 mt-4" style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)' }}>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(52,211,153,0.2)' }}>
+                  <ShoppingCart size={16} className="text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-green-300 mb-1">How it works</p>
+                  <p className="text-xs text-gray-300">
+                    Items are automatically added to your shopping list when you link them to meals in the Meal Planner. 
+                    Print this list before heading to the store!
+                  </p>
+                </div>
               </div>
             </div>
           </div>

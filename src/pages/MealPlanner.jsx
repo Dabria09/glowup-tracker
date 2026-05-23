@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Plus, X, ShoppingCart, ChevronLeft as PrevIcon, ChevronRight } from 'lucide-react';
+import { ChevronLeft, Plus, X, ShoppingCart, ChevronLeft as PrevIcon, ChevronRight, Download, Printer } from 'lucide-react';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
@@ -119,6 +119,56 @@ export default function MealPlanner() {
 
   const uncheckedGrocery = groceryItems.filter(g => !g.is_checked);
 
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    const mealList = weekMeals.map(m => `${m.day} - ${m.meal_type}: ${m.meal_name}${m.notes ? ` (${m.notes})` : ''}`).join('\n');
+    const groceryList = uncheckedGrocery.map(g => `• ${g.name}${g.quantity > 1 ? ` (x${g.quantity})` : ''}`).join('\n');
+    
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>My Weekly Meal Plan & Shopping List</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
+            h1 { color: #8b2d88; border-bottom: 3px solid #8b2d88; padding-bottom: 10px; }
+            h2 { color: #6b21a8; margin-top: 30px; }
+            .section { margin-bottom: 30px; }
+            ul { line-height: 1.8; }
+            .date { color: #666; font-size: 14px; margin-top: 5px; }
+            @media print {
+              body { padding: 20px; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>🍽️ Weekly Meal Plan & Shopping List</h1>
+          <p class="date">Week of ${formatWeek(weekStart)}</p>
+          
+          <div class="section">
+            <h2>📅 Meal Plan</h2>
+            <ul>
+              ${weekMeals.map(m => `<li><strong>${m.day} - ${m.meal_type}:</strong> ${m.meal_name}${m.notes ? ` <em>(${m.notes})</em>` : ''}</li>`).join('\n              ')}
+            </ul>
+          </div>
+          
+          <div class="section">
+            <h2>🛒 Shopping List</h2>
+            <ul>
+              ${uncheckedGrocery.length > 0 ? uncheckedGrocery.map(g => `<li>${g.name}${g.quantity > 1 ? ` <strong>(x${g.quantity})</strong>` : ''}</li>`).join('\n              ') : '<li>No items in shopping list</li>'}
+            </ul>
+          </div>
+          
+          <button class="no-print" onclick="window.print()" style="margin-top: 30px; padding: 12px 24px; background: #8b2d88; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+            🖨️ Print This Page
+          </button>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#080810' }}>
       <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" />
@@ -142,10 +192,13 @@ export default function MealPlanner() {
           <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10">
             <ChevronLeft size={20} />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold">🍽️ Meal Planner</h1>
             <p className="text-xs text-gray-400">Plan your week, shop smarter</p>
           </div>
+          <button onClick={handlePrint} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition">
+            <Printer size={18} />
+          </button>
         </div>
 
         {/* Week navigator */}
