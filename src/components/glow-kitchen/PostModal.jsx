@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { X, Image as ImageIcon, Plus, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export default function PostModal({ isOpen, onClose, user, onPostCreated }) {
+export default function PostModal({ isOpen, onClose, user, onPostCreated, category = 'feed' }) {
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -30,12 +30,16 @@ export default function PostModal({ isOpen, onClose, user, onPostCreated }) {
 
     try {
       setLoading(true);
-      // Since there's no Post entity yet, we can just close and show success
-      // In a real app, you'd save to a GlowKitchenPost entity
-      await base44.integrations.Core.SendEmail({
-        to: user.email,
-        subject: '🍽️ Kitchen Post Shared!',
-        body: `Your post was shared: "${content}"${imageUrl ? `\n\nImage: ${imageUrl}` : ''}`
+      await base44.entities.KitchenPost.create({
+        user_email: user.email,
+        username: user.full_name || user.email.split('@')[0],
+        content: content.trim(),
+        image_url: imageUrl,
+        category: category,
+        likes: 0,
+        liked_by: '[]',
+        comments: '[]',
+        created_date: new Date().toISOString()
       });
       
       setContent('');
@@ -64,7 +68,11 @@ export default function PostModal({ isOpen, onClose, user, onPostCreated }) {
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-bold text-white text-lg">Share a Post</h2>
+          <h2 className="font-bold text-white text-lg">
+            {category === 'feed' && '📸 Share a Post'}
+            {category === 'budget' && '💰 Share Budget Tip'}
+            {category === 'cultural' && '🌍 Share Cultural Recipe'}
+          </h2>
           <button onClick={onClose}>
             <X size={20} className="text-gray-400" />
           </button>
@@ -72,11 +80,19 @@ export default function PostModal({ isOpen, onClose, user, onPostCreated }) {
 
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-gray-400 mb-2 block">What's cooking? 👨‍🍳</label>
+            <label className="text-xs font-bold text-gray-400 mb-2 block">
+              {category === 'feed' && 'What\'s cooking? 👨‍🍳'}
+              {category === 'budget' && 'Share your budget-friendly meal tip 💚'}
+              {category === 'cultural' && 'Tell us about this cultural dish 🌍'}
+            </label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share your kitchen moment, recipe win, or cooking inspiration..."
+              placeholder={
+                category === 'feed' ? 'Share your kitchen moment, recipe win, or cooking inspiration...' :
+                category === 'budget' ? 'How do you save money while eating healthy? Share your tips!' :
+                'What makes this dish special in your culture?'
+              }
               className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
               rows={4}

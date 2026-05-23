@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronDown, Plus, Star, Search, ShoppingCart, Printer } f
 import RecipeList from '@/components/glow-kitchen/RecipeList';
 import AddRecipeModal from '@/components/glow-kitchen/AddRecipeModal';
 import PostModal from '@/components/glow-kitchen/PostModal';
+import KitchenPostCard from '@/components/glow-kitchen/KitchenPostCard';
 
 const TABS = [
   { id: 'feed', label: 'Feed', emoji: '📸' },
@@ -33,6 +34,9 @@ export default function GlowKitchen() {
   const [basics, setBasics] = useState([]);
   const [healthyGuides, setHealthyGuides] = useState([]);
   const [recipes, setRecipes] = useState([]);
+  const [feedPosts, setFeedPosts] = useState([]);
+  const [budgetPosts, setBudgetPosts] = useState([]);
+  const [culturalPosts, setCulturalPosts] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
 
   const loadData = async () => {
@@ -70,6 +74,12 @@ export default function GlowKitchen() {
       const recipesData = await base44.entities.Recipe.filter({ is_public: true });
       const uniqueRecipes = Array.from(new Map(recipesData.map(r => [r.id, r])).values());
       setRecipes(uniqueRecipes);
+      
+      // Load community posts
+      const allPosts = await base44.entities.KitchenPost.list();
+      setFeedPosts(allPosts.filter(p => p.category === 'feed').sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+      setBudgetPosts(allPosts.filter(p => p.category === 'budget').sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+      setCulturalPosts(allPosts.filter(p => p.category === 'cultural').sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
       
       setLoadingData(false);
     } catch (error) {
@@ -119,6 +129,41 @@ export default function GlowKitchen() {
     `);
     printWindow.document.close();
     printWindow.focus();
+  };
+
+  const handleLike = async (postId) => {
+    const post = feedPosts.find(p => p.id === postId) || budgetPosts.find(p => p.id === postId) || culturalPosts.find(p => p.id === postId);
+    if (!post) return;
+
+    const likedBy = JSON.parse(post.liked_by || '[]');
+    const isLiked = likedBy.includes(user.email);
+    const newLikedBy = isLiked ? likedBy.filter(email => email !== user.email) : [...likedBy, user.email];
+    const newLikes = (post.likes || 0) + (isLiked ? -1 : 1);
+
+    await base44.entities.KitchenPost.update(post.id, {
+      likes: newLikes,
+      liked_by: JSON.stringify(newLikedBy)
+    });
+
+    // Update local state
+    const updatePosts = (posts) => posts.map(p => p.id === postId ? { ...p, likes: newLikes, liked_by: JSON.stringify(newLikedBy) } : p);
+    setFeedPosts(updatePosts(feedPosts));
+    setBudgetPosts(updatePosts(budgetPosts));
+    setCulturalPosts(updatePosts(culturalPosts));
+  };
+
+  const handleComment = (postId, newComments) => {
+    const updatePosts = (posts) => posts.map(p => p.id === postId ? { ...p, comments: JSON.stringify(newComments) } : p);
+    setFeedPosts(updatePosts(feedPosts));
+    setBudgetPosts(updatePosts(budgetPosts));
+    setCulturalPosts(updatePosts(culturalPosts));
+  };
+
+  const handleDeletePost = async (postId) => {
+    await base44.entities.KitchenPost.delete(postId);
+    setFeedPosts(feedPosts.filter(p => p.id !== postId));
+    setBudgetPosts(budgetPosts.filter(p => p.id !== postId));
+    setCulturalPosts(culturalPosts.filter(p => p.id !== postId));
   };
 
   const activeTabData = TABS.find(t => t.id === activeTab);
@@ -191,11 +236,32 @@ export default function GlowKitchen() {
                 <Plus size={16} /> Share a Post
               </button>
             </div>
-            <div className="text-center py-12 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <div className="text-4xl mb-3">📸</div>
-              <p className="text-gray-400 text-sm">No posts yet</p>
-              <p className="text-gray-500 text-xs mt-1">Be the first to share your kitchen moment!</p>
-            </div>
+
+            {loadingData ? (
+              <div className="text-center py-10">
+                <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading posts...</p>
+              </div>
+            ) : feedPosts.length === 0 ? (
+              <div className="text-center py-12 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="text-4xl mb-3">📸</div>
+                <p className="text-gray-400 text-sm">No posts yet</p>
+                <p className="text-gray-500 text-xs mt-1">Be the first to share your kitchen moment!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {feedPosts.map(post => (
+                  <KitchenPostCard
+                    key={post.id}
+                    post={post}
+                    user={user}
+                    onLike={handleLike}
+                    onComment={handleComment}
+                    onDelete={handleDeletePost}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -219,86 +285,86 @@ export default function GlowKitchen() {
         {activeTab === 'budget' && (
           <div className="space-y-4">
             <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.15))', border: '1px solid rgba(34,197,94,0.3)' }}>
-              <h3 className="font-bold text-white text-lg mb-2">💚 Eating Healthy on a Budget</h3>
-              <p className="text-sm text-gray-300 mb-4">Delicious meals don't have to be expensive — here's how to eat well for less.</p>
-              <div className="space-y-2 text-sm text-gray-300">
-                <p>✓ Buy frozen fruits and vegetables — same nutrition at a fraction of the cost</p>
-                <p>✓ Choose leafy greens and seasonal produce for best prices</p>
-                <p>✓ Batch cook on Sundays to save time and money throughout the week</p>
-                <p>✓ Use eggs, beans, and lentils as your protein base</p>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-3xl">💚</span>
+                <div>
+                  <h3 className="font-bold text-white text-lg">Budget-Friendly Meals</h3>
+                  <p className="text-xs text-gray-400">Share & discover money-saving tips</p>
+                </div>
               </div>
+              <p className="text-sm text-gray-300 mb-4">Delicious meals don't have to be expensive. Share your budget tips and learn from the community!</p>
+              <button onClick={() => setShowPostModal(true)} className="w-full py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }}>
+                <Plus size={16} /> Share Budget Tip
+              </button>
             </div>
-            
-            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <p className="text-xs font-bold text-gray-400 mb-3 uppercase">Budget-Friendly Recipes</p>
-              <div className="space-y-2">
-                {recipes.filter(r => r.category === 'Budget-Friendly').map(recipe => (
-                  <div key={recipe.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <span className="text-2xl">💚</span>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-white">{recipe.title}</p>
-                      <p className="text-xs text-gray-400">{recipe.servings} servings • {recipe.prep_time + recipe.cook_time} mins</p>
-                    </div>
-                  </div>
+
+            {loadingData ? (
+              <div className="text-center py-10">
+                <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading tips...</p>
+              </div>
+            ) : budgetPosts.length === 0 ? (
+              <div className="text-center py-12 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="text-4xl mb-3">💚</div>
+                <p className="text-gray-400 text-sm">No budget tips yet</p>
+                <p className="text-gray-500 text-xs mt-1">Share your first money-saving cooking tip!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {budgetPosts.map(post => (
+                  <KitchenPostCard
+                    key={post.id}
+                    post={post}
+                    user={user}
+                    onLike={handleLike}
+                    onComment={handleComment}
+                    onDelete={handleDeletePost}
+                  />
                 ))}
-                {recipes.filter(r => r.category === 'Budget-Friendly').length === 0 && (
-                  <p className="text-xs text-gray-500 text-center py-4">Budget recipes coming soon!</p>
-                )}
               </div>
-            </div>
-            
-            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <p className="text-xs font-bold text-gray-400 mb-3 uppercase">Budget Shopping Tips</p>
-              <div className="space-y-2">
-                {['Rice & Beans', 'Seasonal Produce', 'Eggs & Dairy', 'Frozen Items', 'Bulk Grains', 'Dried Legumes'].map(item => (
-                  <div key={item} className="flex items-center gap-2 text-sm text-gray-300 p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                    <span className="text-green-400">✓</span> {item}
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
         )}
 
         {activeTab === 'cultural' && (
           <div className="space-y-4">
             <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(249,115,22,0.15))', border: '1px solid rgba(249,115,22,0.3)' }}>
-              <h3 className="font-bold text-white text-lg mb-2">🌍 Culinary Traditions Around the World</h3>
-              <p className="text-sm text-gray-300">Explore authentic recipes and cooking techniques from different cultures. Learn to cook like locals!</p>
-            </div>
-            
-            {['African', 'Asian', 'Caribbean', 'European', 'Latin American', 'Middle Eastern'].map(region => {
-              const regionRecipes = recipes.filter(r => r.cuisine === region);
-              if (regionRecipes.length === 0) return null;
-              return (
-                <div key={region} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-2xl">{region === 'African' ? '🍲' : region === 'Asian' ? '🥢' : region === 'Caribbean' ? '🥥' : region === 'European' ? '🍝' : region === 'Latin American' ? '🌮' : '🍆'}</span>
-                    <div>
-                      <p className="font-semibold text-white text-sm">{region} Cuisine</p>
-                      <p className="text-xs text-gray-400">{regionRecipes.length} recipe{regionRecipes.length !== 1 ? 's' : ''}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    {regionRecipes.map(recipe => (
-                      <div key={recipe.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                        <span className="text-xl">👨‍🍳</span>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-white">{recipe.title}</p>
-                          <p className="text-xs text-gray-400">{recipe.prep_time + recipe.cook_time} mins • {recipe.difficulty}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-3xl">🌍</span>
+                <div>
+                  <h3 className="font-bold text-white text-lg">Cultural Recipes & Traditions</h3>
+                  <p className="text-xs text-gray-400">Share your heritage through food</p>
                 </div>
-              );
-            })}
-            
-            {recipes.filter(r => ['African', 'Asian', 'Caribbean', 'European', 'Latin American', 'Middle Eastern'].includes(r.cuisine)).length === 0 && (
-              <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              </div>
+              <p className="text-sm text-gray-300 mb-4">Explore authentic recipes and cooking techniques from different cultures. Share your family traditions!</p>
+              <button onClick={() => setShowPostModal(true)} className="w-full py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg, #a855f7, #f97316)' }}>
+                <Plus size={16} /> Share Cultural Dish
+              </button>
+            </div>
+
+            {loadingData ? (
+              <div className="text-center py-10">
+                <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-gray-400 text-sm">Loading posts...</p>
+              </div>
+            ) : culturalPosts.length === 0 ? (
+              <div className="text-center py-12 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <div className="text-4xl mb-3">🌍</div>
-                <p className="text-gray-400 text-sm">Cultural recipes coming soon!</p>
-                <p className="text-gray-500 text-xs mt-1">Explore cuisines from around the world</p>
+                <p className="text-gray-400 text-sm">No cultural posts yet</p>
+                <p className="text-gray-500 text-xs mt-1">Share your first cultural recipe or tradition!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {culturalPosts.map(post => (
+                  <KitchenPostCard
+                    key={post.id}
+                    post={post}
+                    user={user}
+                    onLike={handleLike}
+                    onComment={handleComment}
+                    onDelete={handleDeletePost}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -655,7 +721,11 @@ export default function GlowKitchen() {
         isOpen={showPostModal}
         onClose={() => setShowPostModal(false)}
         user={user}
-        onPostCreated={() => setShowPostModal(false)}
+        category={activeTab === 'budget' ? 'budget' : activeTab === 'cultural' ? 'cultural' : 'feed'}
+        onPostCreated={() => {
+          loadData();
+          setShowPostModal(false);
+        }}
       />
     </div>
   );

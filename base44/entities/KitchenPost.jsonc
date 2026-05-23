@@ -1,0 +1,53 @@
+{
+  "name": "KitchenPost",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "username": {
+      "type": "string",
+      "title": "Username"
+    },
+    "content": {
+      "type": "string",
+      "title": "Post Content"
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL"
+    },
+    "category": {
+      "type": "string",
+      "title": "Post Category",
+      "enum": [
+        "feed",
+        "budget",
+        "cultural"
+      ]
+    },
+    "likes": {
+      "type": "number",
+      "title": "Likes",
+      "default": 0
+    },
+    "liked_by": {
+      "type": "string",
+      "title": "Liked By (JSON array of emails)"
+    },
+    "comments": {
+      "type": "string",
+      "title": "Comments (JSON array)"
+    },
+    "created_date": {
+      "type": "string",
+      "title": "Created Date"
+    }
+  },
+  "required": [
+    "user_email",
+    "content",
+    "category"
+  ]
+}
