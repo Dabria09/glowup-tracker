@@ -49,6 +49,7 @@ import GlowTalk from './pages/GlowTalk';
 import TeamContests from './pages/TeamContests';
 import TeamDetail from './pages/TeamDetail';
 import SquadDetail from './pages/SquadDetail';
+import DreamCalculator from './pages/DreamCalculator';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -112,6 +113,7 @@ const AuthenticatedApp = () => {
       <Route path="/glow-squads" element={<GlowSquads />} />
       <Route path="/glow-squads/:id" element={<SquadDetail />} />
       <Route path="/team-contests" element={<TeamContests />} />
+      <Route path="/dream-calculator" element={<DreamCalculator />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
