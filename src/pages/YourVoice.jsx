@@ -149,57 +149,7 @@ const CIVIC_TOPICS = [
   },
 
 
-  {
-    id: 'manipulation',
-    stages: ['glow_teens','glow_women'],
-    category: 'Relationships & Safety',
-    emoji: '🛡️',
-    title: 'Manipulation: How to Spot It & Not Be It',
-    desc: 'Real ones don\'t need to manipulate. Learn the difference.',
-    why_it_matters: 'Manipulation is one of the most common tools used in unhealthy relationships. Learning to recognize it protects you. Learning not to use it makes you a trustworthy, respected person.',
-    key_facts: ['Manipulation is when someone tries to influence you through dishonest, unfair, or emotional tactics instead of honest communication.', 'Manipulators often target people who are kind, empathetic, or eager to please.', 'Gaslighting — making someone question their own reality — is one of the most harmful forms of manipulation.', 'You can be manipulative without realizing it. Self-awareness is key.'],
-    sections: [
-      { title: 'What Is Manipulation?', content: 'Manipulation is using indirect, dishonest, or emotionally coercive tactics to get what you want from someone. It\'s different from persuasion. Persuasion is honest — you share your perspective, make your case, and respect the other person\'s right to say no.' },
-      { title: 'Common Manipulation Tactics to Watch For', content: 'Guilt-tripping: making you feel responsible for their emotions. Silent treatment: withdrawing affection as punishment. Gaslighting: making you question your memory or sanity. Love bombing: overwhelming you with affection early on. Isolation: slowly cutting you off from friends and family.' },
-      { title: 'How to Know If You\'re Being Manipulated', content: 'You often feel confused, guilty, or like you\'re "going crazy" after conversations. You apologize constantly. You feel drained after spending time with them. You\'ve changed who you are to keep them happy. These are warning signs. Trust your gut.' },
-      { title: 'How to Respond to Manipulation', content: 'Name it calmly: "I feel like I\'m being guilt-tripped right now. Can we talk about this directly?" Set a boundary: "I\'m not going to continue this conversation when it feels like this." Take space: You don\'t have to respond immediately.' },
-      { title: 'How NOT to Be a Manipulator', content: 'Practice direct, honest communication. Say what you mean. Ask for what you need. Accept no as an answer. Respect other people\'s boundaries. This is how you build real, lasting relationships.' },
-      { title: 'Healthy Influence vs. Manipulation', content: 'Healthy influence: "I really want your company, but I understand if you can\'t." Manipulation: "If you were really my friend, you\'d come." The difference is respect. You can be persuasive and influential without being manipulative.' },
-    ],
-    activities: ['Think of a time when you felt confused or drained after an interaction. Can you identify any manipulation tactics? Write about it in your journal.', 'Have you ever used guilt-tripping or the silent treatment? Write about one situation and how you could have handled it more directly.', 'Take a manipulative statement and rewrite it as honest communication. Practice with 3 different scenarios.'],
-    quiz: [
-      { q: 'What is gaslighting?', options: ['Giving someone too many compliments','Making someone question their own memory, perception, or reality','Ignoring someone\'s texts','Being overly honest'], answer: 1, explanation: 'Gaslighting is a form of manipulation where someone makes you doubt your own perception of reality — often saying things like "That never happened" or "You\'re overreacting."' },
-      { q: 'What is the key difference between persuasion and manipulation?', options: ['Persuasion is louder than manipulation','Persuasion is honest and respects the other person\'s right to say no; manipulation does not','Manipulation is only used by bad people','There is no difference'], answer: 1, explanation: 'Persuasion is honest — you make your case and respect the other person\'s choice. Manipulation bypasses their free choice through dishonest or coercive tactics.' },
-      { q: 'Which of these is a sign that YOU might be manipulating someone?', options: ['You ask for what you need directly','You accept "no" as an answer','You give people the silent treatment when you\'re upset instead of talking about it','You share your honest feelings'], answer: 2, explanation: 'Using the silent treatment as punishment instead of communicating directly is a form of manipulation. Healthy communication means expressing your feelings honestly.' },
-    ],
-    call_to_action: 'This week, practice one thing: when you want something from someone, ask for it directly and honestly — and accept their answer with grace, whatever it is.',
-  },
 
-  {
-    id: 'good_employee',
-    stages: ['glow_teens','glow_women'],
-    category: 'School & Career Skills',
-    emoji: '💼',
-    title: 'How to Be a Good Employee',
-    desc: 'Your first job is your first audition. Make it count.',
-    why_it_matters: 'How you show up as an employee shapes your reputation, your opportunities, and your income for years to come. The workplace has unwritten rules — and knowing them gives you a serious advantage.',
-    key_facts: ['93% of employers say professionalism and work ethic matter more than technical skills for entry-level positions.', 'Most people are not fired for incompetence — they\'re let go for attitude, reliability, or interpersonal issues.', 'Your reputation follows you — industries are smaller than they look, and people talk.', 'The habits you build in your first job often follow you throughout your career.'],
-    sections: [
-      { title: 'What Employers Actually Want', content: 'Beyond the job description, employers are looking for people who show up on time, communicate clearly, take initiative, handle feedback professionally, and get along with others. Technical skills can be taught. Character and work ethic are much harder to train.' },
-      { title: 'Professionalism: The Basics', content: 'Show up on time — actually, show up early. Keep your phone put away during work hours. Speak respectfully to everyone — the janitor and the CEO deserve the same courtesy.' },
-      { title: 'How to Handle Feedback and Criticism', content: 'When your manager gives you feedback, the right response is: listen fully without interrupting, say "thank you," ask clarifying questions if needed, and then actually implement the feedback. Do not get defensive or make excuses.' },
-      { title: 'Communication in the Workplace', content: 'Respond to messages and emails promptly. If you\'re going to be late or absent, notify your supervisor as early as possible. Speak up in meetings. Learn to write professional emails — no slang, proper punctuation, clear subject lines.' },
-      { title: 'Taking Initiative and Going Beyond', content: 'The employees who get promoted are not just the ones who do their jobs — they\'re the ones who notice what needs to be done and do it without being asked.' },
-      { title: 'Know Your Rights as an Employee', content: 'You have the right to a safe work environment, free from harassment and discrimination. You have the right to be paid for all hours worked — wage theft is illegal. If you\'re under 18, there are specific child labor laws that limit your hours.' },
-    ],
-    activities: ['Think about your current or most recent job. How would your supervisor describe your work ethic? Write 3 things you do well and 1 thing you want to improve.', 'Write a professional email to a teacher, mentor, or employer. Use proper formatting, no slang, and a clear subject line.', 'Look up the minimum wage and basic employee rights in your state. Find one law that protects workers your age.'],
-    quiz: [
-      { q: 'What is the most common reason employees are let go from jobs?', options: ['Not knowing enough technical skills','Attitude, reliability, or interpersonal issues','Being too young','Not having enough education'], answer: 1, explanation: 'Most people are not fired for incompetence — they\'re let go for attitude, reliability, or how they treat others. Soft skills matter enormously in the workplace.' },
-      { q: 'When your manager gives you critical feedback, the best response is:', options: ['Defend yourself and explain why you did it that way','Point out what your coworkers are doing wrong too','Listen fully, thank them, ask clarifying questions, and implement the feedback','Ignore it and keep doing things your way'], answer: 2, explanation: 'Receiving feedback gracefully and acting on it quickly is one of the fastest ways to advance in any workplace. Defensiveness and excuses signal that you\'re not coachable.' },
-      { q: 'What should you do if you\'re going to be late or absent from work?', options: ['Text a coworker to cover for you','Notify your supervisor as early as possible','Just show up when you can without saying anything','Call in sick even if you\'re not'], answer: 1, explanation: 'Notifying your supervisor as early as possible is the professional thing to do. It shows respect for the team and demonstrates reliability even when you can\'t be there.' },
-    ],
-    call_to_action: 'Identify one professional habit from this resource that you want to build. Practice it every day for the next 30 days and notice how people respond to you differently.',
-  },
 ];
 
 const CATEGORIES = ['All', 'How Voting Works', 'Government', 'Laws & Rights', 'Mindset & Growth', 'Relationships & Safety', 'School & Career Skills', 'Community', 'Health & Wellness'];
