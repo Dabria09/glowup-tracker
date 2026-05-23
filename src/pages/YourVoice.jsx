@@ -532,18 +532,6 @@ export default function YourVoice() {
             </div>
           </div>
 
-          {/* Category Filters */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-4 px-4">
-            {CATEGORIES.filter(c => c === 'All' || stageTopics.some(t => t.category === c)).map(cat => (
-              <button key={cat} onClick={() => setActiveCat(cat)}
-                className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition whitespace-nowrap"
-                style={activeCat === cat
-                  ? { background: 'rgba(168,85,247,0.5)', border: '1px solid rgba(168,85,247,0.7)', color: '#fff' }
-                  : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
-                {cat}
-              </button>
-            ))}
-          </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
