@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy } from 'lucide-react';
+import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy, Flag } from 'lucide-react';
 
 const COMMUNITY_TYPES = {
   school: { emoji: '🏫', color: '#ec4899' },
@@ -220,6 +220,20 @@ export default function CommunityDetail() {
     });
     setNewMessage('');
     loadData();
+  }
+
+  async function handleReportPost(post) {
+    if (!confirm(`Report this post for inappropriate content?\n\nCommunity admins will be notified to review this post.`)) return;
+    // Send email notification to community admins
+    const adminMembers = members.filter(m => m.role === 'admin');
+    for (const admin of adminMembers) {
+      await base44.integrations.Core.SendEmail({
+        to: admin.user_email,
+        subject: `Post Report in ${community.name}`,
+        body: `A post has been reported in ${community.name}.\n\nPost by: ${post.username}\nContent: ${post.content}\n\nPlease review and take appropriate action.`,
+      });
+    }
+    alert('Thank you for helping keep our community safe. Admins have been notified. 💜');
   }
 
   if (!community) {
@@ -442,6 +456,12 @@ export default function CommunityDetail() {
                           <button className="flex items-center gap-1.5 text-xs text-gray-400">
                             <MessageCircle size={14} /> Reply
                           </button>
+                          {post.user_email !== user?.email && (
+                            <button onClick={() => handleReportPost(post)}
+                              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-400 transition">
+                              <Flag size={14} /> Report
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
