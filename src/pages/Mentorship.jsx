@@ -19,6 +19,10 @@ const CATEGORIES = [
   { id: 'wellness', label: 'Wellness', emoji: '🌿' },
   { id: 'faith', label: 'Faith', emoji: '🙏' },
   { id: 'relationships', label: 'Relationships', emoji: '💕' },
+  { id: 'cooking', label: 'Cooking', emoji: '🍳' },
+  { id: 'identity', label: 'Identity', emoji: '🦋' },
+  { id: 'purpose', label: 'Find Your Purpose', emoji: '🎯' },
+  { id: 'skill-building', label: 'Skill Building', emoji: '🛠️' },
 ];
 
 const ACTION_BUTTONS = [

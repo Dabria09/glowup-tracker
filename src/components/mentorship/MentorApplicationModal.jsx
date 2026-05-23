@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { X, Upload, User } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-const CATEGORIES = ['Career', 'Education', 'Business', 'Wellness', 'Faith', 'Relationships'];
+const CATEGORIES = ['Career', 'Education', 'Business', 'Wellness', 'Faith', 'Relationships', 'Cooking', 'Identity', 'Find Your Purpose', 'Skill Building'];
 const AVAILABILITY = ['Weekly', 'Bi-weekly', 'Monthly', 'One-time'];
 const SESSION_TYPES = ['Video Call', 'Phone Call', 'Chat', 'In-person'];
 
