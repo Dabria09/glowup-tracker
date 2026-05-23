@@ -62,21 +62,23 @@ export default function GirlsLibrary() {
             <p className="text-xs font-bold text-yellow-300 mb-0.5">✨ Recommended For You</p>
             <p className="text-xs text-gray-300">Resources handpicked based on your interests and growth stage</p>
           </div>
-          {/* Search */}
-          <div className="relative mt-3">
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search resources..."
-              className="w-full rounded-2xl px-4 py-3 pl-10 text-sm text-white outline-none"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-            />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">✕</button>
-            )}
-          </div>
+          {/* Search — only for resources */}
+          {activeSection === 'resources' && (
+            <div className="relative mt-3">
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search resources..."
+                className="w-full rounded-2xl px-4 py-3 pl-10 text-sm text-white outline-none"
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+              {search && (
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">✕</button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Section Tabs */}
