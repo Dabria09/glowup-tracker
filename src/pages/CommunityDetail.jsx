@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical } from 'lucide-react';
+import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy } from 'lucide-react';
 
 const COMMUNITY_TYPES = {
   school: { emoji: '🏫', color: '#ec4899' },
@@ -32,6 +32,9 @@ export default function CommunityDetail() {
   const [isMember, setIsMember] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [recentActivity, setRecentActivity] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -62,6 +65,16 @@ export default function CommunityDetail() {
       // Load events
       const communityEvents = await base44.entities.CommunityEvent.filter({ community_id: id }, '-event_date');
       setEvents(communityEvents);
+
+      // Calculate recent activity (posts + new members in last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const recentPosts = communityPosts.filter(p => new Date(p.created_date) > sevenDaysAgo);
+      const recentMembers = communityMembers.filter(m => new Date(m.joined_date) > sevenDaysAgo);
+      setRecentActivity([
+        { type: 'posts', count: recentPosts.length, label: 'New Posts' },
+        { type: 'members', count: recentMembers.length, label: 'New Members' },
+      ]);
     } catch (error) {
       console.error('Error loading community:', error);
     }
@@ -106,6 +119,25 @@ export default function CommunityDetail() {
     setNewPost('');
     setShowPostModal(false);
     loadData();
+  }
+
+  async function handleInvite() {
+    if (!inviteEmail.trim() || !user) return;
+    // Send invitation email
+    await base44.integrations.Core.SendEmail({
+      to: inviteEmail,
+      subject: `You're invited to join ${community.name}!`,
+      body: `Hi! ${user.full_name || user.email.split('@')[0]} has invited you to join ${community.name} on Money Moves. Click here to join: ${window.location.origin}/community-hub/${id}`,
+    });
+    setInviteEmail('');
+    setShowInviteModal(false);
+    alert('Invitation sent! 💜');
+  }
+
+  async function handleCopyInviteLink() {
+    const inviteLink = `${window.location.origin}/community-hub/${id}`;
+    await navigator.clipboard.writeText(inviteLink);
+    alert('Invite link copied! Share it with your friends 💜');
   }
 
   async function handleLikePost(postId, likedBy) {
@@ -160,12 +192,20 @@ export default function CommunityDetail() {
                 {typeInfo.emoji}
               </div>
               <div className="flex-1">
-                <h2 className="text-xl font-bold text-white mb-1">{community.name}</h2>
-                <p className="text-xs text-gray-400 mb-2">{community.description}</p>
-                <div className="flex items-center gap-3 text-xs text-gray-500">
-                  <span className="flex items-center gap-1"><Users size={12} /> {community.member_count || 0} members</span>
-                  <span className="flex items-center gap-1"><Star size={12} /> {COMMUNITY_TYPES[community.type]?.label || 'Community'}</span>
-                </div>
+               <h2 className="text-xl font-bold text-white mb-1">{community.name}</h2>
+               <p className="text-xs text-gray-400 mb-2">{community.description}</p>
+               <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
+                 <span className="flex items-center gap-1"><Users size={12} /> {community.member_count || 0} members</span>
+                 <span className="flex items-center gap-1"><Star size={12} /> {COMMUNITY_TYPES[community.type]?.label || 'Community'}</span>
+               </div>
+               {/* Recent Activity Summary */}
+               <div className="flex items-center gap-3 text-xs">
+                 {recentActivity.map((activity, i) => (
+                   <span key={i} className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)', color: '#d8b4fe' }}>
+                     {activity.type === 'posts' ? '💬' : '👥'} {activity.count} {activity.label} (7d)
+                   </span>
+                 ))}
+               </div>
               </div>
             </div>
 
@@ -179,6 +219,20 @@ export default function CommunityDetail() {
                 style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                 Join Community 💜
               </button>
+            )}
+            
+            {/* Invite Button for Members */}
+            {isMember && (
+              <div className="flex gap-2 mt-3">
+                <button onClick={() => setShowInviteModal(true)} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2"
+                  style={{ background: 'rgba(168,85,247,0.25)', border: '1px solid rgba(168,85,247,0.4)' }}>
+                  <Mail size={14} /> Invite
+                </button>
+                <button onClick={handleCopyInviteLink} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2"
+                  style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                  <Copy size={14} /> Copy Link
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -394,6 +448,33 @@ export default function CommunityDetail() {
                 className="w-full py-4 rounded-2xl font-bold text-white disabled:opacity-40 flex items-center justify-center gap-2"
                 style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                 <Send size={18} /> Post
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 z-[100]" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowInviteModal(false)}>
+          <div className="fixed bottom-0 left-0 right-0 flex flex-col max-h-[50vh] mb-20" style={{ background: '#1a0a30' }} onClick={e => e.stopPropagation()}>
+            <div className="p-6 flex-1">
+              <div className="flex items-center justify-between mb-4">
+                <p className="font-bold text-white text-lg">Invite Members</p>
+                <button onClick={() => setShowInviteModal(false)}><ChevronLeft size={20} className="text-gray-400 rotate-180" /></button>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">Invite friends to join {community.name} via email</p>
+              <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                placeholder="friend@example.com"
+                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none mb-3"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
+              <p className="text-xs text-gray-500">They'll receive an email with a link to join the community</p>
+            </div>
+            <div className="border-t border-white/10 p-6 flex-shrink-0">
+              <button onClick={handleInvite} disabled={!inviteEmail.trim()}
+                className="w-full py-4 rounded-2xl font-bold text-white disabled:opacity-40 flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                <Mail size={18} /> Send Invitation
               </button>
             </div>
           </div>

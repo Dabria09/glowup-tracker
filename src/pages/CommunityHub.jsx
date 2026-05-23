@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Plus, Users, MapPin, Building2, School, Heart, MessageCircle } from 'lucide-react';
+import { ChevronLeft, Plus, Users, MapPin, Building2, School, Heart, MessageCircle, Search } from 'lucide-react';
 
 const COMMUNITY_TYPES = [
   { id: 'school', label: 'School', emoji: '🏫', icon: School, color: '#ec4899' },
@@ -25,12 +25,21 @@ export default function CommunityHub() {
   const [myCommunities, setMyCommunities] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCommunity, setNewCommunity] = useState({ name: '', type: 'school', description: '' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [allCommunities, setAllCommunities] = useState([]);
 
   useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
-      // Fetch user's joined communities
-      base44.entities.Community.filter({}).then(setMyCommunities);
+      // Fetch all communities
+      base44.entities.Community.filter({}).then(comms => {
+        setAllCommunities(comms);
+        // Set my communities (where user is member)
+        base44.entities.CommunityMember.filter({ user_email: u.email }).then(memberships => {
+          const myCommIds = memberships.map(m => m.community_id);
+          setMyCommunities(comms.filter(c => myCommIds.includes(c.id)));
+        });
+      });
     }).catch(() => {});
   }, []);
 
@@ -63,6 +72,18 @@ export default function CommunityHub() {
         </div>
 
         <div className="px-4 space-y-6">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <input
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search communities (schools, organizations, locations...)"
+              className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white outline-none"
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+            />
+          </div>
+
           {/* Create Community Banner */}
           <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.4), rgba(236,72,153,0.3))', border: '1px solid rgba(168,85,247,0.5)' }}>
             <div className="flex items-start gap-3 mb-3">
@@ -106,27 +127,60 @@ export default function CommunityHub() {
             </div>
           )}
 
-          {/* Featured Communities */}
-          <div>
-            <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">FEATURED COMMUNITIES</p>
-            <div className="space-y-2">
-              {FEATURED_COMMUNITIES.map(c => (
-                <div key={c.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: 'rgba(168,85,247,0.2)' }}>
-                    {c.emoji}
+          {/* Search Results or Featured Communities */}
+          {searchQuery.trim() ? (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold tracking-widest text-gray-500">SEARCH RESULTS</p>
+                <span className="text-xs text-gray-600">{allCommunities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).length}</span>
+              </div>
+              <div className="space-y-2">
+                {allCommunities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+                  <div className="text-center py-10">
+                    <div className="text-4xl mb-3">🔍</div>
+                    <p className="text-gray-400 text-sm">No communities found for "{searchQuery}"</p>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-white text-sm">{c.name}</p>
-                    <p className="text-xs text-gray-500">{c.description}</p>
-                    <p className="text-xs text-gray-600 mt-0.5">{c.members.toLocaleString()} members</p>
-                  </div>
-                  <button onClick={() => navigate(`/community-hub/${c.id}`)} className="text-xs font-semibold text-purple-400 px-3 py-1.5 rounded-full" style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
-                    Join
-                  </button>
-                </div>
-              ))}
+                ) : (
+                  allCommunities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map(c => (
+                    <div key={c.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: 'rgba(168,85,247,0.2)' }}>
+                        {COMMUNITY_TYPES.find(t => t.id === c.type)?.emoji || '💜'}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-white text-sm">{c.name}</p>
+                        <p className="text-xs text-gray-500">{c.description || 'Community'}</p>
+                        <p className="text-xs text-gray-600 mt-0.5">{c.member_count || 1} members</p>
+                      </div>
+                      <button onClick={() => navigate(`/community-hub/${c.id}`)} className="text-xs font-semibold text-purple-400 px-3 py-1.5 rounded-full" style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
+                        View
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">FEATURED COMMUNITIES</p>
+              <div className="space-y-2">
+                {FEATURED_COMMUNITIES.map(c => (
+                  <div key={c.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: 'rgba(168,85,247,0.2)' }}>
+                      {c.emoji}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-white text-sm">{c.name}</p>
+                      <p className="text-xs text-gray-500">{c.description}</p>
+                      <p className="text-xs text-gray-600 mt-0.5">{c.members.toLocaleString()} members</p>
+                    </div>
+                    <button onClick={() => navigate(`/community-hub/${c.id}`)} className="text-xs font-semibold text-purple-400 px-3 py-1.5 rounded-full" style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
+                      Join
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Community Types */}
           <div>
