@@ -6,13 +6,12 @@ import BottomNav from '@/components/BottomNav';
 import LibraryQuiz from '@/components/LibraryQuiz';
 import BookClub from '@/components/BookClub';
 import QUIZZES from '@/lib/libraryQuizzes';
-import { CAT_META, RESOURCES, CIVIC_TOPICS } from '@/lib/libraryResources';
+import { CAT_META, RESOURCES_ALL as RESOURCES } from '@/lib/libraryResources';
 import { BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const SECTION_TABS = [
   { id: 'resources', label: 'Resources', emoji: '📚' },
   { id: 'book_club', label: 'Book Club', emoji: '📖' },
-  { id: 'civic', label: 'Your Voice', emoji: '🗳️' },
 ];
 
 
@@ -24,7 +23,6 @@ export default function GirlsLibrary() {
   const [selectedResource, setSelectedResource] = useState(null);
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState('');
-  const [selectedCivic, setSelectedCivic] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -183,112 +181,6 @@ export default function GirlsLibrary() {
           );
         })()}
       </div>
-
-      {/* Civic Section */}
-      {activeSection === 'civic' && !selectedCivic && (
-        <div className="px-4 pb-6 space-y-3">
-          <p className="text-xs text-gray-400 mb-4">Learn how government, voting, and civic life work — and how you can make a difference right now.</p>
-          {CIVIC_TOPICS.map(topic => (
-            <button key={topic.id} onClick={() => setSelectedCivic(topic)}
-              className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition hover:opacity-90"
-              style={{ background: 'rgba(60,15,90,0.6)', border: '1px solid rgba(168,85,247,0.2)' }}>
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl"
-                style={{ background: 'rgba(168,85,247,0.15)' }}>
-                {topic.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold mb-0.5" style={{ color: '#c084fc' }}>{topic.category}</p>
-                <p className="font-bold text-sm text-white leading-snug">{topic.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5 truncate">{topic.desc}</p>
-              </div>
-              <ChevronRight size={16} className="text-gray-500 flex-shrink-0" />
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Civic Detail */}
-      {activeSection === 'civic' && selectedCivic && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" style={{ backgroundColor: '#0d0010' }}>
-          <div className="flex items-center gap-2 px-4 pt-4 pb-3 sticky top-0 z-10" style={{ backgroundColor: '#0d0010' }}>
-            <button onClick={() => setSelectedCivic(null)} className="flex items-center gap-1 text-gray-400 text-sm hover:text-white transition">
-              <ChevronLeft size={18} /> Back to Your Voice
-            </button>
-          </div>
-          <div className="px-4 pb-32">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
-                style={{ background: 'rgba(109,40,217,0.4)', border: '1px solid rgba(168,85,247,0.3)' }}>
-                {selectedCivic.emoji}
-              </div>
-              <div className="flex-1">
-                <p className="text-xs font-bold mb-1" style={{ color: '#c084fc' }}>{selectedCivic.category.toUpperCase()}</p>
-                <h1 className="text-2xl font-bold italic text-white leading-tight">{selectedCivic.title}</h1>
-              </div>
-            </div>
-            <p className="text-sm text-gray-300 mb-4">{selectedCivic.desc}</p>
-            {selectedCivic.why_it_matters && (
-              <div className="rounded-2xl px-4 py-3 mb-4" style={{ background: 'rgba(109,40,217,0.25)', border: '1px solid rgba(168,85,247,0.3)' }}>
-                <p className="text-xs font-bold text-purple-300 mb-1">⭐ Why It Matters</p>
-                <p className="text-sm text-gray-200">{selectedCivic.why_it_matters}</p>
-              </div>
-            )}
-            {selectedCivic.key_facts?.length > 0 && (
-              <div className="mb-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-yellow-400 text-lg">💡</span>
-                  <p className="font-bold text-white text-base">Key Facts</p>
-                </div>
-                <div className="space-y-2">
-                  {selectedCivic.key_facts.map((fact, i) => (
-                    <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-2xl"
-                      style={{ background: 'rgba(60,15,90,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                      <div className="mt-1 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ border: '2px solid #ec4899' }}>
-                        <div className="w-1.5 h-1.5 rounded-full bg-pink-500" />
-                      </div>
-                      <p className="text-sm text-gray-200 leading-relaxed">{fact}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {selectedCivic.sections?.length > 0 && (
-              <div className="mb-5 space-y-3">
-                {selectedCivic.sections.map((sec, i) => (
-                  <div key={i} className="rounded-2xl px-4 py-4"
-                    style={{ background: 'rgba(30,10,50,0.7)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                    <p className="font-bold text-sm mb-2" style={{ color: '#c084fc' }}>{sec.title}</p>
-                    <p className="text-sm text-gray-200 leading-relaxed">{sec.content}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-            {selectedCivic.activities?.length > 0 && (
-              <div className="mb-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-bold">✓</span>
-                  </div>
-                  <p className="font-bold text-white text-base">Activities</p>
-                </div>
-                <div className="space-y-2">
-                  {selectedCivic.activities.map((activity, i) => (
-                    <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-2xl"
-                      style={{ background: 'rgba(15,60,35,0.5)', border: '1px solid rgba(74,222,128,0.15)' }}>
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
-                        style={{ background: 'rgba(34,197,94,0.5)', minWidth: 24 }}>
-                        {i + 1}
-                      </div>
-                      <p className="text-sm text-gray-200 leading-relaxed">{activity}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Resource Detail (only for resources tab) */}
       {activeSection === 'resources' && selectedResource && (

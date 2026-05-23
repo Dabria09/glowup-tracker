@@ -22,6 +22,7 @@ export const CAT_META = {
   caring_for_pets:  { label: 'Caring for Pets',        emoji: '🐾', labelColor: '#4ade80', cardBg: 'rgba(6,78,59,0.45)' },
   parenthood:       { label: 'Parenthood',             emoji: '👶', labelColor: '#f472b6', cardBg: 'rgba(131,24,67,0.45)' },
   good_parenting:   { label: 'Good Parenting',         emoji: '💝', labelColor: '#f472b6', cardBg: 'rgba(131,24,67,0.45)' },
+  civic:             { label: 'Civic Education',         emoji: '🗳️', labelColor: '#818cf8', cardBg: 'rgba(49,46,129,0.55)' },
 };
 
 export const RESOURCES = [
@@ -582,6 +583,42 @@ export const RESOURCES = [
     quick_facts: ['Children who feel heard by parents are more likely to come to them with serious problems', 'The average parent spends less than 10 minutes per day in meaningful conversation with their child', 'Active listening — eye contact, nodding, reflecting back — increases trust significantly'],
     actions: ['Ask your child one open-ended question today and listen without interrupting.', 'Create a weekly one-on-one time with each child — even 20 minutes matters.', 'Practice active listening: make eye contact, put your phone down, reflect back what you hear.', 'Share something about your own day or feelings — model vulnerability.'] },
 ];
+
+// Civic Education topics moved from Your Voice to Resources
+// (Community Service, Media Literacy, How Communities Work, Careers in Public Service, Advocacy)
+const CIVIC_RESOURCES = [
+  { id: 90, cat: 'civic', emoji: '🤝', title: 'Community Service & Volunteering',
+    desc: 'Serving your community is one of the most powerful things you can do.',
+    tips: ['Volunteering builds leadership skills and a network','Many colleges require or strongly prefer community service hours','Direct service: tutoring, serving food, visiting elderly residents','Indirect service: fundraising, administrative work, creating materials','Advocacy: working to change policies or systems that cause problems','Community organizing brings people together to address shared problems'],
+    quick_facts: ['Research shows that people who volunteer regularly report higher levels of happiness and life satisfaction','Community organizing has driven some of the most important social changes in history'],
+    actions: ['Go to VolunteerMatch.org or DoSomething.org and find one volunteer opportunity near you.','Commit to 2 hours of community service this month.','Write a short paragraph describing the biggest problem in your community and one way young people could help.'] },
+
+  { id: 91, cat: 'civic', emoji: '📱', title: 'Media Literacy',
+    desc: 'Not everything you read is true. Here\'s how to tell the difference.',
+    tips: ['Check the source — is it a credible news organization or an unknown website?','Read beyond the headline — headlines are often misleading','If something makes you very angry or excited, be more skeptical','Use fact-checking sites like Snopes, PolitiFact, or FactCheck.org','Every news source has some degree of bias — AllSides.com rates news sources by political lean','Social media algorithms create filter bubbles where you mostly see content that confirms your existing views'],
+    quick_facts: ['Misinformation is false info shared without intent to deceive; disinformation is false info shared intentionally','Confirmation bias makes us more likely to believe information that confirms what we already think'],
+    actions: ['Before sharing your next news story, spend 2 minutes verifying it on Snopes.com or PolitiFact.com.','Find the same news story covered by two different outlets — what details does each include or leave out?','Go to AllSides.com and check the bias rating of a news source you regularly read.'] },
+
+  { id: 92, cat: 'civic', emoji: '🏘️', title: 'How Communities Work',
+    desc: 'Your neighborhood, school, and city are systems — and you\'re part of them.',
+    tips: ['Communities are made up of individuals, families, businesses, schools, and organizations','Community leaders include elected officials AND informal leaders like principals, pastors, and business owners','Everyone in a community has both rights AND responsibilities','Rights include safety, education, and fair treatment. Responsibilities include following rules and speaking up when something is wrong','Communities make decisions through elected officials, community meetings, public comment periods, or votes'],
+    quick_facts: ['Strong communities are built on trust, communication, and shared values','Formal leaders have official titles; informal leaders are respected because of their character and actions'],
+    actions: ['Look up the name of your mayor and two city council members.','Identify one way you can contribute to your school or neighborhood community this week.','Identify one problem in your school or neighborhood and brainstorm 3 possible solutions.'] },
+
+  { id: 93, cat: 'civic', emoji: '👩\u200d💼', title: 'Careers in Public Service',
+    desc: 'You can make change from the inside — and get paid for it.',
+    tips: ['Government is one of the largest employers in the U.S.','Public service careers include law, social work, education, public health, urban planning, and more','Elected officials: mayors, city council members, state legislators, members of Congress','Government employees: policy analysts, public health officials, urban planners, social workers','Nonprofit sector: program directors, community organizers, grant writers','The PSLF program forgives federal student loans after 10 years of qualifying public service work'],
+    quick_facts: ['The PSLF program can save tens of thousands of dollars for people who pursue public service careers','Internships with government offices and nonprofits are often free or paid — many are open to high school students'],
+    actions: ['Research one public service career that interests you. Write 5 questions you would ask someone in that role.','Search for internships with your city government, state legislature, or a local nonprofit.','Look up one public service internship you could apply for in the next year.'] },
+
+  { id: 94, cat: 'civic', emoji: '\u270a', title: 'Advocacy & Community Organizing',
+    desc: 'You don\'t have to wait until you\'re 18 to make change.',
+    tips: ['Advocacy means speaking up for a cause or policy change — writing letters, speaking at public meetings, organizing rallies, running social media campaigns','Community organizing builds power by bringing people together around shared issues','Effective advocacy cycle: identify the problem, research the issue, define your ask, build your coalition, take action, evaluate, adjust','Young people have driven major changes — Parkland students organized March for Our Lives, Greta Thunberg started a global climate movement as a teenager','The First Amendment protects your right to advocate and petition the government'],
+    quick_facts: ['Lobbying specifically means trying to influence legislation; advocacy is a broader term for any effort to support a cause','Some of the most powerful social movements in history were led by young people'],
+    actions: ['Choose one issue you care about. Write a letter to your mayor, school board member, or state representative.','Find one organization already working on an issue you care about.','Write a short advocacy plan: what\'s the problem, who has the power to change it, and what\'s one action you could take?'] },
+];
+
+export const RESOURCES_ALL = [...RESOURCES, ...CIVIC_RESOURCES];
 
 export const CIVIC_TOPICS = [
   {

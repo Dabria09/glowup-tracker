@@ -32,6 +32,7 @@ import SpiritualGlow from './pages/SpiritualGlow';
 import ShoutOuts from './pages/ShoutOuts';
 import CalmCorner from './pages/CalmCorner';
 import GirlsLibrary from './pages/GirlsLibrary';
+import YourVoice from './pages/YourVoice';
 import AudioLibrary from './pages/AudioLibrary';
 import WellnessHub from './pages/WellnessHub';
 import DailyQuotes from './pages/DailyQuotes';
@@ -94,6 +95,7 @@ const AuthenticatedApp = () => {
       <Route path="/shout-outs" element={<ShoutOuts />} />
       <Route path="/calm-corner" element={<CalmCorner />} />
       <Route path="/girls-library" element={<GirlsLibrary />} />
+      <Route path="/your-voice" element={<YourVoice />} />
       <Route path="/audio-library" element={<AudioLibrary />} />
       <Route path="/wellness-hub" element={<WellnessHub />} />
       <Route path="/daily-quotes" element={<DailyQuotes />} />
