@@ -63,6 +63,7 @@ import GrowthMindset from './pages/GrowthMindset';
 import Scholarships from './pages/Scholarships';
 import CareerExploration from './pages/CareerExploration';
 import JobTracker from './pages/JobTracker';
+import GlowTips from './pages/GlowTips';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -140,6 +141,7 @@ const AuthenticatedApp = () => {
       <Route path="/scholarships" element={<Scholarships />} />
       <Route path="/careers" element={<CareerExploration />} />
       <Route path="/job-tracker" element={<JobTracker />} />
+      <Route path="/glow-tips" element={<GlowTips />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
