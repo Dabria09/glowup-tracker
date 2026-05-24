@@ -1,0 +1,52 @@
+{
+  "name": "DailyTask",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "task_id": {
+      "type": "string",
+      "title": "Task ID"
+    },
+    "task_text": {
+      "type": "string",
+      "title": "Task Text"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "wellness",
+        "confidence",
+        "academic",
+        "kindness",
+        "spiritual"
+      ]
+    },
+    "xp": {
+      "type": "number",
+      "title": "XP Points",
+      "default": 25
+    },
+    "is_completed": {
+      "type": "boolean",
+      "title": "Is Completed",
+      "default": false
+    },
+    "completed_date": {
+      "type": "string",
+      "title": "Completed Date"
+    },
+    "date": {
+      "type": "string",
+      "title": "Task Date (YYYY-MM-DD)"
+    }
+  },
+  "required": [
+    "user_email",
+    "task_id",
+    "date"
+  ]
+}
