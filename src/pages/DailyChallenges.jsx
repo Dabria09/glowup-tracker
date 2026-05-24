@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, Check, Star, Sparkles, Zap, Trophy } from 'lucide-react';
+import { ChevronLeft, Check, Star, Sparkles, Zap, Trophy, Calendar } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
 const WEEKLY_CHALLENGES = [
@@ -67,16 +67,16 @@ const WEEKLY_CHALLENGES = [
   },
 ];
 
-export default function WeeklyChallenges() {
+export default function DailyChallenges() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [weeklyProgress, setWeeklyProgress] = useState({});
   const [selectedChallenge, setSelectedChallenge] = useState(null);
+  const [activeTab, setActiveTab] = useState('weekly');
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
-      // Fetch weekly challenge progress
       const progress = await base44.entities.WeeklyChallenge.filter({ user_email: u.email }).catch(() => []);
       const progressMap = {};
       progress.forEach(p => {
@@ -124,7 +124,6 @@ export default function WeeklyChallenges() {
       completed_date: isComplete ? new Date().toISOString() : null,
     });
 
-    // Refresh progress
     const progress = await base44.entities.WeeklyChallenge.filter({ user_email: user.email }).catch(() => []);
     const progressMap = {};
     progress.forEach(p => {
@@ -167,96 +166,130 @@ export default function WeeklyChallenges() {
             <ChevronLeft size={20} />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-white">This Week's Challenges</h1>
-            <p className="text-xs text-gray-400">{weekDates.start} - {weekDates.end}</p>
+            <h1 className="text-xl font-bold text-white">Daily Challenges</h1>
+            <p className="text-xs text-gray-400">Build habits, one day at a time</p>
           </div>
         </div>
 
-        {/* Weekly Stats */}
-        <div className="rounded-2xl p-5 mb-6 border border-purple-500/30"
-          style={{ background: 'rgba(168,85,247,0.1)' }}>
-          <div className="flex items-center gap-3 mb-3">
-            <Zap size={20} className="text-yellow-400" />
-            <p className="text-sm font-bold text-white">Weekly Progress</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-2xl font-bold" style={{ color: '#FFD700' }}>{totalWeeklyCompleted}/28</p>
-              <p className="text-xs text-gray-400">Days Completed</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold" style={{ color: '#c084fc' }}>{totalWeeklyXp}</p>
-              <p className="text-xs text-gray-400">Total XP Earned</p>
-            </div>
-          </div>
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('weekly')}
+            className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition ${activeTab === 'weekly' ? 'text-white' : 'text-gray-500'}`}
+            style={{ background: activeTab === 'weekly' ? 'rgba(168,85,247,0.2)' : 'rgba(255,255,255,0.05)', border: activeTab === 'weekly' ? '1px solid rgba(168,85,247,0.4)' : '1px solid rgba(255,255,255,0.08)' }}
+          >
+            Weekly Challenges
+          </button>
+          <button
+            onClick={() => setActiveTab('daily')}
+            className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition ${activeTab === 'daily' ? 'text-white' : 'text-gray-500'}`}
+            style={{ background: activeTab === 'daily' ? 'rgba(255,31,142,0.2)' : 'rgba(255,255,255,0.05)', border: activeTab === 'daily' ? '1px solid rgba(255,31,142,0.4)' : '1px solid rgba(255,255,255,0.08)' }}
+          >
+            Daily Tasks
+          </button>
         </div>
 
-        {/* Challenge Cards */}
-        <div className="space-y-4 mb-8">
-          {WEEKLY_CHALLENGES.map(challenge => {
-            const progress = weeklyProgress[challenge.id];
-            const completedDays = progress?.completed_days ? JSON.parse(progress.completed_days) : [];
-            const isCompleted = progress?.status === 'completed';
-            const progressPercent = (completedDays.length / 7) * 100;
-
-            return (
-              <div 
-                key={challenge.id}
-                className="rounded-2xl p-5 cursor-pointer transition hover:opacity-90"
-                style={{ 
-                  background: `linear-gradient(135deg, ${challenge.color}20, ${challenge.color}10)`,
-                  border: `1px solid ${challenge.color}40`
-                }}
-                onClick={() => setSelectedChallenge(challenge)}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-                      style={{ background: `${challenge.color}30`, border: `1px solid ${challenge.color}40` }}>
-                      {challenge.emoji}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white text-lg">{challenge.title}</h3>
-                      <p className="text-xs text-gray-400">7 days • {challenge.days.reduce((sum, d) => sum + d.xp, 0)} XP</p>
-                    </div>
-                  </div>
-                  {isCompleted && (
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: challenge.color }}>
-                      <Check size={16} className="text-white" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs text-gray-400">Progress</p>
-                    <p className="text-xs font-bold" style={{ color: challenge.color }}>{completedDays.length}/7 days</p>
-                  </div>
-                  <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                    <div 
-                      className="h-full rounded-full transition-all" 
-                      style={{ width: `${progressPercent}%`, background: `linear-gradient(90deg, ${challenge.color}, ${challenge.color}80)` }} 
-                    />
-                  </div>
-                </div>
-
-                {!progress ? (
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleStartChallenge(challenge); }}
-                    className="w-full py-2.5 rounded-xl font-bold text-white text-sm"
-                    style={{ background: `linear-gradient(135deg, ${challenge.color}, ${challenge.color}cc)` }}
-                  >
-                    Start Challenge ✨
-                  </button>
-                ) : (
-                  <p className="text-xs text-center" style={{ color: challenge.color }}>
-                    {isCompleted ? '✓ Completed!' : `${completedDays.length}/7 days completed`}
-                  </p>
-                )}
+        {activeTab === 'weekly' && (
+          <>
+            {/* Weekly Stats */}
+            <div className="rounded-2xl p-5 mb-6 border border-purple-500/30"
+              style={{ background: 'rgba(168,85,247,0.1)' }}>
+              <div className="flex items-center gap-3 mb-3">
+                <Zap size={20} className="text-yellow-400" />
+                <p className="text-sm font-bold text-white">This Week's Progress</p>
               </div>
-            );
-          })}
-        </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-2xl font-bold" style={{ color: '#FFD700' }}>{totalWeeklyCompleted}/28</p>
+                  <p className="text-xs text-gray-400">Days Completed</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold" style={{ color: '#c084fc' }}>{totalWeeklyXp}</p>
+                  <p className="text-xs text-gray-400">Total XP Earned</p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-400 mt-3">{weekDates.start} - {weekDates.end}</p>
+            </div>
+
+            {/* Challenge Cards */}
+            <div className="space-y-4">
+              {WEEKLY_CHALLENGES.map(challenge => {
+                const progress = weeklyProgress[challenge.id];
+                const completedDays = progress?.completed_days ? JSON.parse(progress.completed_days) : [];
+                const isCompleted = progress?.status === 'completed';
+                const progressPercent = (completedDays.length / 7) * 100;
+
+                return (
+                  <div 
+                    key={challenge.id}
+                    className="rounded-2xl p-5 cursor-pointer transition hover:opacity-90"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${challenge.color}20, ${challenge.color}10)`,
+                      border: `1px solid ${challenge.color}40`
+                    }}
+                    onClick={() => setSelectedChallenge(challenge)}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                          style={{ background: `${challenge.color}30`, border: `1px solid ${challenge.color}40` }}>
+                          {challenge.emoji}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-white text-lg">{challenge.title}</h3>
+                          <p className="text-xs text-gray-400">7 days • {challenge.days.reduce((sum, d) => sum + d.xp, 0)} XP</p>
+                        </div>
+                      </div>
+                      {isCompleted && (
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: challenge.color }}>
+                          <Check size={16} className="text-white" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs text-gray-400">Progress</p>
+                        <p className="text-xs font-bold" style={{ color: challenge.color }}>{completedDays.length}/7 days</p>
+                      </div>
+                      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                        <div 
+                          className="h-full rounded-full transition-all" 
+                          style={{ width: `${progressPercent}%`, background: `linear-gradient(90deg, ${challenge.color}, ${challenge.color}80)` }} 
+                        />
+                      </div>
+                    </div>
+
+                    {!progress ? (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleStartChallenge(challenge); }}
+                        className="w-full py-2.5 rounded-xl font-bold text-white text-sm"
+                        style={{ background: `linear-gradient(135deg, ${challenge.color}, ${challenge.color}cc)` }}
+                      >
+                        Start Challenge ✨
+                      </button>
+                    ) : (
+                      <p className="text-xs text-center" style={{ color: challenge.color }}>
+                        {isCompleted ? '✓ Completed!' : `${completedDays.length}/7 days completed`}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {activeTab === 'daily' && (
+          <div className="text-center py-12">
+            <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl"
+              style={{ background: 'rgba(255,255,255,0.05)' }}>
+              📅
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">Daily Tasks Coming Soon</h2>
+            <p className="text-sm text-gray-400">Check back tomorrow for your daily challenges!</p>
+          </div>
+        )}
 
         {/* Challenge Detail Modal */}
         {selectedChallenge && (

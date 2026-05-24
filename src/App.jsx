@@ -37,6 +37,7 @@ import AudioLibrary from './pages/AudioLibrary';
 import WellnessHub from './pages/WellnessHub';
 import DailyQuotes from './pages/DailyQuotes';
 import DailyCheckIn from './pages/DailyCheckIn';
+import DailyChallenges from './pages/DailyChallenges';
 import GroceryList from './pages/GroceryList';
 import MealPlanner from './pages/MealPlanner';
 import MyGlowLink from './pages/MyGlowLink';
@@ -67,7 +68,6 @@ import GlowTips from './pages/GlowTips';
 import MeVsMe from './pages/MeVsMe';
 import GlowUpChallenges from './pages/GlowUpChallenges';
 import GlowUpChallengeDetail from './pages/GlowUpChallengeDetail';
-import WeeklyChallenges from './pages/WeeklyChallenges';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -119,6 +119,7 @@ const AuthenticatedApp = () => {
       <Route path="/wellness-hub" element={<WellnessHub />} />
       <Route path="/daily-quotes" element={<DailyQuotes />} />
       <Route path="/daily-checkin" element={<DailyCheckIn />} />
+      <Route path="/daily-challenges" element={<DailyChallenges />} />
       <Route path="/grocery-list" element={<GroceryList />} />
       <Route path="/meal-planner" element={<MealPlanner />} />
       <Route path="/my-glow-link" element={<MyGlowLink />} />
@@ -149,7 +150,6 @@ const AuthenticatedApp = () => {
       <Route path="/me-vs-me" element={<MeVsMe />} />
       <Route path="/glow-up-challenges" element={<GlowUpChallenges />} />
       <Route path="/glow-up-challenges/:challengeId" element={<GlowUpChallengeDetail />} />
-      <Route path="/weekly-challenges" element={<WeeklyChallenges />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
