@@ -71,6 +71,7 @@ import GlowUpChallenges from './pages/GlowUpChallenges';
 import GlowUpChallengeDetail from './pages/GlowUpChallengeDetail';
 import WeeklyTheme from './pages/WeeklyTheme';
 import GlowUpPlaylist from './pages/GlowUpPlaylist';
+import GlowScore from './pages/GlowScore';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -156,6 +157,7 @@ const AuthenticatedApp = () => {
       <Route path="/glow-up-challenges/:challengeId" element={<GlowUpChallengeDetail />} />
       <Route path="/weekly-theme" element={<WeeklyTheme />} />
       <Route path="/glow-playlist" element={<GlowUpPlaylist />} />
+      <Route path="/glow-score" element={<GlowScore />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
