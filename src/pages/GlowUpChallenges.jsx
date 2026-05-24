@@ -175,12 +175,7 @@ export default function GlowUpChallenges() {
           </div>
         </div>
 
-        {/* CTA */}
-        <button onClick={() => navigate('/glow-up-challenges')}
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-white"
-          style={{ background: 'linear-gradient(135deg, #FF1F8E, #a855f7)' }}>
-          View All Challenges <ArrowRight size={16} />
-        </button>
+
       </div>
 
       <BottomNav active="glow" />
