@@ -42,6 +42,13 @@ const BIG_SISTER_TIPS = [
 ];
 
 const MAIN_TABS = ['Find', 'Tracker', 'Essays', 'Glow Wins'];
+const STATUS_COLORS = {
+  'Not Started': 'rgba(107,114,128,0.3)',
+  'In Progress': 'rgba(234,179,8,0.3)',
+  'Submitted': 'rgba(59,130,246,0.3)',
+  'Won': 'rgba(34,197,94,0.3)',
+  'Rejected': 'rgba(239,68,68,0.2)',
+};
 
 export default function Scholarships() {
   const navigate = useNavigate();
@@ -63,8 +70,14 @@ export default function Scholarships() {
   const [showAddEssay, setShowAddEssay] = useState(false);
   const [newEssay, setNewEssay] = useState({ prompt: '', content: '', scholarship: '' });
 
+  // Wins state
+  const [wins, setWins] = useState([]);
+  const [showAddWin, setShowAddWin] = useState(false);
+  const [newWin, setNewWin] = useState({ scholarship_name: '', amount: '', message: '' });
+  const [submittingWin, setSubmittingWin] = useState(false);
+
   useEffect(() => {
-    base44.auth.me().then(u => {
+    base44.auth.me().then(async u => {
       setUser(u);
       const saved = JSON.parse(localStorage.getItem(`ggu_scholarships_saved_${u.email}`) || '[]');
       setSavedIds(saved);
@@ -72,6 +85,8 @@ export default function Scholarships() {
       setTrackerItems(tracker);
       const savedEssays = JSON.parse(localStorage.getItem(`ggu_scholarship_essays_${u.email}`) || '[]');
       setEssays(savedEssays);
+      const winsList = await base44.entities.ScholarshipWin.list('-created_date');
+      setWins(winsList);
     }).catch(() => {});
   }, []);
 
@@ -120,19 +135,26 @@ export default function Scholarships() {
     if (user) localStorage.setItem(`ggu_scholarship_essays_${user.email}`, JSON.stringify(updated));
   };
 
+  const submitWin = async () => {
+    if (!newWin.scholarship_name || !user) return;
+    setSubmittingWin(true);
+    const created = await base44.entities.ScholarshipWin.create({
+      ...newWin,
+      user_email: user.email,
+      user_name: user.full_name || user.email.split('@')[0],
+    });
+    setWins(prev => [created, ...prev]);
+    setNewWin({ scholarship_name: '', amount: '', message: '' });
+    setShowAddWin(false);
+    setSubmittingWin(false);
+    toast.success("Win shared! You're inspiring everyone 🏆");
+  };
+
   const filtered = SCHOLARSHIPS.filter(s => {
     const matchCat = filter === 'All' || s.category === filter;
     const matchSearch = !search.trim() || s.title.toLowerCase().includes(search.toLowerCase()) || s.org.toLowerCase().includes(search.toLowerCase()) || s.desc.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
-
-  const STATUS_COLORS = {
-    'Not Started': 'rgba(107,114,128,0.3)',
-    'In Progress': 'rgba(234,179,8,0.3)',
-    'Submitted': 'rgba(59,130,246,0.3)',
-    'Won': 'rgba(34,197,94,0.3)',
-    'Rejected': 'rgba(239,68,68,0.2)',
-  };
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
@@ -164,7 +186,6 @@ export default function Scholarships() {
         {/* ── FIND TAB ── */}
         {activeTab === 'Find' && (
           <div className="space-y-4">
-            {/* Personalized Matches Banner */}
             <button onClick={() => setShowPersonalized(!showPersonalized)}
               className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-left"
               style={{ background: 'linear-gradient(135deg, rgba(109,40,217,0.5), rgba(236,72,153,0.35))', border: '1px solid rgba(168,85,247,0.4)' }}>
@@ -176,7 +197,6 @@ export default function Scholarships() {
               <ChevronRight size={18} className="text-gray-400" />
             </button>
 
-            {/* Personalized form */}
             {showPersonalized && (
               <div className="rounded-2xl p-4 space-y-3" style={{ background: 'rgba(30,10,50,0.95)', border: '1px solid rgba(168,85,247,0.4)' }}>
                 <p className="text-sm font-bold text-purple-300">Tell us about yourself</p>
@@ -189,7 +209,7 @@ export default function Scholarships() {
                     <p className="text-xs text-gray-400 mb-1">{field.label}</p>
                     <div className="flex flex-wrap gap-2">
                       {field.options.map(opt => (
-                        <button key={opt} className="px-3 py-1 rounded-full text-xs font-semibold transition"
+                        <button key={opt} className="px-3 py-1 rounded-full text-xs font-semibold"
                           style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', color: '#d1d5db' }}>
                           {opt}
                         </button>
@@ -205,7 +225,6 @@ export default function Scholarships() {
               </div>
             )}
 
-            {/* Search */}
             <div className="relative">
               <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
               <input value={search} onChange={e => setSearch(e.target.value)}
@@ -214,7 +233,6 @@ export default function Scholarships() {
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} />
             </div>
 
-            {/* Filter Chips */}
             <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">
               {FILTERS.map(f => (
                 <button key={f} onClick={() => setFilter(f)}
@@ -227,7 +245,6 @@ export default function Scholarships() {
               ))}
             </div>
 
-            {/* Big Sister Guide Accordion */}
             <button onClick={() => setGuideOpen(!guideOpen)}
               className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left"
               style={{ background: 'rgba(50,15,80,0.7)', border: '1px solid rgba(168,85,247,0.25)' }}>
@@ -253,10 +270,8 @@ export default function Scholarships() {
               </div>
             )}
 
-            {/* Count */}
             <p className="text-xs text-gray-500">{filtered.length} scholarship{filtered.length !== 1 ? 's' : ''} found</p>
 
-            {/* Scholarship Cards */}
             <div className="space-y-4">
               {filtered.map(s => (
                 <div key={s.id} className="rounded-2xl p-4" style={{ background: 'rgba(20,8,40,0.8)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -270,20 +285,18 @@ export default function Scholarships() {
                     </div>
                     <div className="flex gap-2 ml-2 flex-shrink-0">
                       <button onClick={() => toggleSave(s.id)}
-                        className="w-8 h-8 rounded-full flex items-center justify-center transition"
+                        className="w-8 h-8 rounded-full flex items-center justify-center"
                         style={{ background: savedIds.includes(s.id) ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}>
                         <Bookmark size={14} className={savedIds.includes(s.id) ? 'fill-purple-400 text-purple-400' : 'text-gray-400'} />
                       </button>
                       <a href={s.url} target="_blank" rel="noopener noreferrer"
-                        className="w-8 h-8 rounded-full flex items-center justify-center transition"
+                        className="w-8 h-8 rounded-full flex items-center justify-center"
                         style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}>
                         <ExternalLink size={14} className="text-gray-400" />
                       </a>
                     </div>
                   </div>
-
                   <p className="text-xs text-gray-300 leading-relaxed mb-3">{s.desc}</p>
-
                   <div className="grid grid-cols-3 gap-2 mb-2">
                     <div className="rounded-xl px-3 py-2 text-center" style={{ background: 'rgba(234,179,8,0.15)' }}>
                       <p className="text-xs font-bold text-yellow-300">{s.amount}</p>
@@ -298,14 +311,12 @@ export default function Scholarships() {
                       <p className="text-xs text-gray-500 mt-0.5">Deadline</p>
                     </div>
                   </div>
-
                   {s.gpa && <p className="text-xs text-gray-500">Min GPA: <span className="font-semibold text-gray-300">{s.gpa}</span></p>}
                 </div>
               ))}
             </div>
 
-            {/* Pro Tip */}
-            <div className="rounded-2xl p-4 mt-2" style={{ background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.25)' }}>
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.25)' }}>
               <p className="text-sm text-yellow-200 leading-relaxed">
                 💡 <span className="font-bold">Pro tip:</span> Apply to at least 10 scholarships every year. Free money doesn't run out — you just have to find it!
               </p>
@@ -443,9 +454,7 @@ export default function Scholarships() {
                       </div>
                       <button onClick={() => deleteEssay(essay.id)} className="text-gray-600 text-lg ml-2">×</button>
                     </div>
-                    {essay.content && (
-                      <p className="text-xs text-gray-400 mt-2 leading-relaxed line-clamp-3">{essay.content}</p>
-                    )}
+                    {essay.content && <p className="text-xs text-gray-400 mt-2 leading-relaxed line-clamp-3">{essay.content}</p>}
                   </div>
                 ))}
               </div>
@@ -459,19 +468,65 @@ export default function Scholarships() {
             <div className="rounded-2xl p-5 text-center" style={{ background: 'linear-gradient(135deg, rgba(234,179,8,0.2), rgba(168,85,247,0.2))', border: '1px solid rgba(234,179,8,0.3)' }}>
               <p className="text-4xl mb-2">👑</p>
               <h2 className="text-xl font-bold text-white mb-1">Glow Wins Wall</h2>
-              <p className="text-sm text-gray-300">Celebrate every scholarship won by the GGU community!</p>
-            </div>
-
-            <div className="rounded-2xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-4xl mb-3">🏆</p>
-              <p className="text-gray-400 text-sm">No wins shared yet</p>
-              <p className="text-gray-500 text-xs mt-1">Be the first to share your scholarship win with the community!</p>
-              <button onClick={() => toast.success('Feature coming soon! 🌟')}
-                className="mt-4 px-6 py-2.5 rounded-full text-xs font-bold text-white"
+              <p className="text-sm text-gray-300 mb-4">Celebrate every scholarship won by the GGU community!</p>
+              <button onClick={() => setShowAddWin(true)}
+                className="px-8 py-3 rounded-full text-sm font-bold text-white"
                 style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                 Share My Win 🎉
               </button>
             </div>
+
+            {wins.length === 0 ? (
+              <div className="text-center py-10 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <p className="text-4xl mb-3">🏆</p>
+                <p className="text-gray-400 text-sm">No wins shared yet</p>
+                <p className="text-gray-500 text-xs mt-1">Be the first to inspire the community!</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {wins.map(win => (
+                  <div key={win.id} className="rounded-2xl p-4" style={{ background: 'rgba(20,8,40,0.8)', border: '1px solid rgba(234,179,8,0.25)' }}>
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">🏆</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white">{win.scholarship_name}</p>
+                        {win.amount && <p className="text-xs font-semibold text-yellow-300 mt-0.5">{win.amount}</p>}
+                        {win.message && <p className="text-xs text-gray-300 mt-1 leading-relaxed">"{win.message}"</p>}
+                        <p className="text-xs text-gray-500 mt-1">— {win.user_name || 'Anonymous'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Share Win Modal */}
+            {showAddWin && (
+              <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowAddWin(false)}>
+                <div className="w-full rounded-t-3xl p-6 space-y-3" style={{ background: '#1a0a30' }} onClick={e => e.stopPropagation()}>
+                  <p className="text-lg font-bold text-white">🏆 Share Your Win!</p>
+                  <input value={newWin.scholarship_name} onChange={e => setNewWin({ ...newWin, scholarship_name: e.target.value })}
+                    placeholder="Scholarship name *" className="w-full px-4 py-2.5 rounded-xl text-sm text-white outline-none"
+                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }} />
+                  <input value={newWin.amount} onChange={e => setNewWin({ ...newWin, amount: e.target.value })}
+                    placeholder="Award amount (e.g. $5,000)" className="w-full px-4 py-2.5 rounded-xl text-sm text-white outline-none"
+                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }} />
+                  <textarea value={newWin.message} onChange={e => setNewWin({ ...newWin, message: e.target.value })}
+                    placeholder="Say something to inspire the community..." rows={3}
+                    className="w-full px-4 py-2.5 rounded-xl text-sm text-white outline-none resize-none"
+                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }} />
+                  <div className="flex gap-2">
+                    <button onClick={submitWin} disabled={!newWin.scholarship_name || submittingWin}
+                      className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40"
+                      style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                      {submittingWin ? 'Sharing...' : 'Share My Win 🎉'}
+                    </button>
+                    <button onClick={() => setShowAddWin(false)} className="flex-1 py-2.5 rounded-xl text-sm text-gray-400"
+                      style={{ background: 'rgba(255,255,255,0.05)' }}>Cancel</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

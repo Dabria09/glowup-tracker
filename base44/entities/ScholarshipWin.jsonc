@@ -1,0 +1,30 @@
+{
+  "name": "ScholarshipWin",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "user_name": {
+      "type": "string",
+      "title": "User Name"
+    },
+    "scholarship_name": {
+      "type": "string",
+      "title": "Scholarship Name"
+    },
+    "amount": {
+      "type": "string",
+      "title": "Award Amount"
+    },
+    "message": {
+      "type": "string",
+      "title": "Message to Community"
+    }
+  },
+  "required": [
+    "user_email",
+    "scholarship_name"
+  ]
+}
