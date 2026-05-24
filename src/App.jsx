@@ -42,6 +42,7 @@ import GroceryList from './pages/GroceryList';
 import MealPlanner from './pages/MealPlanner';
 import MyGlowLink from './pages/MyGlowLink';
 import Leaderboard from './pages/Leaderboard';
+import ChallengeLeaderboard from './pages/ChallengeLeaderboard';
 import GlowFeed from './pages/GlowFeed';
 import GlowTeams from './pages/GlowTeams';
 import GlowSquads from './pages/GlowSquads';
@@ -126,6 +127,7 @@ const AuthenticatedApp = () => {
       <Route path="/meal-planner" element={<MealPlanner />} />
       <Route path="/my-glow-link" element={<MyGlowLink />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/challenge-leaderboard" element={<ChallengeLeaderboard />} />
       <Route path="/glow-feed" element={<GlowFeed />} />
       <Route path="/glow-board" element={<GlowBoard />} />
       <Route path="/glow-talk" element={<GlowTalk />} />

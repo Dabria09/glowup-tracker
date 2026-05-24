@@ -53,6 +53,7 @@ const SECTIONS = [
       { id: 'transformation', label: 'Transformation', gradient: 'from-purple-900 via-violet-900 to-fuchsia-900', route: '/glow-up-challenges', image: CDN + 'icon-transformation-P5fD4QdfoP2Dkjf4cUfe5g.webp' },
       { id: 'me_vs_me', label: 'Me vs Me', gradient: 'from-yellow-900 via-pink-900 to-black', route: '/me-vs-me', image: CDN + 'icon-me-vs-me-KYCb7xc6LGLzVW9UGpUEWp.webp' },
       { id: 'weekly_theme', label: 'Weekly Theme', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', route: '/weekly-theme', image: CDN + 'icon-weekly-theme-Ddu6T87k5StF8EDt5BYehk.webp' },
+      { id: 'challenge_leaderboard', label: 'Challenge Leaderboard', gradient: 'from-yellow-800 via-pink-900 to-fuchsia-900', route: '/challenge-leaderboard', image: CDN + 'icon-leaderboard-WLMjT77VCu94JhWg7vXfbm.webp' },
     ],
   },
   {
