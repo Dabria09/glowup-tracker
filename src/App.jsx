@@ -73,6 +73,7 @@ import WeeklyTheme from './pages/WeeklyTheme';
 import GlowUpPlaylist from './pages/GlowUpPlaylist';
 import GlowScore from './pages/GlowScore';
 import MyCertificates from './pages/MyCertificates';
+import MyGoals from './pages/MyGoals';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -160,6 +161,7 @@ const AuthenticatedApp = () => {
       <Route path="/glow-playlist" element={<GlowUpPlaylist />} />
       <Route path="/glow-score" element={<GlowScore />} />
       <Route path="/my-certificates" element={<MyCertificates />} />
+      <Route path="/my-goals" element={<MyGoals />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
