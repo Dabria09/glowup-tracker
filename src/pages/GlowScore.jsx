@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, Flame, Zap, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Flame, Zap, Sparkles, Lock } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
 const STAGES = [
@@ -13,12 +13,35 @@ const STAGES = [
   { id: 'glow_queen', name: 'Glow Queen', emoji: '👑', minPoints: 1000, maxPoints: Infinity, color: '#fbbf24', description: 'You ARE the glow! You\'re inspiring others.' },
 ];
 
+const BADGES = [
+  { id: 'she_wrote', name: 'She Wrote', desc: 'Wrote 10+ diary entries', emoji: '✍️', tier: 'COMMON', earned: true },
+  { id: 'shout_out_star', name: 'Shout Out Star', desc: 'Posted on Shout Out Wall', emoji: '📣', tier: 'COMMON', earned: true },
+  { id: 'wisdom_collector', name: 'Wisdom Collector', desc: 'Saved 10+ quotes', emoji: '📚', tier: 'COMMON', earned: false },
+  { id: 'first_step', name: 'First Step', desc: 'Wrote your very first diary entry', emoji: '👣', tier: 'COMMON', earned: false },
+];
+
+const SECRET_BADGES = [
+  { id: 'secret1', name: 'Mystery Badge', desc: '???', emoji: '🔐', discovered: false },
+  { id: 'secret2', name: 'Hidden Gem', desc: '???', emoji: '💎', discovered: false },
+  { id: 'secret3', name: 'Surprise', desc: '???', emoji: '🎁', discovered: false },
+  { id: 'secret4', name: 'Legendary', desc: '???', emoji: '⚡', discovered: false },
+];
+
+const SEASONAL_EVENTS = [
+  { id: 'summer', name: 'Summer Glow Up', emoji: '🌸', desc: 'Limited badges & rewards', limited: true },
+  { id: 'winter', name: 'Winter Reset', emoji: '❄️', desc: 'New year, new you', limited: true },
+  { id: 'back_to_school', name: 'Back-to-School', emoji: '📚', desc: 'Academic glow season', limited: true },
+  { id: 'self_love', name: 'Self-Love Feb', emoji: '💖', desc: '28 days of self-care', limited: true },
+];
+
 export default function GlowScore() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [totalPoints, setTotalPoints] = useState(15);
   const [dayStreak, setDayStreak] = useState(5);
   const [activities, setActivities] = useState(8);
+  const [expandedTier, setExpandedTier] = useState(null);
+  const [activeTab, setActiveTab] = useState('checkin');
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => setUser(null));
@@ -30,8 +53,15 @@ export default function GlowScore() {
   const pointsNeededForStage = currentStage.maxPoints - currentStage.minPoints;
   const stageProgress = (pointsInStage / pointsNeededForStage) * 100;
   const pointsUntilNext = nextStage ? nextStage.minPoints - totalPoints : 0;
-
   const stageIndex = STAGES.indexOf(currentStage);
+
+  const pointBreakdown = [
+    { name: 'Glow Check-ins', icon: '✓', points: 10, percentage: 67, color: '#10b981' },
+    { name: 'shout_out', icon: '⭐', points: 5, percentage: 33, color: '#ec4899' },
+  ];
+
+  const earnedBadges = BADGES.filter(b => b.earned).length;
+  const totalBadges = BADGES.length;
 
   return (
     <div className="min-h-screen text-white pb-28" style={{ backgroundColor: '#0d0d0d' }}>
@@ -60,7 +90,6 @@ export default function GlowScore() {
             style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ctext x='20' y='60' font-size='40' fill='%23fff'%3E%E2%99%A5%3C/text%3E%3C/svg%3E\")" }} />
           
           <div className="relative z-10">
-            {/* Stage Header */}
             <div className="flex items-start justify-between mb-6">
               <div>
                 <p className="text-sm text-gray-400 mb-1">Current Stage</p>
@@ -74,17 +103,15 @@ export default function GlowScore() {
               </div>
             </div>
 
-            {/* Points Display */}
             <div className="text-center mb-6">
               <p className="text-6xl font-bold text-white mb-2">{totalPoints}</p>
               <p className="text-sm text-gray-300">Total Glow Points</p>
             </div>
 
-            {/* Progress Bar */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-gray-300">{currentStage.name}</span>
-                <span className="text-xs font-semibold" style={{ color: currentStage.color }}>{nextStage ? currentStage.name : currentStage.name}</span>
+                <span className="text-xs font-semibold" style={{ color: currentStage.color }}>{nextStage ? nextStage.name : currentStage.name}</span>
               </div>
               <div className="h-3 rounded-full bg-white/10 overflow-hidden">
                 <div className="h-full rounded-full transition-all" style={{ width: `${stageProgress}%`, background: `linear-gradient(90deg, ${currentStage.color}, ${currentStage.color}80)` }} />
@@ -121,7 +148,7 @@ export default function GlowScore() {
           </div>
         </div>
 
-        {/* Your Glow Stage Progression */}
+        {/* Your Glow Stage */}
         <div className="mb-8">
           <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">YOUR GLOW STAGE</p>
           <div className="grid grid-cols-3 gap-2">
@@ -145,8 +172,80 @@ export default function GlowScore() {
           </div>
         </div>
 
-        {/* How to Earn Points */}
-        <div className="mb-4">
+        {/* Points Breakdown */}
+        <div className="mb-8">
+          <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">POINTS BREAKDOWN</p>
+          <div className="space-y-3">
+            {pointBreakdown.map((item, idx) => (
+              <div key={idx} className="rounded-2xl p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{item.icon}</span>
+                    <span className="text-sm font-semibold text-white">{item.name}</span>
+                  </div>
+                  <span className="text-sm font-bold text-gray-300">{item.points} pts</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${item.percentage}%`, backgroundColor: item.color }} />
+                  </div>
+                  <span className="text-xs text-gray-400">{item.percentage}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Glow Up Badges */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs font-bold tracking-widest text-gray-500">GLOW UP BADGES</p>
+              <p className="text-xs text-gray-400 mt-1">{earnedBadges}/{totalBadges}</p>
+            </div>
+            <button className="text-xs text-gray-400 hover:text-gray-300">All →</button>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {BADGES.map(badge => (
+              <div key={badge.id} className="rounded-2xl p-4" style={{ background: badge.earned ? 'rgba(236,72,153,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${badge.earned ? 'rgba(236,72,153,0.3)' : 'rgba(255,255,255,0.1)'}` }}>
+                <div className="flex items-start justify-between mb-2">
+                  <span className="text-3xl">{badge.emoji}</span>
+                  {badge.earned && <span className="text-xs font-bold text-green-400">✓ EARNED</span>}
+                </div>
+                <p className="font-semibold text-white text-sm mb-1">{badge.name}</p>
+                <p className="text-xs text-gray-400 mb-2">{badge.desc}</p>
+                <p className="text-xs text-gray-500">{badge.tier}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Secret Badges */}
+        <div className="mb-8">
+          <button className="w-full flex items-center justify-between p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="flex items-center gap-3 text-left flex-1">
+              <Lock size={20} className="text-amber-500" />
+              <div>
+                <p className="text-sm font-bold text-amber-500">Secret Badges</p>
+                <p className="text-xs text-gray-400">(0/4 discovered)</p>
+              </div>
+            </div>
+            <ChevronDown size={16} className="text-gray-500" />
+          </button>
+        </div>
+
+        {/* All Tiers */}
+        <div className="mb-8">
+          <button 
+            onClick={() => setExpandedTier(expandedTier === 'all' ? null : 'all')}
+            className="w-full flex items-center justify-between p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span className="text-sm font-bold text-white">All Tiers</span>
+            <ChevronDown size={16} className="text-gray-500" style={{ transform: expandedTier === 'all' ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+          </button>
+        </div>
+
+        {/* How to Earn Glow Points */}
+        <div className="mb-8">
           <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">HOW TO EARN GLOW POINTS</p>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -173,6 +272,41 @@ export default function GlowScore() {
               <p className="text-sm font-semibold text-white mb-1">💭 Save a Quote</p>
               <p className="text-xs text-gray-400">+2 pts</p>
             </div>
+          </div>
+        </div>
+
+        {/* Seasonal Events */}
+        <div className="mb-8">
+          <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">✨ SEASONAL EVENTS — COMING SOON</p>
+          <div className="grid grid-cols-2 gap-3">
+            {SEASONAL_EVENTS.map(event => (
+              <div key={event.id} className="rounded-2xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <p className="text-3xl mb-2">{event.emoji}</p>
+                <p className="font-semibold text-white text-sm mb-1">{event.name}</p>
+                <p className="text-xs text-gray-400">{event.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="mb-4">
+          <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">RECENT ACTIVITY</p>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setActiveTab('checkin')}
+              className={`flex-1 py-3 px-4 rounded-full font-semibold transition ${activeTab === 'checkin' ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+              style={activeTab === 'checkin' ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : {}}
+            >
+              Daily Check-In
+            </button>
+            <button 
+              onClick={() => setActiveTab('challenges')}
+              className={`flex-1 py-3 px-4 rounded-full font-semibold transition ${activeTab === 'challenges' ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+              style={activeTab === 'challenges' ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : {}}
+            >
+              Challenges
+            </button>
           </div>
         </div>
       </div>
