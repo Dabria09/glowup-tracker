@@ -10,6 +10,16 @@ const GENERATED = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e3
 
 const SECTIONS = [
   {
+    id: 'foundation',
+    title: '🌟 Foundation / Info',
+    items: [
+      { id: 'about_ggu', label: 'About GGU', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', route: '/about', emoji: '👑' },
+      { id: 'how_it_works', label: 'How It Works', gradient: 'from-purple-900 via-indigo-900 to-blue-900', route: '/how-it-works', emoji: '✨' },
+      { id: 'community_guidelines', label: 'Guidelines', gradient: 'from-blue-900 via-cyan-900 to-teal-900', route: '/guidelines', emoji: '📋' },
+      { id: 'help_support', label: 'Help & Support', gradient: 'from-rose-900 via-pink-900 to-red-900', route: '/support', emoji: '💜' },
+    ],
+  },
+  {
     id: 'learn',
     title: '📚 Learn & Grow',
     items: [
