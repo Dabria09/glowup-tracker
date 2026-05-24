@@ -103,13 +103,6 @@ const SECTIONS = [
       { id: 'fitness_tracker', label: 'Fitness Tracker', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', route: '/fitness-tracker', image: CDN + 'icon-flex-fitness_tracker-QvdXMwiTH22d77fpWaYMoZ.webp' },
     ],
   },
-  {
-    id: 'playlist',
-    title: '🎵 Music & Vibes',
-    items: [
-      { id: 'glow_playlist', label: 'Glow Up Playlist', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', route: '/glow-playlist', image: CDN + 'icon-glow-playlist.webp' },
-    ],
-  },
 ];
 
 const RECOMMENDED = [
