@@ -1,0 +1,27 @@
+{
+  "name": "BookClubNomination",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "book_title": {
+      "type": "string",
+      "title": "Book Title"
+    },
+    "book_author": {
+      "type": "string",
+      "title": "Book Author"
+    },
+    "vote_month": {
+      "type": "string",
+      "title": "Vote Month (YYYY-MM)"
+    }
+  },
+  "required": [
+    "user_email",
+    "book_title",
+    "vote_month"
+  ]
+}
