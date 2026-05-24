@@ -14,7 +14,7 @@ const SECTIONS = [
     items: [
       { id: 'ggu_academy', label: 'GGU Academy', gradient: 'from-pink-900 via-purple-900 to-pink-800', route: '/ggu-academy', image: CDN + 'icon-ggu-academy-KcP2723cbWjawrV5CXFVoa.webp' },
       { id: 'girls_library', label: 'Girls Library', gradient: 'from-amber-800 via-orange-900 to-yellow-900', route: '/girls-library', image: CDN + 'icon-library-fYQUmdRKLjKeb8kEpFXuZz.webp' },
-      { id: 'career_explorer', label: 'Career Explorer', gradient: 'from-yellow-800 via-amber-900 to-orange-900', route: '/career-explorer', image: CDN + 'icon-career-explorer-8j63MBeNyT9uZDM7Jtmztz.webp' },
+      { id: 'career_explorer', label: 'Career Explorer', gradient: 'from-yellow-800 via-amber-900 to-orange-900', route: '/careers', image: CDN + 'icon-career-explorer-8j63MBeNyT9uZDM7Jtmztz.webp' },
       { id: 'your_voice', label: 'Your Voice', gradient: 'from-rose-900 via-red-900 to-pink-900', route: '/your-voice', badge: 'New', image: CDN + 'icon-your-voice-EfuNjY9nzEGsR3k7RWGZKq.webp' },
       { id: 'growth_mindset', label: 'Growth Mindset', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', route: '/growth-mindset', image: MANUS + 'icon-growth-mindset_a5fa4874.png' },
       { id: 'homework_tracker', label: 'Homework Tracker', gradient: 'from-gray-800 via-slate-900 to-gray-900', route: '/homework-tracker', image: CDN + 'icon-homework-tracker-UzfmPy6kuzvUAsU3vgon39.webp' },
