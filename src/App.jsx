@@ -64,6 +64,7 @@ import Scholarships from './pages/Scholarships';
 import CareerExploration from './pages/CareerExploration';
 import JobTracker from './pages/JobTracker';
 import GlowTips from './pages/GlowTips';
+import MeVsMe from './pages/MeVsMe';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -142,6 +143,7 @@ const AuthenticatedApp = () => {
       <Route path="/careers" element={<CareerExploration />} />
       <Route path="/job-tracker" element={<JobTracker />} />
       <Route path="/glow-tips" element={<GlowTips />} />
+      <Route path="/me-vs-me" element={<MeVsMe />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
