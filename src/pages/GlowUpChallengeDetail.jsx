@@ -102,6 +102,9 @@ export default function GlowUpChallengeDetail() {
   const canAccessDay = (day, phaseKey) => {
     if (!userChallenge) return day === 1 && phaseKey === 'foundation';
     
+    // Admins can see all challenges
+    if (user?.role === 'admin') return true;
+    
     // Find the current day the user should be on
     const currentDay = userChallenge.current_day || 1;
     
@@ -210,39 +213,30 @@ export default function GlowUpChallengeDetail() {
                   {canAccess && expandedPhase === phaseKey && (
                     <div className="px-4 pb-4 pt-0 border-t border-white/5">
                       <div className="space-y-2 mt-3">
-                        {phase.days.map(dayObj => {
-                          const isDayCompleted = completedDays.includes(dayObj.day);
-                          const canAccess = canAccessDay(dayObj.day, phaseKey);
-                          
-                          return (
-                            <div key={dayObj.day} className="flex items-center gap-3 p-3 rounded-xl"
-                              style={{ 
-                                background: isDayCompleted ? `${challenge.color}20` : (canAccess ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.2)'),
-                                opacity: canAccess ? 1 : 0.5
-                              }}>
-                              {!canAccess ? (
-                                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-                                  style={{ background: 'rgba(0,0,0,0.3)' }}>
-                                  <Lock size={12} className="text-gray-500" />
-                                </div>
-                              ) : (
+                        {phase.days
+                          .filter(dayObj => {
+                            const canAccess = canAccessDay(dayObj.day, phaseKey);
+                            // Only show accessible days (or all for admin)
+                            return canAccess;
+                          })
+                          .map(dayObj => {
+                            const isDayCompleted = completedDays.includes(dayObj.day);
+                            
+                            return (
+                              <div key={dayObj.day} className="flex items-center gap-3 p-3 rounded-xl"
+                                style={{ background: isDayCompleted ? `${challenge.color}20` : 'rgba(255,255,255,0.03)' }}>
                                 <button onClick={() => !isDayCompleted && handleCompleteDay(dayObj.day, dayObj.points, phaseKey)}
                                   className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition ${isDayCompleted ? '' : 'hover:scale-110'}`}
                                   style={{ background: isDayCompleted ? challenge.color : 'rgba(255,255,255,0.1)' }}>
                                   {isDayCompleted ? <Check size={14} className="text-white" /> : <span className="text-xs text-gray-400">{dayObj.day}</span>}
                                 </button>
-                              )}
-                              <div className="flex-1">
-                                <p className={`text-xs ${isDayCompleted ? 'text-white/80 line-through' : (canAccess ? 'text-white' : 'text-gray-500')}`}>
-                                  Day {dayObj.day}: {dayObj.task}
-                                </p>
-                              </div>
-                              {canAccess && (
+                                <div className="flex-1">
+                                  <p className={`text-xs ${isDayCompleted ? 'text-white/80 line-through' : 'text-white'}`}>Day {dayObj.day}: {dayObj.task}</p>
+                                </div>
                                 <span className="text-xs font-bold" style={{ color: challenge.color }}>+{dayObj.points}</span>
-                              )}
-                            </div>
-                          );
-                        })}
+                              </div>
+                            );
+                          })}
                       </div>
                     </div>
                   )}
