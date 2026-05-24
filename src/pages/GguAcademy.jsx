@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, ChevronDown, BookOpen, Award, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronDown, BookOpen, Award, Clock, GraduationCap } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import QuizModal from '@/components/ggu-academy/QuizModal';
+import { QUIZ_DATA } from '@/components/ggu-academy/quizData';
 
 const ACADEMY_DATA = {
   pillars: [
@@ -505,7 +507,7 @@ const ACADEMY_DATA = {
   ],
 };
 
-function AddOnCard({ addon, expanded, onExpand }) {
+function AddOnCard({ addon, expanded, onExpand, onTakeQuiz }) {
   return (
     <div className="rounded-2xl p-4 transition" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
       <button
@@ -546,6 +548,17 @@ function AddOnCard({ addon, expanded, onExpand }) {
                     </li>
                   ))}
                 </ul>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTakeQuiz(lesson);
+                  }}
+                  className="mt-3 w-full py-2 rounded-lg font-bold text-white text-sm flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(135deg, #EC4899, #A855F7)' }}
+                >
+                  <GraduationCap size={16} />
+                  Take Quiz (15 Questions)
+                </button>
               </div>
             </div>
           ))}
@@ -555,7 +568,7 @@ function AddOnCard({ addon, expanded, onExpand }) {
   );
 }
 
-function PillarCard({ pillar, expanded, onExpand }) {
+function PillarCard({ pillar, expanded, onExpand, onTakeQuiz }) {
   const totalLessons = Object.values(pillar.lessons).reduce((sum, lessons) => sum + lessons.length, 0);
   const completedLessons = 0; // Would track from backend
 
@@ -610,6 +623,17 @@ function PillarCard({ pillar, expanded, onExpand }) {
                         ))}
                       </ul>
                     </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTakeQuiz(lesson);
+                      }}
+                      className="mt-3 w-full py-2 rounded-lg font-bold text-white text-sm flex items-center justify-center gap-2"
+                      style={{ background: 'linear-gradient(135deg, #EC4899, #A855F7)' }}
+                    >
+                      <GraduationCap size={16} />
+                      Take Quiz (15 Questions)
+                    </button>
                   </div>
                 ))}
               </div>
@@ -625,6 +649,7 @@ export default function GguAcademy() {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(null);
   const [user, setUser] = useState(null);
+  const [quizLesson, setQuizLesson] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => setUser(null));
@@ -685,6 +710,7 @@ export default function GguAcademy() {
                 pillar={pillar}
                 expanded={expanded === pillar.id}
                 onExpand={(id) => setExpanded(expanded === id ? null : id)}
+                onTakeQuiz={setQuizLesson}
               />
             ))}
           </div>
@@ -702,6 +728,7 @@ export default function GguAcademy() {
                 addon={addon}
                 expanded={expanded === addon.id}
                 onExpand={(id) => setExpanded(expanded === id ? null : id)}
+                onTakeQuiz={setQuizLesson}
               />
             ))}
           </div>
@@ -709,6 +736,18 @@ export default function GguAcademy() {
       </div>
 
       <BottomNav active="discover" />
+
+      {quizLesson && (
+        <QuizModal
+          lesson={quizLesson}
+          questions={QUIZ_DATA[quizLesson.id] || []}
+          onClose={() => setQuizLesson(null)}
+          onComplete={(score) => {
+            console.log('Quiz completed with score:', score);
+            setQuizLesson(null);
+          }}
+        />
+      )}
     </div>
   );
 }
