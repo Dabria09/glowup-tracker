@@ -41,6 +41,22 @@ export default function SessionFeedbackModal({ isOpen, onClose, session, mentorN
         });
       }
 
+      // Auto-award 'First Review' badge if this is their first rating
+      try {
+        const existing = await base44.entities.MentorshipBadge.filter({ user_email: session.mentee_email, badge_id: 'first_review' });
+        if (existing.length === 0) {
+          await base44.entities.MentorshipBadge.create({
+            user_email: session.mentee_email,
+            badge_id: 'first_review',
+            badge_name: 'First Review',
+            badge_icon: '⭐',
+            badge_description: 'Left your first session review!',
+            earned_date: new Date().toISOString(),
+            badge_tier: 'bronze',
+          });
+        }
+      } catch (_) {}
+
       onSubmitted();
       onClose();
     } catch (error) {

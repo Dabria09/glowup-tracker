@@ -15,6 +15,10 @@ import MentorAdminDashboard from '@/components/mentorship/MentorAdminDashboard';
 import TeenMentorAdminDashboard from '@/components/mentorship/TeenMentorAdminDashboard';
 import MentorMatchingModal from '@/components/mentorship/MentorMatchingModal';
 import SessionBookingModal from '@/components/mentorship/SessionBookingModal';
+import SuccessStories from '@/components/mentorship/SuccessStories';
+import MentorLeaderboard from '@/components/mentorship/MentorLeaderboard';
+import ProgramsTab from '@/components/mentorship/ProgramsTab';
+import ResourcesTab from '@/components/mentorship/ResourcesTab';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -209,37 +213,27 @@ export default function Mentorship() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab('mentors')}
-            className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition ${
-              activeTab === 'mentors'
-                ? 'text-white'
-                : 'text-gray-400 hover:text-gray-200'
-            }`}
-            style={
-              activeTab === 'mentors'
-                ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' }
-                : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }
-            }
-          >
-            <span className="mr-2">🔍</span>Find a Mentor
-          </button>
-          <button
-            onClick={() => setActiveTab('wisdom')}
-            className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition ${
-              activeTab === 'wisdom'
-                ? 'text-white'
-                : 'text-gray-400 hover:text-gray-200'
-            }`}
-            style={
-              activeTab === 'wisdom'
-                ? { background: 'linear-gradient(135deg, #a855f7, #ec4899)' }
-                : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }
-            }
-          >
-            <span className="mr-2">👑</span>Ms. Glow Wisdom
-          </button>
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+          {[
+            { id: 'mentors', label: 'Find', emoji: '🔍' },
+            { id: 'wisdom', label: 'Wisdom', emoji: '👑' },
+            { id: 'programs', label: 'Programs', emoji: '📚' },
+            { id: 'resources', label: 'Resources', emoji: '🗂️' },
+            { id: 'stories', label: 'Stories', emoji: '✨' },
+            { id: 'leaderboard', label: 'Top', emoji: '🏆' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="flex-shrink-0 px-3 py-2 rounded-xl font-semibold text-xs transition"
+              style={activeTab === tab.id
+                ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)', color: '#fff' }
+                : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }
+              }
+            >
+              {tab.emoji} {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Content */}
@@ -250,6 +244,14 @@ export default function Mentorship() {
           </div>
         ) : activeTab === 'mentors' ? (
           <MentorDirectory mentors={mentors} user={user} />
+        ) : activeTab === 'programs' ? (
+          <ProgramsTab user={user} />
+        ) : activeTab === 'resources' ? (
+          <ResourcesTab user={user} />
+        ) : activeTab === 'stories' ? (
+          <SuccessStories user={user} />
+        ) : activeTab === 'leaderboard' ? (
+          <MentorLeaderboard />
         ) : (
           wisdomQuestions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
