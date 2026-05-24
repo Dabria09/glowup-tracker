@@ -306,9 +306,9 @@ export default function GlowKitchen() {
       setShoppingList(linkedItems);
       setMealPlanLoaded(true);
       
-      // Load kitchen basics from database or use defaults
+      // Load kitchen basics from database
       const basicsData = await base44.entities.KitchenBasic.list();
-      setBasics(basicsData.length > 0 ? basicsData : KITCHEN_BASICS);
+      setBasics(basicsData);
       
       // Load healthy guides
       const guidesData = await base44.entities.HealthyGuide.list();
@@ -411,8 +411,7 @@ export default function GlowKitchen() {
   };
 
   const activeTabData = TABS.find(t => t.id === activeTab);
-  const allBasics = basics.length > 0 ? basics : KITCHEN_BASICS;
-  const filteredSkills = allBasics.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredSkills = basics.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
