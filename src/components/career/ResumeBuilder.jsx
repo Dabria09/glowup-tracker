@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { jsPDF } from 'jspdf';
 import { Plus, X, Download, Save, Upload, FileText, Trash2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
@@ -68,6 +69,85 @@ export default function ResumeBuilder() {
     toast.success('Resume saved!');
   };
 
+  const exportPDF = () => {
+    const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+    const margin = 50;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = margin;
+
+    const addLine = (text, opts = {}) => {
+      if (y > 720) { doc.addPage(); y = margin; }
+      doc.setFont(opts.font || 'helvetica', opts.style || 'normal');
+      doc.setFontSize(opts.size || 11);
+      if (opts.color) doc.setTextColor(...opts.color); else doc.setTextColor(30, 10, 40);
+      if (opts.center) doc.text(text, pageWidth / 2, y, { align: 'center' });
+      else doc.text(text, margin, y);
+      y += opts.gap || 16;
+    };
+
+    const addRule = () => {
+      doc.setDrawColor(168, 85, 247);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 10;
+    };
+
+    // Header
+    if (info.name) addLine(info.name, { size: 22, style: 'bold', center: true, gap: 20, color: [30, 10, 40] });
+    const contact = [info.email, info.phone, info.location].filter(Boolean).join('  •  ');
+    if (contact) addLine(contact, { size: 9, center: true, color: [120, 80, 140], gap: 6 });
+    const links = [info.linkedin, info.website].filter(Boolean).join('  •  ');
+    if (links) addLine(links, { size: 9, center: true, color: [100, 60, 200], gap: 14 });
+
+    if (summary) {
+      addRule();
+      addLine('PROFESSIONAL SUMMARY', { size: 10, style: 'bold', color: [168, 85, 247], gap: 12 });
+      const wrapped = doc.splitTextToSize(summary, pageWidth - margin * 2);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(50, 30, 60);
+      doc.text(wrapped, margin, y); y += wrapped.length * 14 + 8;
+    }
+
+    if (experiences.some(e => e.company || e.title)) {
+      addRule();
+      addLine('EXPERIENCE', { size: 10, style: 'bold', color: [168, 85, 247], gap: 12 });
+      experiences.forEach(e => {
+        if (!e.company && !e.title) return;
+        addLine(`${e.title} — ${e.company}`, { style: 'bold', size: 10, gap: 13 });
+        addLine(`${e.start}${e.end ? ' – ' + e.end : ' – Present'}`, { size: 9, color: [120, 80, 140], gap: 11 });
+        if (e.bullets) e.bullets.split('\n').forEach(b => b.trim() && addLine('• ' + b.trim(), { size: 10, gap: 13 }));
+        y += 4;
+      });
+    }
+
+    if (education.some(e => e.school)) {
+      addRule();
+      addLine('EDUCATION', { size: 10, style: 'bold', color: [168, 85, 247], gap: 12 });
+      education.forEach(e => {
+        if (!e.school) return;
+        addLine(`${e.degree || ''}${e.school ? ' — ' + e.school : ''}${e.year ? ' (' + e.year + ')' : ''}`, { size: 10, gap: 14 });
+      });
+    }
+
+    if (skills) {
+      addRule();
+      addLine('SKILLS', { size: 10, style: 'bold', color: [168, 85, 247], gap: 12 });
+      const wrapped = doc.splitTextToSize(skills, pageWidth - margin * 2);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(50, 30, 60);
+      doc.text(wrapped, margin, y); y += wrapped.length * 14 + 8;
+    }
+
+    if (certifications) {
+      addRule();
+      addLine('CERTIFICATIONS', { size: 10, style: 'bold', color: [168, 85, 247], gap: 12 });
+      const wrapped = doc.splitTextToSize(certifications, pageWidth - margin * 2);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(50, 30, 60);
+      doc.text(wrapped, margin, y);
+    }
+
+    doc.save(`${info.name || 'resume'}.pdf`);
+    toast.success('PDF downloaded! 📄');
+  };
+
   const exportText = () => {
     const lines = [];
     if (info.name) lines.push(info.name.toUpperCase(), '');
@@ -121,10 +201,15 @@ export default function ResumeBuilder() {
           style={{ background: saved ? 'rgba(34,197,94,0.3)' : 'rgba(168,85,247,0.3)', border: '1px solid rgba(168,85,247,0.5)' }}>
           <Save size={14} /> {saved ? 'Saved!' : 'Save Draft'}
         </button>
-        <button onClick={exportText}
+        <button onClick={exportPDF}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white"
           style={{ background: 'linear-gradient(135deg, #a855f7, #ec4899)' }}>
-          <Download size={14} /> Export .txt
+          <Download size={14} /> Download PDF
+        </button>
+        <button onClick={exportText}
+          className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold text-white"
+          style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
+          .txt
         </button>
       </div>
 
