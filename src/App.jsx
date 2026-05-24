@@ -68,6 +68,7 @@ import GlowTips from './pages/GlowTips';
 import MeVsMe from './pages/MeVsMe';
 import GlowUpChallenges from './pages/GlowUpChallenges';
 import GlowUpChallengeDetail from './pages/GlowUpChallengeDetail';
+import WeeklyTheme from './pages/WeeklyTheme';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -150,6 +151,7 @@ const AuthenticatedApp = () => {
       <Route path="/me-vs-me" element={<MeVsMe />} />
       <Route path="/glow-up-challenges" element={<GlowUpChallenges />} />
       <Route path="/glow-up-challenges/:challengeId" element={<GlowUpChallengeDetail />} />
+      <Route path="/weekly-theme" element={<WeeklyTheme />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
