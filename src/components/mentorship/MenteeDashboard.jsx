@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Star, MessageCircle, BookOpen, TrendingUp, CheckCircle, Hourglass, History } from 'lucide-react';
+import { Calendar, Clock, Star, MessageCircle, BookOpen, CheckCircle, Hourglass, History } from 'lucide-react';
+import SessionFeedbackModal from './SessionFeedbackModal';
 import { base44 } from '@/api/base44Client';
 
 export default function MenteeDashboard({ user }) {
@@ -7,6 +8,7 @@ export default function MenteeDashboard({ user }) {
   const [upcomingSessions, setUpcomingSessions] = useState([]);
   const [completedSessions, setCompletedSessions] = useState([]);
   const [mentors, setMentors] = useState({});
+  const [feedbackSession, setFeedbackSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,42 +17,30 @@ export default function MenteeDashboard({ user }) {
 
   const loadData = async () => {
     try {
-      const sessions = await base44.entities.MentorSession.filter({
-        mentee_email: user.email,
-      });
-      
+      const sessions = await base44.entities.MentorSession.filter({ mentee_email: user.email });
       const now = new Date();
-      
-      // Pending requests (status: pending)
+
       const pending = sessions.filter(s => s.status === 'pending');
       setPendingRequests(pending);
 
-      // Upcoming sessions (status: scheduled, future date)
       const upcoming = sessions
         .filter(s => s.status === 'scheduled' && new Date(s.session_date) > now)
         .sort((a, b) => new Date(a.session_date) - new Date(b.session_date));
       setUpcomingSessions(upcoming);
 
-      // Completed sessions (status: completed)
       const completed = sessions
-        .filter(s => 
-        s.status === 'completed' || (s.status === 'scheduled' && new Date(s.session_date) < now)
-      );
-      setCompletedSessions(completed.sort((a, b) => new Date(b.session_date) - new Date(a.session_date)));
+        .filter(s => s.status === 'completed' || (s.status === 'scheduled' && new Date(s.session_date) < now))
+        .sort((a, b) => new Date(b.session_date) - new Date(a.session_date));
+      setCompletedSessions(completed);
 
-      // Fetch mentor info for all unique mentor emails
-      const allMentorEmails = [...pending, ...upcoming, ...completed].map(s => s.mentor_email);
+      const allMentorEmails = sessions.map(s => s.mentor_email);
       const uniqueEmails = [...new Set(allMentorEmails)];
-      
       const mentorData = {};
       for (const email of uniqueEmails) {
-        const mentors = await base44.entities.Mentor.filter({ user_email: email });
-        if (mentors.length > 0) {
-          mentorData[email] = mentors[0];
-        }
+        const found = await base44.entities.Mentor.filter({ user_email: email });
+        if (found.length > 0) mentorData[email] = found[0];
       }
       setMentors(mentorData);
-
       setLoading(false);
     } catch (error) {
       console.error('Error loading mentee data:', error);
@@ -63,30 +53,16 @@ export default function MenteeDashboard({ user }) {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    }
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === tomorrow.toDateString()) return 'Tomorrow';
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   };
 
-  const formatTime = (dateStr) => {
-    return new Date(dateStr).toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit', 
-      hour12: true 
-    });
-  };
+  const formatTime = (dateStr) =>
+    new Date(dateStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
-  const getMentorName = (email) => {
-    return mentors[email]?.full_name || email.split('@')[0];
-  };
-
-  const getMentorAvatar = (email) => {
-    return mentors[email]?.avatar_url;
-  };
+  const getMentorName = (email) => mentors[email]?.full_name || email.split('@')[0];
+  const getMentorAvatar = (email) => mentors[email]?.avatar_url;
 
   if (loading) {
     return (
@@ -147,32 +123,18 @@ export default function MenteeDashboard({ user }) {
               {totalPending}
             </span>
           </div>
-          
           <div className="space-y-3">
             {pendingRequests.map(session => (
               <div key={session.id} className="rounded-xl p-4" style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-white">{getMentorName(session.mentor_email)}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Calendar size={12} />
-                        {formatDate(session.session_date)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock size={12} />
-                        {formatTime(session.session_date)}
-                      </span>
-                    </div>
-                    {session.topic && (
-                      <p className="text-xs text-gray-500 mt-2">📝 {session.topic}</p>
-                    )}
-                    <p className="text-xs text-amber-400 mt-2 flex items-center gap-1">
-                      <Hourglass size={10} />
-                      Awaiting mentor approval
-                    </p>
-                  </div>
+                <p className="text-sm font-semibold text-white">{getMentorName(session.mentor_email)}</p>
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                  <span className="flex items-center gap-1"><Calendar size={12} />{formatDate(session.session_date)}</span>
+                  <span className="flex items-center gap-1"><Clock size={12} />{formatTime(session.session_date)}</span>
                 </div>
+                {session.topic && <p className="text-xs text-gray-500 mt-2">📝 {session.topic}</p>}
+                <p className="text-xs text-amber-400 mt-2 flex items-center gap-1">
+                  <Hourglass size={10} /> Awaiting mentor approval
+                </p>
               </div>
             ))}
           </div>
@@ -192,7 +154,6 @@ export default function MenteeDashboard({ user }) {
             </span>
           )}
         </div>
-        
         {totalUpcoming === 0 ? (
           <div className="text-center py-8">
             <Calendar size={40} className="mx-auto mb-3 text-gray-600" />
@@ -206,11 +167,9 @@ export default function MenteeDashboard({ user }) {
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold overflow-hidden flex-shrink-0"
                     style={{ background: getMentorAvatar(session.mentor_email) ? 'transparent' : 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-                    {getMentorAvatar(session.mentor_email) ? (
-                      <img src={getMentorAvatar(session.mentor_email)} alt={getMentorName(session.mentor_email)} className="w-full h-full object-cover" />
-                    ) : (
-                      getMentorName(session.mentor_email).charAt(0)
-                    )}
+                    {getMentorAvatar(session.mentor_email)
+                      ? <img src={getMentorAvatar(session.mentor_email)} alt="" className="w-full h-full object-cover" />
+                      : getMentorName(session.mentor_email).charAt(0)}
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-white">{getMentorName(session.mentor_email)}</p>
@@ -218,18 +177,10 @@ export default function MenteeDashboard({ user }) {
                       <p className="text-xs text-gray-400">{mentors[session.mentor_email].title}</p>
                     )}
                     <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Clock size={12} />
-                        {formatDate(session.session_date)} at {formatTime(session.session_date)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageCircle size={12} />
-                        {session.session_type || 'Video'}
-                      </span>
+                      <span className="flex items-center gap-1"><Clock size={12} />{formatDate(session.session_date)} at {formatTime(session.session_date)}</span>
+                      <span className="flex items-center gap-1"><MessageCircle size={12} />{session.session_type || 'Video'}</span>
                     </div>
-                    {session.topic && (
-                      <p className="text-xs text-gray-500 mt-2">📝 {session.topic}</p>
-                    )}
+                    {session.topic && <p className="text-xs text-gray-500 mt-2">📝 {session.topic}</p>}
                   </div>
                 </div>
               </div>
@@ -250,7 +201,6 @@ export default function MenteeDashboard({ user }) {
               {totalCompleted}
             </span>
           </div>
-          
           <div className="space-y-3">
             {completedSessions.slice(0, 10).map(session => (
               <div key={session.id} className="rounded-xl p-4" style={{ background: 'rgba(168,85,247,0.05)', border: '1px solid rgba(168,85,247,0.2)' }}>
@@ -258,11 +208,9 @@ export default function MenteeDashboard({ user }) {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold overflow-hidden"
                       style={{ background: getMentorAvatar(session.mentor_email) ? 'transparent' : 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-                      {getMentorAvatar(session.mentor_email) ? (
-                        <img src={getMentorAvatar(session.mentor_email)} alt={getMentorName(session.mentor_email)} className="w-full h-full object-cover" />
-                      ) : (
-                        getMentorName(session.mentor_email).charAt(0)
-                      )}
+                      {getMentorAvatar(session.mentor_email)
+                        ? <img src={getMentorAvatar(session.mentor_email)} alt="" className="w-full h-full object-cover" />
+                        : getMentorName(session.mentor_email).charAt(0)}
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-white">{getMentorName(session.mentor_email)}</p>
@@ -276,17 +224,34 @@ export default function MenteeDashboard({ user }) {
                         <span className="text-sm font-bold text-white">{session.rating}</span>
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-500">No review</span>
+                      <button
+                        onClick={() => setFeedbackSession(session)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+                        style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+                      >
+                        ⭐ Rate
+                      </button>
                     )}
-                    {session.status === 'completed' && (
-                      <CheckCircle size={16} className="text-green-400" />
-                    )}
+                    {session.status === 'completed' && <CheckCircle size={16} className="text-green-400" />}
                   </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+      )}
+
+      {feedbackSession && (
+        <SessionFeedbackModal
+          isOpen={!!feedbackSession}
+          onClose={() => setFeedbackSession(null)}
+          session={feedbackSession}
+          mentorName={getMentorName(feedbackSession.mentor_email)}
+          onSubmitted={() => {
+            setFeedbackSession(null);
+            loadData();
+          }}
+        />
       )}
     </div>
   );
