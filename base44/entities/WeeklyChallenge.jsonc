@@ -1,0 +1,50 @@
+{
+  "name": "WeeklyChallenge",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "challenge_id": {
+      "type": "string",
+      "title": "Challenge ID"
+    },
+    "challenge_name": {
+      "type": "string",
+      "title": "Challenge Name"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed"
+      ],
+      "default": "not_started",
+      "title": "Status"
+    },
+    "completed_days": {
+      "type": "string",
+      "title": "Completed Days (JSON array)",
+      "default": "[]"
+    },
+    "total_xp": {
+      "type": "number",
+      "title": "Total XP Earned",
+      "default": 0
+    },
+    "started_date": {
+      "type": "string",
+      "title": "Started Date"
+    },
+    "completed_date": {
+      "type": "string",
+      "title": "Completed Date"
+    }
+  },
+  "required": [
+    "user_email",
+    "challenge_id"
+  ]
+}
