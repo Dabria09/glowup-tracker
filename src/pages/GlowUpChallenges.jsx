@@ -35,6 +35,9 @@ export default function GlowUpChallenges() {
   const totalCompleted = challenges.filter(c => c.status === 'completed').length;
   const totalDaysCompleted = challenges.reduce((sum, c) => sum + (c.completed_days?.length || 0), 0);
   const totalPoints = challenges.reduce((sum, c) => sum + (c.total_points || 0), 0);
+  
+  // Find active challenge (in_progress)
+  const activeChallenge = challenges.find(c => c.status === 'in_progress');
 
   return (
     <div className="min-h-screen text-white pb-28"
@@ -148,9 +151,15 @@ export default function GlowUpChallenges() {
           <div className="grid grid-cols-2 gap-3">
             {CHALLENGES.map(challenge => {
               const progress = getChallengeProgress(challenge.id);
+              const isCompleted = progress.status === 'completed';
+              const isActive = progress.status === 'in_progress';
+              const isLocked = activeChallenge && !isCompleted && !isActive;
+              
               return (
-                <button key={challenge.id} onClick={() => navigate(`/glow-up-challenges/${challenge.id}`)}
-                  className="text-left rounded-2xl p-4 transition hover:opacity-90"
+                <button 
+                  key={challenge.id} 
+                  onClick={() => !isLocked && navigate(`/glow-up-challenges/${challenge.id}`)}
+                  className={`text-left rounded-2xl p-4 transition ${isLocked ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}`}
                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3"
                     style={{ background: `linear-gradient(135deg, ${challenge.color}40, ${challenge.color}20)`, border: `1px solid ${challenge.color}40` }}>
@@ -164,9 +173,19 @@ export default function GlowUpChallenges() {
                     </div>
                     <p className="text-[10px] font-bold" style={{ color: challenge.color }}>{Math.round(progress.progress)}%</p>
                   </div>
-                  {progress.status === 'completed' && (
+                  {isCompleted && (
                     <p className="text-[10px] text-green-400 mt-2 flex items-center gap-1">
                       <Star size={8} /> Done
+                    </p>
+                  )}
+                  {isActive && (
+                    <p className="text-[10px] text-pink-400 mt-2 flex items-center gap-1">
+                      <Sparkles size={8} /> In Progress
+                    </p>
+                  )}
+                  {isLocked && (
+                    <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-1">
+                      🔒 Complete active challenge first
                     </p>
                   )}
                 </button>

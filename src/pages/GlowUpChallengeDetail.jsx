@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Check, Lock, Unlock, Star, ChevronDown } from 'lucide-react';
+import { ChevronLeft, Check, Lock, Star, ChevronDown } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
-import { getChallengeById, getAllDays, PHASE_INFO } from '@/components/challenges/challengeData';
+import { getChallengeById, PHASE_INFO } from '@/components/challenges/challengeData';
 
 export default function GlowUpChallengeDetail() {
   const { challengeId } = useParams();
@@ -27,6 +27,18 @@ export default function GlowUpChallengeDetail() {
     },
     enabled: !!user && !!challenge,
   });
+
+  const { data: allUserChallenges } = useQuery({
+    queryKey: ['allUserChallenges', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      return await base44.entities.GlowUpChallenge.filter({ user_email: user.email }).catch(() => []);
+    },
+    enabled: !!user,
+  });
+
+  const activeChallengeId = allUserChallenges?.find(c => c.status === 'in_progress')?.challenge_id;
+  const isChallengeLocked = activeChallengeId && activeChallengeId !== challengeId && userChallenge?.status !== 'completed';
 
   const startMutation = useMutation({
     mutationFn: async () => {
@@ -101,15 +113,16 @@ export default function GlowUpChallengeDetail() {
 
   const canAccessDay = (day, phaseKey) => {
     if (!userChallenge) return day === 1 && phaseKey === 'foundation';
-    
-    // Admins can see all challenges
     if (user?.role === 'admin') return true;
-    
-    // Find the current day the user should be on
     const currentDay = userChallenge.current_day || 1;
-    
-    // Only allow access to today's challenge and previous ones
     return day <= currentDay;
+  };
+
+  const canAccessChallenge = () => {
+    if (user?.role === 'admin') return true;
+    if (userChallenge?.status === 'completed') return true;
+    if (isChallengeLocked) return false;
+    return true;
   };
 
   const handleStart = () => {
@@ -153,116 +166,135 @@ export default function GlowUpChallengeDetail() {
           </div>
         </div>
 
-        {/* Progress */}
-        <div className="rounded-2xl p-5 mb-6" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-bold text-white">Your Progress</p>
-            <p className="text-sm font-bold" style={{ color: challenge.color }}>{Math.round(progress)}%</p>
-          </div>
-          <div className="h-3 rounded-full bg-white/10 overflow-hidden">
-            <div className="h-full rounded-full transition-all" 
-              style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${challenge.color}, ${challenge.color}80)` }} />
-          </div>
-          <div className="flex items-center justify-between mt-3">
-            <p className="text-xs text-gray-400">{completedDays.length}/30 days completed</p>
-            <p className="text-xs" style={{ color: challenge.color }}>{userChallenge?.total_points || 0} points</p>
-          </div>
-        </div>
-
-        {!userChallenge ? (
+        {/* Locked Challenge Message */}
+        {!canAccessChallenge() ? (
           <div className="text-center py-12">
             <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl"
-              style={{ background: `linear-gradient(135deg, ${challenge.color}40, ${challenge.color}20)` }}>
-              {challenge.emoji}
+              style={{ background: 'rgba(0,0,0,0.3)' }}>
+              🔒
             </div>
-            <h2 className="text-xl font-bold text-white mb-2">Start Your {challenge.name} Journey</h2>
-            <p className="text-sm text-gray-400 mb-6">30 days to transform your {challenge.name.toLowerCase()}</p>
-            <button onClick={handleStart}
-              className="w-full py-3 rounded-2xl font-bold text-white"
-              style={{ background: `linear-gradient(135deg, ${challenge.color}, ${challenge.color}cc)` }}>
-              Start Challenge 👑
+            <h2 className="text-xl font-bold text-white mb-2">Challenge Locked</h2>
+            <p className="text-sm text-gray-400 mb-6">Complete your active challenge first to stay focused on your journey.</p>
+            <button onClick={() => navigate('/glow-up-challenges')}
+              className="px-6 py-3 rounded-2xl font-bold text-white"
+              style={{ background: 'linear-gradient(135deg, #FF1F8E, #a855f7)' }}>
+              View Active Challenge
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {Object.entries(challenge.phases).map(([phaseKey, phase]) => {
-              const canAccess = canAccessPhase(phaseKey);
-              const isCompleted = isPhaseCompleted(phaseKey, completedDays, challenge);
-              const phaseInfo = PHASE_INFO[phaseKey];
+          <>
+            {/* Progress */}
+            <div className="rounded-2xl p-5 mb-6" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-bold text-white">Your Progress</p>
+                <p className="text-sm font-bold" style={{ color: challenge.color }}>{Math.round(progress)}%</p>
+              </div>
+              <div className="h-3 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full rounded-full transition-all" 
+                  style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${challenge.color}, ${challenge.color}80)` }} />
+              </div>
+              <div className="flex items-center justify-between mt-3">
+                <p className="text-xs text-gray-400">{completedDays.length}/30 days completed</p>
+                <p className="text-xs" style={{ color: challenge.color }}>{userChallenge?.total_points || 0} points</p>
+              </div>
+            </div>
 
-              return (
-                <div key={phaseKey} className="rounded-2xl overflow-hidden"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', opacity: canAccess ? 1 : 0.5 }}>
-                  <button onClick={() => canAccess && setExpandedPhase(expandedPhase === phaseKey ? null : phaseKey)}
-                    className="w-full flex items-center gap-3 p-4 transition"
-                    style={{ background: expandedPhase === phaseKey ? 'rgba(255,255,255,0.08)' : 'transparent' }}>
-                    <span className="text-2xl">{phaseInfo.emoji}</span>
-                    <div className="flex-1 text-left">
-                      <p className="font-bold text-white text-sm">{phaseInfo.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{phase.name}</p>
-                    </div>
-                    {!canAccess ? (
-                      <Lock size={18} className="text-gray-500" />
-                    ) : isCompleted ? (
-                      <Star size={18} className="text-yellow-400" />
-                    ) : (
-                      <ChevronDown size={18} className="text-gray-500" style={{ transform: expandedPhase === phaseKey ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
-                    )}
-                  </button>
-
-                  {canAccess && expandedPhase === phaseKey && (
-                    <div className="px-4 pb-4 pt-0 border-t border-white/5">
-                      <div className="space-y-2 mt-3">
-                        {phase.days.map(dayObj => {
-                          const isDayCompleted = completedDays.includes(dayObj.day);
-                          const canAccess = canAccessDay(dayObj.day, phaseKey);
-                          
-                          return (
-                            <div key={dayObj.day} className="flex items-center gap-3 p-3 rounded-xl"
-                              style={{ 
-                                background: isDayCompleted ? `${challenge.color}20` : (canAccess ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.2)'),
-                                opacity: canAccess ? 1 : 0.6
-                              }}>
-                              {isDayCompleted ? (
-                                <button onClick={() => handleCompleteDay(dayObj.day, dayObj.points, phaseKey)}
-                                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 hover:scale-110 transition"
-                                  style={{ background: challenge.color }}>
-                                  <Check size={14} className="text-white" />
-                                </button>
-                              ) : canAccess ? (
-                                <button onClick={() => handleCompleteDay(dayObj.day, dayObj.points, phaseKey)}
-                                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 hover:scale-110 transition"
-                                  style={{ background: 'rgba(255,255,255,0.1)' }}>
-                                  <span className="text-xs text-gray-400">{dayObj.day}</span>
-                                </button>
-                              ) : (
-                                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-                                  style={{ background: 'rgba(0,0,0,0.3)' }}>
-                                  <span className="text-xs text-gray-600">{dayObj.day}</span>
-                                </div>
-                              )}
-                              <div className="flex-1">
-                                {canAccess || isDayCompleted ? (
-                                  <p className={`text-xs ${isDayCompleted ? 'text-white/80 line-through' : 'text-white'}`}>
-                                    Day {dayObj.day}: {dayObj.task}
-                                  </p>
-                                ) : (
-                                  <p className="text-xs text-gray-600">Day {dayObj.day}: ???</p>
-                                )}
-                              </div>
-                              {(canAccess || isDayCompleted) && (
-                                <span className="text-xs font-bold" style={{ color: challenge.color }}>+{dayObj.points}</span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
+            {!userChallenge ? (
+              <div className="text-center py-12">
+                <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl"
+                  style={{ background: `linear-gradient(135deg, ${challenge.color}40, ${challenge.color}20)` }}>
+                  {challenge.emoji}
                 </div>
-              );
-            })}
-          </div>
+                <h2 className="text-xl font-bold text-white mb-2">Start Your {challenge.name} Journey</h2>
+                <p className="text-sm text-gray-400 mb-6">30 days to transform your {challenge.name.toLowerCase()}</p>
+                <button onClick={handleStart}
+                  className="w-full py-3 rounded-2xl font-bold text-white"
+                  style={{ background: `linear-gradient(135deg, ${challenge.color}, ${challenge.color}cc)` }}>
+                  Start Challenge 👑
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {Object.entries(challenge.phases).map(([phaseKey, phase]) => {
+                  const canAccess = canAccessPhase(phaseKey);
+                  const isCompleted = isPhaseCompleted(phaseKey, completedDays, challenge);
+                  const phaseInfo = PHASE_INFO[phaseKey];
+
+                  return (
+                    <div key={phaseKey} className="rounded-2xl overflow-hidden"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', opacity: canAccess ? 1 : 0.5 }}>
+                      <button onClick={() => canAccess && setExpandedPhase(expandedPhase === phaseKey ? null : phaseKey)}
+                        className="w-full flex items-center gap-3 p-4 transition"
+                        style={{ background: expandedPhase === phaseKey ? 'rgba(255,255,255,0.08)' : 'transparent' }}>
+                        <span className="text-2xl">{phaseInfo.emoji}</span>
+                        <div className="flex-1 text-left">
+                          <p className="font-bold text-white text-sm">{phaseInfo.name}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{phase.name}</p>
+                        </div>
+                        {!canAccess ? (
+                          <Lock size={18} className="text-gray-500" />
+                        ) : isCompleted ? (
+                          <Star size={18} className="text-yellow-400" />
+                        ) : (
+                          <ChevronDown size={18} className="text-gray-500" style={{ transform: expandedPhase === phaseKey ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                        )}
+                      </button>
+
+                      {canAccess && expandedPhase === phaseKey && (
+                        <div className="px-4 pb-4 pt-0 border-t border-white/5">
+                          <div className="space-y-2 mt-3">
+                            {phase.days.map(dayObj => {
+                              const isDayCompleted = completedDays.includes(dayObj.day);
+                              const canAccessDay = day <= (userChallenge?.current_day || 1) || user?.role === 'admin';
+                              
+                              return (
+                                <div key={dayObj.day} className="flex items-center gap-3 p-3 rounded-xl"
+                                  style={{ 
+                                    background: isDayCompleted ? `${challenge.color}20` : (canAccessDay ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.2)'),
+                                    opacity: canAccessDay ? 1 : 0.6
+                                  }}>
+                                  {isDayCompleted ? (
+                                    <button onClick={() => handleCompleteDay(dayObj.day, dayObj.points, phaseKey)}
+                                      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 hover:scale-110 transition"
+                                      style={{ background: challenge.color }}>
+                                      <Check size={14} className="text-white" />
+                                    </button>
+                                  ) : canAccessDay ? (
+                                    <button onClick={() => handleCompleteDay(dayObj.day, dayObj.points, phaseKey)}
+                                      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 hover:scale-110 transition"
+                                      style={{ background: 'rgba(255,255,255,0.1)' }}>
+                                      <span className="text-xs text-gray-400">{dayObj.day}</span>
+                                    </button>
+                                  ) : (
+                                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                                      style={{ background: 'rgba(0,0,0,0.3)' }}>
+                                      <span className="text-xs text-gray-600">{dayObj.day}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex-1">
+                                    {canAccessDay || isDayCompleted ? (
+                                      <p className={`text-xs ${isDayCompleted ? 'text-white/80 line-through' : 'text-white'}`}>
+                                        Day {dayObj.day}: {dayObj.task}
+                                      </p>
+                                    ) : (
+                                      <p className="text-xs text-gray-600">Day {dayObj.day}: ???</p>
+                                    )}
+                                  </div>
+                                  {(canAccessDay || isDayCompleted) && (
+                                    <span className="text-xs font-bold" style={{ color: challenge.color }}>+{dayObj.points}</span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
 
