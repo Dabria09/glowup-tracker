@@ -6,6 +6,7 @@ import BottomNav from '@/components/BottomNav';
 
 const CDN = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663618716083/WDWw94kRE3Ddo7F9rGLvjC/';
 const MANUS = 'https://gguapp-wdww94kr.manus.space/manus-storage/';
+const GENERATED = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/';
 
 const SECTIONS = [
   {
@@ -30,7 +31,7 @@ const SECTIONS = [
       { id: 'calm_corner', label: 'Calm Corner', gradient: 'from-amber-900 via-orange-900 to-rose-900', route: '/calm-corner', image: MANUS + 'icon-calm-corner_ef4b2861.png' },
       { id: 'cycle_tracker', label: 'Cycle Tracker', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', route: '/cycle-tracker', image: CDN + 'icon-cycle-tracker-mfEEuehTKonzHUdUSmTMaA.webp' },
       { id: 'glow_checkin', label: 'Glow Check-In', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/daily-checkin', image: MANUS + 'icon-glow-check-in_fe36a2ac.png' },
-      { id: 'glow_playlist_wellness', label: 'Glow Up Playlist', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', route: '/glow-playlist', image: CDN + 'icon-glow-playlist.webp' },
+      { id: 'glow_playlist_wellness', label: 'Glow Up Playlist', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', route: '/glow-playlist', image: GENERATED + '4fb776ff6_generated_image.png' },
       { id: 'spiritual_glow', label: 'Spiritual Glow', gradient: 'from-indigo-900 via-purple-900 to-violet-900', route: '/spiritual-glow', image: CDN + 'icon-spiritual-glow-Y4zxRVLXJn8CpnpefTixYM.webp' },
     ],
   },
@@ -93,7 +94,7 @@ const SECTIONS = [
       { id: 'vision_board_life', label: 'Vision Board', gradient: 'from-pink-900 via-rose-900 to-orange-900', route: '/vision-board', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/6adb092a1_IMG_4341.jpeg' },
       { id: 'grocery_list_life', label: 'Grocery List', gradient: 'from-yellow-700 via-amber-800 to-orange-800', route: '/grocery-list', image: CDN + 'icon-grocery-list-Sz9GHLVJt4pRGz2JvYmwDw.webp' },
       { id: 'meal_planner_life', label: 'Meal Planner', gradient: 'from-green-900 via-teal-900 to-emerald-900', route: '/meal-planner', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/3f8b8ce77_generated_image.png' },
-      { id: 'glow_playlist_life', label: 'Glow Up Playlist', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', route: '/glow-playlist', image: CDN + 'icon-glow-playlist.webp' },
+      { id: 'glow_playlist_life', label: 'Glow Up Playlist', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', route: '/glow-playlist', image: GENERATED + '4fb776ff6_generated_image.png' },
     ],
   },
   {
