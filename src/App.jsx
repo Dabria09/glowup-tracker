@@ -76,6 +76,10 @@ import MyCertificates from './pages/MyCertificates';
 import MyGoals from './pages/MyGoals';
 import GguAcademy from './pages/GguAcademy';
 import Curriculum from './pages/Curriculum';
+import About from './pages/About';
+import HowItWorks from './pages/HowItWorks';
+import Guidelines from './pages/Guidelines';
+import Support from './pages/Support';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -166,6 +170,10 @@ const AuthenticatedApp = () => {
       <Route path="/my-goals" element={<MyGoals />} />
       <Route path="/ggu-academy" element={<GguAcademy />} />
       <Route path="/curriculum" element={<Curriculum />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/how-it-works" element={<HowItWorks />} />
+      <Route path="/guidelines" element={<Guidelines />} />
+      <Route path="/support" element={<Support />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
