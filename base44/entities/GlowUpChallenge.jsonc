@@ -1,0 +1,65 @@
+{
+  "name": "GlowUpChallenge",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "challenge_id": {
+      "type": "string",
+      "title": "Challenge ID"
+    },
+    "challenge_name": {
+      "type": "string",
+      "title": "Challenge Name"
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "foundation",
+        "growth",
+        "mastery"
+      ],
+      "title": "Current Phase"
+    },
+    "current_day": {
+      "type": "number",
+      "title": "Current Day (1-30)",
+      "default": 1
+    },
+    "completed_days": {
+      "type": "string",
+      "title": "Completed Days (JSON array)",
+      "default": "[]"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed"
+      ],
+      "default": "not_started",
+      "title": "Status"
+    },
+    "started_date": {
+      "type": "string",
+      "title": "Started Date"
+    },
+    "completed_date": {
+      "type": "string",
+      "title": "Completed Date"
+    },
+    "total_points": {
+      "type": "number",
+      "title": "Total Points Earned",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_email",
+    "challenge_id",
+    "challenge_name"
+  ]
+}

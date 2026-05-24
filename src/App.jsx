@@ -65,6 +65,8 @@ import CareerExploration from './pages/CareerExploration';
 import JobTracker from './pages/JobTracker';
 import GlowTips from './pages/GlowTips';
 import MeVsMe from './pages/MeVsMe';
+import GlowUpChallenges from './pages/GlowUpChallenges';
+import GlowUpChallengeDetail from './pages/GlowUpChallengeDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -144,6 +146,8 @@ const AuthenticatedApp = () => {
       <Route path="/job-tracker" element={<JobTracker />} />
       <Route path="/glow-tips" element={<GlowTips />} />
       <Route path="/me-vs-me" element={<MeVsMe />} />
+      <Route path="/glow-up-challenges" element={<GlowUpChallenges />} />
+      <Route path="/glow-up-challenges/:challengeId" element={<GlowUpChallengeDetail />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

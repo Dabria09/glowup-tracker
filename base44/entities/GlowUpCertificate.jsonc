@@ -1,0 +1,41 @@
+{
+  "name": "GlowUpCertificate",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "user_name": {
+      "type": "string",
+      "title": "User Name"
+    },
+    "certificate_id": {
+      "type": "string",
+      "title": "Certificate ID"
+    },
+    "earned_date": {
+      "type": "string",
+      "title": "Earned Date"
+    },
+    "completed_challenges": {
+      "type": "string",
+      "title": "Completed Challenges (JSON array)",
+      "default": "[]"
+    },
+    "total_days_completed": {
+      "type": "number",
+      "title": "Total Days Completed",
+      "default": 0
+    },
+    "total_points": {
+      "type": "number",
+      "title": "Total Points",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_email",
+    "certificate_id"
+  ]
+}
