@@ -245,7 +245,7 @@ export default function GlowUpChallengeDetail() {
                           <div className="space-y-2 mt-3">
                             {phase.days.map(dayObj => {
                               const isDayCompleted = completedDays.includes(dayObj.day);
-                              const canAccessDay = day <= (userChallenge?.current_day || 1) || user?.role === 'admin';
+                              const canAccessDay = dayObj.day <= (userChallenge?.current_day || 1) || user?.role === 'admin' || isDayCompleted;
                               
                               return (
                                 <div key={dayObj.day} className="flex items-center gap-3 p-3 rounded-xl"
@@ -272,17 +272,11 @@ export default function GlowUpChallengeDetail() {
                                     </div>
                                   )}
                                   <div className="flex-1">
-                                    {canAccessDay || isDayCompleted ? (
-                                      <p className={`text-xs ${isDayCompleted ? 'text-white/80 line-through' : 'text-white'}`}>
-                                        Day {dayObj.day}: {dayObj.task}
-                                      </p>
-                                    ) : (
-                                      <p className="text-xs text-gray-600">Day {dayObj.day}: ???</p>
-                                    )}
+                                    <p className={`text-xs ${isDayCompleted ? 'text-white/80 line-through' : 'text-white'}`}>
+                                      {canAccessDay || isDayCompleted ? dayObj.task : '???'}
+                                    </p>
                                   </div>
-                                  {(canAccessDay || isDayCompleted) && (
-                                    <span className="text-xs font-bold" style={{ color: challenge.color }}>+{dayObj.points}</span>
-                                  )}
+                                  <span className="text-xs font-bold" style={{ color: challenge.color }}>+{dayObj.points}</span>
                                 </div>
                               );
                             })}

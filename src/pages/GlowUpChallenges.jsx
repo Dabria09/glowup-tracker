@@ -155,11 +155,36 @@ export default function GlowUpChallenges() {
               const isActive = progress.status === 'in_progress';
               const isLocked = activeChallenge && !isCompleted && !isActive;
               
+              if (isLocked) {
+                return (
+                  <div 
+                    key={challenge.id} 
+                    className="text-left rounded-2xl p-4 opacity-50 cursor-not-allowed"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3"
+                      style={{ background: `linear-gradient(135deg, ${challenge.color}40, ${challenge.color}20)`, border: `1px solid ${challenge.color}40`, opacity: 0.5 }}>
+                      {challenge.emoji}
+                    </div>
+                    <p className="text-xs font-semibold mb-1" style={{ color: challenge.color, opacity: 0.5 }}>{challenge.subtitle}</p>
+                    <h3 className="font-bold text-white text-sm mb-2" style={{ opacity: 0.7 }}>{challenge.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${progress.progress}%`, background: `linear-gradient(90deg, ${challenge.color}, ${challenge.color}80)`, opacity: 0.3 }} />
+                      </div>
+                      <p className="text-[10px] font-bold" style={{ color: challenge.color, opacity: 0.5 }}>{Math.round(progress.progress)}%</p>
+                    </div>
+                    <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-1">
+                      🔒 Complete active challenge first
+                    </p>
+                  </div>
+                );
+              }
+              
               return (
                 <button 
                   key={challenge.id} 
-                  onClick={() => !isLocked && navigate(`/glow-up-challenges/${challenge.id}`)}
-                  className={`text-left rounded-2xl p-4 transition ${isLocked ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}`}
+                  onClick={() => navigate(`/glow-up-challenges/${challenge.id}`)}
+                  className="text-left rounded-2xl p-4 transition hover:opacity-90"
                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3"
                     style={{ background: `linear-gradient(135deg, ${challenge.color}40, ${challenge.color}20)`, border: `1px solid ${challenge.color}40` }}>
