@@ -67,7 +67,7 @@ const SECTIONS = [
       { id: 'weekly_theme', label: 'Weekly Theme', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', route: '/weekly-theme', image: CDN + 'icon-weekly-theme-Ddu6T87k5StF8EDt5BYehk.webp' },
       { id: 'challenge_leaderboard', label: 'Challenge Leaderboard', gradient: 'from-yellow-800 via-pink-900 to-fuchsia-900', route: '/challenge-leaderboard', image: CDN + 'icon-leaderboard-WLMjT77VCu94JhWg7vXfbm.webp' },
       { id: 'my_certificates', label: 'My Certificates', gradient: 'from-yellow-700 via-amber-800 to-yellow-900', route: '/my-certificates', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/db352357b_generated_image.png' },
-      { id: 'my_goals', label: 'My Goals', gradient: 'from-purple-900 via-pink-900 to-fuchsia-900', route: '/my-goals', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/4c6e3a609_IMG_4993.png' },
+      { id: 'my_goals', label: 'My Goals', gradient: 'from-purple-900 via-pink-900 to-fuchsia-900', route: '/my-goals', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/a1aa2e5b9_IMG_4995.jpeg' },
     ],
   },
   {
@@ -108,7 +108,7 @@ const SECTIONS = [
       { id: 'grocery_list_life', label: 'Grocery List', gradient: 'from-yellow-700 via-amber-800 to-orange-800', route: '/grocery-list', image: CDN + 'icon-grocery-list-Sz9GHLVJt4pRGz2JvYmwDw.webp' },
       { id: 'meal_planner_life', label: 'Meal Planner', gradient: 'from-green-900 via-teal-900 to-emerald-900', route: '/meal-planner', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/3f8b8ce77_generated_image.png' },
       { id: 'glow_playlist_life', label: 'Glow Up Playlist', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', route: '/glow-playlist', image: GENERATED + '4fb776ff6_generated_image.png' },
-      { id: 'my_goals_life', label: 'My Goals', gradient: 'from-indigo-900 via-purple-900 to-pink-900', route: '/my-goals', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/4c6e3a609_IMG_4993.png' },
+      { id: 'my_goals_life', label: 'My Goals', gradient: 'from-indigo-900 via-purple-900 to-pink-900', route: '/my-goals', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/a1aa2e5b9_IMG_4995.jpeg' },
       ],
       },
   {
