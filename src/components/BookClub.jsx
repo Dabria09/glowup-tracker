@@ -381,6 +381,60 @@ export default function BookClub({ user }) {
             <p className="text-xs text-gray-500 mt-2 text-center">{nominations.length} nomination{nominations.length !== 1 ? 's' : ''} submitted this month</p>
           </div>
 
+          {/* Current Standings */}
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(50,15,80,0.7)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="font-bold text-white mb-1 flex items-center gap-2">📊 Current Nomination Standings</p>
+            <p className="text-xs text-gray-400 mb-3">{nominations.length} total nomination{nominations.length !== 1 ? 's' : ''} this month — top 5 become the finalists</p>
+
+            {/* My Nomination Highlight */}
+            {myNomination && (
+              <div className="rounded-xl p-3 mb-3 flex items-center gap-3" style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.4)' }}>
+                <span className="text-lg">🙋</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-purple-300">Your Nomination</p>
+                  <p className="text-sm font-bold text-white">{myNomination.book_title}</p>
+                  <p className="text-xs text-gray-400">by {myNomination.book_author}</p>
+                </div>
+                {(() => {
+                  const key = myNomination.book_title.toLowerCase();
+                  const count = nomTally[key]?.count || 0;
+                  return <span className="text-sm font-bold text-purple-300">{count} vote{count !== 1 ? 's' : ''}</span>;
+                })()}
+              </div>
+            )}
+
+            {/* Top 5 Leaderboard */}
+            {nominations.length === 0 ? (
+              <p className="text-xs text-gray-500 text-center py-4">No nominations yet — be the first!</p>
+            ) : (
+              <div className="space-y-2">
+                {Object.values(nomTally).sort((a, b) => b.count - a.count).slice(0, 5).map((nom, i) => {
+                  const maxCount = Math.max(...Object.values(nomTally).map(n => n.count));
+                  const pct = maxCount > 0 ? Math.round((nom.count / maxCount) * 100) : 0;
+                  const isMyNom = myNomination?.book_title.toLowerCase() === nom.title.toLowerCase();
+                  const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+                  return (
+                    <div key={i} className="rounded-xl p-3" style={{ background: isMyNom ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${isMyNom ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.07)'}` }}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-sm flex-shrink-0">{medals[i]}</span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-white truncate">{nom.title} {isMyNom ? '✦' : ''}</p>
+                            <p className="text-xs text-gray-400">by {nom.author}</p>
+                          </div>
+                        </div>
+                        <span className="text-xs font-bold text-purple-300 ml-2 flex-shrink-0">{nom.count} nom{nom.count !== 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: isMyNom ? 'linear-gradient(90deg, #a855f7, #ec4899)' : 'rgba(168,85,247,0.5)' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Step 2: Vote on Top 5 */}
           <div className="rounded-2xl p-4" style={{ background: 'rgba(50,15,80,0.7)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <p className="font-bold text-white mb-1 flex items-center gap-2">🗳️ Step 2: Vote on the Top {top5.length > 0 ? Math.min(top5.length, 5) : 5}</p>
