@@ -299,15 +299,261 @@ const ACADEMY_DATA = {
     },
   ],
   addOns: [
-    { id: 'relationships', title: 'Relationships', emoji: '💕', ages: 'Ages 13+', description: 'Navigate healthy relationships' },
-    { id: 'boundaries', title: 'Boundaries', emoji: '🎀', ages: 'Ages 11+', description: 'Set and respect boundaries' },
-    { id: 'dating', title: 'Dating', emoji: '💋', ages: 'Ages 14+', description: 'Healthy dating habits' },
-    { id: 'sexual_decision', title: 'Sexual Decision-Making', emoji: '🌿', ages: 'Ages 15+', description: 'Make informed choices' },
-    { id: 'queen_standards', title: 'Queen Standards', emoji: '👑', ages: 'Ages 12+', description: 'Know your worth' },
-    { id: 'hygiene', title: 'Hygiene', emoji: '🌸', ages: 'Ages 8+', description: 'Self-care essentials' },
-    { id: 'me_vs_me', title: 'Me vs Me', emoji: '⚡', ages: 'Ages 10+', description: 'Beat comparison' },
+    {
+      id: 'relationships',
+      title: 'Relationships',
+      emoji: '💕',
+      ages: 'Ages 13+',
+      description: 'Navigate healthy relationships',
+      lessons: [
+        {
+          title: 'Healthy vs Unhealthy Relationships',
+          duration: '60 min',
+          activities: [
+            'Create a T-chart of healthy vs unhealthy relationship traits',
+            'Identify red flags and green flags in relationships',
+            'Write about a relationship that makes you feel good',
+            'Practice recognizing manipulation tactics',
+          ],
+        },
+        {
+          title: 'Communication Skills',
+          duration: '50 min',
+          activities: [
+            'Practice active listening with a partner',
+            'Learn and use "I" statements',
+            'Role-play difficult conversations',
+            'Write a letter expressing your feelings clearly',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'boundaries',
+      title: 'Boundaries',
+      emoji: '🎀',
+      ages: 'Ages 11+',
+      description: 'Set and respect boundaries',
+      lessons: [
+        {
+          title: 'What Are Boundaries?',
+          duration: '45 min',
+          activities: [
+            'Draw your personal boundary circle',
+            'List 5 things you will and won\'t accept',
+            'Practice saying "no" in the mirror',
+            'Identify where your boundaries have been crossed',
+          ],
+        },
+        {
+          title: 'Enforcing Your Boundaries',
+          duration: '55 min',
+          activities: [
+            'Role-play boundary conversations',
+            'Write scripts for common boundary situations',
+            'Create a boundary mantra',
+            'Journal about how it feels to protect your energy',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'dating',
+      title: 'Dating',
+      emoji: '💋',
+      ages: 'Ages 14+',
+      description: 'Healthy dating habits',
+      lessons: [
+        {
+          title: 'What to Look For in a Partner',
+          duration: '70 min',
+          activities: [
+            'Create your non-negotiables list',
+            'Identify your values and dealbreakers',
+            'Research signs of a healthy relationship',
+            'Write your ideal relationship vision',
+          ],
+        },
+        {
+          title: 'Navigating First Relationships',
+          duration: '60 min',
+          activities: [
+            'Discuss peer pressure in dating',
+            'Learn about consent and respect',
+            'Create a dating safety plan',
+            'Identify trusted adults to talk to',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'sexual_decision',
+      title: 'Sexual Decision-Making',
+      emoji: '🌿',
+      ages: 'Ages 15+',
+      description: 'Make informed choices',
+      lessons: [
+        {
+          title: 'Understanding Consent',
+          duration: '90 min',
+          activities: [
+            'Learn the FRIES model of consent',
+            'Practice consent conversations',
+            'Identify coercion tactics',
+            'Create a personal consent statement',
+          ],
+        },
+        {
+          title: 'Making Informed Choices',
+          duration: '75 min',
+          activities: [
+            'Research sexual health resources',
+            'Identify trusted healthcare providers',
+            'Learn about protection and safety',
+            'Write about your personal values around intimacy',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'queen_standards',
+      title: 'Queen Standards',
+      emoji: '👑',
+      ages: 'Ages 12+',
+      description: 'Know your worth',
+      lessons: [
+        {
+          title: 'What Are Your Standards?',
+          duration: '50 min',
+          activities: [
+            'Write your Queen Standards manifesto',
+            'Identify areas where you\'ve settled',
+            'Create affirmations for your worth',
+            'List ways you deserve to be treated',
+          ],
+        },
+        {
+          title: 'Raising Your Standards',
+          duration: '60 min',
+          activities: [
+            'Audit your current friendships and habits',
+            'Set 3 new standards for this month',
+            'Practice holding yourself accountable',
+            'Celebrate times you honored your standards',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'hygiene',
+      title: 'Hygiene',
+      emoji: '🌸',
+      ages: 'Ages 8+',
+      description: 'Self-care essentials',
+      lessons: [
+        {
+          title: 'Daily Hygiene Routine',
+          duration: '40 min',
+          activities: [
+            'Create a morning and evening checklist',
+            'Learn proper handwashing technique',
+            'Understand dental care basics',
+            'Practice hair care routines',
+          ],
+        },
+        {
+          title: 'Body Changes & Care',
+          duration: '50 min',
+          activities: [
+            'Learn about puberty changes',
+            'Create a self-care kit',
+            'Understand skincare basics',
+            'Discuss body odor and management',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'me_vs_me',
+      title: 'Me vs Me',
+      emoji: '⚡',
+      ages: 'Ages 10+',
+      description: 'Beat comparison',
+      lessons: [
+        {
+          title: 'Comparison is the Thief of Joy',
+          duration: '55 min',
+          activities: [
+            'Identify your comparison triggers',
+            'Social media detox challenge',
+            'Write about your unique journey',
+            'Create a "progress not perfection" reminder',
+          ],
+        },
+        {
+          title: 'Compete With Your Past Self',
+          duration: '60 min',
+          activities: [
+            'Track your personal growth weekly',
+            'Set goals based on your values, not others\'',
+            'Celebrate small wins daily',
+            'Write a letter to your past self',
+          ],
+        },
+      ],
+    },
   ],
 };
+
+function AddOnCard({ addon, expanded, onExpand }) {
+  return (
+    <div className="rounded-2xl p-4 transition" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <button
+        onClick={() => onExpand(addon.id)}
+        className="w-full text-left"
+      >
+        <div className="flex items-start gap-3">
+          <span className="text-3xl">{addon.emoji}</span>
+          <div className="flex-1">
+            <p className="font-semibold text-white text-sm">{addon.title}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{addon.ages}</p>
+            <p className="text-xs text-gray-500 mt-1">{addon.description}</p>
+          </div>
+          <ChevronDown size={18} className="text-gray-500 mt-1" style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+        </div>
+      </button>
+
+      {expanded && addon.lessons && addon.lessons.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
+          {addon.lessons.map((lesson, idx) => (
+            <div key={idx} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-white">{lesson.title}</p>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <Clock size={12} />
+                  <span>{lesson.duration}</span>
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-xs font-bold text-pink-400 uppercase mb-2">Activities</p>
+                <ul className="space-y-1">
+                  {lesson.activities.map((activity, actIdx) => (
+                    <li key={actIdx} className="text-xs text-gray-300 flex gap-2">
+                      <span className="text-pink-400 flex-shrink-0">•</span>
+                      <span>{activity}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function PillarCard({ pillar, expanded, onExpand }) {
   const totalLessons = Object.values(pillar.lessons).reduce((sum, lessons) => sum + lessons.length, 0);
@@ -449,14 +695,14 @@ export default function GguAcademy() {
           <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span>✨</span> Add-On Modules
           </h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
             {ACADEMY_DATA.addOns.map(addon => (
-              <div key={addon.id} className="rounded-2xl p-4 text-center transition hover:bg-white/10" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <p className="text-3xl mb-2">{addon.emoji}</p>
-                <p className="font-semibold text-white text-sm">{addon.title}</p>
-                <p className="text-xs text-gray-400 mt-1">{addon.ages}</p>
-                <p className="text-xs text-gray-500 mt-1">{addon.description}</p>
-              </div>
+              <AddOnCard
+                key={addon.id}
+                addon={addon}
+                expanded={expanded === addon.id}
+                onExpand={(id) => setExpanded(expanded === id ? null : id)}
+              />
             ))}
           </div>
         </div>
