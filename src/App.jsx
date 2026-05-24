@@ -75,6 +75,7 @@ import GlowScore from './pages/GlowScore';
 import MyCertificates from './pages/MyCertificates';
 import MyGoals from './pages/MyGoals';
 import GguAcademy from './pages/GguAcademy';
+import Curriculum from './pages/Curriculum';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -164,6 +165,7 @@ const AuthenticatedApp = () => {
       <Route path="/my-certificates" element={<MyCertificates />} />
       <Route path="/my-goals" element={<MyGoals />} />
       <Route path="/ggu-academy" element={<GguAcademy />} />
+      <Route path="/curriculum" element={<Curriculum />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
