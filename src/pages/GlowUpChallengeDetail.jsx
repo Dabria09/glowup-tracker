@@ -71,6 +71,33 @@ export default function GlowUpChallengeDetail() {
       const nextPhase = getNextPhase(phase);
       const isChallengeComplete = completedDays.length === 30;
 
+      // Calculate streak
+      const today = new Date().toISOString().split('T')[0];
+      const lastCompletedDate = userChallenge?.last_completed_date;
+      let newStreak = userChallenge?.current_streak || 0;
+      
+      if (lastCompletedDate) {
+        const lastDate = new Date(lastCompletedDate);
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        
+        if (today === lastCompletedDate) {
+          // Already completed today, don't increase streak
+        } else if (today === yesterdayStr || today > lastCompletedDate) {
+          // Consecutive day or later
+          newStreak = (userChallenge?.current_streak || 0) + 1;
+        } else {
+          // Streak broken, reset to 1
+          newStreak = 1;
+        }
+      } else {
+        // First completion
+        newStreak = 1;
+      }
+
+      const bestStreak = Math.max(newStreak, userChallenge?.best_streak || 0);
+
       return await base44.entities.GlowUpChallenge.update(userChallenge.id, {
         completed_days: JSON.stringify(completedDays),
         total_points: newPoints,
@@ -78,6 +105,9 @@ export default function GlowUpChallengeDetail() {
         phase: isPhaseComplete && nextPhase ? nextPhase : phase,
         status: isChallengeComplete ? 'completed' : 'in_progress',
         completed_date: isChallengeComplete ? new Date().toISOString() : null,
+        current_streak: newStreak,
+        best_streak: bestStreak,
+        last_completed_date: today,
       });
     },
     onSuccess: () => {
@@ -197,6 +227,31 @@ export default function GlowUpChallengeDetail() {
                 <p className="text-xs text-gray-400">{completedDays.length}/30 days completed</p>
                 <p className="text-xs" style={{ color: challenge.color }}>{userChallenge?.total_points || 0} points</p>
               </div>
+            </div>
+
+            {/* Streak */}
+            <div className="rounded-2xl p-5 mb-6" style={{ background: `linear-gradient(135deg, ${challenge.color}20, ${challenge.color}10)`, border: `1px solid ${challenge.color}40` }}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🔥</span>
+                  <div>
+                    <p className="text-sm font-bold text-white">Current Streak</p>
+                    <p className="text-xs text-gray-400">Keep it going!</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-3xl font-bold" style={{ color: challenge.color }}>{userChallenge?.current_streak || 0}</p>
+                  <p className="text-xs text-gray-400">days in a row</p>
+                </div>
+              </div>
+              {userChallenge?.best_streak > 0 && (
+                <div className="mt-3 pt-3 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-400">Best Streak</p>
+                    <p className="text-sm font-bold" style={{ color: challenge.color }}>{userChallenge?.best_streak} days</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {!userChallenge ? (

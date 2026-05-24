@@ -55,6 +55,20 @@
       "type": "number",
       "title": "Total Points Earned",
       "default": 0
+    },
+    "current_streak": {
+      "type": "number",
+      "title": "Current Day Streak",
+      "default": 0
+    },
+    "best_streak": {
+      "type": "number",
+      "title": "Best Streak",
+      "default": 0
+    },
+    "last_completed_date": {
+      "type": "string",
+      "title": "Last Completed Date"
     }
   },
   "required": [
