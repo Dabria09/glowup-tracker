@@ -1,312 +1,187 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Shield, Lock, Heart, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Sparkles, Crown, Zap, Heart, Star } from 'lucide-react';
+import { CHALLENGES } from '@/components/challenges/challengeData';
 
 export default function Home() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('signin');
+  const [user, setUser] = useState(null);
+  const [challenges, setChallenges] = useState([]);
+  const [certificate, setCertificate] = useState(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const isAuthed = await base44.auth.isAuthenticated();
-        if (isAuthed) {
-          const me = await base44.auth.me();
-          const profiles = await base44.entities.UserProfile.filter({ user_email: me.email });
-          
-          if (profiles.length > 0) {
-            navigate('/dashboard');
-          } else {
-            navigate('/onboarding');
-          }
-        }
-      } catch (err) {
-        console.error('Auth check failed:', err);
-      } finally {
-        setIsLoading(false);
-      }
+    base44.auth.me().then(async (u) => {
+      setUser(u);
+      const userChallenges = await base44.entities.GlowUpChallenge.filter({ user_email: u.email }).catch(() => []);
+      setChallenges(userChallenges);
+      const certs = await base44.entities.GlowUpCertificate.filter({ user_email: u.email }).catch(() => []);
+      setCertificate(certs[0] || null);
+    }).catch(() => setUser(null));
+  }, []);
+
+  const getChallengeProgress = (challengeId) => {
+    const userChallenge = challenges.find(c => c.challenge_id === challengeId);
+    if (!userChallenge) return { status: 'locked', progress: 0, completedDays: 0 };
+    const completedCount = userChallenge.completed_days?.length || 0;
+    return {
+      status: userChallenge.status,
+      progress: (completedCount / 30) * 100,
+      completedDays: completedCount,
     };
-    
-    checkAuth();
-  }, [navigate]);
-
-  const handleGoogleSignIn = () => {
-    base44.auth.redirectToLogin(window.location.href);
   };
 
-  const handleAppleSignIn = () => {
-    base44.auth.redirectToLogin(window.location.href);
-  };
-
-  const handleFacebookSignIn = () => {
-    base44.auth.redirectToLogin(window.location.href);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0d0d1f' }}>
-        <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  const totalCompleted = challenges.filter(c => c.status === 'completed').length;
+  const totalDaysCompleted = challenges.reduce((sum, c) => sum + (c.completed_days?.length || 0), 0);
+  const totalPoints = challenges.reduce((sum, c) => sum + (c.total_points || 0), 0);
 
   return (
-    <div className="min-h-screen pb-20" style={{ backgroundColor: '#0d0d1f' }}>
-      {/* Header Logo */}
-      <div className="pt-8 px-4 pb-6 text-center">
-        <div className="mb-4 flex justify-center">
+    <div className="min-h-screen text-white pb-20"
+      style={{ background: 'radial-gradient(ellipse at top, #2d0a1e 0%, #1a0a18 40%, #0d0610 100%)' }}>
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.07]"
+        style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='55' height='55'%3E%3Ctext x='8' y='40' font-size='28' fill='%23fff'%3E%E2%99%A5%3C/text%3E%3C/svg%3E\")" }} />
+
+      <div className="relative z-10 px-4 pt-8 pb-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
+            style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
+            <Sparkles size={14} className="text-purple-400" />
+            <span className="text-xs font-bold text-purple-300 uppercase tracking-widest">Girls Glowing Up™</span>
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Your Glow Up Journey
+          </h1>
+          <p className="text-sm text-gray-400">180 Days to Your Best Self</p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 mb-8">
+          <div className="text-center p-4 rounded-2xl" style={{ background: 'rgba(255,31,142,0.1)', border: '1px solid rgba(255,31,142,0.2)' }}>
+            <p className="text-2xl font-bold" style={{ color: '#FF1F8E' }}>{totalCompleted}/6</p>
+            <p className="text-xs text-gray-400 mt-1">Challenges Done</p>
+          </div>
+          <div className="text-center p-4 rounded-2xl" style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.2)' }}>
+            <p className="text-2xl font-bold" style={{ color: '#FFD700' }}>{totalDaysCompleted}</p>
+            <p className="text-xs text-gray-400 mt-1">Days Completed</p>
+          </div>
+          <div className="text-center p-4 rounded-2xl" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
+            <p className="text-2xl font-bold" style={{ color: '#c084fc' }}>{totalPoints}</p>
+            <p className="text-xs text-gray-400 mt-1">Total Points</p>
+          </div>
+        </div>
+
+        {/* Certificate Banner */}
+        {certificate ? (
+          <div className="rounded-2xl p-5 mb-8 border border-yellow-500/30"
+            style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,180,0,0.1))' }}>
+            <div className="flex items-center gap-3 mb-3">
+              <Crown size={24} className="text-yellow-400" />
+              <p className="text-sm font-bold text-yellow-400 uppercase tracking-widest">Glow Crown Earned! 👑</p>
+            </div>
+            <p className="text-white text-sm leading-relaxed">
+              Congratulations! You've completed all 6 challenges and earned your exclusive Glow Crown Certificate.
+            </p>
+            <p className="text-xs text-gray-400 mt-3">Earned: {new Date(certificate.earned_date).toLocaleDateString()}</p>
+          </div>
+        ) : (
+          <div className="rounded-2xl p-5 mb-8 border border-purple-500/30"
+            style={{ background: 'rgba(168,85,247,0.1)' }}>
+            <div className="flex items-center gap-3 mb-3">
+              <Crown size={24} className="text-purple-400" />
+              <p className="text-sm font-bold text-purple-400 uppercase tracking-widest">Glow Crown Certificate</p>
+            </div>
+            <p className="text-white text-sm leading-relaxed">
+              Complete all 6 challenges (180 days total) to earn your exclusive Glow Crown Certificate from Girls Glowing Up™ Academy.
+            </p>
+            <div className="mt-3 flex items-center gap-2">
+              <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${(totalCompleted / 6) * 100}%`, background: 'linear-gradient(90deg, #FF1F8E, #a855f7)' }} />
+              </div>
+              <p className="text-xs text-gray-400">{totalCompleted}/6</p>
+            </div>
+          </div>
+        )}
+
+        {/* Progression Path */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Zap size={18} className="text-yellow-400" />
+            <h2 className="text-lg font-bold text-white">Your Progression Path</h2>
+          </div>
           <div className="relative">
-            <div className="text-4xl font-bold" style={{
-              background: 'linear-gradient(135deg, #ff1493 0%, #ff69b4 50%, #ffb6c1 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 0 20px rgba(255, 20, 147, 0.6))',
-              textShadow: '0 0 30px rgba(255, 20, 147, 0.4)',
-            }}>
-              Girls Glowing Up
+            {/* Connection line */}
+            <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-pink-500 via-purple-500 to-yellow-500" />
+            
+            {/* Steps */}
+            <div className="space-y-6">
+              {[
+                { num: 1, title: 'Start Your Journey', desc: 'Choose your first challenge', color: '#FF1F8E', completed: totalCompleted >= 1 },
+                { num: 2, title: 'Build Momentum', desc: 'Complete 30 days', color: '#a855f7', completed: totalCompleted >= 2 },
+                { num: 3, title: 'Level Up', desc: 'Master 3 challenges', color: '#3b82f6', completed: totalCompleted >= 3 },
+                { num: 4, title: 'Earn Your Crown', desc: 'Complete all 180 days', color: '#FFD700', completed: totalCompleted === 6 },
+              ].map((step, i) => (
+                <div key={step.num} className="relative flex items-start gap-4 pl-4">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 z-10"
+                    style={{ background: step.completed ? `linear-gradient(135deg, ${step.color}40, ${step.color}20)` : 'rgba(255,255,255,0.05)', border: `1px solid ${step.completed ? step.color : 'rgba(255,255,255,0.1)'}` }}>
+                    {step.completed ? (
+                      <Star size={24} className="text-white" style={{ color: step.color }} fill={step.color} />
+                    ) : (
+                      <span className="text-xl font-bold" style={{ color: step.color }}>{step.num}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 pt-2">
+                    <p className="font-bold text-white" style={{ color: step.completed ? step.color : '#9ca3af' }}>{step.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-        <p className="text-gray-400 text-sm">Your journey to becoming your best self starts here.</p>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-4 px-4 mb-6">
-        <button
-          onClick={() => setActiveTab('signin')}
-          className={`flex-1 py-2.5 rounded-full font-semibold text-sm transition ${
-            activeTab === 'signin'
-              ? 'bg-pink-500 text-white'
-              : 'bg-white/10 text-gray-400 border border-white/10'
-          }`}
-        >
-          Sign In
+        {/* Challenges Grid */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Heart size={18} className="text-pink-400" />
+            <h2 className="text-lg font-bold text-white">Your Challenges</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {CHALLENGES.map(challenge => {
+              const progress = getChallengeProgress(challenge.id);
+              return (
+                <button key={challenge.id} onClick={() => navigate(`/glow-up-challenges/${challenge.id}`)}
+                  className="text-left rounded-2xl p-4 transition hover:opacity-90"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3"
+                    style={{ background: `linear-gradient(135deg, ${challenge.color}40, ${challenge.color}20)`, border: `1px solid ${challenge.color}40` }}>
+                    {challenge.emoji}
+                  </div>
+                  <p className="text-xs font-semibold mb-1" style={{ color: challenge.color }}>{challenge.subtitle}</p>
+                  <h3 className="font-bold text-white text-sm mb-2">{challenge.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${progress.progress}%`, background: `linear-gradient(90deg, ${challenge.color}, ${challenge.color}80)` }} />
+                    </div>
+                    <p className="text-[10px] font-bold" style={{ color: challenge.color }}>{Math.round(progress.progress)}%</p>
+                  </div>
+                  {progress.status === 'completed' && (
+                    <p className="text-[10px] text-green-400 mt-2 flex items-center gap-1">
+                      <Star size={8} /> Done
+                    </p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* CTA */}
+        <button onClick={() => navigate('/glow-up-challenges')}
+          className="w-full mt-8 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-white"
+          style={{ background: 'linear-gradient(135deg, #FF1F8E, #a855f7)' }}>
+          View All Challenges <ArrowRight size={16} />
         </button>
-        <button
-          onClick={() => setActiveTab('signup')}
-          className={`flex-1 py-2.5 rounded-full font-semibold text-sm transition ${
-            activeTab === 'signup'
-              ? 'bg-pink-500 text-white'
-              : 'bg-white/10 text-gray-400 border border-white/10'
-          }`}
-        >
-          Create Account
-        </button>
-      </div>
-
-      <div className="px-4 space-y-4">
-        {/* Sign In Tab */}
-        {activeTab === 'signin' && (
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-white font-bold text-xl mb-2">Welcome Back ✨</h2>
-              <p className="text-gray-400 text-sm">Your glow up journey continues here</p>
-            </div>
-
-            {/* Google Sign In */}
-            <button
-              onClick={handleGoogleSignIn}
-              className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold text-sm hover:from-pink-600 hover:to-pink-700 transition flex items-center justify-center gap-2"
-            >
-              <span>✨</span> Sign In with Google
-            </button>
-
-            {/* Apple Sign In */}
-            <button
-              onClick={handleAppleSignIn}
-              className="w-full py-3 rounded-full bg-black text-white font-bold text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
-            >
-              <span>🍎</span> Sign In with Apple
-            </button>
-
-            {/* Facebook Sign In */}
-            <button
-              onClick={handleFacebookSignIn}
-              className="w-full py-3 rounded-full bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition flex items-center justify-center gap-2"
-            >
-              <span>📘</span> Sign In with Facebook
-            </button>
-
-            {/* Mentor Sign In */}
-            <button
-              className="w-full py-3 rounded-full border border-cyan-500 text-cyan-400 font-bold text-sm hover:bg-cyan-500/10 transition flex items-center justify-center gap-2"
-            >
-              <span>💬</span> Mentor Sign In
-            </button>
-
-            {/* Biometric */}
-            <button
-              className="w-full py-3 rounded-full border border-purple-900 text-gray-300 font-bold text-sm hover:bg-white/5 transition flex items-center justify-center gap-2"
-            >
-              <span>👆</span> Sign In with Face / Fingerprint
-            </button>
-
-            <p className="text-gray-500 text-xs text-center">Face / fingerprint login requires setting it up in your Profile first.</p>
-          </div>
-        )}
-
-        {/* Create Account Tab */}
-        {activeTab === 'signup' && (
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-white font-bold text-xl mb-2">Join Girls Glowing Up 💖</h2>
-              <p className="text-gray-400 text-sm">Create your account in seconds with Google. Your sisterhood awaits.</p>
-            </div>
-
-            {/* Google Sign Up */}
-            <button
-              onClick={handleGoogleSignIn}
-              className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold text-sm hover:from-pink-600 hover:to-pink-700 transition flex items-center justify-center gap-2"
-            >
-              <span>✨</span> Create Account with Google
-            </button>
-
-            {/* Apple Sign Up */}
-            <button
-              onClick={handleAppleSignIn}
-              className="w-full py-3 rounded-full bg-black text-white font-bold text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
-            >
-              <span>🍎</span> Create Account with Apple
-            </button>
-
-            {/* Facebook Sign Up */}
-            <button
-              onClick={handleFacebookSignIn}
-              className="w-full py-3 rounded-full bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition flex items-center justify-center gap-2"
-            >
-              <span>📘</span> Create Account with Facebook
-            </button>
-
-            <div className="bg-purple-900/20 border border-purple-900/30 rounded-2xl p-4 space-y-2">
-              <p className="text-white font-bold text-sm">✨ What happens next</p>
-              <ol className="text-gray-300 text-xs space-y-1">
-                <li>1. Sign up with Google (we never see your password)</li>
-                <li>2. Pick your stage — Girl, Mom, or Sis</li>
-                <li>3. Take a quick tour of your new sisterhood</li>
-              </ol>
-              <p className="text-xs text-gray-500 pt-2">Under 13? A parent or guardian must give consent first — we will guide you through it.</p>
-            </div>
-
-            <div className="bg-cyan-900/20 border border-cyan-600/30 rounded-xl p-3 flex gap-2">
-              <span className="text-cyan-400 flex-shrink-0">💡</span>
-              <p className="text-cyan-300 text-xs">For the best experience, please sign in with Google, Apple, or Facebook.</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Features Grid */}
-      <div className="px-4 mt-8 space-y-4">
-        <h3 className="text-white font-bold text-sm">GGU Features</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-            <p className="text-2xl mb-1">📚</p>
-            <p className="text-white font-semibold text-xs">GGU Curriculum</p>
-            <p className="text-gray-400 text-xs">5 pillars of growth</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-            <p className="text-2xl mb-1">💬</p>
-            <p className="text-white font-semibold text-xs">Daily Quotes</p>
-            <p className="text-gray-400 text-xs">Inspiration every day</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-            <p className="text-2xl mb-1">🌸</p>
-            <p className="text-white font-semibold text-xs">Cycle Tracker</p>
-            <p className="text-gray-400 text-xs">Know your body</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-            <p className="text-2xl mb-1">⚡</p>
-            <p className="text-white font-semibold text-xs">Me vs Me</p>
-            <p className="text-gray-400 text-xs">Beat your best self</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Become a Mentor */}
-      <div className="px-4 mt-8 bg-gradient-to-br from-purple-900/30 to-pink-900/20 border border-purple-900/40 rounded-2xl p-6 text-center">
-        <p className="text-3xl mb-3">🌟</p>
-        <h3 className="text-white font-bold text-lg mb-2">Are you a mentor or educator?</h3>
-        <p className="text-gray-300 text-sm mb-4">Join our team of verified mentors and help girls glow up.</p>
-        <button className="w-full py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold text-sm hover:from-blue-600 hover:to-blue-700 transition">
-          ✨ Become a Mentor
-        </button>
-      </div>
-
-      {/* Trust Badges */}
-      <div className="px-4 mt-8 space-y-3">
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-            <p className="text-2xl mb-1">🛡️</p>
-            <p className="text-white text-xs font-semibold">Background Checked</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-            <p className="text-2xl mb-1">🔒</p>
-            <p className="text-white text-xs font-semibold">Data Protected</p>
-          </div>
-          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
-            <p className="text-2xl mb-1">✅</p>
-            <p className="text-white text-xs font-semibold">Verified Mentors</p>
-          </div>
-        </div>
-
-        {/* Safety Section */}
-        <div className="bg-gradient-to-br from-orange-900/30 to-red-900/20 border border-orange-900/40 rounded-2xl p-4 mt-4">
-          <div className="flex gap-3 mb-3">
-            <p className="text-2xl">⚠️</p>
-            <h4 className="text-orange-400 font-bold">Important Safety Disclosure</h4>
-          </div>
-          <p className="text-gray-300 text-xs mb-3">
-            Girls Glowing Up is a platform designed exclusively for girls and verified mentors. Despite our rigorous screening process, individuals with harmful intentions may attempt to gain access to this platform.
-          </p>
-          <div className="space-y-2 text-xs text-gray-400">
-            <div className="flex gap-2">
-              <p className="text-gray-500 flex-shrink-0">🔍</p>
-              <p>All mentor applications require a background check AND a live Zoom or phone interview before approval.</p>
-            </div>
-            <div className="flex gap-2">
-              <p className="text-gray-500 flex-shrink-0">⚠️</p>
-              <p>If any mentor or user makes you feel unsafe, uncomfortable, or asks for personal information — report them immediately using the flag button.</p>
-            </div>
-            <div className="flex gap-2">
-              <p className="text-gray-500 flex-shrink-0">📍</p>
-              <p>Never share your home address, school name, phone number, or meet anyone from this platform in person without a trusted adult present.</p>
-            </div>
-            <div className="flex gap-2">
-              <p className="text-gray-500 flex-shrink-0">👨‍👩‍👧</p>
-              <p>Parents: you may request a full activity review of your child account at any time by contacting our safety team.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Report Button */}
-        <div className="bg-red-900/20 border border-red-900/40 rounded-xl p-3 text-center mt-3">
-          <p className="text-red-400 font-bold text-sm mb-1">🚨 Report suspicious behavior:</p>
-          <p className="text-red-300 font-semibold text-xs mb-2">safety@girlsglowingup.com</p>
-          <p className="text-gray-500 text-xs">All reports are reviewed within 24 hours. Zero tolerance policy enforced.</p>
-        </div>
-
-        {/* Additional Trust */}
-        <div className="bg-cyan-900/20 border border-cyan-600/30 rounded-xl p-3 mt-3">
-          <p className="text-cyan-300 font-semibold text-xs mb-2">⭐ Trusted by Families</p>
-          <p className="text-gray-300 text-xs">GGU is a trusted educational platform for girls empowerment and personal growth.</p>
-        </div>
-
-        <div className="bg-white/5 border border-white/10 rounded-xl p-3 mt-3">
-          <p className="text-white font-semibold text-xs mb-2">📋 Not a Therapy Service</p>
-          <p className="text-gray-400 text-xs">GGU mentors are not licensed therapists, counselors, or medical professionals. Girls Glowing Up does not diagnose, treat, or provide clinical advice. If you or someone you know is in crisis, please contact a qualified mental health professional or call 988.</p>
-        </div>
-      </div>
-
-      {/* Footer Links */}
-      <div className="px-4 mt-8 pb-4 space-y-2 text-center">
-        <div className="flex gap-4 justify-center text-xs">
-          <a href="#" className="text-cyan-400 hover:text-cyan-300">Privacy Policy</a>
-          <a href="#" className="text-cyan-400 hover:text-cyan-300">Terms of Service</a>
-          <a href="#" className="text-cyan-400 hover:text-cyan-300">Parental Consent (COPPA)</a>
-        </div>
-        <p className="text-gray-600 text-xs">© 2025 Girls Glowing Up. All rights reserved.</p>
       </div>
     </div>
   );
