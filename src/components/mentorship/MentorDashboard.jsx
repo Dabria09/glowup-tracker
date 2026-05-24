@@ -1,130 +1,78 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Star, Users, MessageCircle, Check, X, TrendingUp, Award, FileText } from 'lucide-react';
+import { Calendar, Clock, Star, Users, MessageCircle, Check, X, TrendingUp, Award, FileText, Video } from 'lucide-react';
+import MentorSessionCall from './MentorSessionCall';
 import { base44 } from '@/api/base44Client';
-import TierBadge, { getTierConfig } from './TierBadge';
+import TierBadge from './TierBadge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import MentorAdminDashboard from './MentorAdminDashboard';
 
 export default function MentorDashboard({ user }) {
   const [upcomingSessions, setUpcomingSessions] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
-  const [feedbackStats, setFeedbackStats] = useState({
-    averageRating: 0,
-    totalReviews: 0,
-    recentReviews: [],
-    ratingTrend: []
-  });
-  const [sessionSummary, setSessionSummary] = useState({
-    totalCompleted: 0,
-    totalHours: 0,
-    thisMonthCompleted: 0,
-    thisMonthHours: 0
-  });
-  const [sessionStats, setSessionStats] = useState({
-    completedSessions: 0,
-    totalHours: 0
-  });
+  const [feedbackStats, setFeedbackStats] = useState({ averageRating: 0, totalReviews: 0, recentReviews: [], ratingTrend: [] });
+  const [sessionSummary, setSessionSummary] = useState({ totalCompleted: 0, totalHours: 0, thisMonthCompleted: 0, thisMonthHours: 0 });
+  const [sessionStats, setSessionStats] = useState({ completedSessions: 0, totalHours: 0 });
   const [mentorProfile, setMentorProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showInsights, setShowInsights] = useState(false);
+  const [activeCall, setActiveCall] = useState(null);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
-      // Try to load women mentor profile first
       let mentorData = await base44.entities.Mentor.filter({ user_email: user.email });
-      
-      // If not found, try teen mentor profile
       if (mentorData.length === 0) {
         mentorData = await base44.entities.TeenMentor.filter({ user_email: user.email });
       }
-      
-      if (mentorData.length > 0) {
-        setMentorProfile(mentorData[0]);
-      }
+      if (mentorData.length > 0) setMentorProfile(mentorData[0]);
 
-      const sessions = await base44.entities.MentorSession.filter({
-        mentor_email: user.email,
-        status: 'scheduled'
-      });
-      
-      // Also check for teen mentor sessions if needed
+      const sessions = await base44.entities.MentorSession.filter({ mentor_email: user.email, status: 'scheduled' });
       let allSessions = sessions;
       if (mentorData.length === 0) {
-        const teenSessions = await base44.entities.MentorSession.filter({
-          mentor_email: user.email
-        });
-        allSessions = teenSessions;
+        allSessions = await base44.entities.MentorSession.filter({ mentor_email: user.email });
       }
-      
+
       const upcoming = sessions
         .filter(s => new Date(s.session_date) > new Date())
         .sort((a, b) => new Date(a.session_date) - new Date(b.session_date))
         .slice(0, 5);
       setUpcomingSessions(upcoming);
+      setPendingRequests(allSessions.filter(s => s.status === 'pending'));
 
-      const pending = allSessions.filter(s => s.status === 'pending');
-      setPendingRequests(pending);
-
-      const completedSessions = allSessions.filter(s => 
-        s.status === 'completed'
-      );
-      
+      const completedSessions = allSessions.filter(s => s.status === 'completed');
       const ratedSessions = completedSessions.filter(s => s.rating && s.rating > 0);
       const avgRating = ratedSessions.length > 0
-        ? ratedSessions.reduce((sum, s) => sum + s.rating, 0) / ratedSessions.length
-        : 0;
-      
+        ? ratedSessions.reduce((sum, s) => sum + s.rating, 0) / ratedSessions.length : 0;
+
       const now = new Date();
       const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const thisMonthSessions = completedSessions.filter(s => new Date(s.session_date) >= thisMonthStart);
-      
-      const totalHours = completedSessions.reduce((sum, session) => 1, 0);
-      const thisMonthHours = thisMonthSessions.reduce((sum, session) => 1, 0);
-      
+
       setSessionSummary({
         totalCompleted: completedSessions.length,
-        totalHours: totalHours,
+        totalHours: completedSessions.length,
         thisMonthCompleted: thisMonthSessions.length,
-        thisMonthHours: thisMonthHours
+        thisMonthHours: thisMonthSessions.length
       });
-      
-      setSessionStats({
-        completedSessions: completedSessions.length,
-        totalHours: Math.round(totalHours * 10) / 10
-      });
-      
+      setSessionStats({ completedSessions: completedSessions.length, totalHours: completedSessions.length });
+
       const monthlyRatings = {};
       ratedSessions.forEach(session => {
         const date = new Date(session.session_date);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        if (!monthlyRatings[monthKey]) {
-          monthlyRatings[monthKey] = { month: monthKey, total: 0, count: 0 };
-        }
+        if (!monthlyRatings[monthKey]) monthlyRatings[monthKey] = { month: monthKey, total: 0, count: 0 };
         monthlyRatings[monthKey].total += session.rating;
         monthlyRatings[monthKey].count += 1;
       });
-      
+
       const ratingTrend = Object.values(monthlyRatings)
         .sort((a, b) => a.month.localeCompare(b.month))
         .slice(-6)
-        .map(data => ({
-          month: data.month,
-          rating: parseFloat((data.total / data.count).toFixed(2)),
-          sessions: data.count
-        }));
-      
-      setFeedbackStats({
-        averageRating: avgRating,
-        totalReviews: ratedSessions.length,
-        recentReviews: ratedSessions.slice(-5).reverse(),
-        ratingTrend
-      });
+        .map(data => ({ month: data.month, rating: parseFloat((data.total / data.count).toFixed(2)), sessions: data.count }));
 
+      setFeedbackStats({ averageRating: avgRating, totalReviews: ratedSessions.length, recentReviews: ratedSessions.slice(-5).reverse(), ratingTrend });
       setLoading(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -133,14 +81,8 @@ export default function MentorDashboard({ user }) {
   };
 
   const handleRequestResponse = async (sessionId, accept) => {
-    try {
-      await base44.entities.MentorSession.update(sessionId, {
-        status: accept ? 'scheduled' : 'cancelled'
-      });
-      loadData();
-    } catch (error) {
-      console.error('Error updating request:', error);
-    }
+    await base44.entities.MentorSession.update(sessionId, { status: accept ? 'scheduled' : 'cancelled' });
+    loadData();
   };
 
   const formatDate = (dateStr) => {
@@ -148,22 +90,13 @@ export default function MentorDashboard({ user }) {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    }
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === tomorrow.toDateString()) return 'Tomorrow';
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   };
 
-  const formatTime = (dateStr) => {
-    return new Date(dateStr).toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit', 
-      hour12: true 
-    });
-  };
+  const formatTime = (dateStr) =>
+    new Date(dateStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
   if (loading) {
     return (
@@ -176,6 +109,10 @@ export default function MentorDashboard({ user }) {
 
   return (
     <div className="space-y-6">
+      {activeCall && (
+        <MentorSessionCall session={activeCall} user={user} onLeave={() => setActiveCall(null)} />
+      )}
+
       {/* Welcome & Tier */}
       {mentorProfile && (
         <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))', border: '1px solid rgba(236,72,153,0.3)' }}>
@@ -187,7 +124,11 @@ export default function MentorDashboard({ user }) {
               </p>
             </div>
             {mentorProfile.mentor_tier && <TierBadge tier={mentorProfile.mentor_tier || 'seed'} size="md" />}
-            {mentorProfile.age && <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b' }}>Age {mentorProfile.age}</span>}
+            {mentorProfile.age && (
+              <span className="px-2 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b' }}>
+                Age {mentorProfile.age}
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -248,13 +189,10 @@ export default function MentorDashboard({ user }) {
 
       {/* Upcoming Sessions */}
       <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-white flex items-center gap-2">
-            <Calendar size={18} className="text-pink-400" />
-            Upcoming Sessions
-          </h3>
-        </div>
-        
+        <h3 className="font-bold text-white flex items-center gap-2 mb-4">
+          <Calendar size={18} className="text-pink-400" />
+          Upcoming Sessions
+        </h3>
         {upcomingSessions.length === 0 ? (
           <div className="text-center py-8">
             <Calendar size={40} className="mx-auto mb-3 text-gray-600" />
@@ -264,24 +202,21 @@ export default function MentorDashboard({ user }) {
           <div className="space-y-3">
             {upcomingSessions.map(session => (
               <div key={session.id} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-white">{session.mentee_email.split('@')[0]}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Clock size={12} />
-                        {formatDate(session.session_date)} at {formatTime(session.session_date)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageCircle size={12} />
-                        {session.session_type || 'Video'}
-                      </span>
-                    </div>
-                    {session.topic && (
-                      <p className="text-xs text-gray-500 mt-2">📝 {session.topic}</p>
-                    )}
-                  </div>
+                <p className="text-sm font-semibold text-white">{session.mentee_email.split('@')[0]}</p>
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                  <span className="flex items-center gap-1"><Clock size={12} />{formatDate(session.session_date)} at {formatTime(session.session_date)}</span>
+                  <span className="flex items-center gap-1"><MessageCircle size={12} />{session.session_type || 'Video'}</span>
                 </div>
+                {session.topic && <p className="text-xs text-gray-500 mt-2">📝 {session.topic}</p>}
+                {(session.session_type === 'Video Call' || !session.session_type) && (
+                  <button
+                    onClick={() => setActiveCall(session)}
+                    className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white"
+                    style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+                  >
+                    <Video size={14} /> Start Call
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -300,29 +235,16 @@ export default function MentorDashboard({ user }) {
               {pendingRequests.length}
             </span>
           </div>
-          
           <div className="space-y-3">
             {pendingRequests.map(request => (
               <div key={request.id} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-white">{request.mentee_email.split('@')[0]}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Calendar size={12} />
-                        {formatDate(request.session_date)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock size={12} />
-                        {formatTime(request.session_date)}
-                      </span>
-                    </div>
-                    {request.topic && (
-                      <p className="text-xs text-gray-500 mt-2">📝 {request.topic}</p>
-                    )}
-                  </div>
+                <p className="text-sm font-semibold text-white">{request.mentee_email.split('@')[0]}</p>
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                  <span className="flex items-center gap-1"><Calendar size={12} />{formatDate(request.session_date)}</span>
+                  <span className="flex items-center gap-1"><Clock size={12} />{formatTime(request.session_date)}</span>
                 </div>
-                <div className="flex gap-2">
+                {request.topic && <p className="text-xs text-gray-500 mt-2">📝 {request.topic}</p>}
+                <div className="flex gap-2 mt-3">
                   <button
                     onClick={() => handleRequestResponse(request.id, true)}
                     className="flex-1 py-2 rounded-lg font-semibold text-xs text-white flex items-center justify-center gap-1"
@@ -376,7 +298,6 @@ export default function MentorDashboard({ user }) {
             <span className="text-xs text-gray-400">{feedbackStats.totalReviews} total reviews</span>
           )}
         </div>
-        
         {feedbackStats.recentReviews.length === 0 ? (
           <div className="text-center py-8">
             <Star size={40} className="mx-auto mb-3 text-gray-600" />
@@ -394,9 +315,7 @@ export default function MentorDashboard({ user }) {
                   </div>
                   <span className="text-xs text-gray-500">{formatDate(review.session_date)}</span>
                 </div>
-                {review.feedback && (
-                  <p className="text-sm text-gray-300">"{review.feedback}"</p>
-                )}
+                {review.feedback && <p className="text-sm text-gray-300">"{review.feedback}"</p>}
               </div>
             ))}
           </div>
@@ -425,7 +344,6 @@ export default function MentorDashboard({ user }) {
               </button>
             </div>
 
-            {/* Session Summary */}
             <div className="grid grid-cols-2 gap-3 mb-6">
               <div className="rounded-2xl p-4" style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.3)' }}>
                 <div className="flex items-center gap-2 mb-2">
@@ -445,7 +363,6 @@ export default function MentorDashboard({ user }) {
               </div>
             </div>
 
-            {/* Rating Trend Chart */}
             <div className="rounded-2xl p-5 mb-6" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                 <TrendingUp size={18} className="text-yellow-400" />
@@ -456,36 +373,14 @@ export default function MentorDashboard({ user }) {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={feedbackStats.ratingTrend}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                      <XAxis 
-                        dataKey="month" 
-                        stroke="#6b7280" 
-                        fontSize={10}
-                        tickFormatter={(month) => month.slice(5)}
-                      />
-                      <YAxis 
-                        stroke="#6b7280" 
-                        fontSize={10}
-                        domain={[0, 5]}
-                        tickCount={6}
-                      />
+                      <XAxis dataKey="month" stroke="#6b7280" fontSize={10} tickFormatter={(m) => m.slice(5)} />
+                      <YAxis stroke="#6b7280" fontSize={10} domain={[0, 5]} tickCount={6} />
                       <Tooltip
-                        contentStyle={{
-                          background: 'rgba(20, 10, 40, 0.95)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          borderRadius: '8px',
-                          fontSize: '12px'
-                        }}
+                        contentStyle={{ background: 'rgba(20,10,40,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px' }}
                         labelStyle={{ color: '#ec4899', marginBottom: '4px' }}
                         formatter={(value, name) => [value, name === 'rating' ? 'Average Rating' : 'Sessions']}
                       />
-                      <Line
-                        type="monotone"
-                        dataKey="rating"
-                        stroke="#ec4899"
-                        strokeWidth={2}
-                        dot={{ fill: '#ec4899', strokeWidth: 2 }}
-                        activeDot={{ r: 6 }}
-                      />
+                      <Line type="monotone" dataKey="rating" stroke="#ec4899" strokeWidth={2} dot={{ fill: '#ec4899', strokeWidth: 2 }} activeDot={{ r: 6 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -497,7 +392,6 @@ export default function MentorDashboard({ user }) {
               )}
             </div>
 
-            {/* All Time Stats */}
             <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <h3 className="font-bold text-white mb-4">All-Time Summary</h3>
               <div className="space-y-3">
@@ -526,10 +420,7 @@ export default function MentorDashboard({ user }) {
         </div>
       )}
 
-      <MentorAdminDashboard
-        isOpen={showAdminDashboard}
-        onClose={() => setShowAdminDashboard(false)}
-      />
+      <MentorAdminDashboard isOpen={showAdminDashboard} onClose={() => setShowAdminDashboard(false)} />
     </div>
   );
 }

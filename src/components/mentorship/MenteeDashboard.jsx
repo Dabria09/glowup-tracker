@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Star, MessageCircle, BookOpen, CheckCircle, Hourglass, History } from 'lucide-react';
+import { Calendar, Clock, Star, MessageCircle, BookOpen, CheckCircle, Hourglass, History, Video } from 'lucide-react';
+import MentorSessionCall from './MentorSessionCall';
 import SessionFeedbackModal from './SessionFeedbackModal';
 import { base44 } from '@/api/base44Client';
 
@@ -9,6 +10,7 @@ export default function MenteeDashboard({ user }) {
   const [completedSessions, setCompletedSessions] = useState([]);
   const [mentors, setMentors] = useState({});
   const [feedbackSession, setFeedbackSession] = useState(null);
+  const [activeCall, setActiveCall] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -181,6 +183,15 @@ export default function MenteeDashboard({ user }) {
                       <span className="flex items-center gap-1"><MessageCircle size={12} />{session.session_type || 'Video'}</span>
                     </div>
                     {session.topic && <p className="text-xs text-gray-500 mt-2">📝 {session.topic}</p>}
+                    {(session.session_type === 'Video Call' || !session.session_type) && (
+                      <button
+                        onClick={() => setActiveCall(session)}
+                        className="mt-3 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+                      >
+                        <Video size={14} /> Join Call
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -239,6 +250,14 @@ export default function MenteeDashboard({ user }) {
             ))}
           </div>
         </div>
+      )}
+
+      {activeCall && (
+        <MentorSessionCall
+          session={activeCall}
+          user={user}
+          onLeave={() => setActiveCall(null)}
+        />
       )}
 
       {feedbackSession && (
