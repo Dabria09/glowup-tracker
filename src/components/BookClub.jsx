@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import BookDetail from '@/components/BookDetail';
-import { ChevronRight, BookOpen, Users, MessageCircle, Trophy } from 'lucide-react';
+import { ChevronRight, BookOpen, MessageCircle, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BOOKS = [
@@ -18,15 +18,7 @@ const BOOKS = [
 const GENRES = ['All', 'Memoir', 'Fiction', 'Self-Help'];
 const THIS_MONTH_ID = 'becoming';
 const CLUB_TABS = ['This Month', 'All Books', 'Vote'];
-
 const DEFAULT_BOOK_ID = 'becoming';
-
-const VOTE_NOMINEES = [
-  { id: 'dont_settle',  title: "Don't Settle for Safe",  author: 'Sarah Jakes Roberts' },
-  { id: 'my_brilliant', title: 'My Brilliant Friend',     author: 'Elena Ferrante' },
-  { id: 'braiding',     title: 'Braiding Sweetgrass',     author: 'Robin Wall Kimmerer' },
-  { id: 'untamed',      title: 'Untamed',                  author: 'Glennon Doyle' },
-];
 
 const READING_SCHEDULE = [
   { week: 1, range: 'Chapters 1–6',   theme: 'Roots & Identity',    prompt: 'How did Michelle\'s upbringing shape who she became? What from your own roots shapes you?' },
@@ -39,14 +31,24 @@ export default function BookClub({ user }) {
   const [clubTab, setClubTab] = useState('This Month');
   const [genre, setGenre] = useState('All');
   const [selectedBook, setSelectedBook] = useState(null);
-  const [votes, setVotes] = useState({});
-  const [myVote, setMyVote] = useState(null);
   const [discussions, setDiscussions] = useState({});
   const [myProgress, setMyProgress] = useState(null);
   const [activeWeek, setActiveWeek] = useState(0);
   const [thisMonthId, setThisMonthId] = useState(DEFAULT_BOOK_ID);
   const [settingsRecord, setSettingsRecord] = useState(null);
   const [showBookPicker, setShowBookPicker] = useState(false);
+
+  // Nominations state
+  const [nominations, setNominations] = useState([]);
+  const [myNomination, setMyNomination] = useState(null);
+  const [nomTitle, setNomTitle] = useState('');
+  const [nomAuthor, setNomAuthor] = useState('');
+  const [submittingNom, setSubmittingNom] = useState(false);
+
+  // Final votes state
+  const [votes, setVotes] = useState({});
+  const [myVote, setMyVote] = useState(null);
+
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
@@ -55,8 +57,8 @@ export default function BookClub({ user }) {
       base44.entities.BookClubVote.filter({ vote_month: month }),
       base44.entities.BookClubDiscussion.list(),
       base44.entities.BookClubSettings.filter({ month }),
-    ]).then(async ([voteList, discList, settingsList]) => {
-      // Load settings
+      base44.entities.BookClubNomination.filter({ vote_month: month }),
+    ]).then(async ([voteList, discList, settingsList, nomList]) => {
       if (settingsList.length) {
         setSettingsRecord(settingsList[0]);
         setThisMonthId(settingsList[0].current_book_id);
@@ -66,20 +68,24 @@ export default function BookClub({ user }) {
         const progList = await base44.entities.BookClubProgress.filter({ user_email: user.email, book_id: DEFAULT_BOOK_ID });
         if (progList.length) setMyProgress(progList[0]);
       }
+
+      // Nominations
+      setNominations(nomList);
+      const myNom = nomList.find(n => n.user_email === user.email);
+      if (myNom) setMyNomination(myNom);
+
+      // Final votes (keyed by book_title)
       const tally = {};
-      VOTE_NOMINEES.forEach(n => { tally[n.id] = 0; });
-      voteList.forEach(v => {
-        const nom = VOTE_NOMINEES.find(n => n.title === v.book_title);
-        if (nom) tally[nom.id] = (tally[nom.id] || 0) + 1;
-      });
+      voteList.forEach(v => { tally[v.book_title] = (tally[v.book_title] || 0) + 1; });
       setVotes(tally);
       const mine = voteList.find(v => v.user_email === user.email);
-      if (mine) setMyVote(VOTE_NOMINEES.find(n => n.title === mine.book_title)?.id || null);
+      if (mine) setMyVote(mine.book_title);
+
       const counts = {};
       discList.forEach(d => { counts[d.book_id] = (counts[d.book_id] || 0) + 1; });
       setDiscussions(counts);
     });
-    // Determine current week of month
+
     const dayOfMonth = new Date().getDate();
     setActiveWeek(Math.min(3, Math.floor((dayOfMonth - 1) / 7)));
   }, [user.email]);
@@ -99,13 +105,31 @@ export default function BookClub({ user }) {
     toast.success(`This month's book updated! 📚`);
   };
 
-  const castVote = async (nom) => {
+  const submitNomination = async () => {
+    if (!nomTitle.trim() || myNomination) return;
+    setSubmittingNom(true);
+    const month = new Date().toISOString().slice(0, 7);
+    const created = await base44.entities.BookClubNomination.create({
+      user_email: user.email,
+      book_title: nomTitle.trim(),
+      book_author: nomAuthor.trim() || 'Unknown',
+      vote_month: month,
+    });
+    setMyNomination(created);
+    setNominations(prev => [...prev, created]);
+    setNomTitle('');
+    setNomAuthor('');
+    setSubmittingNom(false);
+    toast.success('Nomination submitted! 📚');
+  };
+
+  const castVote = async (bookTitle, bookAuthor) => {
     if (myVote) return;
     const month = new Date().toISOString().slice(0, 7);
-    await base44.entities.BookClubVote.create({ user_email: user.email, book_title: nom.title, book_author: nom.author, vote_month: month });
-    setVotes(prev => ({ ...prev, [nom.id]: (prev[nom.id] || 0) + 1 }));
-    setMyVote(nom.id);
-    toast.success(`Voted for "${nom.title}"! 🗳️`);
+    await base44.entities.BookClubVote.create({ user_email: user.email, book_title: bookTitle, book_author: bookAuthor, vote_month: month });
+    setVotes(prev => ({ ...prev, [bookTitle]: (prev[bookTitle] || 0) + 1 }));
+    setMyVote(bookTitle);
+    toast.success(`Voted for "${bookTitle}"! 🗳️`);
   };
 
   if (selectedBook) {
@@ -116,8 +140,17 @@ export default function BookClub({ user }) {
   const currentChapter = myProgress?.current_chapter || 0;
   const pct = Math.round((currentChapter / thisMonth.chapters) * 100);
   const filtered = genre === 'All' ? BOOKS : BOOKS.filter(b => b.genre === genre);
-  const totalVotes = Object.values(votes).reduce((s, v) => s + v, 0);
   const totalComments = discussions[THIS_MONTH_ID] || 0;
+
+  // Derive top 5 from nominations tally
+  const nomTally = {};
+  nominations.forEach(n => {
+    const key = n.book_title.toLowerCase();
+    if (!nomTally[key]) nomTally[key] = { title: n.book_title, author: n.book_author, count: 0 };
+    nomTally[key].count += 1;
+  });
+  const top5 = Object.values(nomTally).sort((a, b) => b.count - a.count).slice(0, 5);
+  const totalVotes = Object.values(votes).reduce((s, v) => s + v, 0);
 
   return (
     <div className="px-4 pb-4">
@@ -189,8 +222,6 @@ export default function BookClub({ user }) {
               </div>
               <p className="text-sm text-gray-300 leading-relaxed mt-3">{thisMonth.desc}</p>
             </div>
-
-            {/* Stats bar */}
             <div className="flex divide-x divide-white/10 border-t border-white/10">
               <div className="flex-1 flex flex-col items-center py-3 gap-0.5">
                 <span className="text-white font-bold text-lg">{totalComments}</span>
@@ -233,7 +264,7 @@ export default function BookClub({ user }) {
                 const isPast = i < activeWeek;
                 return (
                   <div key={i} className="rounded-xl p-3"
-                    style={{ background: isCurrent ? 'rgba(168,85,247,0.2)' : isPast ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.03)', border: `1px solid ${isCurrent ? 'rgba(168,85,247,0.5)' : 'rgba(255,255,255,0.07)'}` }}>
+                    style={{ background: isCurrent ? 'rgba(168,85,247,0.2)' : 'rgba(255,255,255,0.03)', border: `1px solid ${isCurrent ? 'rgba(168,85,247,0.5)' : 'rgba(255,255,255,0.07)'}` }}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: isCurrent ? 'rgba(168,85,247,0.5)' : 'rgba(255,255,255,0.08)', color: isCurrent ? '#fff' : '#6b7280' }}>
@@ -308,38 +339,90 @@ export default function BookClub({ user }) {
 
       {/* ── VOTE ── */}
       {clubTab === 'Vote' && (
-        <div>
-          <div className="rounded-2xl p-4 mb-4" style={{ background: 'rgba(50,15,80,0.7)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="font-bold text-white mb-1 flex items-center gap-2 text-lg">🗳️ Vote: Next Month's Book</p>
-            <p className="text-xs text-gray-400 mb-4">{myVote ? '✅ Your vote is in! Results are live.' : 'Choose the book you want to read together next month — one vote per member.'}</p>
-            <div className="space-y-2">
-              {VOTE_NOMINEES.map(nom => {
-                const count = votes[nom.id] || 0;
-                const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-                const isMyVote = myVote === nom.id;
-                const isWinning = myVote && count === Math.max(...Object.values(votes));
-                return (
-                  <button key={nom.id} onClick={() => castVote(nom)} disabled={!!myVote}
-                    className="w-full text-left rounded-xl p-4 transition"
-                    style={{ background: isMyVote ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.05)', border: `2px solid ${isMyVote ? 'rgba(168,85,247,0.7)' : 'rgba(255,255,255,0.08)'}` }}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div>
-                        <p className="text-sm font-bold text-white">{nom.title} {isMyVote && '✓'} {isWinning && myVote ? '🏆' : ''}</p>
-                        <p className="text-xs text-gray-400">by {nom.author}</p>
-                      </div>
-                      {myVote && <span className="text-sm font-bold text-purple-300">{pct}%</span>}
-                    </div>
-                    {myVote && (
-                      <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #a855f7, #ec4899)' }} />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            {totalVotes > 0 && <p className="text-xs text-gray-500 mt-3 text-center">{totalVotes} vote{totalVotes !== 1 ? 's' : ''} so far this month</p>}
+        <div className="space-y-4">
+
+          {/* Step 1: Nominate */}
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(50,15,80,0.7)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="font-bold text-white mb-1 flex items-center gap-2">📝 Step 1: Nominate a Book</p>
+            <p className="text-xs text-gray-400 mb-3">Suggest a book for next month — the top 5 most-nominated become the finalists for voting.</p>
+            {myNomination ? (
+              <div className="rounded-xl p-3 flex items-center gap-3" style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)' }}>
+                <span className="text-green-400 text-lg">✅</span>
+                <div>
+                  <p className="text-sm font-bold text-white">{myNomination.book_title}</p>
+                  <p className="text-xs text-gray-400">by {myNomination.book_author} — your nomination is in!</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <input
+                  value={nomTitle}
+                  onChange={e => setNomTitle(e.target.value)}
+                  placeholder="Book title *"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+                />
+                <input
+                  value={nomAuthor}
+                  onChange={e => setNomAuthor(e.target.value)}
+                  placeholder="Author name (optional)"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+                />
+                <button
+                  onClick={submitNomination}
+                  disabled={!nomTitle.trim() || submittingNom}
+                  className="w-full py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg, #a855f7, #ec4899)' }}>
+                  {submittingNom ? 'Submitting...' : 'Submit Nomination 📚'}
+                </button>
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-2 text-center">{nominations.length} nomination{nominations.length !== 1 ? 's' : ''} submitted this month</p>
           </div>
+
+          {/* Step 2: Vote on Top 5 */}
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(50,15,80,0.7)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="font-bold text-white mb-1 flex items-center gap-2">🗳️ Step 2: Vote on the Top {top5.length > 0 ? Math.min(top5.length, 5) : 5}</p>
+            <p className="text-xs text-gray-400 mb-3">
+              {myVote ? '✅ Your vote is in! Results are live.' : top5.length === 0 ? 'No nominations yet — be the first to nominate above!' : 'Vote for your favorite from the most-nominated books.'}
+            </p>
+            {top5.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-4xl mb-2">📚</p>
+                <p className="text-sm text-gray-400">Nominations will appear here once submitted.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {top5.map((nom, i) => {
+                  const count = votes[nom.title] || 0;
+                  const votePct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                  const isMyVote = myVote === nom.title;
+                  const isWinning = myVote && count > 0 && count === Math.max(...top5.map(n => votes[n.title] || 0));
+                  return (
+                    <button key={i} onClick={() => castVote(nom.title, nom.author)} disabled={!!myVote}
+                      className="w-full text-left rounded-xl p-4 transition"
+                      style={{ background: isMyVote ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.05)', border: `2px solid ${isMyVote ? 'rgba(168,85,247,0.7)' : 'rgba(255,255,255,0.08)'}` }}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-white">{nom.title} {isMyVote && '✓'} {isWinning ? '🏆' : ''}</p>
+                          <p className="text-xs text-gray-400">by {nom.author} · {nom.count} nomination{nom.count !== 1 ? 's' : ''}</p>
+                        </div>
+                        {myVote && <span className="text-sm font-bold text-purple-300 ml-2">{votePct}%</span>}
+                      </div>
+                      {myVote && (
+                        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${votePct}%`, background: 'linear-gradient(90deg, #a855f7, #ec4899)' }} />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {totalVotes > 0 && <p className="text-xs text-gray-500 mt-3 text-center">{totalVotes} vote{totalVotes !== 1 ? 's' : ''} cast so far</p>}
+          </div>
+
         </div>
       )}
     </div>
