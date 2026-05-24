@@ -224,14 +224,21 @@ export default function GlowUpChallengeDetail() {
                                 opacity: canAccess ? 1 : 0.6
                               }}>
                               {isDayCompleted ? (
-                                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                                <button onClick={() => handleCompleteDay(dayObj.day, dayObj.points, phaseKey)}
+                                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 hover:scale-110 transition"
                                   style={{ background: challenge.color }}>
                                   <Check size={14} className="text-white" />
-                                </div>
+                                </button>
+                              ) : canAccess ? (
+                                <button onClick={() => handleCompleteDay(dayObj.day, dayObj.points, phaseKey)}
+                                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 hover:scale-110 transition"
+                                  style={{ background: 'rgba(255,255,255,0.1)' }}>
+                                  <span className="text-xs text-gray-400">{dayObj.day}</span>
+                                </button>
                               ) : (
                                 <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-                                  style={{ background: canAccess ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.3)' }}>
-                                  <span className="text-xs" style={{ color: canAccess ? '#9ca3af' : '#4b5563' }}>{dayObj.day}</span>
+                                  style={{ background: 'rgba(0,0,0,0.3)' }}>
+                                  <span className="text-xs text-gray-600">{dayObj.day}</span>
                                 </div>
                               )}
                               <div className="flex-1">
