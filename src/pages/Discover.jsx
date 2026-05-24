@@ -58,7 +58,7 @@ const SECTIONS = [
   },
   {
     id: 'challenges',
-    title: '🔥 Challenges & Goals',
+    title: '🔥 Foundation',
     items: [
       { id: 'glow_score', label: 'Glow Score', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', route: '/glow-score', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/93e848a21_IMG_4972.jpg' },
       { id: 'daily_challenges', label: 'Daily Challenges', gradient: 'from-pink-900 via-rose-900 to-red-900', route: '/daily-challenges', image: CDN + 'icon-daily-challenges-5aR9HwiMcVmjJVeR6dG8u8.webp' },
