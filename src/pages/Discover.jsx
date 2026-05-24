@@ -121,8 +121,7 @@ const SECTIONS = [
 ];
 
 const RECOMMENDED = [
-  { id: 'curriculum', icon: '📚', title: 'Curriculum', desc: 'Personalized learning paths', route: '/curriculum' },
-  { id: 'resources', icon: '📖', title: 'Resources', desc: 'Handpicked for your growth', route: '/resources' },
+  { id: 'curriculum', icon: '📚', title: 'Curriculum', desc: 'Your personalized learning path', route: '/curriculum' },
 ];
 
 function AppIcon({ item }) {
