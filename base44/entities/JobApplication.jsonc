@@ -1,0 +1,74 @@
+{
+  "name": "JobApplication",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "company": {
+      "type": "string",
+      "title": "Company Name"
+    },
+    "role": {
+      "type": "string",
+      "title": "Job Title / Role"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Wishlist",
+        "Applied",
+        "Phone Screen",
+        "Interview",
+        "Final Round",
+        "Offer",
+        "Rejected",
+        "Withdrawn"
+      ],
+      "default": "Wishlist"
+    },
+    "applied_date": {
+      "type": "string",
+      "title": "Date Applied"
+    },
+    "deadline": {
+      "type": "string",
+      "title": "Application Deadline"
+    },
+    "job_url": {
+      "type": "string",
+      "title": "Job Posting URL"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    },
+    "resume_text": {
+      "type": "string",
+      "title": "Resume (pasted text)"
+    },
+    "resume_url": {
+      "type": "string",
+      "title": "Resume File URL"
+    },
+    "salary_range": {
+      "type": "string",
+      "title": "Salary Range"
+    },
+    "contact_name": {
+      "type": "string",
+      "title": "Contact / Recruiter Name"
+    },
+    "contact_email": {
+      "type": "string",
+      "title": "Contact Email"
+    }
+  },
+  "required": [
+    "user_email",
+    "company",
+    "role"
+  ]
+}

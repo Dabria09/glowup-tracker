@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, Target, Sparkles, ChevronRight, X, Search, ArrowLeft } from 'lucide-react';
+import { Briefcase, Target, Sparkles, ChevronRight, X, Search, ClipboardList } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import CareerQuiz from '@/components/career/CareerQuiz';
@@ -223,6 +223,20 @@ export default function CareerExploration() {
           </div>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>Your Future is Bright 👑</h1>
           <p className="text-white/50 text-sm mt-1">Explore careers, take the quiz, and start building your path today.</p>
+        </div>
+
+        {/* Job Tracker CTA */}
+        <div className="px-4 mb-3">
+          <button onClick={() => navigate('/job-tracker')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.2), rgba(236,72,153,0.15))', border: '1px solid rgba(168,85,247,0.35)' }}>
+            <ClipboardList size={20} className="text-purple-400" />
+            <div className="flex-1 text-left">
+              <p className="text-sm font-bold text-white">My Job Tracker</p>
+              <p className="text-xs text-white/50">Track applications, upload resume &amp; manage status</p>
+            </div>
+            <ChevronRight size={16} className="text-gray-400" />
+          </button>
         </div>
 
         {/* Action Cards */}

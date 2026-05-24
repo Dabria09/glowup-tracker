@@ -62,6 +62,7 @@ import ParentDashboard from './pages/ParentDashboard';
 import GrowthMindset from './pages/GrowthMindset';
 import Scholarships from './pages/Scholarships';
 import CareerExploration from './pages/CareerExploration';
+import JobTracker from './pages/JobTracker';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -138,6 +139,7 @@ const AuthenticatedApp = () => {
       <Route path="/growth-mindset" element={<GrowthMindset />} />
       <Route path="/scholarships" element={<Scholarships />} />
       <Route path="/careers" element={<CareerExploration />} />
+      <Route path="/job-tracker" element={<JobTracker />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
