@@ -121,7 +121,7 @@ const SECTIONS = [
 ];
 
 const RECOMMENDED = [
-  { id: 'curriculum', icon: '📚', title: 'Curriculum', desc: 'Your personalized learning path', route: '/curriculum' },
+  { id: 'ggu_academy', icon: '📚', title: 'GGU Academy', desc: 'Your personalized learning path', route: '/ggu-academy' },
 ];
 
 function AppIcon({ item }) {
