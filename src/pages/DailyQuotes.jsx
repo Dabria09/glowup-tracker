@@ -113,8 +113,7 @@ export default function DailyQuotes() {
       setUser(u);
       const saved = await base44.entities.SavedQuote.filter({ user_email: u.email });
       setSavedQuotes(saved.sort((a, b) => b.saved_date.localeCompare(a.saved_date)));
-      setLoading(false);
-    }).catch(() => base44.auth.redirectToLogin());
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const isSaved = (text, date) => savedQuotes.some(q => q.quote_text === text && q.saved_date === date);
