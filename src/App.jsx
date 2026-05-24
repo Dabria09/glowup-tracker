@@ -60,6 +60,7 @@ import GlowKitchen from './pages/GlowKitchen';
 import Mentorship from './pages/Mentorship';
 import ParentDashboard from './pages/ParentDashboard';
 import GrowthMindset from './pages/GrowthMindset';
+import Scholarships from './pages/Scholarships';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -134,6 +135,7 @@ const AuthenticatedApp = () => {
       <Route path="/mentorship" element={<Mentorship />} />
       <Route path="/parent-dashboard" element={<ParentDashboard />} />
       <Route path="/growth-mindset" element={<GrowthMindset />} />
+      <Route path="/scholarships" element={<Scholarships />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
