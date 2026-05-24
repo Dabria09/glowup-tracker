@@ -1,0 +1,54 @@
+{
+  "name": "Scholarship",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Scholarship Name"
+    },
+    "amount": {
+      "type": "string",
+      "title": "Award Amount (e.g. $5,000)"
+    },
+    "deadline": {
+      "type": "string",
+      "title": "Application Deadline"
+    },
+    "eligibility": {
+      "type": "string",
+      "title": "Eligibility Requirements"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "apply_url": {
+      "type": "string",
+      "title": "Application URL"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "STEM",
+        "Arts",
+        "Business",
+        "Community Service",
+        "First-Gen",
+        "Need-Based",
+        "Merit",
+        "Identity-Based",
+        "General"
+      ]
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active / Visible",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "amount"
+  ]
+}
