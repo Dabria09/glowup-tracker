@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Plus, X, ExternalLink, Upload, FileText, ChevronRight, Briefcase } from 'lucide-react';
+import { ChevronLeft, Plus, X, ExternalLink, Upload, FileText, ChevronRight, Briefcase, Paperclip } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STATUSES = ['Wishlist', 'Applied', 'Phone Screen', 'Interview', 'Final Round', 'Offer', 'Rejected', 'Withdrawn'];
@@ -39,6 +39,22 @@ export default function JobTracker() {
   const [filterStatus, setFilterStatus] = useState('All');
   const [editingResume, setEditingResume] = useState(false);
   const [resumeText, setResumeText] = useState('');
+  const [savedFiles, setSavedFiles] = useState([]);
+
+  // Load globally saved resume files from ResumeBuilder
+  useEffect(() => {
+    try {
+      const files = JSON.parse(localStorage.getItem('ggu_resume_files') || '[]');
+      setSavedFiles(files);
+    } catch {}
+  }, []);
+
+  const attachSavedFile = async (app, fileUrl) => {
+    const updated = await base44.entities.JobApplication.update(app.id, { resume_url: fileUrl });
+    setApplications(prev => prev.map(a => a.id === app.id ? updated : a));
+    if (selected?.id === app.id) setSelected(updated);
+    toast.success('Resume attached!');
+  };
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -229,7 +245,25 @@ export default function JobTracker() {
         {/* ── RESUME TAB ── */}
         {activeTab === 'resume' && (
           <div>
-            <p className="text-sm text-gray-400 mb-4">Upload or paste your resume once — then attach it to any application.</p>
+            <p className="text-sm text-gray-400 mb-4">Upload or paste your resume — then attach it to any application.</p>
+
+            {/* Saved resume files from Resume Builder */}
+            {savedFiles.length > 0 && (
+              <div className="rounded-2xl p-4 mb-4" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
+                <p className="text-xs font-bold text-purple-300 uppercase tracking-wider mb-2">📎 Saved from Resume Builder</p>
+                <div className="space-y-2">
+                  {savedFiles.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <FileText size={13} className="text-purple-400 flex-shrink-0" />
+                      <p className="text-xs text-white flex-1 truncate">{f.name}</p>
+                      <a href={f.url} target="_blank" rel="noreferrer" className="text-blue-400"><ExternalLink size={12} /></a>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-gray-500 mt-2">Attach these to individual applications below ↓</p>
+              </div>
+            )}
 
             {applications.length === 0 ? (
               <div className="text-center py-12 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.15)' }}>
@@ -291,6 +325,23 @@ export default function JobTracker() {
 
                     {resumeTab === 'upload' && (
                       <div>
+                        {savedFiles.length > 0 && (
+                          <div className="mb-3">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Attach from Resume Builder</p>
+                            <div className="space-y-1.5">
+                              {savedFiles.map((f, i) => (
+                                <button key={i} onClick={() => attachSavedFile(app, f.url)}
+                                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left transition hover:opacity-80"
+                                  style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)' }}>
+                                  <Paperclip size={12} className="text-purple-400 flex-shrink-0" />
+                                  <span className="text-xs text-white truncate flex-1">{f.name}</span>
+                                  <span className="text-[10px] text-purple-400 font-semibold">Attach</span>
+                                </button>
+                              ))}
+                            </div>
+                            <div className="border-t border-white/10 my-3" />
+                          </div>
+                        )}
                         {app.resume_url ? (
                           <div className="flex items-center gap-2 p-3 rounded-xl mb-2" style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
                             <FileText size={16} className="text-green-400" />

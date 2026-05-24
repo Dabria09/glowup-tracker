@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Download, Save } from 'lucide-react';
+import { Plus, X, Download, Save, Upload, FileText, Trash2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { base44 } from '@/api/base44Client';
 
 const EMPTY_EXP = { company: '', title: '', start: '', end: '', bullets: '' };
 const EMPTY_EDU = { school: '', degree: '', year: '' };
 const STORAGE_KEY = 'ggu_resume_v1';
+const FILES_KEY = 'ggu_resume_files';
+
+function loadFiles() {
+  try { return JSON.parse(localStorage.getItem(FILES_KEY) || '[]'); } catch { return []; }
+}
 
 function load() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch { return null; }
@@ -17,6 +23,8 @@ export default function ResumeBuilder() {
   const [education, setEducation] = useState([{ ...EMPTY_EDU }]);
   const [skills, setSkills] = useState('');
   const [certifications, setCertifications] = useState('');
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -29,7 +37,29 @@ export default function ResumeBuilder() {
       setSkills(stored.skills || '');
       setCertifications(stored.certifications || '');
     }
+    setUploadedFiles(loadFiles());
   }, []);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const newFile = { name: file.name, url: file_url, date: new Date().toLocaleDateString() };
+    const updated = [...uploadedFiles, newFile];
+    setUploadedFiles(updated);
+    localStorage.setItem(FILES_KEY, JSON.stringify(updated));
+    setUploading(false);
+    toast.success('Resume uploaded! 📄');
+    e.target.value = '';
+  };
+
+  const removeFile = (idx) => {
+    const updated = uploadedFiles.filter((_, i) => i !== idx);
+    setUploadedFiles(updated);
+    localStorage.setItem(FILES_KEY, JSON.stringify(updated));
+    toast.success('Removed');
+  };
 
   const saveResume = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ info, summary, experiences, education, skills, certifications }));
@@ -186,6 +216,40 @@ export default function ResumeBuilder() {
         <textarea value={certifications} onChange={e => setCertifications(e.target.value)}
           placeholder="e.g. Google Analytics Certified, Dean's List 2024..."
           className={`${inputCls} resize-none`} rows={2} />
+      </div>
+
+      {/* Upload Resume File */}
+      <div className="rounded-2xl p-4 mb-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <p className="text-sm font-bold text-white mb-1">📎 Upload Resume Files</p>
+        <p className="text-xs text-gray-500 mb-3">Upload your existing resume (PDF or DOC) — accessible from your Job Tracker</p>
+        <label className="flex flex-col items-center justify-center p-4 rounded-xl cursor-pointer transition hover:opacity-80 mb-3"
+          style={{ background: 'rgba(168,85,247,0.08)', border: '2px dashed rgba(168,85,247,0.3)' }}>
+          <Upload size={20} className="text-purple-400 mb-1" />
+          <span className="text-xs text-purple-300 font-semibold">{uploading ? 'Uploading...' : 'Click to upload PDF or DOC'}</span>
+          <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleFileUpload} disabled={uploading} />
+        </label>
+        {uploadedFiles.length > 0 ? (
+          <div className="space-y-2">
+            {uploadedFiles.map((f, i) => (
+              <div key={i} className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
+                style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+                <FileText size={14} className="text-green-400 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-white font-semibold truncate">{f.name}</p>
+                  <p className="text-[10px] text-gray-500">Uploaded {f.date}</p>
+                </div>
+                <a href={f.url} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300">
+                  <ExternalLink size={13} />
+                </a>
+                <button onClick={() => removeFile(i)} className="text-gray-500 hover:text-red-400">
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-600 text-center">No files uploaded yet</p>
+        )}
       </div>
 
       <p className="text-center text-xs text-gray-600 mt-2">Resume data is saved on this device 🔒</p>
