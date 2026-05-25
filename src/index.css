@@ -225,13 +225,7 @@ body.light-mode input {
   }
 }
 
-/* Force fixed positioning for bottom nav */
-nav.fixed, div.fixed {
-  position: fixed !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-}
+
 
 @layer components {
   /* Glassmorphism card */
