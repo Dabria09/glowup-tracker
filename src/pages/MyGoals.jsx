@@ -194,7 +194,7 @@ export default function MyGoals() {
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-end z-50">
-          <div className="w-full rounded-t-3xl p-6" style={{ background: '#1a0a18', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <div className="w-full rounded-t-3xl p-6 overflow-y-auto" style={{ background: '#1a0a18', borderTop: '1px solid rgba(255,255,255,0.1)', maxHeight: '85vh' }}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white">New Goal 🎯</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white">✕</button>
