@@ -176,7 +176,7 @@ export default function GlowUpPlaylist() {
               >
                 Add Playlist 🎵
               </button>
-              <div className="h-6" />
+              <div className="h-16" />
             </div>
           </div>
         </div>
