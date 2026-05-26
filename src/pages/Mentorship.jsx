@@ -4,8 +4,6 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Search, Users, Plus, MessageCircle, BookOpen, LayoutDashboard, Star } from 'lucide-react';
-import MentorApplicationModal from '@/components/mentorship/MentorApplicationModal';
-import TeenMentorApplicationModal from '@/components/mentorship/TeenMentorApplicationModal';
 import AnonymousQuestionModal from '@/components/mentorship/AnonymousQuestionModal';
 import MentorDirectory from '@/components/mentorship/MentorDirectory';
 import WisdomCard from '@/components/mentorship/WisdomCard';
@@ -47,8 +45,6 @@ export default function Mentorship() {
   const [activeTab, setActiveTab] = useState('mentors');
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showApplicationModal, setShowApplicationModal] = useState(false);
-  const [showTeenApplicationModal, setShowTeenApplicationModal] = useState(false);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [mentors, setMentors] = useState([]);
@@ -155,26 +151,6 @@ export default function Mentorship() {
           </button>
         </div>
         
-        {/* Become a Mentor Options */}
-        {!isMentor && !isTeenMentor && (
-          <div className="space-y-3 mb-6">
-            <button
-              onClick={() => setShowApplicationModal(true)}
-              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
-              style={{ background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)' }}
-            >
-              <span className="mr-2">✨</span>Become a Mentor (Women)
-            </button>
-            <button
-              onClick={() => setShowTeenApplicationModal(true)}
-              className="w-full px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
-              style={{ background: 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.4)' }}
-            >
-              <span className="mr-2">🌟</span>Become a Teen Mentor (Ages 13-19)
-            </button>
-          </div>
-        )}
-
         {/* Admin Actions */}
         {user?.role === 'admin' && (
           <div className="space-y-3 mb-6">
@@ -279,22 +255,6 @@ export default function Mentorship() {
 
       <BottomNav active="discover" />
 
-      <MentorApplicationModal
-        isOpen={showApplicationModal}
-        onClose={() => setShowApplicationModal(false)}
-        user={user}
-        onSubmitted={() => {
-          loadData();
-        }}
-      />
-      <TeenMentorApplicationModal
-        isOpen={showTeenApplicationModal}
-        onClose={() => setShowTeenApplicationModal(false)}
-        user={user}
-        onSubmitted={() => {
-          loadData();
-        }}
-      />
       <AnonymousQuestionModal
         isOpen={showQuestionModal}
         onClose={() => setShowQuestionModal(false)}

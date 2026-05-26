@@ -6,9 +6,10 @@ import StepUsername from '@/components/onboarding/StepUsername';
 import StepParentalConsent from '@/components/onboarding/StepParentalConsent';
 import StepAgreement from '@/components/onboarding/StepAgreement';
 import StepComplete from '@/components/onboarding/StepComplete';
+import StepMentorChoice from '@/components/onboarding/StepMentorChoice';
 
-const STEPS_DEFAULT = ['dob', 'username', 'agreement', 'complete'];
-const STEPS_MINOR =   ['dob', 'username', 'parental', 'agreement', 'complete'];
+const STEPS_DEFAULT = ['dob', 'username', 'agreement', 'mentor', 'complete'];
+const STEPS_MINOR =   ['dob', 'username', 'parental', 'agreement', 'mentor', 'complete'];
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -108,6 +109,9 @@ export default function Onboarding() {
         {currentStep === 'parental' && <StepParentalConsent data={data} update={update} onNext={next} onBack={back} />}
         {currentStep === 'agreement' && (
           <StepAgreement data={data} update={update} onNext={handleComplete} onBack={back} />
+        )}
+        {currentStep === 'mentor' && (
+          <StepMentorChoice data={data} user={user} onNext={next} />
         )}
         {currentStep === 'complete' && (
           <StepComplete data={data} onDone={() => navigate('/dashboard')} />
