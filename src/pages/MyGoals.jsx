@@ -42,7 +42,6 @@ export default function MyGoals() {
 
   const handleCreateGoal = async () => {
     if (!formData.goal_name.trim()) return;
-    
     await base44.entities.SpiritualGoal.create({
       user_email: user.email,
       goal_name: formData.goal_name,
@@ -54,18 +53,10 @@ export default function MyGoals() {
       status: 'active',
       progress: 0,
     });
-
     const updated = await base44.entities.SpiritualGoal.filter({ user_email: user.email }).catch(() => []);
     setGoals(updated);
     setShowForm(false);
-    setFormData({
-      goal_name: '',
-      category: 'health',
-      target: 1,
-      unit: 'times',
-      target_date: '',
-      notes: '',
-    });
+    setFormData({ goal_name: '', category: 'health', target: 1, unit: 'times', target_date: '', notes: '' });
   };
 
   const handleDeleteGoal = async (id) => {
@@ -119,9 +110,7 @@ export default function MyGoals() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 rounded-full text-sm font-bold transition ${
-              activeTab === tab.id
-                ? 'bg-pink-500/20 text-pink-400'
-                : 'text-gray-400 hover:text-gray-300'
+              activeTab === tab.id ? 'bg-pink-500/20 text-pink-400' : 'text-gray-400 hover:text-gray-300'
             }`}
           >
             {tab.label} ({tab.count})
@@ -152,17 +141,13 @@ export default function MyGoals() {
               className="rounded-xl p-4 flex items-center gap-3"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
-              <button
-                onClick={() => handleToggleComplete(goal)}
-                className="flex-shrink-0 transition"
-              >
+              <button onClick={() => handleToggleComplete(goal)} className="flex-shrink-0 transition">
                 {goal.status === 'completed' ? (
                   <CheckCircle2 size={24} style={{ color: getCategoryColor(goal.category) }} />
                 ) : (
                   <Circle size={24} className="text-gray-500 hover:text-gray-400" />
                 )}
               </button>
-
               <div className="flex-1">
                 <p className={`font-bold ${goal.status === 'completed' ? 'line-through text-gray-500' : 'text-white'}`}>
                   {goal.goal_name}
@@ -170,20 +155,12 @@ export default function MyGoals() {
                 <p className="text-xs text-gray-400 mt-1">
                   {getCategoryEmoji(goal.category)} {goal.category} • {goal.target} {goal.unit}
                 </p>
-                {goal.notes && (
-                  <p className="text-xs text-gray-500 mt-1">{goal.notes}</p>
-                )}
+                {goal.notes && <p className="text-xs text-gray-500 mt-1">{goal.notes}</p>}
                 {goal.target_date && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    Due: {new Date(goal.target_date).toLocaleDateString()}
-                  </p>
+                  <p className="text-xs text-gray-400 mt-1">Due: {new Date(goal.target_date).toLocaleDateString()}</p>
                 )}
               </div>
-
-              <button
-                onClick={() => handleDeleteGoal(goal.id)}
-                className="flex-shrink-0 text-gray-500 hover:text-red-400 transition"
-              >
+              <button onClick={() => handleDeleteGoal(goal.id)} className="flex-shrink-0 text-gray-500 hover:text-red-400 transition">
                 <Trash2 size={18} />
               </button>
             </div>
@@ -193,14 +170,27 @@ export default function MyGoals() {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-end z-50">
-          <div className="w-full rounded-t-3xl p-6 overflow-y-auto" style={{ background: '#1a0a18', borderTop: '1px solid rgba(255,255,255,0.1)', maxHeight: '85vh' }}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">New Goal 🎯</h2>
-              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white">✕</button>
-            </div>
+        <div
+          className="fixed inset-0 z-50"
+          style={{ background: 'rgba(0,0,0,0.6)' }}
+          onClick={() => setShowForm(false)}
+        >
+          <div
+            className="absolute bottom-0 left-0 right-0 rounded-t-3xl"
+            style={{
+              background: '#1a0a18',
+              borderTop: '1px solid rgba(255,255,255,0.1)',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xl font-bold text-white">New Goal 🎯</h2>
+                <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-white text-xl">✕</button>
+              </div>
 
-            <div className="space-y-4">
               <div>
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">Goal Name</label>
                 <input
@@ -219,14 +209,10 @@ export default function MyGoals() {
                     <button
                       key={cat.id}
                       onClick={() => setFormData({ ...formData, category: cat.id })}
-                      className={`p-3 rounded-xl text-center transition ${
-                        formData.category === cat.id
-                          ? 'ring-2 ring-offset-2 ring-offset-black'
-                          : 'border border-white/10'
-                      }`}
+                      className="p-3 rounded-xl text-center transition"
                       style={{
                         background: formData.category === cat.id ? `${cat.color}20` : 'rgba(255,255,255,0.05)',
-                        ringColor: formData.category === cat.id ? cat.color : 'transparent',
+                        border: formData.category === cat.id ? `2px solid ${cat.color}` : '1px solid rgba(255,255,255,0.1)',
                       }}
                     >
                       <p className="text-xl mb-1">{cat.emoji}</p>
@@ -287,6 +273,8 @@ export default function MyGoals() {
               >
                 Create Goal 🎯
               </button>
+
+              <div className="h-4" />
             </div>
           </div>
         </div>
