@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
 import AppBackground from '@/components/AppBackground';
-import { Download, Lock, Plus, Search } from 'lucide-react';
+import { Download, Lock, Plus, Search, ChevronLeft } from 'lucide-react';
 
 const MOOD_FILTERS = [
   { label: 'Excited', emoji: '⚡' },
@@ -47,6 +47,9 @@ export default function Diary() {
         {/* Header */}
         <div className="flex items-start justify-between px-4 pt-6 pb-4">
           <div>
+            <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-400 hover:text-white text-sm mb-1 transition">
+              <ChevronLeft size={18} /> Back
+            </button>
             <h1 className="text-3xl font-bold text-white">My Diary</h1>
             <p className="text-sm text-gray-400 mt-0.5">{entries.length} entries · Your private space 🔒</p>
           </div>
