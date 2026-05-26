@@ -151,7 +151,7 @@ export default function BirthdayPlanner() {
       {showCreate && (
         <div className="fixed inset-0 bg-black/70 z-50 overflow-y-auto" onClick={() => setShowCreate(false)}>
           <div className="min-h-screen flex items-start justify-center pt-10 pb-10 px-4">
-            <div className="w-full max-w-lg bg-[#1a0a2e] rounded-3xl p-6" onClick={e => e.stopPropagation()}>
+            <div className="w-full max-w-lg bg-[#1a0a2e] rounded-3xl p-6 pb-16" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-xl font-bold text-white text-center flex-1">✨ New Glow Event</h2>
                 <button onClick={() => setShowCreate(false)}><X size={22} className="text-gray-400" /></button>
