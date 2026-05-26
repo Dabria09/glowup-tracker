@@ -59,7 +59,7 @@ export default function AddRecipeModal({ isOpen, onClose, user, onRecipeAdded })
       onClick={onClose}
     >
       <div
-        className="w-full max-h-[90vh] overflow-y-auto rounded-t-3xl p-6"
+        className="w-full max-h-[90vh] overflow-y-auto rounded-t-3xl p-8 pb-16"
         style={{ background: '#1a0a30' }}
         onClick={e => e.stopPropagation()}
       >
@@ -70,7 +70,7 @@ export default function AddRecipeModal({ isOpen, onClose, user, onRecipeAdded })
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
             <label className="text-xs font-bold text-gray-400 mb-1 block">Recipe Title *</label>
             <input
