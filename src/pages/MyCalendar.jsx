@@ -174,33 +174,33 @@ export default function MyCalendar() {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60" onClick={() => setShowForm(false)}>
           <div className="w-full max-w-lg bg-gray-900 border border-white/10 rounded-t-3xl p-8 pb-14" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-white font-bold text-lg">New Event</h2>
               <div className="flex gap-2">
                 <button onClick={() => setShowForm(false)} className="px-4 py-1.5 rounded-full border border-white/20 text-gray-400 text-sm font-semibold">Cancel</button>
                 <button onClick={handleSave} className="px-5 py-1.5 rounded-full bg-pink-500 text-white text-sm font-bold">Save</button>
               </div>
             </div>
-            <p className="text-gray-400 text-xs mb-3">{selectedDate}</p>
+            <p className="text-gray-400 text-xs mb-5">{selectedDate}</p>
             <input
               type="text"
               placeholder="Event title"
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none placeholder-gray-600 mb-3"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white text-sm outline-none placeholder-gray-600 mb-4"
             />
             <input
               type="time"
               value={form.event_time}
               onChange={e => setForm(f => ({ ...f, event_time: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none mb-3"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white text-sm outline-none mb-4"
             />
             <textarea
               placeholder="Notes (optional)"
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
               rows={2}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none resize-none placeholder-gray-600 mb-4"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white text-sm outline-none resize-none placeholder-gray-600 mb-5"
             />
             {/* Color picker */}
             <div className="flex gap-2 mb-5">
