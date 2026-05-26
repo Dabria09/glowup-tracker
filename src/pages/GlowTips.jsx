@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Star, Share2, BookOpen, RotateCcw, ChevronRight, X, Check } from 'lucide-react';
+import { Heart, Star, Share2, BookOpen, RotateCcw, ChevronRight, X, Check, ChevronLeft } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
 const AGE_MODES = [
@@ -124,15 +124,12 @@ export default function GlowTips() {
       <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.07]"
         style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='55' height='55'%3E%3Ctext x='8' y='40' font-size='28' fill='%23fff'%3E%E2%99%A5%3C/text%3E%3C/svg%3E\")" }} />
 
-      <div className="relative z-10 px-4 pt-10">
+      <div className="relative z-10 px-4 pt-6">
 
-        {/* Points badge */}
-        <div className="flex justify-end mb-4">
-          <div className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold"
-            style={{ background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.2)', color: '#FFD700' }}>
-            🏅 15 pts
-          </div>
-        </div>
+        {/* Back button */}
+        <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 mb-4">
+          <ChevronLeft size={20} />
+        </button>
 
         {/* Header row */}
         <div className="flex items-start justify-between mb-5">
