@@ -274,7 +274,7 @@ export default function MyGoals() {
                 Create Goal 🎯
               </button>
 
-              <div className="h-8" />
+              <div className="h-16" />
             </div>
           </div>
         </div>
