@@ -5,6 +5,7 @@ import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+import { awardPoints } from '@/lib/pointsHelper';
 
 const DAILY_FOCUSES = [
   { icon: '📱', label: 'Social Media',      tip: 'How is social media affecting your peace today? Time to be intentional.' },
@@ -102,9 +103,10 @@ export default function DailyCheckIn() {
       mood: mood.label,
       tags: 'daily-checkin',
     });
+    await awardPoints(user.email, 'daily_checkin');
     setAlreadyCheckedIn(true);
     setSubmitting(false);
-    toast.success('Check-in complete! +15 pts ✨');
+    toast.success('Check-in complete! +10 pts ✨');
   };
 
   if (!user) return (

@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { Plus, Heart, Bookmark, Search, TrendingUp, Trash2, Upload, X, ChevronLeft } from 'lucide-react';
+import { awardPoints } from '@/lib/pointsHelper';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -117,6 +118,7 @@ export default function GlowBoard() {
         saved_by: '[]',
       });
       
+      await awardPoints(user.email, 'glow_board_post');
       setShowSubmitModal(false);
       setNewPost({ image_url: '', title: '', description: '', category: 'Glow Style' });
       setSelectedFile(null);

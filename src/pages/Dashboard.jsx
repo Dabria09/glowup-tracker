@@ -90,6 +90,7 @@ export default function Dashboard() {
   const [bgImage, setBgImage] = useState(null);
   const [bgImagePos, setBgImagePos] = useState({ x: 50, y: 50 });
   const [isEditMode, setIsEditMode] = useState(false);
+  const [totalPoints, setTotalPoints] = useState(0);
   const [homeApps, setHomeApps] = useState(WORLD_APPS.filter(a => !a.soon));
 
   // Persist bg settings to localStorage so all pages share the same look
@@ -113,6 +114,8 @@ export default function Dashboard() {
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
+      const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
+      setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
       if (profiles.length) {
         const profile = profiles[0];
@@ -161,7 +164,7 @@ export default function Dashboard() {
       {/* Points badge */}
       <div className="flex justify-end px-4 pt-3">
         <div className="flex items-center gap-1 glass rounded-full px-3 py-1 text-xs font-bold">
-          <span>🏅</span><span className="text-yellow-400">15 {t('points')}</span>
+          <span>🏅</span><span className="text-yellow-400">{totalPoints.toLocaleString()} {t('points')}</span>
         </div>
       </div>
 
