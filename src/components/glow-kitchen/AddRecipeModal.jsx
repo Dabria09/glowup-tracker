@@ -59,7 +59,7 @@ export default function AddRecipeModal({ isOpen, onClose, user, onRecipeAdded })
       onClick={onClose}
     >
       <div
-        className="w-full max-h-[90vh] overflow-y-auto rounded-t-3xl p-8 pb-16"
+        className="w-full max-h-[90vh] overflow-y-auto rounded-t-3xl px-8 pt-8 pb-20"
         style={{ background: '#1a0a30' }}
         onClick={e => e.stopPropagation()}
       >
@@ -70,14 +70,13 @@ export default function AddRecipeModal({ isOpen, onClose, user, onRecipeAdded })
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-7">
           <div>
-            <label className="text-xs font-bold text-gray-400 mb-1 block">Recipe Title *</label>
+            <label className="text-xs font-bold text-gray-400 mb-2 block">Recipe Title *</label>
             <input
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              className="w-full rounded-xl px-5 py-4 text-sm text-white outline-none"
               placeholder="Enter recipe title"
             />
           </div>
