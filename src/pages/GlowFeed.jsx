@@ -47,8 +47,7 @@ export default function GlowFeed() {
   useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
-      setLoading(false);
-    }).catch(() => base44.auth.redirectToLogin());
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   if (loading) return (
