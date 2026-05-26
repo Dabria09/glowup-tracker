@@ -173,7 +173,7 @@ export default function MyCalendar() {
       {/* Add Event Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60" onClick={() => setShowForm(false)}>
-          <div className="w-full max-w-lg bg-gray-900 border border-white/10 rounded-t-3xl p-6 pb-10" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-lg bg-gray-900 border border-white/10 rounded-t-3xl p-8 pb-14" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-white font-bold text-lg">New Event</h2>
               <div className="flex gap-2">
