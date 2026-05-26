@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { Plus, Heart, Bookmark, Search, TrendingUp, Trash2, Upload, X } from 'lucide-react';
+import { Plus, Heart, Bookmark, Search, TrendingUp, Trash2, Upload, X, ChevronLeft } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -185,6 +185,7 @@ export default function GlowBoard() {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
+          <button onClick={() => window.history.back()} className="text-gray-400 hover:text-white"><ChevronLeft size={22} /></button>
           <div className="flex-1">
             <h1 className="text-2xl font-bold">✨ The Glow Board</h1>
             <p className="text-xs text-gray-400">Your vision. Your vibe. Your future.</p>
