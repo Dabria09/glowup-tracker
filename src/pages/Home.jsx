@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Star } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -37,6 +37,14 @@ export default function Home() {
           style={{ background: 'linear-gradient(135deg, #FF1F8E, #a855f7)' }}>
           Get Started <ArrowRight size={18} />
         </button>
+
+        <div className="mt-4">
+          <button onClick={() => base44.auth.isAuthenticated().then(auth => navigate(auth ? '/onboarding?mentor=true' : '/onboarding?mentor=true'))}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl font-semibold text-sm text-white"
+            style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)' }}>
+            <Star size={15} className="text-yellow-400" /> Become a Mentor
+          </button>
+        </div>
       </div>
     </div>
   );

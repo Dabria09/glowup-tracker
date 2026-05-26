@@ -8,11 +8,13 @@ import StepAgreement from '@/components/onboarding/StepAgreement';
 import StepComplete from '@/components/onboarding/StepComplete';
 import StepMentorChoice from '@/components/onboarding/StepMentorChoice';
 
-const STEPS_DEFAULT = ['dob', 'username', 'agreement', 'mentor', 'complete'];
-const STEPS_MINOR =   ['dob', 'username', 'parental', 'agreement', 'mentor', 'complete'];
+const STEPS_DEFAULT = ['dob', 'username', 'agreement', 'complete'];
+const STEPS_MINOR   = ['dob', 'username', 'parental', 'agreement', 'complete'];
+const STEPS_MENTOR  = ['dob', 'username', 'agreement', 'mentor', 'complete'];
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const wantsMentor = new URLSearchParams(window.location.search).get('mentor') === 'true';
   const [user, setUser] = useState(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [data, setData] = useState({
@@ -34,7 +36,9 @@ export default function Onboarding() {
 
   const update = (patch) => setData(prev => ({ ...prev, ...patch }));
 
-  const steps = data.age !== null && data.age < 13 ? STEPS_MINOR : STEPS_DEFAULT;
+  const steps = data.age !== null && data.age < 13
+    ? STEPS_MINOR
+    : wantsMentor ? STEPS_MENTOR : STEPS_DEFAULT;
   const currentStep = steps[stepIndex];
 
   const next = () => setStepIndex(i => i + 1);
