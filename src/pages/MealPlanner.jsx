@@ -69,7 +69,7 @@ export default function MealPlanner() {
       }
       setGroceryItems(g);
       setLoading(false);
-    }).catch(() => base44.auth.redirectToLogin());
+    }).catch(() => { setUser(null); setLoading(false); });
   }, []);
 
   const weekISO = toISO(weekStart);
