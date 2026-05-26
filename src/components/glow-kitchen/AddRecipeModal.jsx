@@ -59,18 +59,18 @@ export default function AddRecipeModal({ isOpen, onClose, user, onRecipeAdded })
       onClick={onClose}
     >
       <div
-        className="w-full max-h-[90vh] overflow-y-auto rounded-t-3xl px-8 pt-8 pb-20"
+        className="w-full max-h-[90vh] overflow-y-auto rounded-t-3xl px-10 pt-10 pb-28"
         style={{ background: '#1a0a30' }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <h2 className="font-bold text-white text-lg">Add Your Recipe</h2>
           <button onClick={onClose}>
             <X size={20} className="text-gray-400" />
           </button>
         </div>
 
-        <div className="space-y-7">
+        <div className="space-y-8">
           <div>
             <label className="text-xs font-bold text-gray-400 mb-2 block">Recipe Title *</label>
             <input
