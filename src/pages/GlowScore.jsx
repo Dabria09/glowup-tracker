@@ -37,14 +37,18 @@ const SEASONAL_EVENTS = [
 export default function GlowScore() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [totalPoints, setTotalPoints] = useState(15);
+  const [totalPoints, setTotalPoints] = useState(0);
   const [dayStreak, setDayStreak] = useState(5);
   const [activities, setActivities] = useState(8);
   const [expandedTier, setExpandedTier] = useState(null);
   const [activeTab, setActiveTab] = useState('checkin');
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
+    base44.auth.me().then(async (u) => {
+      setUser(u);
+      const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
+      setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
+    }).catch(() => setUser(null));
   }, []);
 
   const currentStage = STAGES.find(s => totalPoints >= s.minPoints && totalPoints < s.maxPoints) || STAGES[0];

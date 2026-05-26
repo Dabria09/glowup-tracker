@@ -163,9 +163,9 @@ export default function Dashboard() {
       <div className="relative z-10">
       {/* Points badge */}
       <div className="flex justify-end px-4 pt-3">
-        <div className="flex items-center gap-1 glass rounded-full px-3 py-1 text-xs font-bold">
-          <span>🏅</span><span className="text-yellow-400">{totalPoints.toLocaleString()} {t('points')}</span>
-        </div>
+        <button onClick={() => navigate('/glow-score')} className="flex items-center gap-1 glass rounded-full px-3 py-1 text-xs font-bold hover:opacity-80 transition">
+          <span>🏅</span><span className="text-yellow-400">{totalPoints.toLocaleString()} {t('points')}</span><span className="text-gray-500 ml-1">›</span>
+        </button>
       </div>
 
       {/* Header row */}
