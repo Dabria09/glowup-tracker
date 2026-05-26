@@ -1,0 +1,11 @@
+{
+  "name": "PointsConfig",
+  "type": "object",
+  "properties": {
+    "config_json": {
+      "type": "string",
+      "title": "Points Configuration (JSON)"
+    }
+  },
+  "required": []
+}

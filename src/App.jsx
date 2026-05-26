@@ -80,6 +80,7 @@ import About from './pages/About';
 import HowItWorks from './pages/HowItWorks';
 import Guidelines from './pages/Guidelines';
 import Support from './pages/Support';
+import PointsSettings from './pages/PointsSettings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -174,6 +175,7 @@ const AuthenticatedApp = () => {
       <Route path="/how-it-works" element={<HowItWorks />} />
       <Route path="/guidelines" element={<Guidelines />} />
       <Route path="/support" element={<Support />} />
+      <Route path="/points-settings" element={<PointsSettings />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

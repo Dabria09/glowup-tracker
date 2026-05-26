@@ -101,8 +101,28 @@ export const CERTIFICATES = [
   },
 ];
 
+// In-memory cache for admin-configured point values
+let _configCache = null;
+
+async function getConfiguredPoints(action) {
+  // Use window cache to avoid refetch within same session
+  if (typeof window !== 'undefined' && window.__pointsConfigCache) {
+    return window.__pointsConfigCache[action] ?? POINT_VALUES[action] ?? 0;
+  }
+  try {
+    const configs = await base44.entities.PointsConfig.list();
+    if (configs.length > 0) {
+      const parsed = JSON.parse(configs[0].config_json || '{}');
+      const merged = { ...POINT_VALUES, ...parsed };
+      if (typeof window !== 'undefined') window.__pointsConfigCache = merged;
+      return merged[action] ?? 0;
+    }
+  } catch {}
+  return POINT_VALUES[action] ?? 0;
+}
+
 export async function awardPoints(userEmail, action) {
-  const pts = POINT_VALUES[action];
+  const pts = await getConfiguredPoints(action);
   if (!pts || !userEmail) return 0;
 
   try {
