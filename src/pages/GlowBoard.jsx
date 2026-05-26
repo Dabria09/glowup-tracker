@@ -185,7 +185,7 @@ export default function GlowBoard() {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => window.history.back()} className="text-gray-400 hover:text-white"><ChevronLeft size={22} /></button>
+          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/20 transition flex-shrink-0"><ChevronLeft size={20} /></button>
           <div className="flex-1">
             <h1 className="text-2xl font-bold">✨ The Glow Board</h1>
             <p className="text-xs text-gray-400">Your vision. Your vibe. Your future.</p>
