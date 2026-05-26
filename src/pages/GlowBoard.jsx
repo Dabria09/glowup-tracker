@@ -347,7 +347,7 @@ export default function GlowBoard() {
                 <button onClick={() => setShowSubmitModal(false)}><Plus size={20} className="rotate-45" /></button>
               </div>
             </div>
-            <div className="overflow-y-auto p-6 space-y-4 flex-1">
+            <div className="overflow-y-auto px-6 pt-6 pb-20 space-y-5 flex-1">
               <div>
                 <label className="text-sm font-semibold text-gray-300 mb-2 block">Upload Image *</label>
                 <div className="flex items-center gap-3">
