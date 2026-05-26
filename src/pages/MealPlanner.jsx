@@ -479,7 +479,7 @@ export default function MealPlanner() {
             </div>
 
             {/* Sticky save button */}
-            <div className="p-4 border-t border-white/10 flex-shrink-0">
+            <div className="p-4 pb-10 border-t border-white/10 flex-shrink-0">
               <button onClick={saveAdd} disabled={!addName.trim()}
                 className="w-full py-4 rounded-2xl font-bold text-white text-sm disabled:opacity-40"
                 style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
