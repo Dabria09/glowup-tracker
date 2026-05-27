@@ -28,13 +28,13 @@ export default function UserManagement() {
     setLoading(true);
     setError(null);
     try {
-      const [u, p, b, me] = await Promise.all([
-        base44.entities.User.list('-created_date', 200),
+      const [usersRes, p, b, me] = await Promise.all([
+        base44.functions.invoke('getAdminUsers', {}),
         base44.entities.UserProfile.list('-created_date', 200),
         base44.entities.BannedUser.filter({ is_active: true }),
         base44.auth.me(),
       ]);
-      setUsers(u);
+      setUsers(usersRes.data?.users || []);
       setProfiles(p);
       setBans(b);
       setAdminEmail(me.email);
