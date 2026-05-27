@@ -11,44 +11,54 @@ export default function OverviewTab() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [users, checkIns, points, diary] = await Promise.all([
-          base44.entities.UserProfile.list(),
-          base44.entities.DailyTask.filter({ is_completed: true }),
+        const [usersRes, pointsHistory, points, diary, checkIns] = await Promise.all([
+          base44.functions.invoke('getAdminUsers', {}),
+          base44.entities.PointsHistory.list('-created_date', 500),
           base44.entities.UserPoints.list(),
           base44.entities.DiaryEntry.list(),
+          base44.entities.DailyTask.filter({ is_completed: true }),
         ]);
 
+        const allUsers = usersRes.data?.users || [];
         const today = new Date().toISOString().split('T')[0];
-        const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-        const todayCheckIns = checkIns.filter(c => c.completed_date === today);
-        const weekUsers = new Set(checkIns.filter(c => c.completed_date >= weekAgo.split('T')[0]).map(c => c.user_email));
+        const weekAgoMs = Date.now() - 7 * 86400000;
+
+        // Active = any activity in PointsHistory (most comprehensive signal)
+        const todayActive = new Set(
+          pointsHistory.filter(p => p.created_date && p.created_date.startsWith(today)).map(p => p.user_email)
+        );
+        const weekActive = new Set(
+          pointsHistory.filter(p => p.created_date && new Date(p.created_date).getTime() >= weekAgoMs).map(p => p.user_email)
+        );
 
         const totalPts = points.reduce((s, p) => s + (p.total_points || 0), 0);
 
         setStats({
-          totalUsers: users.length,
-          activeToday: todayCheckIns.length,
-          activeWeek: weekUsers.size,
+          totalUsers: allUsers.length,
+          activeToday: todayActive.size,
+          activeWeek: weekActive.size,
           totalCheckIns: checkIns.length,
           totalPoints: totalPts,
           diaryEntries: diary.length,
         });
 
-        // Mood distribution from recent check-in tasks
+        // Activity breakdown from PointsHistory categories
         const moodMap = {};
-        checkIns.slice(0, 200).forEach(c => {
-          if (c.category) moodMap[c.category] = (moodMap[c.category] || 0) + 1;
+        pointsHistory.slice(0, 300).forEach(p => {
+          if (p.action) moodMap[p.action] = (moodMap[p.action] || 0) + 1;
         });
         const sorted = Object.entries(moodMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
         setTopMoods(sorted);
 
-        // Daily check-ins last 7 days
+        // Daily active users last 7 days (from PointsHistory)
         const days = [];
         for (let i = 6; i >= 0; i--) {
           const d = new Date(Date.now() - i * 86400000);
           const ds = d.toISOString().split('T')[0];
-          const count = checkIns.filter(c => c.completed_date === ds).length;
-          days.push({ date: ds, count, label: d.toLocaleDateString('en-US', { weekday: 'short' }) });
+          const uniqueUsers = new Set(
+            pointsHistory.filter(p => p.created_date && p.created_date.startsWith(ds)).map(p => p.user_email)
+          );
+          days.push({ date: ds, count: uniqueUsers.size, label: d.toLocaleDateString('en-US', { weekday: 'short' }) });
         }
         setDailyCheckIns(days);
       } catch (e) { console.error(e); }
@@ -90,7 +100,7 @@ export default function OverviewTab() {
       </div>
 
       <div className="p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-        <p className="text-sm font-bold text-white mb-3 flex items-center gap-2">🩷 Top Moods Reported</p>
+        <p className="text-sm font-bold text-white mb-3 flex items-center gap-2">🩷 Top Activities This Week</p>
         {topMoods.length === 0 ? <p className="text-xs text-gray-500">No check-in data yet.</p> : (
           <div className="space-y-2">
             {topMoods.map(([mood, count]) => (
@@ -107,7 +117,7 @@ export default function OverviewTab() {
       </div>
 
       <div className="p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-        <p className="text-sm font-bold text-white mb-3 flex items-center gap-2"><Activity size={14} className="text-pink-400" /> Daily Check-Ins (Last 7 Days)</p>
+        <p className="text-sm font-bold text-white mb-3 flex items-center gap-2"><Activity size={14} className="text-pink-400" /> Daily Active Users (Last 7 Days)</p>
         {dailyCheckIns.every(d => d.count === 0) ? <p className="text-xs text-gray-500">No check-in data yet.</p> : (
           <div className="flex items-end gap-2 h-20">
             {dailyCheckIns.map(day => (
