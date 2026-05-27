@@ -1,0 +1,53 @@
+{
+  "name": "Announcement",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "body": {
+      "type": "string",
+      "title": "Message Body"
+    },
+    "send_to": {
+      "type": "string",
+      "title": "Send To",
+      "enum": [
+        "all",
+        "specific_group"
+      ],
+      "default": "all"
+    },
+    "group_id": {
+      "type": "string",
+      "title": "Group ID (if specific)"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "title": "Scheduled Date"
+    },
+    "sent_by": {
+      "type": "string",
+      "title": "Sent By Email"
+    },
+    "sent_date": {
+      "type": "string",
+      "title": "Sent Date"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "draft",
+        "sent",
+        "scheduled"
+      ],
+      "default": "sent"
+    }
+  },
+  "required": [
+    "title",
+    "body"
+  ]
+}

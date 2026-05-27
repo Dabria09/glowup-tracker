@@ -1,0 +1,39 @@
+{
+  "name": "ClassGroup",
+  "type": "object",
+  "properties": {
+    "group_name": {
+      "type": "string",
+      "title": "Group Name"
+    },
+    "organization": {
+      "type": "string",
+      "title": "School or Organization"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "join_code": {
+      "type": "string",
+      "title": "Join Code"
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Created By"
+    },
+    "member_count": {
+      "type": "number",
+      "title": "Member Count",
+      "default": 0
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    }
+  },
+  "required": [
+    "group_name"
+  ]
+}

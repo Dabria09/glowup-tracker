@@ -1,0 +1,35 @@
+{
+  "name": "AdminQuote",
+  "type": "object",
+  "properties": {
+    "quote_text": {
+      "type": "string",
+      "title": "Quote Text"
+    },
+    "author": {
+      "type": "string",
+      "title": "Author"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "general",
+        "confidence",
+        "wellness",
+        "career",
+        "spiritual",
+        "relationships"
+      ],
+      "default": "general"
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    }
+  },
+  "required": [
+    "quote_text"
+  ]
+}

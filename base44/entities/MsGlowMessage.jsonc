@@ -1,0 +1,38 @@
+{
+  "name": "MsGlowMessage",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Message Title"
+    },
+    "content": {
+      "type": "string",
+      "title": "Message Content"
+    },
+    "message_type": {
+      "type": "string",
+      "title": "Type",
+      "enum": [
+        "written",
+        "video",
+        "voice"
+      ],
+      "default": "written"
+    },
+    "media_url": {
+      "type": "string",
+      "title": "Media URL (video/voice)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "message_type"
+  ]
+}
