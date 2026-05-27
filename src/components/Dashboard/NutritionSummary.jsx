@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Flame, Droplet, Croissant } from 'lucide-react';
 
-export default function NutritionSummary() {
+export default function NutritionSummary({ compact = false }) {
   const [nutrition, setNutrition] = useState({ calories: 0, protein: 0, carbs: 0 });
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -52,8 +52,34 @@ export default function NutritionSummary() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <div className="p-3" style={{ background: 'rgba(255,255,255,0.04)' }}>
+        <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      </div>
+    );
+  }
+
+  if (compact) {
+    return (
+      <div className="px-4 py-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+        <p className="text-[10px] font-bold tracking-widest text-gray-500 uppercase mb-2">Today's Nutrition</p>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <Flame size={13} className="text-orange-400" />
+            <span className="text-sm font-bold text-white">{nutrition.calories}</span>
+            <span className="text-[10px] text-gray-500">cal</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Droplet size={13} className="text-blue-400" />
+            <span className="text-sm font-bold text-white">{nutrition.protein}g</span>
+            <span className="text-[10px] text-gray-500">protein</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Croissant size={13} className="text-yellow-400" />
+            <span className="text-sm font-bold text-white">{nutrition.carbs}g</span>
+            <span className="text-[10px] text-gray-500">carbs</span>
+          </div>
+          {nutrition.calories === 0 && <p className="text-[10px] text-gray-600">No meals logged today</p>}
+        </div>
       </div>
     );
   }
@@ -67,37 +93,25 @@ export default function NutritionSummary() {
           <p className="text-xs text-gray-400">From your meal plan</p>
         </div>
       </div>
-      
       <div className="grid grid-cols-3 gap-3">
         <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Flame size={14} className="text-orange-400" />
-          </div>
+          <div className="flex items-center justify-center gap-1 mb-1"><Flame size={14} className="text-orange-400" /></div>
           <p className="text-lg font-bold text-white">{nutrition.calories}</p>
           <p className="text-xs text-gray-400">Calories</p>
         </div>
-        
         <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Droplet size={14} className="text-blue-400" />
-          </div>
+          <div className="flex items-center justify-center gap-1 mb-1"><Droplet size={14} className="text-blue-400" /></div>
           <p className="text-lg font-bold text-white">{nutrition.protein}g</p>
           <p className="text-xs text-gray-400">Protein</p>
         </div>
-        
         <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <Croissant size={14} className="text-yellow-400" />
-          </div>
+          <div className="flex items-center justify-center gap-1 mb-1"><Croissant size={14} className="text-yellow-400" /></div>
           <p className="text-lg font-bold text-white">{nutrition.carbs}g</p>
           <p className="text-xs text-gray-400">Carbs</p>
         </div>
       </div>
-      
       {nutrition.calories === 0 && nutrition.protein === 0 && nutrition.carbs === 0 && (
-        <p className="text-xs text-gray-500 text-center mt-3">
-          Add meals in Meal Planner to see your daily nutrition
-        </p>
+        <p className="text-xs text-gray-500 text-center mt-3">Add meals in Meal Planner to see your daily nutrition</p>
       )}
     </div>
   );
