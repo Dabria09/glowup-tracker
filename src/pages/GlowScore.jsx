@@ -38,16 +38,36 @@ export default function GlowScore() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [totalPoints, setTotalPoints] = useState(0);
-  const [dayStreak, setDayStreak] = useState(5);
-  const [activities, setActivities] = useState(8);
+  const [dayStreak, setDayStreak] = useState(0);
+  const [activities, setActivities] = useState(0);
   const [expandedTier, setExpandedTier] = useState(null);
   const [activeTab, setActiveTab] = useState('checkin');
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
-      const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
-      setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
+      const [pts, hist] = await Promise.all([
+        base44.entities.UserPoints.filter({ user_email: u.email }),
+        base44.entities.PointsHistory.filter({ user_email: u.email }, '-created_date', 200),
+      ]);
+      const total = pts.length > 0 ? pts[0].total_points || 0 : 0;
+      setTotalPoints(total);
+      setActivities(hist.length);
+
+      // Calculate streak: consecutive days with any activity ending today or yesterday
+      const daySet = new Set(hist.map(e => new Date(e.created_date).toISOString().split('T')[0]));
+      let streak = 0;
+      let cursor = new Date();
+      cursor.setHours(0, 0, 0, 0);
+      // if no activity today, start checking from yesterday
+      const todayStr = cursor.toISOString().split('T')[0];
+      if (!daySet.has(todayStr)) cursor.setDate(cursor.getDate() - 1);
+      while (true) {
+        const ds = cursor.toISOString().split('T')[0];
+        if (daySet.has(ds)) { streak++; cursor.setDate(cursor.getDate() - 1); }
+        else break;
+      }
+      setDayStreak(streak);
     }).catch(() => setUser(null));
   }, []);
 
