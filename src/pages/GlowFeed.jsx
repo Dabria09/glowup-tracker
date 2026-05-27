@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Heart, MessageCircle, Share2, Plus, X } from 'lucide-react';
+import useAgeGroup from '@/lib/useAgeGroup';
 
 const COMMUNITY_QUESTIONS = [
   {
@@ -34,6 +35,7 @@ const COMMUNITY_QUESTIONS = [
 
 export default function GlowFeed() {
   const navigate = useNavigate();
+  const { worldInfo, ageGroup } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('timeline');
   const [selectedFilter, setSelectedFilter] = useState('Everyone');
@@ -83,7 +85,11 @@ export default function GlowFeed() {
             </button>
             <div className="flex-1">
               <h1 className="text-xl font-bold">Glow Up Feed 🔥</h1>
-              <p className="text-xs text-gray-400">Real wins. Real girls. Real growth</p>
+              {worldInfo ? (
+                <p className="text-xs font-semibold" style={{ color: worldInfo.color }}>{worldInfo.emoji} {worldInfo.label}</p>
+              ) : (
+                <p className="text-xs text-gray-400">Real wins. Real girls. Real growth</p>
+              )}
             </div>
           </div>
 

@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Search, X } from 'lucide-react';
+import useAgeGroup from '@/lib/useAgeGroup';
 
 const SHINE_BADGES = [
   { id: 'consistent', emoji: '🌸', label: 'Most Consistent', desc: 'Daily check-ins' },
@@ -16,6 +17,7 @@ const SHINE_BADGES = [
 
 export default function Leaderboard() {
   const navigate = useNavigate();
+  const { worldInfo } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('global');
   const [search, setSearch] = useState('');
@@ -290,6 +292,17 @@ export default function Leaderboard() {
             <span>🏅</span><span className="text-yellow-400">15 pts</span>
           </div>
         </div>
+
+        {/* World Banner */}
+        {worldInfo && (
+          <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5 mb-4" style={{ background: worldInfo.bgColor, border: `1px solid ${worldInfo.borderColor}` }}>
+            <span className="text-lg">{worldInfo.emoji}</span>
+            <div>
+              <p className="text-xs font-bold" style={{ color: worldInfo.color }}>{worldInfo.label}</p>
+              <p className="text-[10px] text-gray-400">Rankings are within your world only</p>
+            </div>
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
