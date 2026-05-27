@@ -86,6 +86,7 @@ import MonthlySummary from './pages/MonthlySummary';
 import JoinGGU from './pages/JoinGGU';
 import GlowStore from './pages/GlowStore';
 import GlowProfile from './pages/GlowProfile';
+import AdminPanel from './pages/AdminPanel';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -186,6 +187,7 @@ const AuthenticatedApp = () => {
       <Route path="/join" element={<JoinGGU />} />
       <Route path="/glow-store" element={<GlowStore />} />
       <Route path="/glowlink/:username" element={<GlowProfile />} />
+      <Route path="/admin" element={<AdminPanel />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
