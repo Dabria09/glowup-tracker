@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send } from 'lucide-react';
+import { Send, Trash2 } from 'lucide-react';
 
 export default function AnnounceTab() {
   const [announcements, setAnnouncements] = useState([]);
@@ -34,6 +34,12 @@ export default function AnnounceTab() {
       load();
     } catch (e) { console.error(e); }
     setSending(false);
+  };
+
+  const deleteAnnouncement = async (id) => {
+    if (!confirm('Delete this announcement?')) return;
+    await base44.entities.Announcement.delete(id);
+    setAnnouncements(prev => prev.filter(a => a.id !== id));
   };
 
   const inputCls = "w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-600 outline-none text-sm";
@@ -71,7 +77,10 @@ export default function AnnounceTab() {
             <div key={a.id} className="p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div className="flex items-start justify-between gap-2 mb-1">
                 <p className="font-semibold text-white text-sm">{a.title}</p>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${a.status === 'sent' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{a.status}</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${a.status === 'sent' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{a.status}</span>
+                  <button onClick={() => deleteAnnouncement(a.id)} className="text-gray-500 hover:text-red-400 transition"><Trash2 size={14} /></button>
+                </div>
               </div>
               <p className="text-xs text-gray-400">{a.body}</p>
               <p className="text-[10px] text-gray-600 mt-2">{a.send_to === 'all' ? 'All Users' : 'Specific Group'} · {a.sent_date ? new Date(a.sent_date).toLocaleDateString() : ''}</p>
