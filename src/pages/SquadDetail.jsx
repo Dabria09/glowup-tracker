@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Users, Flame, Star, Heart, Trophy, Calendar, MessageCircle, Plus, X, Crown, Medal, Send } from 'lucide-react';
+import { ChevronLeft, Users, Flame, Star, Heart, Trophy, MessageCircle, Plus, X, Crown, Medal, Send, Shield, Megaphone, UserMinus, ChevronDown } from 'lucide-react';
 
 export default function SquadDetail() {
   const { id } = useParams();
@@ -13,12 +13,18 @@ export default function SquadDetail() {
   const [squad, setSquad] = useState(null);
   const [members, setMembers] = useState([]);
   const [isMember, setIsMember] = useState(false);
+  const [isCaptain, setIsCaptain] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [checkInText, setCheckInText] = useState('');
   const [todayCheckIn, setTodayCheckIn] = useState(null);
   const [showCreateChallenge, setShowCreateChallenge] = useState(false);
   const [squadChallenges, setSquadChallenges] = useState([]);
   const [showChat, setShowChat] = useState(false);
+  const [showCaptainPanel, setShowCaptainPanel] = useState(false);
+  const [showAnnounceModal, setShowAnnounceModal] = useState(false);
+  const [announceForm, setAnnounceForm] = useState({ title: '', body: '' });
+  const [postingAnnounce, setPostingAnnounce] = useState(false);
+  const [savingMember, setSavingMember] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
@@ -84,6 +90,7 @@ export default function SquadDetail() {
             setSquad(squads[0]);
             setMembers(squadMembers);
             setIsMember(squadMembers.some(m => m.user_email === u.email));
+            setIsCaptain(squadMembers.some(m => m.user_email === u.email && m.role === 'captain'));
             setSquadChallenges(challenges);
           }
         }
@@ -114,7 +121,48 @@ export default function SquadDetail() {
     );
   }
 
-  const sortedMembers = members.sort((a, b) => b.personal_streak - a.personal_streak);
+  const sortedMembers = [...members].sort((a, b) => b.personal_streak - a.personal_streak);
+
+  const handlePromote = async (member) => {
+    setSavingMember(member.id);
+    await base44.entities.SquadMember.update(member.id, { role: 'captain' });
+    setMembers(prev => prev.map(m => m.id === member.id ? { ...m, role: 'captain' } : m));
+    setSavingMember(null);
+  };
+
+  const handleDemote = async (member) => {
+    setSavingMember(member.id);
+    await base44.entities.SquadMember.update(member.id, { role: 'member' });
+    setMembers(prev => prev.map(m => m.id === member.id ? { ...m, role: 'member' } : m));
+    setSavingMember(null);
+  };
+
+  const handleRemoveMember = async (member) => {
+    if (!confirm(`Remove ${member.user_email?.split('@')[0]} from the squad?`)) return;
+    setSavingMember(member.id);
+    await base44.entities.SquadMember.delete(member.id);
+    setMembers(prev => prev.filter(m => m.id !== member.id));
+    await base44.entities.GlowSquad.update(squad.id, { member_count: Math.max(0, squad.member_count - 1) });
+    setSavingMember(null);
+  };
+
+  const handlePostAnnouncement = async () => {
+    if (!announceForm.title.trim() || !announceForm.body.trim()) return;
+    setPostingAnnounce(true);
+    await base44.entities.Announcement.create({
+      title: announceForm.title.trim(),
+      body: announceForm.body.trim(),
+      send_to: 'specific_group',
+      group_id: squad.id,
+      sent_by: user.email,
+      sent_date: new Date().toISOString(),
+      status: 'sent',
+    });
+    setAnnounceForm({ title: '', body: '' });
+    setPostingAnnounce(false);
+    setShowAnnounceModal(false);
+    alert('Announcement posted to your squad! 📣');
+  };
 
   return (
     <div className="min-h-screen text-white pb-24 relative overflow-y-auto" style={{ backgroundColor: '#080810' }}>
@@ -243,6 +291,85 @@ export default function SquadDetail() {
             </div>
           </div>
 
+          {/* Captain Panel */}
+          {isCaptain && (
+            <div>
+              <button
+                onClick={() => setShowCaptainPanel(!showCaptainPanel)}
+                className="w-full flex items-center justify-between p-4 rounded-2xl border border-purple-500/30 bg-purple-500/10 mb-2"
+              >
+                <div className="flex items-center gap-2">
+                  <Shield size={16} className="text-purple-400" />
+                  <span className="text-sm font-bold text-purple-300">Captain Controls</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400">Captain</span>
+                </div>
+                <ChevronDown size={16} className={`text-purple-400 transition-transform ${showCaptainPanel ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showCaptainPanel && (
+                <div className="rounded-2xl border border-purple-500/20 bg-purple-900/10 p-4 space-y-4">
+
+                  {/* Post Announcement */}
+                  <button
+                    onClick={() => setShowAnnounceModal(true)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/15 transition text-left"
+                  >
+                    <Megaphone size={18} className="text-yellow-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-yellow-300">Post Squad Announcement</p>
+                      <p className="text-xs text-gray-400">Send a message to all squad members</p>
+                    </div>
+                  </button>
+
+                  {/* Member Management */}
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 tracking-widest mb-2">MANAGE MEMBERS</p>
+                    <div className="space-y-2">
+                      {members.filter(m => m.user_email !== user.email).map(member => (
+                        <div key={member.id} className="flex items-center gap-2 p-3 rounded-xl bg-white/5 border border-white/10">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            {member.user_email?.[0]?.toUpperCase() || 'M'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-white truncate">{member.user_email?.split('@')[0]}</p>
+                            <p className="text-[10px] text-gray-500">{member.role === 'captain' ? '👑 Captain' : '👤 Member'}</p>
+                          </div>
+                          {savingMember === member.id ? (
+                            <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              {member.role === 'member' ? (
+                                <button
+                                  onClick={() => handlePromote(member)}
+                                  className="text-[10px] px-2 py-1 rounded-full font-semibold bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30 transition"
+                                >
+                                  Promote
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleDemote(member)}
+                                  className="text-[10px] px-2 py-1 rounded-full font-semibold bg-gray-500/20 text-gray-400 border border-gray-500/30 hover:bg-gray-500/30 transition"
+                                >
+                                  Demote
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleRemoveMember(member)}
+                                className="p-1 rounded-full text-red-400 hover:bg-red-500/20 transition"
+                              >
+                                <UserMinus size={12} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Squad Challenges */}
           {isMember && (
             <div>
@@ -342,6 +469,53 @@ export default function SquadDetail() {
                   className="w-full py-3 rounded-2xl font-bold text-white text-sm bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition"
                 >
                   Check In 💜
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Announce Modal */}
+        {showAnnounceModal && (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-end" onClick={() => setShowAnnounceModal(false)}>
+            <div
+              className="w-full rounded-t-3xl"
+              style={{ background: '#1a0a2e', border: '1px solid rgba(234,179,8,0.3)' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <Megaphone size={18} className="text-yellow-400" />
+                  <h3 className="text-lg font-bold text-white">Squad Announcement</h3>
+                </div>
+                <button onClick={() => setShowAnnounceModal(false)}><X size={20} /></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Title *</label>
+                  <input
+                    value={announceForm.title}
+                    onChange={e => setAnnounceForm(f => ({ ...f, title: e.target.value }))}
+                    placeholder="e.g., This week's challenge focus 🔥"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Message *</label>
+                  <textarea
+                    value={announceForm.body}
+                    onChange={e => setAnnounceForm(f => ({ ...f, body: e.target.value }))}
+                    placeholder="Motivate your squad, share goals, or give updates..."
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none resize-none min-h-28"
+                  />
+                </div>
+                <button
+                  onClick={handlePostAnnouncement}
+                  disabled={!announceForm.title.trim() || !announceForm.body.trim() || postingAnnounce}
+                  className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40 transition"
+                  style={{ background: 'linear-gradient(135deg,#eab308,#f59e0b)' }}
+                >
+                  {postingAnnounce ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Megaphone size={16} /> Post Announcement</>}
                 </button>
               </div>
             </div>
