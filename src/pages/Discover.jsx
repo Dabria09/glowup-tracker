@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useTranslation from '@/lib/useTranslation';
 import { Search } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import { base44 } from '@/api/base44Client';
 
 const CDN = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663618716083/WDWw94kRE3Ddo7F9rGLvjC/';
 const MANUS = 'https://gguapp-wdww94kr.manus.space/manus-storage/';
@@ -149,7 +150,15 @@ function AppIcon({ item }) {
 
 export default function Discover() {
   const [search, setSearch] = useState('');
+  const [totalPoints, setTotalPoints] = useState(0);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    base44.auth.me().then(async (u) => {
+      const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
+      if (pts.length) setTotalPoints(pts[0].total_points || 0);
+    }).catch(() => {});
+  }, []);
 
   const allItems = SECTIONS.flatMap(s => s.items);
   const searchResults = search.trim().length > 1
@@ -161,7 +170,7 @@ export default function Discover() {
       {/* Points badge */}
       <div className="flex justify-end px-4 pt-3">
         <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-          <span>🏅</span><span className="text-yellow-400">15 pts</span>
+          <span>🏅</span><span className="text-yellow-400">{totalPoints.toLocaleString()} pts</span>
         </div>
       </div>
 
