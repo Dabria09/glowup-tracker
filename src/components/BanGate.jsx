@@ -2,29 +2,21 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
 export default function BanGate({ children }) {
-  const [checking, setChecking] = useState(true);
   const [ban, setBan] = useState(null);
 
   useEffect(() => {
     const check = async () => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
-        if (!isAuth) { setChecking(false); return; }
+        if (!isAuth) return;
         const user = await base44.auth.me();
-        if (user?.role === 'admin') { setChecking(false); return; }
+        if (!user || user.role === 'admin') return;
         const bans = await base44.entities.BannedUser.filter({ user_email: user.email, is_active: true });
         if (bans.length) setBan(bans[0]);
-      } catch { /* if check fails, allow through */ }
-      setChecking(false);
+      } catch { /* allow through on error */ }
     };
     check();
   }, []);
-
-  if (checking) return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black">
-      <div className="w-8 h-8 border-4 border-gray-700 border-t-pink-500 rounded-full animate-spin" />
-    </div>
-  );
 
   if (ban) {
     const isHard = ban.ban_type === 'hard';
