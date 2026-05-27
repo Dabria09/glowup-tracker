@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { ChevronLeft, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { POINT_VALUES } from '@/lib/pointsHelper';
+import { RefreshCw } from 'lucide-react';
 
 const ACTIVITY_LABELS = {
   daily_checkin:      { label: 'Daily Check-In', emoji: '✦', category: 'Daily Engagement' },
@@ -45,6 +46,7 @@ export default function PointsSettings() {
   const [values, setValues] = useState({ ...POINT_VALUES });
   const [configId, setConfigId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -70,13 +72,23 @@ export default function PointsSettings() {
         const rec = await base44.entities.PointsConfig.create({ config_json: JSON.stringify(values) });
         setConfigId(rec.id);
       }
-      // Clear the in-memory cache so next award picks up new values
       if (typeof window !== 'undefined') window.__pointsConfigCache = null;
-      toast.success('Point values saved! Changes apply immediately. ✨');
+      toast.success('Point values saved! ✨');
     } catch {
       toast.error('Failed to save. Please try again.');
     }
     setSaving(false);
+  };
+
+  const handleRecalculate = async () => {
+    setRecalculating(true);
+    try {
+      const res = await base44.functions.invoke('recalculateTotals', {});
+      toast.success(`Done! Updated ${res.data.users_updated} user totals. 🎉`);
+    } catch (err) {
+      toast.error('Recalculation failed: ' + (err.message || 'Unknown error'));
+    }
+    setRecalculating(false);
   };
 
   const handleReset = () => {
@@ -107,10 +119,27 @@ export default function PointsSettings() {
           </div>
         </div>
 
+        {/* Recalculate banner */}
+        <div className="mb-6 rounded-2xl px-5 py-4 flex items-center justify-between gap-4"
+          style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)' }}>
+          <div>
+            <p className="text-sm font-bold text-purple-300">Recalculate All User Totals</p>
+            <p className="text-xs text-gray-400 mt-0.5">After saving new values, apply them retroactively to every user's score based on their full history.</p>
+          </div>
+          <button onClick={handleRecalculate} disabled={recalculating}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold text-white flex-shrink-0 disabled:opacity-50 transition"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)' }}>
+            <RefreshCw size={14} className={recalculating ? 'animate-spin' : ''} />
+            {recalculating ? 'Working…' : 'Recalculate'}
+          </button>
+        </div>
+
         {/* Action buttons */}
         <div className="flex gap-2 mb-8 justify-end">
-          <button onClick={handleReset} className="px-4 py-2 rounded-full text-sm font-semibold text-gray-400 border border-white/10 hover:bg-white/10 transition">
-            Reset Defaults
+          <button onClick={handleRecalculate} disabled={recalculating}
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-purple-300 border border-purple-500/30 hover:bg-purple-500/10 transition disabled:opacity-50">
+            <RefreshCw size={14} className={recalculating ? 'animate-spin' : ''} />
+            {recalculating ? 'Recalculating…' : 'Recalculate Totals'}
           </button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold text-white disabled:opacity-50 transition"
