@@ -4,9 +4,10 @@ import { Trash2, CheckCircle, AlertTriangle, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TABS = [
-  { id: 'reported', label: 'Reported Posts' },
+  { id: 'autoflagged', label: '🚨 Auto-Flagged' },
+  { id: 'reported', label: 'Reported' },
   { id: 'shoutouts', label: 'Shout Outs' },
-  { id: 'community', label: 'Community Posts' },
+  { id: 'community', label: 'Community' },
   { id: 'bannedwords', label: 'Banned Words' },
 ];
 
@@ -24,6 +25,7 @@ export default function ContentModeration() {
   const [wordFilter, setWordFilter] = useState('all');
   const [addingWord, setAddingWord] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [flaggedPosts, setFlaggedPosts] = useState([]);
 
   useEffect(() => {
     const load = async () => {
@@ -44,6 +46,25 @@ export default function ContentModeration() {
       setCommunityPosts(cp);
       setReported(rep);
       setBannedWords(bw);
+
+      // Auto-flag: find posts containing any active banned word
+      const activeWords = bw.filter(w => w.is_active !== false).map(w => w.word.toLowerCase());
+      const checkContent = (text) => {
+        if (!text) return null;
+        const lower = text.toLowerCase();
+        return activeWords.find(w => lower.includes(w)) || null;
+      };
+      const flagged = [];
+      so.forEach(p => {
+        const hit = checkContent(p.content);
+        if (hit) flagged.push({ ...p, _source: 'shoutout', _hit: hit });
+      });
+      cp.forEach(p => {
+        const hit = checkContent(p.content);
+        if (hit) flagged.push({ ...p, _source: 'community', _hit: hit });
+      });
+      flagged.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      setFlaggedPosts(flagged);
       setLoading(false);
     };
     load();
@@ -77,6 +98,23 @@ export default function ContentModeration() {
     toast.success('Word removed');
   };
 
+  const deleteFlagged = async (post) => {
+    if (post._source === 'shoutout') {
+      await base44.entities.ShoutOut.delete(post.id);
+      setShoutouts(prev => prev.filter(p => p.id !== post.id));
+    } else {
+      await base44.entities.CommunityPost.delete(post.id);
+      setCommunityPosts(prev => prev.filter(p => p.id !== post.id));
+    }
+    setFlaggedPosts(prev => prev.filter(p => p.id !== post.id || p._source !== post._source));
+    toast.success('Post removed');
+  };
+
+  const dismissFlagged = (post) => {
+    setFlaggedPosts(prev => prev.filter(p => !(p.id === post.id && p._source === post._source)));
+    toast.success('Dismissed from review queue');
+  };
+
   const deleteCommunityPost = async (id) => {
     await base44.entities.CommunityPost.delete(id);
     setCommunityPosts(prev => prev.filter(p => p.id !== id));
@@ -98,14 +136,63 @@ export default function ContentModeration() {
   return (
     <div className="space-y-4">
       {/* Sub-tabs */}
-      <div className="flex gap-1 bg-white/5 rounded-2xl p-1">
+      <div className="flex gap-1 bg-white/5 rounded-2xl p-1 overflow-x-auto">
         {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-2 rounded-xl text-xs font-semibold transition ${activeTab === tab.id ? 'bg-white/15 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+            className={`flex-shrink-0 flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap ${activeTab === tab.id ? 'bg-white/15 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
             {tab.label}
+            {tab.id === 'autoflagged' && flaggedPosts.length > 0 && (
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#ef4444', color: '#fff' }}>{flaggedPosts.length}</span>
+            )}
           </button>
         ))}
       </div>
+
+      {/* Auto-Flagged */}
+      {activeTab === 'autoflagged' && (
+        <div className="space-y-3">
+          <div className="p-3 rounded-2xl text-sm text-amber-300 flex items-start gap-2" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)' }}>
+            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
+            <span>These posts were automatically detected as containing banned words. Review and remove or dismiss.</span>
+          </div>
+          {flaggedPosts.length === 0 && (
+            <div className="text-center py-16">
+              <CheckCircle size={32} className="text-green-500 mx-auto mb-2" />
+              <p className="text-gray-400 text-sm">No flagged content found.</p>
+            </div>
+          )}
+          {flaggedPosts.map((post, i) => (
+            <div key={`${post._source}-${post.id}-${i}`} className="rounded-2xl p-4" style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.25)' }}>
+              <div className="flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24' }}>
+                      {post._source === 'shoutout' ? '📢 Shout Out' : '💬 Community'}
+                    </span>
+                    <span className="text-[10px] font-bold text-red-400 px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.15)' }}>
+                      ⚠️ contains "{post._hit}"
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-200 leading-relaxed">{post.content}</p>
+                  <p className="text-[10px] text-gray-500 mt-1">{post.user_email || post.username} · {timeAgo(post.created_date)}</p>
+                </div>
+                <div className="flex flex-col gap-1.5 flex-shrink-0">
+                  <button onClick={() => deleteFlagged(post)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-red-400 hover:text-red-300 transition"
+                    style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                    <Trash2 size={11} /> Remove
+                  </button>
+                  <button onClick={() => dismissFlagged(post)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-gray-400 hover:text-gray-200 transition"
+                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <CheckCircle size={11} /> Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Reported Posts */}
       {activeTab === 'reported' && (
