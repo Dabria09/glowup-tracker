@@ -188,6 +188,7 @@ export default function Dashboard() {
   const [bgImagePos, setBgImagePos] = useState({ x: 50, y: 50 });
   const [isEditMode, setIsEditMode] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [showQuickAccess, setShowQuickAccess] = useState(() => { try { return localStorage.getItem('ggu_show_quick') !== 'false'; } catch { return true; } });
   const [homeAppIds, setHomeAppIds] = useState(() => loadSavedIds('ggu_home_apps', DEFAULT_HOME_IDS));
   const [quickIds, setQuickIds] = useState(() => loadSavedIds('ggu_quick_access', DEFAULT_QUICK_IDS));
   const [showHomePicker, setShowHomePicker] = useState(false);
@@ -196,6 +197,7 @@ export default function Dashboard() {
   const homeApps = homeAppIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean);
   const quickApps = quickIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean);
 
+  useEffect(() => { localStorage.setItem('ggu_show_quick', showQuickAccess); }, [showQuickAccess]);
   useEffect(() => { localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds)); }, [homeAppIds]);
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
   useEffect(() => { localStorage.setItem('ggu_bg_color', bgColor); }, [bgColor]);
@@ -309,15 +311,26 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Access — compact scrollable row */}
+        {(showQuickAccess || isEditMode) && (
         <div className="px-4 mb-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-bold tracking-widest text-gray-500">{t('quick_access')}</p>
-            {isEditMode && (
+            {isEditMode ? (
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-xs text-pink-400 font-semibold">
+                  <Plus size={12} /> Edit
+                </button>
+                <button onClick={() => setShowQuickAccess(v => !v)} className={`text-xs font-semibold px-2 py-0.5 rounded-full border transition ${showQuickAccess ? 'border-green-500/40 bg-green-500/15 text-green-400' : 'border-gray-600 bg-white/5 text-gray-500'}`}>
+                  {showQuickAccess ? 'Visible' : 'Hidden'}
+                </button>
+              </div>
+            ) : (
               <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-xs text-pink-400 font-semibold">
                 <Plus size={12} /> Edit
               </button>
             )}
           </div>
+          {showQuickAccess && (
           <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             {quickApps.map(app => (
               <button key={app.id} onClick={() => navigate(app.route)} className="flex flex-col items-center gap-1 flex-shrink-0 px-3 py-2 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition" style={{ minWidth: 52 }}>
@@ -332,7 +345,9 @@ export default function Dashboard() {
               </button>
             )}
           </div>
+          )}
         </div>
+        )}
 
         {/* Search bar */}
         <div className="px-4 mb-5 relative">
@@ -396,6 +411,7 @@ export default function Dashboard() {
         </div>
 
         {/* Glow Everywhere */}
+        <div className="px-4 mb-2" />
         <div className="px-4 mb-6">
           <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('glow_everywhere')}</p>
           <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
