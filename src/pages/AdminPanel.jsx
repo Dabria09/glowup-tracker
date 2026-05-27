@@ -20,6 +20,7 @@ import GlowBoardAdminTab from '@/components/admin/GlowBoardAdminTab';
 import TeamsAdminTab from '@/components/admin/TeamsAdminTab';
 import SettingsTab from '@/components/admin/SettingsTab';
 import AnalyticsTab from '@/components/admin/AnalyticsTab';
+import PointsRewards from '@/components/admin/PointsRewards';
 
 const TABS = [
   { id: 'overview',    label: 'Overview',         icon: BarChart2 },
@@ -38,6 +39,7 @@ const TABS = [
   { id: 'teams',       label: 'Teams',             icon: Crown },
   { id: 'settings',    label: 'Settings',          icon: Settings },
   { id: 'analytics',   label: 'Analytics',         icon: Activity },
+  { id: 'points',      label: 'Points & Rewards',  icon: BarChart2 },
 ];
 
 export default function AdminPanel() {
@@ -78,6 +80,7 @@ export default function AdminPanel() {
       case 'teams':      return <TeamsAdminTab />;
       case 'settings':   return <SettingsTab />;
       case 'analytics':  return <AnalyticsTab />;
+      case 'points':     return <PointsRewards />;
       default:           return <OverviewTab />;
     }
   };
