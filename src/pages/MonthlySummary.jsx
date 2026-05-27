@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, TrendingUp, Zap, Calendar, Star } from 'lucide-react';
+import { ChevronLeft, TrendingUp, Zap, Calendar, Star, Trophy } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -162,6 +162,22 @@ export default function MonthlySummary() {
               </div>
               <span className="text-lg font-bold text-yellow-400">{totalPoints.toLocaleString()} pts</span>
             </div>
+
+            {/* Challenge Leaderboard link */}
+            <button onClick={() => navigate('/challenge-leaderboard')}
+              className="w-full flex items-center justify-between rounded-2xl px-5 py-4 mb-6 transition hover:opacity-80"
+              style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.25), rgba(236,72,153,0.15))', border: '1px solid rgba(168,85,247,0.4)' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.3)' }}>
+                  <Trophy size={18} className="text-yellow-400" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-white">Challenge Leaderboard</p>
+                  <p className="text-xs text-gray-400">See how you rank against other Glow Girls</p>
+                </div>
+              </div>
+              <ChevronLeft size={16} className="text-gray-400" style={{ transform: 'rotate(180deg)' }} />
+            </button>
 
             {/* Daily bar chart */}
             {monthPoints > 0 && (
