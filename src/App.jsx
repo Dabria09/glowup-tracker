@@ -88,6 +88,7 @@ import GlowStore from './pages/GlowStore';
 import GlowProfile from './pages/GlowProfile';
 import AdminPanel from './pages/AdminPanel';
 import WeeklyLeaderboardSummary from './pages/WeeklyLeaderboardSummary';
+import BanGate from './components/BanGate';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -107,6 +108,7 @@ const AuthenticatedApp = () => {
   // For all other auth states (including auth_required), always render routes
   // Each page handles its own auth redirects
   return (
+    <BanGate>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/dashboard" element={<Dashboard />} />
@@ -192,6 +194,7 @@ const AuthenticatedApp = () => {
       <Route path="/weekly-leaderboard" element={<WeeklyLeaderboardSummary />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </BanGate>
   );
 };
 

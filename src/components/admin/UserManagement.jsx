@@ -94,6 +94,15 @@ export default function UserManagement() {
     };
 
     const created = await base44.entities.BannedUser.create(banData);
+    // Log to AdminLogs
+    await base44.entities.AdminLogs.create({
+      action_type: banForm.ban_type === 'hard' ? 'hard_ban' : 'soft_ban',
+      performed_by: adminEmail,
+      target_email: banModal.user.email,
+      target_username: profile?.username || '',
+      details: banForm.reason,
+      metadata: JSON.stringify({ ban_id: created.id, ban_type: banForm.ban_type, ...(banForm.ban_type === 'hard' ? { blocked_until: oneYearLater.toISOString() } : {}) }),
+    });
     setBans(prev => [...prev, created]);
     setSaving(null);
     setBanModal(null);
@@ -103,10 +112,19 @@ export default function UserManagement() {
     const ban = getActiveBan(email);
     if (!ban) return;
     setSaving(email);
-    const lifted = await base44.entities.BannedUser.update(ban.id, {
+    await base44.entities.BannedUser.update(ban.id, {
       is_active: false,
       lifted_by: adminEmail,
       lifted_date: new Date().toISOString(),
+    });
+    // Log to AdminLogs
+    await base44.entities.AdminLogs.create({
+      action_type: 'ban_lifted',
+      performed_by: adminEmail,
+      target_email: email,
+      target_username: ban.username || '',
+      details: `${ban.ban_type} ban lifted`,
+      metadata: JSON.stringify({ original_ban_id: ban.id, original_ban_type: ban.ban_type }),
     });
     setBans(prev => prev.filter(b => b.id !== ban.id));
     setSaving(null);

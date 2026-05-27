@@ -1,0 +1,45 @@
+{
+  "name": "AdminLogs",
+  "type": "object",
+  "properties": {
+    "action_type": {
+      "type": "string",
+      "title": "Action Type",
+      "enum": [
+        "soft_ban",
+        "hard_ban",
+        "ban_lifted",
+        "role_change",
+        "content_removed",
+        "code_created",
+        "word_banned",
+        "other"
+      ],
+      "default": "other"
+    },
+    "performed_by": {
+      "type": "string",
+      "title": "Admin Email"
+    },
+    "target_email": {
+      "type": "string",
+      "title": "Target User Email"
+    },
+    "target_username": {
+      "type": "string",
+      "title": "Target Username"
+    },
+    "details": {
+      "type": "string",
+      "title": "Details / Reason"
+    },
+    "metadata": {
+      "type": "string",
+      "title": "Extra Data (JSON)"
+    }
+  },
+  "required": [
+    "action_type",
+    "performed_by"
+  ]
+}

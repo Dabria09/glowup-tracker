@@ -13,6 +13,7 @@ const STEPS_MINOR   = ['dob', 'username', 'parental', 'agreement', 'complete'];
 const STEPS_MENTOR  = ['dob', 'username', 'agreement', 'mentor', 'complete'];
 
 export default function Onboarding() {
+  const [hardBanned, setHardBanned] = useState(null);
   const navigate = useNavigate();
   const wantsMentor = new URLSearchParams(window.location.search).get('mentor') === 'true';
   const [user, setUser] = useState(null);
@@ -26,6 +27,9 @@ export default function Onboarding() {
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
+      // Check hard ban on this email
+      const activeBans = await base44.entities.BannedUser.filter({ user_email: u.email, ban_type: 'hard', is_active: true });
+      if (activeBans.length) { setHardBanned(activeBans[0]); return; }
       // If already onboarded, go to dashboard
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
       if (profiles.length && profiles[0].onboarding_complete) {
@@ -75,6 +79,21 @@ export default function Onboarding() {
 
   const progressSteps = steps.filter(s => s !== 'complete');
   const progressIndex = Math.min(stepIndex, progressSteps.length - 1);
+
+  if (hardBanned) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-6 text-white">
+        <div className="max-w-sm w-full text-center space-y-5">
+          <div className="text-5xl">🔴</div>
+          <h1 className="text-xl font-bold">Registration Blocked</h1>
+          <p className="text-sm text-gray-400">This email address has been permanently banned from Girls Glowing Up™ and cannot be used to create a new account until {hardBanned.email_blocked_until ? new Date(hardBanned.email_blocked_until).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'further notice'}.</p>
+          {hardBanned.reason && <p className="text-xs text-gray-500">Reason: {hardBanned.reason}</p>}
+          <a href="mailto:safety@girlsglowingup.com" className="block text-sm text-pink-400">safety@girlsglowingup.com</a>
+          <button onClick={() => base44.auth.logout('/')} className="w-full py-3 rounded-2xl text-sm font-semibold text-gray-400 bg-white/10">Sign Out</button>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
