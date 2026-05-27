@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Users, Flame, Star, Heart, Trophy, Calendar, MessageCircle, Plus, X, Crown, Medal } from 'lucide-react';
+import { ChevronLeft, Users, Flame, Star, Heart, Trophy, Calendar, MessageCircle, Plus, X, Crown, Medal, Send } from 'lucide-react';
 
 export default function SquadDetail() {
   const { id } = useParams();
@@ -18,6 +18,45 @@ export default function SquadDetail() {
   const [todayCheckIn, setTodayCheckIn] = useState(null);
   const [showCreateChallenge, setShowCreateChallenge] = useState(false);
   const [squadChallenges, setSquadChallenges] = useState([]);
+  const [showChat, setShowChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [sendingMsg, setSendingMsg] = useState(false);
+  const chatRoomId = `squad_${id}`;
+
+  const loadChatMessages = async () => {
+    try {
+      const res = await base44.functions.invoke('getChatMessages', { room_id: chatRoomId });
+      if (res.data?.messages) setChatMessages(res.data.messages);
+    } catch (e) { console.error('Chat load error', e); }
+  };
+
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || sendingMsg) return;
+    setSendingMsg(true);
+    try {
+      await base44.functions.invoke('sendChatMessage', {
+        room_id: chatRoomId,
+        message: chatInput.trim(),
+        sender_email: user?.email,
+        sender_name: user?.full_name || user?.email?.split('@')[0] || 'Member',
+      });
+      setChatInput('');
+      await loadChatMessages();
+    } catch (e) { console.error('Send error', e); }
+    setSendingMsg(false);
+  };
+
+  // Poll chat when open
+  useEffect(() => {
+    if (!showChat) return;
+    setChatLoading(true);
+    loadChatMessages().finally(() => setChatLoading(false));
+    const interval = setInterval(loadChatMessages, 5000);
+    return () => clearInterval(interval);
+  }, [showChat]);
+
   const [newChallenge, setNewChallenge] = useState({
     challenge_name: '',
     challenge_type: 'streak',
@@ -420,6 +459,99 @@ export default function SquadDetail() {
         )}
 
       </div>
+
+      {/* Floating Chat Button */}
+      {isMember && (
+        <button
+          onClick={() => setShowChat(true)}
+          className="fixed bottom-24 right-4 z-40 w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-white transition hover:scale-105"
+          style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)', boxShadow: '0 4px 20px rgba(236,72,153,0.4)' }}
+        >
+          <MessageCircle size={22} />
+        </button>
+      )}
+
+      {/* Squad Chat Modal */}
+      {showChat && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-end">
+          <div
+            className="w-full flex flex-col"
+            style={{ height: '85vh', background: '#0f0a1e', borderTop: '1px solid rgba(168,85,247,0.3)', borderRadius: '24px 24px 0 0' }}
+          >
+            {/* Chat Header */}
+            <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10 flex-shrink-0">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-lg" style={{ background: 'rgba(168,85,247,0.2)' }}>
+                {squad.emoji || '💜'}
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-white text-sm">{squad.name} · Squad Chat</p>
+                <p className="text-[10px] text-gray-500">{members.length} members · coordinate your goals 🔥</p>
+              </div>
+              <button onClick={() => setShowChat(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10">
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+              {chatLoading && chatMessages.length === 0 ? (
+                <div className="flex justify-center pt-8">
+                  <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : chatMessages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <span className="text-4xl mb-3">💬</span>
+                  <p className="font-bold text-white text-sm mb-1">No messages yet</p>
+                  <p className="text-xs text-gray-500">Be the first to motivate your squad!</p>
+                </div>
+              ) : (
+                chatMessages.map((msg, idx) => {
+                  const isMe = msg.sender_email === user?.email;
+                  return (
+                    <div key={idx} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                      <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                        style={{ background: isMe ? 'linear-gradient(135deg,#ec4899,#a855f7)' : 'rgba(255,255,255,0.1)' }}>
+                        {(msg.sender_name || msg.sender_email || 'M')[0].toUpperCase()}
+                      </div>
+                      <div className={`max-w-[72%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
+                        {!isMe && <p className="text-[10px] text-gray-500 px-1">{msg.sender_name || msg.sender_email?.split('@')[0]}</p>}
+                        <div className="px-3 py-2 rounded-2xl text-sm"
+                          style={{ background: isMe ? 'linear-gradient(135deg,#ec4899,#a855f7)' : 'rgba(255,255,255,0.08)', color: 'white' }}>
+                          {msg.message || msg.content}
+                        </div>
+                        <p className="text-[9px] text-gray-600 px-1">
+                          {msg.created_date ? new Date(msg.created_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Input */}
+            <div className="px-4 py-3 border-t border-white/10 flex-shrink-0">
+              <div className="flex items-center gap-2 rounded-2xl px-4 py-2" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(168,85,247,0.3)' }}>
+                <input
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendChatMessage()}
+                  placeholder="Motivate your squad... 💜"
+                  className="flex-1 bg-transparent text-sm text-white placeholder-gray-600 outline-none"
+                />
+                <button
+                  onClick={sendChatMessage}
+                  disabled={!chatInput.trim() || sendingMsg}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}
+                >
+                  {sendingMsg ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Send size={14} />}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav active="discover" />
     </div>
