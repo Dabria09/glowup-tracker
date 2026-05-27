@@ -66,6 +66,7 @@ function StatCard({ icon, value, label }) {
 export default function Glow() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [dailyQuote, setDailyQuote] = useState(null);
   const [userPoints, setUserPoints] = useState(null);
   const [challenges, setChallenges] = useState([]);
   const [certificates, setCertificates] = useState([]);
@@ -78,14 +79,19 @@ export default function Glow() {
       try {
         const u = await base44.auth.me();
         setUser(u);
-        const [pts, ch, certs] = await Promise.all([
+        const [pts, ch, certs, quotes] = await Promise.all([
           base44.entities.UserPoints.filter({ user_email: u.email }),
           base44.entities.GlowUpChallenge.filter({ user_email: u.email }),
           base44.entities.GlowUpCertificate.filter({ user_email: u.email }),
+          base44.entities.AdminQuote.filter({ is_active: true }),
         ]);
         if (pts.length) setUserPoints(pts[0]);
         setChallenges(ch);
         setCertificates(certs);
+        if (quotes.length) {
+          const idx = new Date().getDate() % quotes.length;
+          setDailyQuote(quotes[idx]);
+        }
       } catch {
         base44.auth.redirectToLogin();
       }
@@ -331,6 +337,17 @@ export default function Glow() {
           <ProgressBar value={completedChallenges} max={6} color={GOLD} height={8} />
           <p style={{ fontSize: 11, color: MUTED2, margin: '6px 0 0' }}>{Math.round(crownPct)}% of Glow Crown earned</p>
         </div>
+
+        {/* Daily Quote */}
+        {dailyQuote && (
+          <div style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.1), rgba(168,85,247,0.05))', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 18, padding: '16px', marginBottom: 16, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #a855f7, #ec4899)' }} />
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', color: '#c084fc', margin: '0 0 8px', textTransform: 'uppercase' }}>Today's Quote</p>
+            <p style={{ fontSize: 28, color: 'rgba(192,132,252,0.4)', fontFamily: 'serif', lineHeight: 1, margin: '0 0 6px' }}>&ldquo;</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: WHITE, margin: '0 0 8px', lineHeight: 1.5, fontStyle: 'italic' }}>{dailyQuote.quote_text}</p>
+            {dailyQuote.author && <p style={{ fontSize: 12, color: MUTED2, margin: 0, fontWeight: 600 }}>— {dailyQuote.author}</p>}
+          </div>
+        )}
 
         {/* Glow Pass */}
         <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, padding: '14px 16px', marginBottom: 8 }}>
