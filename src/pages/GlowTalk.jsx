@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Plus, Mic, Calendar, Radio, Users, X, Lock, Globe } from 'lucide-react';
+import useAgeGroup from '@/lib/useAgeGroup';
 
 const CATEGORIES = ['General', 'Glow Up', 'Faith & Spirituality', 'STEM & Tech', 'Mental Health', 'Entrepreneurship', 'Fitness', 'Study Grind', 'Career', 'Relationships'];
 const ROOM_TYPES = ['Community Room', 'Panel Room', 'Mentor Talk', 'Study Room', 'Prayer Room'];
@@ -18,6 +19,7 @@ const CATEGORY_EMOJIS = {
 
 export default function GlowTalk() {
   const navigate = useNavigate();
+  const { ageGroup, worldInfo, filterForWorld } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [rooms, setRooms] = useState([]);
@@ -35,8 +37,8 @@ export default function GlowTalk() {
       try {
         const isAuth = await base44.auth.isAuthenticated();
         if (isAuth) setUser(await base44.auth.me());
-        const all = await base44.entities.GlowRoom.list('-created_date', 50);
-        setRooms(all);
+        const all = await base44.entities.GlowRoom.list('-created_date', 100);
+        setRooms(filterForWorld(all));
       } catch (e) { console.error(e); }
       setLoading(false);
     };
@@ -59,6 +61,7 @@ export default function GlowTalk() {
       status,
       listener_count: status === 'live' ? 1 : 0,
       listeners: status === 'live' ? JSON.stringify([user.email]) : '[]',
+      age_group: ageGroup || undefined,
     });
     setShowCreate(false);
     setNewRoom({ title: '', description: '', category: 'General', room_type: 'Community Room', max_listeners: 25, is_public: true, scheduled_at: '' });
@@ -129,7 +132,11 @@ export default function GlowTalk() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">Glow Talk</h1>
-                <p className="text-xs text-white/70">Live audio rooms for the community</p>
+                {worldInfo ? (
+                  <p className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>{worldInfo.emoji} {worldInfo.label}</p>
+                ) : (
+                  <p className="text-xs text-white/70">Live audio rooms for the community</p>
+                )}
               </div>
             </div>
             <button

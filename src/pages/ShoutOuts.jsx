@@ -5,6 +5,7 @@ import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Heart, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import useAgeGroup from '@/lib/useAgeGroup';
 
 function timeAgo(dateStr) {
   if (!dateStr) return '';
@@ -20,6 +21,7 @@ function timeAgo(dateStr) {
 
 export default function ShoutOuts() {
   const navigate = useNavigate();
+  const { ageGroup, worldInfo, filterForWorld } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [draft, setDraft] = useState('');
@@ -28,8 +30,8 @@ export default function ShoutOuts() {
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
-      const data = await base44.entities.ShoutOut.list('-created_date', 50);
-      setPosts(data);
+      const data = await base44.entities.ShoutOut.list('-created_date', 100);
+      setPosts(filterForWorld(data));
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
 
@@ -43,6 +45,7 @@ export default function ShoutOuts() {
       content: draft.trim(),
       likes: 0,
       liked_by: '[]',
+      age_group: ageGroup || undefined,
     });
     setPosts(prev => [post, ...prev]);
     setDraft('');
@@ -82,6 +85,17 @@ export default function ShoutOuts() {
             <span>🏅</span><span className="text-yellow-400">15 pts</span>
           </div>
         </div>
+
+        {/* World Banner */}
+        {worldInfo && (
+          <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5 mb-3" style={{ background: worldInfo.bgColor, border: `1px solid ${worldInfo.borderColor}` }}>
+            <span className="text-lg">{worldInfo.emoji}</span>
+            <div>
+              <p className="text-xs font-bold" style={{ color: worldInfo.color }}>{worldInfo.label}</p>
+              <p className="text-[10px] text-gray-400">You're seeing shout-outs from your world</p>
+            </div>
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-center gap-2 mb-5">

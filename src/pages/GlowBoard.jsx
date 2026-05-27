@@ -5,6 +5,7 @@ import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { Plus, Heart, Bookmark, Search, TrendingUp, Trash2, Upload, X, ChevronLeft } from 'lucide-react';
 import { awardPoints } from '@/lib/pointsHelper';
+import useAgeGroup from '@/lib/useAgeGroup';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -23,6 +24,7 @@ const CATEGORIES = [
 
 export default function GlowBoard() {
   const navigate = useNavigate();
+  const { ageGroup, worldInfo, filterForWorld } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
@@ -50,8 +52,9 @@ export default function GlowBoard() {
         }
         
         const allPosts = await base44.entities.GlowBoard.list();
-        setPosts(allPosts);
-        setFilteredPosts(allPosts);
+        const worldPosts = filterForWorld(allPosts);
+        setPosts(worldPosts);
+        setFilteredPosts(worldPosts);
       } catch (err) {
         console.error('Error loading glow board:', err);
       }
@@ -116,6 +119,7 @@ export default function GlowBoard() {
         is_trending: false,
         saves: 0,
         saved_by: '[]',
+        age_group: ageGroup || undefined,
       });
       
       await awardPoints(user.email, 'glow_board_post');
@@ -184,6 +188,17 @@ export default function GlowBoard() {
     <div className="min-h-screen text-white pb-24 relative overflow-y-auto" style={{ backgroundColor: '#080810' }}>
       <AppBackground />
       <div className="relative z-10 px-4 pt-4">
+
+        {/* World Banner */}
+        {worldInfo && (
+          <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5 mb-4" style={{ background: worldInfo.bgColor, border: `1px solid ${worldInfo.borderColor}` }}>
+            <span className="text-lg">{worldInfo.emoji}</span>
+            <div>
+              <p className="text-xs font-bold" style={{ color: worldInfo.color }}>{worldInfo.label}</p>
+              <p className="text-[10px] text-gray-400">Showing posts from your world</p>
+            </div>
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
