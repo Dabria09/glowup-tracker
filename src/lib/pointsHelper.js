@@ -101,6 +101,38 @@ export const CERTIFICATES = [
   },
 ];
 
+const ACTION_META = {
+  daily_checkin:     { label: 'Daily Check-In', emoji: '✦' },
+  grocery_item:      { label: 'Grocery Item Added', emoji: '🛒' },
+  scholarship_saved: { label: 'Scholarship Saved', emoji: '🎓' },
+  shoutout_given:    { label: 'Shout Out Given', emoji: '📣' },
+  contact_added:     { label: 'Contact Added', emoji: '📞' },
+  diary_entry:       { label: 'Diary Entry', emoji: '📔' },
+  sticky_note:       { label: 'Sticky Note', emoji: '📝' },
+  glow_feed_post:    { label: 'Glow Feed Post', emoji: '📸' },
+  glow_board_post:   { label: 'Glow Board Post', emoji: '🖼️' },
+  community_post:    { label: 'Community Post', emoji: '💬' },
+  vision_board_item: { label: 'Vision Board Item', emoji: '✨' },
+  recipe_added:      { label: 'Recipe Added', emoji: '🍳' },
+  kitchen_post:      { label: 'Kitchen Post', emoji: '🥘' },
+  book_club:         { label: 'Book Club Activity', emoji: '📚' },
+  fitness_log:       { label: 'Fitness Log', emoji: '💪' },
+  meal_plan_created: { label: 'Meal Plan Created', emoji: '🥗' },
+  cycle_tracked:     { label: 'Cycle Tracked', emoji: '🌸' },
+  calm_corner:       { label: 'Calm Corner Session', emoji: '🧘' },
+  spiritual_habit:   { label: 'Spiritual Habit', emoji: '🙏' },
+  gratitude_entry:   { label: 'Gratitude Entry', emoji: '💖' },
+  daily_task:        { label: 'Daily Task Completed', emoji: '✅' },
+  savings_goal:      { label: 'Savings Goal Set', emoji: '💰' },
+  job_application:   { label: 'Job Application', emoji: '💼' },
+  homework_task:     { label: 'Homework Task', emoji: '📖' },
+  lesson_completed:  { label: 'Lesson Completed', emoji: '🎓' },
+  challenge_day:     { label: 'Challenge Day', emoji: '🔥' },
+  weekly_challenge:  { label: 'Weekly Challenge', emoji: '🏅' },
+  glow_up_challenge: { label: 'Glow Up Challenge', emoji: '👑' },
+  mentor_session:    { label: 'Mentor Session', emoji: '🤝' },
+};
+
 // In-memory cache for admin-configured point values
 let _configCache = null;
 
@@ -133,14 +165,27 @@ export async function awardPoints(userEmail, action) {
         total_points: newTotal,
         last_updated: new Date().toISOString(),
       });
+      await base44.entities.PointsHistory.create({
+        user_email: userEmail, action,
+        label: ACTION_META[action]?.label || action,
+        emoji: ACTION_META[action]?.emoji || '✨',
+        points: pts, total_after: newTotal,
+      });
       return newTotal;
     } else {
+      const newTotal = pts;
       await base44.entities.UserPoints.create({
         user_email: userEmail,
-        total_points: pts,
+        total_points: newTotal,
         last_updated: new Date().toISOString(),
       });
-      return pts;
+      await base44.entities.PointsHistory.create({
+        user_email: userEmail, action,
+        label: ACTION_META[action]?.label || action,
+        emoji: ACTION_META[action]?.emoji || '✨',
+        points: pts, total_after: newTotal,
+      });
+      return newTotal;
     }
   } catch (err) {
     console.error('Error awarding points:', err);

@@ -1,0 +1,35 @@
+{
+  "name": "PointsHistory",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "action": {
+      "type": "string",
+      "title": "Action Key"
+    },
+    "label": {
+      "type": "string",
+      "title": "Activity Label"
+    },
+    "emoji": {
+      "type": "string",
+      "title": "Emoji"
+    },
+    "points": {
+      "type": "number",
+      "title": "Points Awarded"
+    },
+    "total_after": {
+      "type": "number",
+      "title": "Total Points After"
+    }
+  },
+  "required": [
+    "user_email",
+    "action",
+    "points"
+  ]
+}
