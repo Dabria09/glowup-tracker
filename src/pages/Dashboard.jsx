@@ -395,21 +395,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Meal Planner + Today's Nutrition */}
-        <div className="px-4 mb-5">
-          <button onClick={() => navigate('/meal-planner')} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-t-2xl text-left hover:opacity-90 transition" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderBottom: 'none' }}>
-            <span className="text-xl">🍽️</span>
-            <div className="flex-1">
-              <p className="font-bold text-sm text-white">Meal Planner</p>
-              <p className="text-xs text-gray-400">Plan your meals for the week</p>
-            </div>
-            <ChevronRight size={16} className="text-gray-500" />
-          </button>
-          <div style={{ borderRadius: '0 0 16px 16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', borderTop: 'none' }}>
-            <NutritionSummary compact />
-          </div>
-        </div>
-
         {/* Glow Everywhere */}
         <div className="px-4 mb-6">
           <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('glow_everywhere')}</p>
