@@ -318,16 +318,15 @@ export default function GlowScore() {
           <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">RECENT ACTIVITY</p>
           <div className="flex gap-2">
             <button 
-              onClick={() => setActiveTab('checkin')}
-              className={`flex-1 py-3 px-4 rounded-full font-semibold transition ${activeTab === 'checkin' ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-              style={activeTab === 'checkin' ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : {}}
+              onClick={() => navigate('/daily-checkin')}
+              className="flex-1 py-3 px-4 rounded-full font-semibold transition text-white"
+              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
             >
               Daily Check-In
             </button>
             <button 
-              onClick={() => setActiveTab('challenges')}
-              className={`flex-1 py-3 px-4 rounded-full font-semibold transition ${activeTab === 'challenges' ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-              style={activeTab === 'challenges' ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : {}}
+              onClick={() => navigate('/daily-challenges')}
+              className="flex-1 py-3 px-4 rounded-full font-semibold transition text-gray-400 bg-white/5"
             >
               Challenges
             </button>
