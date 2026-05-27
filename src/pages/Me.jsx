@@ -2,12 +2,24 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
-import AppBackground from '@/components/AppBackground';
 import {
   Edit3, Link2, BookOpen, Image, Quote, Briefcase, GraduationCap,
   MessageSquare, Heart, MessageCircle, LogOut, Trash2, ChevronRight,
   Shield, FileText, Users, Sparkles
 } from 'lucide-react';
+
+// Match home page color tokens exactly
+const BG = '#0d0608';
+const PINK = '#e8526d';
+const PINK_HOT = '#ff6a75';
+const PINK_DEEP = '#c44a55';
+const GOLD = '#f1b610';
+const GOLD_LT = '#fdcd2d';
+const WHITE = '#fff8f0';
+const MUTED = '#c4949e';
+const MUTED2 = '#8a6070';
+const CARD = '#1e0d12';
+const BORDER = 'rgba(232,82,109,0.2)';
 
 const AGE_GROUPS = [
   { id: 'glow_girls', emoji: '🌸', label: 'Glow Girl', ages: 'Ages 10–13', desc: 'Your glow journey starts here' },
@@ -23,6 +35,38 @@ const POST_TYPES = [
   { type: 'Gratitude', emoji: '🙏' },
 ];
 
+const MY_CONTENT = [
+  { label: 'My Diary', icon: BookOpen, route: '/diary' },
+  { label: 'My Vision Board', icon: Image, route: '/vision-board' },
+  { label: 'My Saved Quotes', icon: Quote, route: '/daily-quotes' },
+  { label: 'My Career Bookmarks', icon: Briefcase, route: '/careers' },
+  { label: 'My Saved Scholarships', icon: GraduationCap, route: '/scholarships' },
+];
+
+const MY_ACTIVITY = [
+  { label: 'My Posts', icon: MessageSquare, route: '/glow-feed' },
+  { label: 'My Reactions', icon: Heart, route: '/glow-feed' },
+  { label: 'My Comments', icon: MessageCircle, route: '/glow-feed' },
+];
+
+const SOCIAL_LINKS = [
+  { icon: '📸', label: 'Instagram', url: 'https://instagram.com/girlsglowingup', bg: 'linear-gradient(135deg,#e1306c,#833ab4)' },
+  { icon: '🎵', label: 'TikTok', url: 'https://tiktok.com/@girlsglowingup', bg: '#111' },
+  { icon: '▶️', label: 'YouTube', url: 'https://youtube.com/@girlsglowingup', bg: '#ff0000' },
+  { icon: '📘', label: 'Facebook', url: 'https://facebook.com/girlsglowingup', bg: '#1877f2' },
+  { icon: '👻', label: 'Snapchat', url: 'https://snapchat.com/add/girlsglowingup', bg: '#fffc00' },
+];
+
+const LEGAL = [
+  { label: 'Privacy Policy', icon: Shield, route: '/about' },
+  { label: 'Terms of Service', icon: FileText, route: '/guidelines' },
+  { label: 'Parental Consent (COPPA)', icon: Users, route: '/parent-dashboard' },
+];
+
+function SectionLabel({ text }) {
+  return <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUTED2, marginBottom: 8 }}>{text}</p>;
+}
+
 export default function Me() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -34,7 +78,7 @@ export default function Me() {
   const [savingStage, setSavingStage] = useState(false);
   const [postText, setPostText] = useState('');
   const [postType, setPostType] = useState('Thought');
-  const [postingThought, setPostingThought] = useState(false);
+  const [posting, setPosting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -65,9 +109,9 @@ export default function Me() {
     setSavingStage(false);
   };
 
-  const handlePostThought = async () => {
-    if (!postText.trim() || postingThought) return;
-    setPostingThought(true);
+  const handlePost = async () => {
+    if (!postText.trim() || posting) return;
+    setPosting(true);
     const post = await base44.entities.GlowUpPost.create({
       user_email: user.email,
       content: postText.trim(),
@@ -79,7 +123,7 @@ export default function Me() {
     });
     setPosts(prev => [post, ...prev]);
     setPostText('');
-    setPostingThought(false);
+    setPosting(false);
   };
 
   const handleDeletePost = async (postId) => {
@@ -87,9 +131,7 @@ export default function Me() {
     setPosts(prev => prev.filter(p => p.id !== postId));
   };
 
-  const tier = points?.total_points >= 500 ? 'Radiant' :
-    points?.total_points >= 200 ? 'Glowing' :
-    points?.total_points >= 50 ? 'Seedling' : 'Spark';
+  const tier = points?.total_points >= 500 ? 'Radiant' : points?.total_points >= 200 ? 'Glowing' : points?.total_points >= 50 ? 'Seedling' : 'Spark';
   const tierEmoji = { Radiant: '👑', Glowing: '✨', Seedling: '🌱', Spark: '⚡' }[tier];
 
   const stats = [
@@ -99,103 +141,83 @@ export default function Me() {
     { label: 'Badges', value: Math.floor((points?.total_points || 0) / 100), icon: '⭐' },
   ];
 
-  const MY_CONTENT = [
-    { label: 'My Diary', icon: BookOpen, route: '/diary' },
-    { label: 'My Vision Board', icon: Image, route: '/vision-board' },
-    { label: 'My Saved Quotes', icon: Quote, route: '/daily-quotes' },
-    { label: 'My Career Bookmarks', icon: Briefcase, route: '/careers' },
-    { label: 'My Saved Scholarships', icon: GraduationCap, route: '/scholarships' },
-  ];
-
-  const MY_ACTIVITY = [
-    { label: 'My Posts', icon: MessageSquare, route: '/glow-feed' },
-    { label: 'My Reactions', icon: Heart, route: '/glow-feed' },
-    { label: 'My Comments', icon: MessageCircle, route: '/glow-feed' },
-  ];
-
-  const SOCIAL_LINKS = [
-    { icon: '📸', label: 'Instagram', url: 'https://instagram.com/girlsglowingup', bg: 'linear-gradient(135deg,#e1306c,#833ab4)' },
-    { icon: '🎵', label: 'TikTok', url: 'https://tiktok.com/@girlsglowingup', bg: '#111' },
-    { icon: '▶️', label: 'YouTube', url: 'https://youtube.com/@girlsglowingup', bg: '#ff0000' },
-    { icon: '📘', label: 'Facebook', url: 'https://facebook.com/girlsglowingup', bg: '#1877f2' },
-    { icon: '👻', label: 'Snapchat', url: 'https://snapchat.com/add/girlsglowingup', bg: '#fffc00' },
-  ];
-
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0d0018 0%, #1a0030 50%, #0d0018 100%)' }}>
-      <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" />
+    <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="w-8 h-8 border-4 border-red-900 border-t-pink-500 rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen text-white pb-28 relative overflow-y-auto" style={{ background: 'linear-gradient(160deg, #0d0018 0%, #1a0030 40%, #0d001a 100%)' }}>
-      <AppBackground />
-      <div className="relative z-10">
+    <div style={{ minHeight: '100vh', background: BG, color: WHITE, fontFamily: '"DM Sans","Inter",sans-serif', paddingBottom: 110, overflowX: 'hidden' }}>
+      {/* Orbs */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute rounded-full" style={{ width: 600, height: 600, background: `radial-gradient(circle, rgba(232,82,109,0.35), transparent 70%)`, top: -250, left: -180, filter: 'blur(100px)' }} />
+        <div className="absolute rounded-full" style={{ width: 400, height: 400, background: `radial-gradient(circle, rgba(241,182,16,0.2), transparent 70%)`, top: '35%', right: -150, filter: 'blur(100px)' }} />
+        <div className="absolute rounded-full" style={{ width: 350, height: 350, background: `radial-gradient(circle, rgba(196,74,85,0.18), transparent 70%)`, bottom: '10%', left: '10%', filter: 'blur(100px)' }} />
+      </div>
+      {/* Hearts pattern */}
+      <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 34 C11 25 4 18 4 11 C4 7 7.5 3.5 12 3.5 C15.5 3.5 18.5 5.5 22 9 C25.5 5.5 28.5 3.5 32 3.5 C36.5 3.5 40 7 40 11 C40 18 33 25 22 34Z' fill='%23e8526d' opacity='0.04'/%3E%3C/svg%3E\")", backgroundSize: '44px 44px' }} />
+
+      <div className="relative z-10 px-4">
 
         {/* Points badge */}
-        <div className="flex justify-end px-4 pt-3 pb-1">
-          <button onClick={() => navigate('/glow-score')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold" style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#fbbf24' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 12, paddingBottom: 4 }}>
+          <button onClick={() => navigate('/glow-score')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(241,182,16,0.1)', border: '1.5px solid rgba(241,182,16,0.35)', color: GOLD_LT, fontSize: 12, fontWeight: 700, padding: '6px 12px', borderRadius: 20, cursor: 'pointer' }}>
             🏅 {points?.total_points?.toLocaleString() || 0} pts
           </button>
         </div>
 
-        {/* Profile Header Card */}
-        <div className="px-4 pb-4">
-          <div className="rounded-3xl p-5" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(236,72,153,0.1))', border: '1px solid rgba(168,85,247,0.25)' }}>
-            <div className="flex items-center gap-4 mb-4">
-              <div
-                onClick={() => navigate('/avatar')}
-                className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 cursor-pointer"
-                style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)', boxShadow: '0 0 20px rgba(236,72,153,0.4)' }}
-              >
-                {profile?.avatar_url
-                  ? <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-3xl font-bold">{user?.full_name?.[0] || 'G'}</div>}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-bold text-white">{user?.full_name}</h1>
-                <p className="text-sm text-gray-400">@{profile?.username || user?.email?.split('@')[0]}</p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-sm">{tierEmoji}</span>
-                  <span className="text-xs font-semibold text-pink-300">{tier}</span>
-                  <span className="text-gray-600 text-xs">·</span>
-                  <span className="text-xs text-yellow-400 font-semibold">{points?.total_points || 0} pts</span>
-                </div>
+        {/* Profile Header */}
+        <div style={{ background: 'linear-gradient(135deg, rgba(232,82,109,0.12), rgba(196,74,85,0.07))', border: `1px solid ${BORDER}`, borderRadius: 24, padding: 20, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+            <div onClick={() => navigate('/avatar')} style={{ width: 80, height: 80, borderRadius: 18, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, boxShadow: `0 0 24px rgba(232,82,109,0.45)`, overflow: 'hidden', flexShrink: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 900 }}>
+              {profile?.avatar_url ? <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (user?.full_name?.[0] || 'G')}
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontWeight: 700, fontSize: 20, color: WHITE, margin: 0 }}>{user?.full_name}</p>
+              <p style={{ fontSize: 13, color: MUTED, margin: '2px 0 0' }}>@{profile?.username || user?.email?.split('@')[0]}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                <span>{tierEmoji}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#ffb2c0' }}>{tier}</span>
+                <span style={{ color: MUTED2 }}>·</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: GOLD_LT }}>{points?.total_points || 0} pts</span>
               </div>
             </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <button onClick={() => navigate('/my-glow-link')} className="flex items-center justify-center gap-2 py-2.5 rounded-2xl font-bold text-sm text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-                <Edit3 size={15} /> Edit Profile
-              </button>
-              <button onClick={() => navigate('/my-glow-link')} className="flex items-center justify-center gap-2 py-2.5 rounded-2xl font-semibold text-sm" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#d1d5db' }}>
-                <Link2 size={15} /> Glow Link
-              </button>
-            </div>
+          {/* Action buttons */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+            <button onClick={() => navigate('/my-glow-link')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK}, ${PINK_HOT})`, color: '#fff', fontWeight: 800, fontSize: 14, padding: '11px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: `0 4px 16px rgba(232,82,109,0.4)` }}>
+              <Edit3 size={15} /> Edit Profile
+            </button>
+            <button onClick={() => navigate('/my-glow-link')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: 'rgba(241,182,16,0.08)', border: '1.5px solid rgba(241,182,16,0.35)', color: GOLD_LT, fontWeight: 700, fontSize: 14, padding: '11px', borderRadius: 14, cursor: 'pointer' }}>
+              <Link2 size={15} /> Glow Link
+            </button>
+          </div>
 
-            <div className="grid grid-cols-4 gap-2">
-              {stats.map(s => (
-                <div key={s.label} className="text-center p-2.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                  <p className="text-lg mb-0.5">{s.icon}</p>
-                  <p className="font-bold text-white text-base">{s.value}</p>
-                  <p className="text-[10px] text-gray-400">{s.label}</p>
-                </div>
-              ))}
-            </div>
+          {/* Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+            {stats.map(s => (
+              <div key={s.label} style={{ textAlign: 'center', padding: '10px 4px', borderRadius: 14, background: 'rgba(0,0,0,0.35)', border: `1px solid ${BORDER}` }}>
+                <p style={{ fontSize: 18, margin: '0 0 2px' }}>{s.icon}</p>
+                <p style={{ fontWeight: 800, fontSize: 17, color: WHITE, margin: '0 0 1px' }}>{s.value}</p>
+                <p style={{ fontSize: 10, color: MUTED2, margin: 0 }}>{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* My Content */}
-        <div className="px-4 mb-4">
-          <p className="text-[11px] font-bold tracking-widest text-gray-500 mb-2">MY CONTENT</p>
-          <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ marginBottom: 16 }}>
+          <SectionLabel text="My Content" />
+          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, overflow: 'hidden' }}>
             {MY_CONTENT.map((item, i) => {
               const Icon = item.icon;
               return (
-                <button key={item.label} onClick={() => navigate(item.route)} className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/5 transition text-left ${i < MY_CONTENT.length - 1 ? 'border-b border-white/5' : ''}`}>
-                  <Icon size={16} className="text-gray-400 flex-shrink-0" />
-                  <span className="text-sm text-gray-200 flex-1">{item.label}</span>
-                  <ChevronRight size={14} className="text-gray-600" />
+                <button key={item.label} onClick={() => navigate(item.route)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', borderBottom: i < MY_CONTENT.length - 1 ? `1px solid ${BORDER}` : 'none', cursor: 'pointer', textAlign: 'left' }}>
+                  <Icon size={16} style={{ color: MUTED, flexShrink: 0 }} />
+                  <span style={{ flex: 1, fontSize: 14, color: WHITE }}>{item.label}</span>
+                  <ChevronRight size={14} style={{ color: MUTED2 }} />
                 </button>
               );
             })}
@@ -203,16 +225,16 @@ export default function Me() {
         </div>
 
         {/* My Activity */}
-        <div className="px-4 mb-4">
-          <p className="text-[11px] font-bold tracking-widest text-gray-500 mb-2">MY ACTIVITY</p>
-          <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ marginBottom: 16 }}>
+          <SectionLabel text="My Activity" />
+          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, overflow: 'hidden' }}>
             {MY_ACTIVITY.map((item, i) => {
               const Icon = item.icon;
               return (
-                <button key={item.label} onClick={() => navigate(item.route)} className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/5 transition text-left ${i < MY_ACTIVITY.length - 1 ? 'border-b border-white/5' : ''}`}>
-                  <Icon size={16} className="text-gray-400 flex-shrink-0" />
-                  <span className="text-sm text-gray-200 flex-1">{item.label}</span>
-                  <ChevronRight size={14} className="text-gray-600" />
+                <button key={item.label} onClick={() => navigate(item.route)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', borderBottom: i < MY_ACTIVITY.length - 1 ? `1px solid ${BORDER}` : 'none', cursor: 'pointer', textAlign: 'left' }}>
+                  <Icon size={16} style={{ color: MUTED, flexShrink: 0 }} />
+                  <span style={{ flex: 1, fontSize: 14, color: WHITE }}>{item.label}</span>
+                  <ChevronRight size={14} style={{ color: MUTED2 }} />
                 </button>
               );
             })}
@@ -220,13 +242,13 @@ export default function Me() {
         </div>
 
         {/* Thread / Photos Tabs */}
-        <div className="px-4 mb-4">
-          <div className="flex border-b border-white/10 mb-4">
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', borderBottom: `1px solid ${BORDER}`, marginBottom: 16 }}>
             {[{ id: 'thread', label: 'My Thread', icon: MessageSquare }, { id: 'photos', label: 'My Photos', icon: Image }].map(tab => {
               const Icon = tab.icon;
+              const active = activeTab === tab.id;
               return (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 pb-3 text-sm font-semibold transition border-b-2 flex items-center justify-center gap-1.5 ${activeTab === tab.id ? 'text-pink-400 border-pink-400' : 'text-gray-500 border-transparent'}`}>
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, paddingBottom: 12, fontSize: 14, fontWeight: 600, background: 'none', border: 'none', borderBottom: `2px solid ${active ? PINK : 'transparent'}`, color: active ? PINK_HOT : MUTED2, cursor: 'pointer' }}>
                   <Icon size={14} /> {tab.label}
                 </button>
               );
@@ -234,40 +256,42 @@ export default function Me() {
           </div>
 
           {activeTab === 'thread' && (
-            <div className="space-y-3">
-              <div className="flex gap-2 overflow-x-auto pb-1">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Post type chips */}
+              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
                 {POST_TYPES.map(({ type, emoji }) => (
-                  <button key={type} onClick={() => setPostType(type)}
-                    className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition"
-                    style={postType === type ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)', color: '#fff' } : { background: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <button key={type} onClick={() => setPostType(type)} style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: postType === type ? `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})` : 'rgba(232,82,109,0.07)', color: postType === type ? '#fff' : MUTED, border: postType === type ? 'none' : `1px solid ${BORDER}`, boxShadow: postType === type ? `0 2px 8px rgba(232,82,109,0.35)` : 'none' }}>
                     {emoji} {type}
                   </button>
                 ))}
               </div>
-              <div className="rounded-2xl p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <textarea value={postText} onChange={e => setPostText(e.target.value)} placeholder="Share a thought, win, goal, or mood..." className="w-full bg-transparent text-sm text-white placeholder-gray-600 outline-none resize-none min-h-16" />
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-gray-600">{postText.length}/500</span>
-                  <button onClick={handlePostThought} disabled={!postText.trim() || postingThought} className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white disabled:opacity-40" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-                    {postingThought ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : '➤'} Post
+
+              {/* Post input */}
+              <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 12 }}>
+                <textarea value={postText} onChange={e => setPostText(e.target.value)} placeholder="Share a thought, win, goal, or mood..." style={{ width: '100%', background: 'transparent', border: 'none', color: WHITE, fontSize: 14, outline: 'none', resize: 'none', minHeight: 64, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+                  <span style={{ fontSize: 11, color: MUTED2 }}>{postText.length}/500</span>
+                  <button onClick={handlePost} disabled={!postText.trim() || posting} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', border: 'none', cursor: 'pointer', opacity: (!postText.trim() || posting) ? 0.4 : 1 }}>
+                    {posting ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : '➤'} Post
                   </button>
                 </div>
               </div>
+
               {posts.length === 0 ? (
-                <p className="text-center py-8 text-gray-500 text-sm">No posts yet. Share your first thought! ✨</p>
+                <p style={{ textAlign: 'center', padding: '32px 0', color: MUTED2, fontSize: 14 }}>No posts yet. Share your first thought! ✨</p>
               ) : (
                 posts.map(post => (
-                  <div key={post.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(236,72,153,0.2)', color: '#f9a8d4' }}>
+                  <div key={post.id} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(232,82,109,0.15)', border: `1px solid ${BORDER}`, color: '#ffb2c0' }}>
                         💭 {post.post_type || 'Thought'}
                       </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-gray-500">{new Date(post.created_date).toLocaleDateString()}</span>
-                        <button onClick={() => handleDeletePost(post.id)} className="text-gray-600 hover:text-red-400 transition"><Trash2 size={13} /></button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 10, color: MUTED2 }}>{new Date(post.created_date).toLocaleDateString()}</span>
+                        <button onClick={() => handleDeletePost(post.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED2 }}><Trash2 size={13} /></button>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-200">{post.content}</p>
+                    <p style={{ fontSize: 14, color: WHITE, margin: 0 }}>{post.content}</p>
                   </div>
                 ))
               )}
@@ -275,10 +299,10 @@ export default function Me() {
           )}
 
           {activeTab === 'photos' && (
-            <div className="text-center py-12 space-y-3">
-              <div className="text-5xl">📸</div>
-              <p className="text-sm text-gray-400">Add up to 5 photos to your profile gallery</p>
-              <button onClick={() => navigate('/my-glow-link')} className="px-5 py-2.5 rounded-full text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+            <div style={{ textAlign: 'center', padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <div style={{ fontSize: 48 }}>📸</div>
+              <p style={{ fontSize: 14, color: MUTED }}>Add up to 5 photos to your profile gallery</p>
+              <button onClick={() => navigate('/my-glow-link')} style={{ padding: '10px 24px', borderRadius: 20, fontSize: 14, fontWeight: 700, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', border: 'none', cursor: 'pointer', boxShadow: `0 4px 16px rgba(232,82,109,0.4)` }}>
                 + Add Your First Photo
               </button>
             </div>
@@ -286,109 +310,89 @@ export default function Me() {
         </div>
 
         {/* My Glow Stage */}
-        <div className="px-4 mb-4">
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles size={15} className="text-pink-400" />
-              <p className="text-sm font-bold text-white">My Glow Stage</p>
-            </div>
-            <p className="text-xs text-gray-500 mb-3">Personalize your app experience for your life stage</p>
-            <div className="space-y-2">
-              {AGE_GROUPS.map(group => {
-                const isActive = profile?.age_group === group.id;
-                return (
-                  <button key={group.id} onClick={() => handleStageChange(group.id)} disabled={savingStage}
-                    className="w-full flex items-center gap-3 p-3 rounded-2xl transition text-left"
-                    style={isActive ? { background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.4)' } : { background: 'transparent', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span className="text-xl">{group.emoji}</span>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-white">{group.label}</p>
-                      <p className="text-xs text-gray-500">{group.ages} · {group.desc}</p>
-                    </div>
-                    {isActive && <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(236,72,153,0.3)', color: '#f9a8d4' }}>Active</span>}
-                  </button>
-                );
-              })}
-            </div>
+        <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, padding: 16, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <Sparkles size={15} style={{ color: PINK }} />
+            <p style={{ fontWeight: 700, fontSize: 14, color: WHITE, margin: 0 }}>My Glow Stage</p>
+          </div>
+          <p style={{ fontSize: 12, color: MUTED2, marginBottom: 12 }}>Personalize your app experience for your life stage</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {AGE_GROUPS.map(group => {
+              const isActive = profile?.age_group === group.id;
+              return (
+                <button key={group.id} onClick={() => handleStageChange(group.id)} disabled={savingStage} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 14, background: isActive ? 'rgba(232,82,109,0.12)' : 'rgba(0,0,0,0.2)', border: isActive ? `1px solid ${PINK}` : `1px solid ${BORDER}`, cursor: 'pointer', textAlign: 'left' }}>
+                  <span style={{ fontSize: 20 }}>{group.emoji}</span>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontWeight: 600, fontSize: 13, color: WHITE, margin: 0 }}>{group.label}</p>
+                    <p style={{ fontSize: 11, color: MUTED2, margin: 0 }}>{group.ages} · {group.desc}</p>
+                  </div>
+                  {isActive && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(232,82,109,0.25)', border: `1px solid ${BORDER}`, color: '#ffb2c0' }}>Active</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Sign Out */}
-        <div className="px-4 mb-4">
-          <button onClick={async () => { if (window.confirm('Sign out?')) await base44.auth.logout('/'); }}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+        <div style={{ marginBottom: 16 }}>
+          <button onClick={async () => { if (window.confirm('Sign out?')) await base44.auth.logout('/'); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', borderRadius: 16, background: CARD, border: `1px solid ${BORDER}`, color: MUTED, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
             <LogOut size={16} /> Sign Out
           </button>
         </div>
 
         {/* Follow Us */}
-        <div className="px-4 mb-4">
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-sm font-bold text-white mb-1">Follow Us 💜</p>
-            <p className="text-xs text-gray-500 mb-3">Tap to visit our pages — no account connection, no data sharing</p>
-            <div className="flex gap-3 justify-center flex-wrap">
-              {SOCIAL_LINKS.map(s => (
-                <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-1">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl" style={{ background: s.bg }}>{s.icon}</div>
-                  <span className="text-[9px] text-gray-500">{s.label}</span>
-                </a>
-              ))}
-            </div>
+        <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, padding: 16, marginBottom: 16 }}>
+          <p style={{ fontWeight: 700, fontSize: 14, color: WHITE, margin: '0 0 2px' }}>Follow Us 💜</p>
+          <p style={{ fontSize: 12, color: MUTED2, margin: '0 0 12px' }}>Tap to visit our pages — no account connection, no data sharing</p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            {SOCIAL_LINKS.map(s => (
+              <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{s.icon}</div>
+                <span style={{ fontSize: 9, color: MUTED2 }}>{s.label}</span>
+              </a>
+            ))}
           </div>
         </div>
 
         {/* Help and Support */}
-        <div className="px-4 mb-4">
-          <p className="text-[11px] font-bold tracking-widest text-gray-500 mb-2">HELP AND SUPPORT</p>
-          <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <button onClick={() => navigate('/support')} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/5 transition text-left">
-              <MessageCircle size={16} className="text-gray-400" />
-              <div className="flex-1">
-                <p className="text-sm text-gray-200">Contact Support</p>
-                <p className="text-xs text-gray-500">Report a bug or get help</p>
+        <div style={{ marginBottom: 16 }}>
+          <SectionLabel text="Help and Support" />
+          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, overflow: 'hidden' }}>
+            <button onClick={() => navigate('/support')} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+              <MessageCircle size={16} style={{ color: MUTED, flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 14, color: WHITE, margin: 0 }}>Contact Support</p>
+                <p style={{ fontSize: 11, color: MUTED2, margin: 0 }}>Report a bug or get help</p>
               </div>
-              <ChevronRight size={14} className="text-gray-600" />
+              <ChevronRight size={14} style={{ color: MUTED2 }} />
             </button>
           </div>
         </div>
 
         {/* Legal and Privacy */}
-        <div className="px-4 mb-4">
-          <p className="text-[11px] font-bold tracking-widest text-gray-500 mb-2">LEGAL AND PRIVACY</p>
-          <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            {[
-              { label: 'Privacy Policy', icon: Shield, route: '/about' },
-              { label: 'Terms of Service', icon: FileText, route: '/guidelines' },
-              { label: 'Parental Consent (COPPA)', icon: Users, route: '/parent-dashboard' },
-            ].map((item, i) => {
+        <div style={{ marginBottom: 16 }}>
+          <SectionLabel text="Legal and Privacy" />
+          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, overflow: 'hidden' }}>
+            {LEGAL.map((item, i) => {
               const Icon = item.icon;
               return (
-                <button key={item.label} onClick={() => navigate(item.route)} className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/5 transition text-left ${i < 2 ? 'border-b border-white/5' : ''}`}>
-                  <Icon size={15} className="text-gray-400 flex-shrink-0" />
-                  <span className="text-sm text-gray-200 flex-1">{item.label}</span>
-                  <ChevronRight size={14} className="text-gray-600" />
+                <button key={item.label} onClick={() => navigate(item.route)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', borderBottom: i < LEGAL.length - 1 ? `1px solid ${BORDER}` : 'none', cursor: 'pointer', textAlign: 'left' }}>
+                  <Icon size={15} style={{ color: MUTED, flexShrink: 0 }} />
+                  <span style={{ flex: 1, fontSize: 14, color: WHITE }}>{item.label}</span>
+                  <ChevronRight size={14} style={{ color: MUTED2 }} />
                 </button>
               );
             })}
           </div>
-          <p className="text-center text-[10px] text-gray-600 mt-3">2025 Girls Glowing Up LLC. All rights reserved.</p>
+          <p style={{ textAlign: 'center', fontSize: 10, color: 'rgba(196,148,158,0.35)', marginTop: 10 }}>2025 Girls Glowing Up LLC. All rights reserved.</p>
         </div>
 
         {/* Danger Zone */}
-        <div className="px-4 mb-6">
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)' }}>
-            <p className="text-sm font-bold text-red-400 mb-1">DANGER ZONE</p>
-            <p className="text-xs text-gray-500 mb-3">Permanently delete your account and all associated data. This action cannot be undone.</p>
-            <button
-              onClick={async () => {
-                if (!window.confirm('Are you absolutely sure? This will permanently delete your account.')) return;
-                if (profile) await base44.entities.UserProfile.delete(profile.id);
-                await base44.auth.logout('/');
-              }}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm text-white"
-              style={{ background: 'linear-gradient(135deg, #dc2626, #991b1b)' }}
-            >
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ background: 'rgba(196,74,85,0.07)', border: '1px solid rgba(196,74,85,0.3)', borderRadius: 18, padding: 16 }}>
+            <p style={{ fontWeight: 700, fontSize: 13, color: '#f87171', margin: '0 0 4px' }}>DANGER ZONE</p>
+            <p style={{ fontSize: 12, color: MUTED2, margin: '0 0 12px' }}>Permanently delete your account and all data. Cannot be undone.</p>
+            <button onClick={async () => { if (!window.confirm('Delete account permanently?')) return; if (profile) await base44.entities.UserProfile.delete(profile.id); await base44.auth.logout('/'); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 14, background: 'linear-gradient(135deg, #dc2626, #991b1b)', color: '#fff', fontSize: 14, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
               <Trash2 size={15} /> Delete My Account
             </button>
           </div>
