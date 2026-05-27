@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity } from 'lucide-react';
+import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 
 import OverviewTab from '@/components/admin/OverviewTab';
@@ -21,6 +21,7 @@ import TeamsAdminTab from '@/components/admin/TeamsAdminTab';
 import SettingsTab from '@/components/admin/SettingsTab';
 import AnalyticsTab from '@/components/admin/AnalyticsTab';
 import PointsRewards from '@/components/admin/PointsRewards';
+import CodesTab from '@/components/admin/CodesTab';
 
 const TABS = [
   { id: 'overview',    label: 'Overview',         icon: BarChart2 },
@@ -40,6 +41,7 @@ const TABS = [
   { id: 'settings',    label: 'Settings',          icon: Settings },
   { id: 'analytics',   label: 'Analytics',         icon: Activity },
   { id: 'points',      label: 'Points & Rewards',  icon: BarChart2 },
+  { id: 'codes',       label: 'Join Codes',         icon: Tag },
 ];
 
 export default function AdminPanel() {
@@ -81,6 +83,7 @@ export default function AdminPanel() {
       case 'settings':   return <SettingsTab />;
       case 'analytics':  return <AnalyticsTab />;
       case 'points':     return <PointsRewards />;
+      case 'codes':      return <CodesTab />;
       default:           return <OverviewTab />;
     }
   };

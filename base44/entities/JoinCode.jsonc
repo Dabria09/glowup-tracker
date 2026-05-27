@@ -1,0 +1,69 @@
+{
+  "name": "JoinCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "title": "Code"
+    },
+    "label": {
+      "type": "string",
+      "title": "Label / Purpose"
+    },
+    "code_type": {
+      "type": "string",
+      "title": "Code Type",
+      "enum": [
+        "general",
+        "group",
+        "event",
+        "challenge",
+        "promo"
+      ],
+      "default": "general"
+    },
+    "group_id": {
+      "type": "string",
+      "title": "Group ID (optional)"
+    },
+    "group_name": {
+      "type": "string",
+      "title": "Group Name (optional)"
+    },
+    "max_uses": {
+      "type": "number",
+      "title": "Max Uses (0 = unlimited)",
+      "default": 0
+    },
+    "current_uses": {
+      "type": "number",
+      "title": "Current Uses",
+      "default": 0
+    },
+    "valid_from": {
+      "type": "string",
+      "title": "Valid From (date)"
+    },
+    "valid_until": {
+      "type": "string",
+      "title": "Valid Until (date)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Created By"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "code",
+    "code_type"
+  ]
+}
