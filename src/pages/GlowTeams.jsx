@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Search, Plus, Users, Trophy, Flame, MessageCircle, Trash2 } from 'lucide-react';
+import useAgeGroup from '@/lib/useAgeGroup';
 
 const TEAM_CATEGORIES = [
   { id: 'all', label: 'All', emoji: '🌟' },
@@ -28,6 +29,7 @@ const SAMPLE_TEAMS = [
 
 export default function GlowTeams() {
   const navigate = useNavigate();
+  const { ageGroup, worldInfo, filterForWorld } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -56,7 +58,7 @@ export default function GlowTeams() {
             base44.entities.TeamContest.filter({ status: 'active' })
           ]);
           
-          if (allTeams.length > 0) setTeams(allTeams);
+          if (allTeams.length > 0) setTeams(filterForWorld(allTeams));
           setMyTeams(myMemberships);
           if (contests.length > 0) setActiveContest(contests[0]);
         }
@@ -92,6 +94,7 @@ export default function GlowTeams() {
         contest_entries: 0,
         current_streak: 0,
         challenges_completed: 0,
+        age_group: ageGroup || undefined,
       });
       setShowCreateModal(false);
       setNewTeam({ name: '', description: '', category: 'Lifestyle & Vibes', emoji: '✨' });
@@ -145,6 +148,17 @@ export default function GlowTeams() {
     <div className="min-h-screen text-white pb-24 relative overflow-y-auto" style={{ backgroundColor: '#080810' }}>
       <AppBackground />
       <div className="relative z-10 px-4 pt-4">
+
+        {/* World Banner */}
+        {worldInfo && (
+          <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5 mb-4" style={{ background: worldInfo.bgColor, border: `1px solid ${worldInfo.borderColor}` }}>
+            <span className="text-lg">{worldInfo.emoji}</span>
+            <div>
+              <p className="text-xs font-bold" style={{ color: worldInfo.color }}>{worldInfo.label}</p>
+              <p className="text-[10px] text-gray-400">Teams in your world only</p>
+            </div>
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">

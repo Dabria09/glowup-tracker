@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Plus, Users, MapPin, Building2, School, Heart, MessageCircle, Search } from 'lucide-react';
+import useAgeGroup from '@/lib/useAgeGroup';
 
 const COMMUNITY_TYPES = [
   { id: 'school', label: 'School', emoji: '🏫', icon: School, color: '#ec4899' },
@@ -21,6 +22,7 @@ const FEATURED_COMMUNITIES = [
 
 export default function CommunityHub() {
   const navigate = useNavigate();
+  const { ageGroup, worldInfo, filterForWorld } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [myCommunities, setMyCommunities] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -33,7 +35,8 @@ export default function CommunityHub() {
       setUser(u);
       // Fetch all communities
       base44.entities.Community.filter({}).then(comms => {
-        setAllCommunities(comms);
+        const worldComms = filterForWorld(comms);
+        setAllCommunities(worldComms);
         // Set my communities (where user is member)
         base44.entities.CommunityMember.filter({ user_email: u.email }).then(memberships => {
           const myCommIds = memberships.map(m => m.community_id);
@@ -52,6 +55,7 @@ export default function CommunityHub() {
       created_by: user.email,
       member_count: 1,
       is_public: true,
+      age_group: ageGroup || undefined,
     });
     setMyCommunities(prev => [...prev, community]);
     setNewCommunity({ name: '', type: 'school', description: '' });
@@ -62,6 +66,17 @@ export default function CommunityHub() {
     <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
       <AppBackground />
       <div className="relative z-10">
+        {/* World Banner */}
+        {worldInfo && (
+          <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5 mx-4 mt-4" style={{ background: worldInfo.bgColor, border: `1px solid ${worldInfo.borderColor}` }}>
+            <span className="text-lg">{worldInfo.emoji}</span>
+            <div>
+              <p className="text-xs font-bold" style={{ color: worldInfo.color }}>{worldInfo.label}</p>
+              <p className="text-[10px] text-gray-400">Communities in your world only</p>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="px-4 pt-4 pb-4">
           <div className="flex items-center gap-2 mb-3">
