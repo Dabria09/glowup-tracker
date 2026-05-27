@@ -11,12 +11,11 @@ export default function OverviewTab() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [usersRes, pointsHistory, points, diary, checkIns] = await Promise.all([
+        const [usersRes, pointsHistory, diary, checkIns] = await Promise.all([
           base44.functions.invoke('getAdminUsers', {}),
-          base44.entities.PointsHistory.list('-created_date', 500),
-          base44.entities.UserPoints.list(),
-          base44.entities.DiaryEntry.list(),
-          base44.entities.DailyTask.filter({ is_completed: true }),
+          base44.entities.PointsHistory.list('-created_date', 2000),
+          base44.entities.DiaryEntry.list('-created_date', 2000),
+          base44.entities.DailyTask.filter({ is_completed: true }, '-created_date', 2000),
         ]);
 
         const allUsers = usersRes.data?.users || [];
@@ -31,7 +30,8 @@ export default function OverviewTab() {
           pointsHistory.filter(p => p.created_date && new Date(p.created_date).getTime() >= weekAgoMs).map(p => p.user_email)
         );
 
-        const totalPts = points.reduce((s, p) => s + (p.total_points || 0), 0);
+        // Sum all points from PointsHistory (no 50-record cap risk)
+        const totalPts = pointsHistory.reduce((s, p) => s + (p.points || 0), 0);
 
         setStats({
           totalUsers: allUsers.length,
@@ -42,9 +42,9 @@ export default function OverviewTab() {
           diaryEntries: diary.length,
         });
 
-        // Activity breakdown from PointsHistory categories
+        // Activity breakdown from PointsHistory actions
         const moodMap = {};
-        pointsHistory.slice(0, 300).forEach(p => {
+        pointsHistory.forEach(p => {
           if (p.action) moodMap[p.action] = (moodMap[p.action] || 0) + 1;
         });
         const sorted = Object.entries(moodMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
