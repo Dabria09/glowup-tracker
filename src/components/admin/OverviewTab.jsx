@@ -11,12 +11,14 @@ export default function OverviewTab() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [usersRes, pointsHistory, diary, checkIns] = await Promise.all([
+        const [usersRes, pointsHistory, diary] = await Promise.all([
           base44.functions.invoke('getAdminUsers', {}),
           base44.entities.PointsHistory.list('-created_date', 2000),
           base44.entities.DiaryEntry.list('-created_date', 2000),
-          base44.entities.DailyTask.filter({ is_completed: true }, '-created_date', 2000),
         ]);
+
+        // Daily check-ins are DiaryEntry records tagged 'daily-checkin'
+        const checkIns = diary.filter(e => e.tags && e.tags.includes('daily-checkin'));
 
         const allUsers = usersRes.data?.users || [];
         const today = new Date().toISOString().split('T')[0];
