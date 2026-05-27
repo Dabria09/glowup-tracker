@@ -313,6 +313,22 @@ export default function GlowScore() {
           </div>
         </div>
 
+        {/* Glow Store CTA */}
+        <div className="mb-6 rounded-3xl p-5 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,rgba(241,182,16,0.12),rgba(232,82,109,0.08))', border: '1px solid rgba(241,182,16,0.3)' }}>
+          <div>
+            <p className="text-xs font-bold tracking-widest mb-1" style={{ color: '#fdcd2d' }}>GLOW STORE™</p>
+            <p className="text-sm font-bold text-white">Spend your points!</p>
+            <p className="text-xs text-gray-400">Unlock frames, titles, badges & themes</p>
+          </div>
+          <button
+            onClick={() => navigate('/glow-store')}
+            className="flex-shrink-0 flex items-center gap-1.5 font-bold px-4 py-2.5 rounded-full transition-all hover:-translate-y-0.5"
+            style={{ background: 'linear-gradient(135deg,#f1b610,#ffe75c)', color: '#1a0a00', fontSize: 13, border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(241,182,16,0.4)' }}
+          >
+            🛍️ Shop
+          </button>
+        </div>
+
         {/* Recent Activity */}
         <div className="mb-4">
           <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">RECENT ACTIVITY</p>
