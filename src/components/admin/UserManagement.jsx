@@ -5,7 +5,7 @@ import { Search, ShieldOff, Shield, AlertTriangle, X, RefreshCw } from 'lucide-r
 const AGE_GROUP_LABELS = {
   glow_girls: { label: 'Glow Girls', emoji: '🌸', color: '#ec4899' },
   glow_teens: { label: 'Glow Teens', emoji: '✨', color: '#a855f7' },
-  glow_women: { label: 'Glow Women', emoji: '👑', color: '#f59e0b' },
+  glow_women: { label: 'Glow Women', icon: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/68085ba5f_generated_image.png', color: '#f59e0b' },
 };
 
 const ROLES = ['user', 'admin'];
@@ -257,6 +257,11 @@ export default function UserManagement() {
                       {ROLES.map(r => <option key={r} value={r} style={{ background: '#1a0a2e' }}>{r}</option>)}
                     </select>
 
+                    {profile?.age_group === 'glow_women' && (
+                      <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#f59e0b20', border: '1px solid #f59e0b50', color: '#f59e0b' }}>
+                        <img src="https://media.base44.com/images/public/6a0e12a89992f9565c11e330/68085ba5f_generated_image.png" alt="Glow Women" className="w-3.5 h-3.5 rounded-full object-cover" /> Glow Women
+                      </span>
+                    )}
                     <select
                       value={profile?.age_group || ''}
                       onChange={e => handleAgeGroupChange(u.email, e.target.value)}
