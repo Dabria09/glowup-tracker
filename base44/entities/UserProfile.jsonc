@@ -16,7 +16,7 @@
     },
     "age_group": {
       "type": "string",
-      "title": "Age Group",
+      "title": "Age Group / World",
       "enum": [
         "glow_girls",
         "glow_teens",
@@ -94,6 +94,16 @@
     "links": {
       "type": "string",
       "title": "Custom Links (JSON array)"
+    },
+    "owned_store_items": {
+      "type": "string",
+      "title": "Owned Store Items (JSON array)",
+      "default": "[]"
+    },
+    "equipped_store_items": {
+      "type": "string",
+      "title": "Equipped Store Items (JSON array)",
+      "default": "[]"
     }
   },
   "required": []

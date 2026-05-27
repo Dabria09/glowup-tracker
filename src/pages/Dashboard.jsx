@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useAgeGroup from '@/lib/useAgeGroup';
 import useTranslation from '@/lib/useTranslation';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { base44 } from '@/api/base44Client';
@@ -79,6 +80,7 @@ const patternStyle = (pattern, bgImage, bgImagePos = { x: 50, y: 50 }) => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { worldInfo } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [avatarConfig, setAvatarConfig] = useState(null);
@@ -161,8 +163,15 @@ export default function Dashboard() {
       )}
       {/* Content above overlays */}
       <div className="relative z-10">
-      {/* Points badge */}
-      <div className="flex justify-end px-4 pt-3">
+      {/* World + Points row */}
+      <div className="flex items-center justify-between px-4 pt-3">
+        {worldInfo && (
+          <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold" style={{ background: worldInfo.bgColor, border: `1px solid ${worldInfo.borderColor}`, color: worldInfo.color }}>
+            <span>{worldInfo.emoji}</span>
+            <span>{worldInfo.label}</span>
+          </div>
+        )}
+        <div className="flex-1" />
         <button onClick={() => navigate('/glow-score')} className="flex items-center gap-1 glass rounded-full px-3 py-1 text-xs font-bold hover:opacity-80 transition">
           <span>🏅</span><span className="text-yellow-400">{totalPoints.toLocaleString()} {t('points')}</span><span className="text-gray-500 ml-1">›</span>
         </button>
