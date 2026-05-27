@@ -24,6 +24,8 @@ export default function ChallengeLeaderboard() {
   const [weeklyLeaders, setWeeklyLeaders] = useState([]);
   const [teams, setTeams] = useState([]);
   const [circle, setCircle] = useState([]);
+  const [squads, setSquads] = useState([]);
+  const [mySquadId, setMySquadId] = useState(null);
   
   // Airtable configuration - update these with your actual values
   const AIRTABLE_BASE_ID = 'appYOUR_BASE_ID'; // Replace with your Airtable base ID
@@ -139,12 +141,48 @@ export default function ChallengeLeaderboard() {
         console.error('Error loading leaderboard from Airtable:', error);
         setLoading(false);
       }
+
+      // --- Squad Leaderboard: aggregate UserPoints by GlowSquad ---
+      try {
+        const [allSquads, allSquadMembers, allUserPoints] = await Promise.all([
+          base44.entities.GlowSquad.list(),
+          base44.entities.SquadMember.list(),
+          base44.entities.UserPoints.list(),
+        ]);
+
+        const pointsByEmail = {};
+        allUserPoints.forEach(p => { pointsByEmail[p.user_email] = p.total_points || 0; });
+
+        const myMembership = allSquadMembers.find(m => m.user_email === u.email);
+        if (myMembership) setMySquadId(myMembership.squad_id);
+
+        const squadScores = allSquads.map(squad => {
+          const members = allSquadMembers.filter(m => m.squad_id === squad.id);
+          const totalPoints = members.reduce((sum, m) => sum + (pointsByEmail[m.user_email] || 0), 0);
+          const weekStart = new Date();
+          weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+          weekStart.setHours(0, 0, 0, 0);
+          return {
+            id: squad.id,
+            name: squad.name,
+            emoji: squad.emoji || '⚡',
+            memberCount: members.length,
+            totalPoints,
+            memberEmails: members.map(m => m.user_email),
+          };
+        }).sort((a, b) => b.totalPoints - a.totalPoints);
+
+        setSquads(squadScores);
+      } catch (e) {
+        console.error('Squad leaderboard error', e);
+      }
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
 
   const tabConfig = [
     { id: 'global', label: 'Global', icon: '👥', count: globalLeaders.length },
     { id: 'weekly', label: 'Weekly', icon: '👑', count: weeklyLeaders.length },
+    { id: 'squads', label: 'Squads', icon: '⚡', count: squads.length },
     { id: 'teams', label: 'Teams', icon: '🤝', count: teams.length },
     { id: 'circle', label: 'My Circle', icon: '💜', count: circle.length },
   ];
@@ -220,6 +258,78 @@ export default function ChallengeLeaderboard() {
       </div>
     </div>
   );
+
+  const renderSquadsTab = () => {
+    const top3 = squads.slice(0, 3);
+    const rest = squads.slice(3);
+    const RANK = [{ bg: 'rgba(251,191,36,0.18)', color: '#fbbf24', medal: '🥇' }, { bg: 'rgba(156,163,175,0.18)', color: '#d1d5db', medal: '🥈' }, { bg: 'rgba(180,83,9,0.18)', color: '#cd7c2a', medal: '🥉' }];
+    return (
+      <div className="px-4">
+        <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">GLOWSQUAD CHALLENGE RANKINGS</p>
+        <p className="text-xs text-gray-500 mb-4">Squad scores = sum of every member's total Glow Points</p>
+        {squads.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <span className="text-5xl mb-4">⚡</span>
+            <p className="font-bold text-lg text-white mb-1">No squads yet</p>
+            <p className="text-gray-400 text-sm text-center">Create or join a GlowSquad to appear here!</p>
+          </div>
+        ) : (
+          <>
+            {/* Podium */}
+            {top3.length > 0 && (
+              <div className="flex items-end justify-center gap-3 mb-6">
+                {[top3[1], top3[0], top3[2]].filter(Boolean).map((sq, i) => {
+                  const rank = sq === top3[0] ? 0 : sq === top3[1] ? 1 : 2;
+                  const heights = [rank === 0 ? 'h-28' : rank === 1 ? 'h-20' : 'h-16'];
+                  return (
+                    <div key={sq.id} className="flex flex-col items-center gap-1">
+                      <span className="text-2xl">{sq.emoji}</span>
+                      <p className="text-xs font-bold text-white text-center max-w-[72px] truncate">{sq.name}</p>
+                      <p className="text-[10px] font-bold" style={{ color: RANK[rank].color }}>{sq.totalPoints.toLocaleString()} pts</p>
+                      <div className="w-16 rounded-t-xl flex items-center justify-center text-xl font-bold"
+                        style={{ height: rank === 0 ? 80 : rank === 1 ? 60 : 44, background: RANK[rank].bg, border: `1px solid ${RANK[rank].color}50` }}>
+                        {RANK[rank].medal}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {/* Rest of list */}
+            <div className="space-y-2">
+              {squads.map((sq, idx) => {
+                const isMySquad = sq.id === mySquadId;
+                return (
+                  <div key={sq.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl transition"
+                    style={{ background: isMySquad ? 'rgba(168,85,247,0.12)' : 'rgba(255,255,255,0.05)', border: `1px solid ${isMySquad ? 'rgba(168,85,247,0.4)' : 'rgba(255,255,255,0.08)'}` }}>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                      style={idx < 3 ? { background: RANK[idx].bg, color: RANK[idx].color } : { background: 'rgba(255,255,255,0.08)', color: '#6b7280' }}>
+                      {idx < 3 ? RANK[idx].medal : idx + 1}
+                    </div>
+                    <span className="text-xl flex-shrink-0">{sq.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-semibold text-white text-sm truncate">{sq.name}</p>
+                        {isMySquad && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/30 text-purple-300">YOU</span>}
+                      </div>
+                      <p className="text-[10px] text-gray-500">{sq.memberCount} member{sq.memberCount !== 1 ? 's' : ''}</p>
+                    </div>
+                    <p className="font-bold text-sm" style={{ color: idx < 3 ? RANK[idx].color : '#a855f7' }}>{sq.totalPoints.toLocaleString()} pts</p>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+        <div className="mt-4 flex justify-center">
+          <button onClick={() => navigate('/glow-squads')}
+            className="px-6 py-2 rounded-full text-sm font-semibold border border-purple-400/40 text-purple-400 hover:bg-purple-400/10 transition">
+            Browse Squads →
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   const renderTeamsTab = () => (
     <div>
@@ -333,6 +443,7 @@ export default function ChallengeLeaderboard() {
         {/* Content */}
         {activeTab === 'global' && renderGlobalTab()}
         {activeTab === 'weekly' && renderWeeklyTab()}
+        {activeTab === 'squads' && renderSquadsTab()}
         {activeTab === 'teams' && renderTeamsTab()}
         {activeTab === 'circle' && renderCircleTab()}
 
