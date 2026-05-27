@@ -83,6 +83,7 @@ import Support from './pages/Support';
 import PointsSettings from './pages/PointsSettings';
 import PointsHistory from './pages/PointsHistory';
 import MonthlySummary from './pages/MonthlySummary';
+import JoinGGU from './pages/JoinGGU';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -180,6 +181,7 @@ const AuthenticatedApp = () => {
       <Route path="/points-settings" element={<PointsSettings />} />
       <Route path="/points-history" element={<PointsHistory />} />
       <Route path="/monthly-summary" element={<MonthlySummary />} />
+      <Route path="/join" element={<JoinGGU />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
