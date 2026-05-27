@@ -1,0 +1,64 @@
+{
+  "name": "BannedUser",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "username": {
+      "type": "string",
+      "title": "Username (at time of ban)"
+    },
+    "user_name": {
+      "type": "string",
+      "title": "Full Name"
+    },
+    "ban_type": {
+      "type": "string",
+      "title": "Ban Type",
+      "enum": [
+        "soft",
+        "hard"
+      ],
+      "default": "soft"
+    },
+    "reason": {
+      "type": "string",
+      "title": "Ban Reason"
+    },
+    "banned_by": {
+      "type": "string",
+      "title": "Banned By (Admin Email)"
+    },
+    "banned_date": {
+      "type": "string",
+      "title": "Banned Date"
+    },
+    "email_blocked_until": {
+      "type": "string",
+      "title": "Email Blocked Until (hard ban)"
+    },
+    "username_blocked_until": {
+      "type": "string",
+      "title": "Username Blocked Until (hard ban)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Ban Active",
+      "default": true
+    },
+    "lifted_by": {
+      "type": "string",
+      "title": "Lifted By (Admin Email)"
+    },
+    "lifted_date": {
+      "type": "string",
+      "title": "Ban Lifted Date"
+    }
+  },
+  "required": [
+    "user_email",
+    "ban_type"
+  ]
+}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ShieldOff, Shield, AlertTriangle, X, RefreshCw } from 'lucide-react';
 
 const AGE_GROUP_LABELS = {
   glow_girls: { label: 'Glow Girls', emoji: '🌸', color: '#ec4899' },
@@ -13,31 +13,47 @@ const ROLES = ['user', 'admin'];
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
   const [profiles, setProfiles] = useState([]);
+  const [bans, setBans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
   const [filterGroup, setFilterGroup] = useState('all');
-  const [editingUser, setEditingUser] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
   const [saving, setSaving] = useState(null);
+  const [banModal, setBanModal] = useState(null); // { user, profile }
+  const [banForm, setBanForm] = useState({ ban_type: 'soft', reason: '' });
+  const [adminEmail, setAdminEmail] = useState('');
 
-  useEffect(() => {
-    Promise.all([
-      base44.entities.User.list(),
-      base44.entities.UserProfile.list(),
-    ]).then(([u, p]) => {
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [u, p, b, me] = await Promise.all([
+        base44.entities.User.list('-created_date', 200),
+        base44.entities.UserProfile.list('-created_date', 200),
+        base44.entities.BannedUser.filter({ is_active: true }),
+        base44.auth.me(),
+      ]);
       setUsers(u);
       setProfiles(p);
-      setLoading(false);
-    });
-  }, []);
+      setBans(b);
+      setAdminEmail(me.email);
+    } catch (e) {
+      setError(e.message || 'Failed to load users');
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
 
   const getProfile = (email) => profiles.find(p => p.user_email === email);
+  const getActiveBan = (email) => bans.find(b => b.user_email === email && b.is_active);
 
   const handleRoleChange = async (user, role) => {
     setSaving(user.id);
     await base44.entities.User.update(user.id, { role });
     setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role } : u));
     setSaving(null);
-    setEditingUser(null);
   };
 
   const handleAgeGroupChange = async (email, age_group) => {
@@ -49,48 +65,126 @@ export default function UserManagement() {
     setSaving(null);
   };
 
+  const openBanModal = (user, profile) => {
+    setBanModal({ user, profile });
+    setBanForm({ ban_type: 'soft', reason: '' });
+  };
+
+  const submitBan = async () => {
+    if (!banModal || !banForm.reason.trim()) return;
+    setSaving(banModal.user.id);
+    const now = new Date();
+    const oneYearLater = new Date(now);
+    oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+    const profile = getProfile(banModal.user.email);
+
+    const banData = {
+      user_email: banModal.user.email,
+      username: profile?.username || '',
+      user_name: banModal.user.full_name || '',
+      ban_type: banForm.ban_type,
+      reason: banForm.reason,
+      banned_by: adminEmail,
+      banned_date: now.toISOString(),
+      is_active: true,
+      ...(banForm.ban_type === 'hard' ? {
+        email_blocked_until: oneYearLater.toISOString(),
+        username_blocked_until: oneYearLater.toISOString(),
+      } : {}),
+    };
+
+    const created = await base44.entities.BannedUser.create(banData);
+    setBans(prev => [...prev, created]);
+    setSaving(null);
+    setBanModal(null);
+  };
+
+  const liftBan = async (email) => {
+    const ban = getActiveBan(email);
+    if (!ban) return;
+    setSaving(email);
+    const lifted = await base44.entities.BannedUser.update(ban.id, {
+      is_active: false,
+      lifted_by: adminEmail,
+      lifted_date: new Date().toISOString(),
+    });
+    setBans(prev => prev.filter(b => b.id !== ban.id));
+    setSaving(null);
+  };
+
   const filtered = users.filter(u => {
     const matchSearch = u.email?.toLowerCase().includes(search.toLowerCase()) ||
       u.full_name?.toLowerCase().includes(search.toLowerCase());
     const profile = getProfile(u.email);
     const matchGroup = filterGroup === 'all' || profile?.age_group === filterGroup;
-    return matchSearch && matchGroup;
+    const ban = getActiveBan(u.email);
+    const matchStatus = filterStatus === 'all' ||
+      (filterStatus === 'banned' && ban) ||
+      (filterStatus === 'active' && !ban);
+    return matchSearch && matchGroup && matchStatus;
   });
 
-  if (loading) return <div className="flex justify-center py-16"><div className="w-6 h-6 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" /></div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center py-16 gap-3">
+      <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" />
+      <p className="text-xs text-gray-500">Loading users…</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-6 rounded-2xl text-center" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+      <AlertTriangle size={24} className="text-red-400 mx-auto mb-2" />
+      <p className="text-sm text-red-300 mb-3">{error}</p>
+      <button onClick={load} className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white mx-auto" style={{ background: 'rgba(239,68,68,0.3)' }}>
+        <RefreshCw size={14} /> Retry
+      </button>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-2">
         {[
-          { label: 'Total Users', value: users.length, emoji: '👥' },
+          { label: 'Total', value: users.length, emoji: '👥' },
           { label: 'Admins', value: users.filter(u => u.role === 'admin').length, emoji: '🛡️' },
+          { label: 'Banned', value: bans.length, emoji: '🚫' },
           { label: 'Profiles', value: profiles.length, emoji: '✨' },
         ].map(stat => (
           <div key={stat.label} className="rounded-2xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-xl mb-0.5">{stat.emoji}</p>
-            <p className="font-bold text-white text-lg">{stat.value}</p>
+            <p className="text-lg mb-0.5">{stat.emoji}</p>
+            <p className="font-bold text-white text-base">{stat.value}</p>
             <p className="text-[10px] text-gray-400">{stat.label}</p>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2">
-        <div className="flex-1 flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-2">
+      <div className="flex gap-2 flex-wrap">
+        <div className="flex-1 min-w-[160px] flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-2">
           <Search size={14} className="text-gray-500" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users..."
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users…"
             className="bg-transparent text-sm text-white outline-none flex-1 placeholder-gray-500" />
         </div>
         <select value={filterGroup} onChange={e => setFilterGroup(e.target.value)}
-          className="bg-white/5 border border-white/10 rounded-full px-3 py-2 text-xs text-white outline-none">
-          <option value="all" style={{ background: '#1a0a2e' }}>All Worlds</option>
-          <option value="glow_girls" style={{ background: '#1a0a2e' }}>🌸 Glow Girls</option>
-          <option value="glow_teens" style={{ background: '#1a0a2e' }}>✨ Glow Teens</option>
-          <option value="glow_women" style={{ background: '#1a0a2e' }}>👑 Glow Women</option>
+          className="bg-gray-900 border border-white/10 rounded-full px-3 py-2 text-xs text-white outline-none">
+          <option value="all">All Worlds</option>
+          <option value="glow_girls">🌸 Glow Girls</option>
+          <option value="glow_teens">✨ Glow Teens</option>
+          <option value="glow_women">👑 Glow Women</option>
         </select>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+          className="bg-gray-900 border border-white/10 rounded-full px-3 py-2 text-xs text-white outline-none">
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="banned">Banned</option>
+        </select>
+        <button onClick={load} className="p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white">
+          <RefreshCw size={14} />
+        </button>
       </div>
+
+      <p className="text-xs text-gray-500">{filtered.length} of {users.length} users</p>
 
       {/* User List */}
       <div className="space-y-2">
@@ -100,8 +194,12 @@ export default function UserManagement() {
         {filtered.map(u => {
           const profile = getProfile(u.email);
           const ageInfo = AGE_GROUP_LABELS[profile?.age_group];
+          const ban = getActiveBan(u.email);
           return (
-            <div key={u.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div key={u.id} className="rounded-2xl p-4" style={{
+              background: ban ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.05)',
+              border: ban ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(255,255,255,0.08)',
+            }}>
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-sm font-bold flex-shrink-0 overflow-hidden">
                   {profile?.avatar_url
@@ -109,10 +207,28 @@ export default function UserManagement() {
                     : (u.full_name?.[0] || u.email?.[0] || '?').toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-white text-sm truncate">{u.full_name || 'No name'}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-white text-sm truncate">{u.full_name || 'No name'}</p>
+                    {ban && (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${ban.ban_type === 'hard' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                        {ban.ban_type === 'hard' ? '🔴 Hard Ban' : '🟠 Soft Ban'}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                  {profile?.username && <p className="text-[10px] text-pink-400">@{profile.username}</p>}
+
+                  {/* Ban details */}
+                  {ban && (
+                    <div className="mt-1 p-2 rounded-xl text-[10px] text-gray-400" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                      <p><span className="text-gray-500">Reason:</span> {ban.reason}</p>
+                      {ban.ban_type === 'hard' && ban.email_blocked_until && (
+                        <p><span className="text-gray-500">Email blocked until:</span> {new Date(ban.email_blocked_until).toLocaleDateString()}</p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                    {/* Role badge */}
                     <select
                       value={u.role || 'user'}
                       onChange={e => handleRoleChange(u, e.target.value)}
@@ -123,7 +239,6 @@ export default function UserManagement() {
                       {ROLES.map(r => <option key={r} value={r} style={{ background: '#1a0a2e' }}>{r}</option>)}
                     </select>
 
-                    {/* Age group badge */}
                     <select
                       value={profile?.age_group || ''}
                       onChange={e => handleAgeGroupChange(u.email, e.target.value)}
@@ -142,15 +257,107 @@ export default function UserManagement() {
                     ) : null}
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-[10px] text-gray-500">{new Date(u.created_date).toLocaleDateString()}</p>
-                  {profile?.username && <p className="text-[10px] text-pink-400">@{profile.username}</p>}
+
+                <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                  <p className="text-[10px] text-gray-500">{u.created_date ? new Date(u.created_date).toLocaleDateString() : '—'}</p>
+                  {ban ? (
+                    <button
+                      onClick={() => liftBan(u.email)}
+                      disabled={saving === u.email}
+                      className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full font-semibold text-green-400 hover:text-green-300 transition"
+                      style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)' }}
+                    >
+                      <Shield size={10} /> Lift Ban
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => openBanModal(u, profile)}
+                      className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full font-semibold text-red-400 hover:text-red-300 transition"
+                      style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
+                    >
+                      <ShieldOff size={10} /> Ban
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Ban Modal */}
+      {banModal && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-end" onClick={() => setBanModal(null)}>
+          <div
+            className="w-full rounded-t-3xl p-6 space-y-4"
+            style={{ background: '#0f0a1e', border: '1px solid rgba(239,68,68,0.3)', maxHeight: '85vh', overflowY: 'auto' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-white text-base">Ban User</h3>
+              <button onClick={() => setBanModal(null)}><X size={20} className="text-gray-400" /></button>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-sm font-bold">
+                {(banModal.user.full_name?.[0] || banModal.user.email?.[0] || '?').toUpperCase()}
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm">{banModal.user.full_name || 'No name'}</p>
+                <p className="text-xs text-gray-400">{banModal.user.email}</p>
+                {banModal.profile?.username && <p className="text-[10px] text-pink-400">@{banModal.profile.username}</p>}
+              </div>
+            </div>
+
+            {/* Ban Type */}
+            <div>
+              <p className="text-sm font-semibold text-gray-300 mb-2">Ban Type</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setBanForm(f => ({ ...f, ban_type: 'soft' }))}
+                  className={`p-3 rounded-2xl text-left transition ${banForm.ban_type === 'soft' ? 'border-orange-400' : 'border-white/10'}`}
+                  style={{ background: banForm.ban_type === 'soft' ? 'rgba(251,146,60,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${banForm.ban_type === 'soft' ? 'rgba(251,146,60,0.5)' : 'rgba(255,255,255,0.1)'}` }}
+                >
+                  <p className="text-sm font-bold text-orange-400 mb-1">🟠 Soft Ban</p>
+                  <p className="text-[10px] text-gray-400">User is banned but their email and username are immediately available for a new account.</p>
+                </button>
+                <button
+                  onClick={() => setBanForm(f => ({ ...f, ban_type: 'hard' }))}
+                  className={`p-3 rounded-2xl text-left transition`}
+                  style={{ background: banForm.ban_type === 'hard' ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${banForm.ban_type === 'hard' ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.1)'}` }}
+                >
+                  <p className="text-sm font-bold text-red-400 mb-1">🔴 Hard Ban</p>
+                  <p className="text-[10px] text-gray-400">Email + username are blocked for 1 year. No new account can be created with these.</p>
+                </button>
+              </div>
+            </div>
+
+            {/* Reason */}
+            <div>
+              <p className="text-sm font-semibold text-gray-300 mb-2">Reason *</p>
+              <textarea
+                value={banForm.reason}
+                onChange={e => setBanForm(f => ({ ...f, reason: e.target.value }))}
+                placeholder="Why is this user being banned?"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-600 outline-none text-sm resize-none"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => setBanModal(null)} className="py-3 rounded-2xl text-sm font-semibold text-gray-400 bg-white/5">Cancel</button>
+              <button
+                onClick={submitBan}
+                disabled={!banForm.reason.trim() || saving}
+                className="py-3 rounded-2xl text-sm font-bold text-white disabled:opacity-40"
+                style={{ background: banForm.ban_type === 'hard' ? 'linear-gradient(135deg,#dc2626,#991b1b)' : 'linear-gradient(135deg,#f97316,#c2410c)' }}
+              >
+                {banForm.ban_type === 'hard' ? '🔴 Hard Ban' : '🟠 Soft Ban'} User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
