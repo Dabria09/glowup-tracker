@@ -88,6 +88,7 @@ import GlowStore from './pages/GlowStore';
 import GlowProfile from './pages/GlowProfile';
 import AdminPanel from './pages/AdminPanel';
 import WeeklyLeaderboardSummary from './pages/WeeklyLeaderboardSummary';
+import Me from './pages/Me';
 import BanGate from './components/BanGate';
 
 const AuthenticatedApp = () => {
@@ -192,6 +193,7 @@ const AuthenticatedApp = () => {
       <Route path="/glowlink/:username" element={<GlowProfile />} />
       <Route path="/admin" element={<AdminPanel />} />
       <Route path="/weekly-leaderboard" element={<WeeklyLeaderboardSummary />} />
+      <Route path="/me" element={<Me />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </BanGate>
