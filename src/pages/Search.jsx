@@ -106,7 +106,7 @@ export default function Search() {
     ).slice(0, 6);
 
     // 2. DB queries in parallel
-    const [profiles, posts, challenges, quotes] = await Promise.allSettled([
+    const [profiles, posts, challenges, quotes, scholarships, kitchen, communities, tips, wellness] = await Promise.allSettled([
       base44.entities.UserProfile.list('-updated_date', 200).then(all =>
         all.filter(p =>
           (p.username || '').toLowerCase().includes(qLower) ||
@@ -135,14 +135,54 @@ export default function Search() {
           (q2.category || '').toLowerCase().includes(qLower)
         ).slice(0, 4)
       ),
+      base44.entities.Scholarship.list('-created_date', 300).then(all =>
+        all.filter(s =>
+          (s.title || '').toLowerCase().includes(qLower) ||
+          (s.description || '').toLowerCase().includes(qLower) ||
+          (s.category || '').toLowerCase().includes(qLower) ||
+          (s.organization || '').toLowerCase().includes(qLower)
+        ).slice(0, 5)
+      ),
+      base44.entities.KitchenBasic.list('-created_date', 200).then(all =>
+        all.filter(k =>
+          (k.title || '').toLowerCase().includes(qLower) ||
+          (k.description || '').toLowerCase().includes(qLower) ||
+          (k.category || '').toLowerCase().includes(qLower)
+        ).slice(0, 5)
+      ),
+      base44.entities.Community.list('-created_date', 100).then(all =>
+        all.filter(c =>
+          (c.name || '').toLowerCase().includes(qLower) ||
+          (c.description || '').toLowerCase().includes(qLower) ||
+          (c.category || '').toLowerCase().includes(qLower)
+        ).slice(0, 4)
+      ),
+      base44.entities.AdminGlowTip.list('-created_date', 300).then(all =>
+        all.filter(t =>
+          (t.tip_text || '').toLowerCase().includes(qLower) ||
+          (t.category || '').toLowerCase().includes(qLower)
+        ).slice(0, 5)
+      ),
+      base44.entities.HealthyGuide.list('-created_date', 100).then(all =>
+        all.filter(g =>
+          (g.title || '').toLowerCase().includes(qLower) ||
+          (g.content || '').toLowerCase().includes(qLower) ||
+          (g.category || '').toLowerCase().includes(qLower)
+        ).slice(0, 4)
+      ),
     ]);
 
     setResults({
       pages,
-      profiles: profiles.status === 'fulfilled' ? profiles.value : [],
-      posts: posts.status === 'fulfilled' ? posts.value : [],
-      challenges: challenges.status === 'fulfilled' ? challenges.value : [],
-      quotes: quotes.status === 'fulfilled' ? quotes.value : [],
+      profiles:     profiles.status     === 'fulfilled' ? profiles.value     : [],
+      posts:        posts.status        === 'fulfilled' ? posts.value        : [],
+      challenges:   challenges.status   === 'fulfilled' ? challenges.value   : [],
+      quotes:       quotes.status       === 'fulfilled' ? quotes.value       : [],
+      scholarships: scholarships.status === 'fulfilled' ? scholarships.value : [],
+      kitchen:      kitchen.status      === 'fulfilled' ? kitchen.value      : [],
+      communities:  communities.status  === 'fulfilled' ? communities.value  : [],
+      tips:         tips.status         === 'fulfilled' ? tips.value         : [],
+      wellness:     wellness.status     === 'fulfilled' ? wellness.value     : [],
     });
     setLoading(false);
     setSearched(true);
@@ -311,6 +351,84 @@ export default function Search() {
                           <p className="text-sm text-white italic leading-relaxed line-clamp-2">"{quote.quote_text}"</p>
                           {quote.author && <p className="text-xs text-green-400 mt-1">— {quote.author}</p>}
                         </div>
+                      </button>
+                    ))}
+
+                    {/* SCHOLARSHIPS */}
+                    {section === 'scholarships' && items.map(s => (
+                      <button key={s.id} onClick={() => navigate('/scholarships')}
+                        className="w-full flex items-start gap-3 p-3.5 rounded-2xl text-left transition active:scale-98"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                          style={{ background: 'rgba(251,191,36,0.15)' }}>🎓</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{s.title}</p>
+                          {s.organization && <p className="text-xs text-yellow-400">{s.organization}</p>}
+                          {s.description && <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{s.description}</p>}
+                        </div>
+                        <ChevronRight size={14} className="text-gray-600 flex-shrink-0" />
+                      </button>
+                    ))}
+
+                    {/* KITCHEN */}
+                    {section === 'kitchen' && items.map(k => (
+                      <button key={k.id} onClick={() => navigate('/glow-kitchen')}
+                        className="w-full flex items-start gap-3 p-3.5 rounded-2xl text-left transition active:scale-98"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                          style={{ background: 'rgba(249,115,22,0.15)' }}>{k.emoji || '🍳'}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-white">{k.title}</p>
+                          {k.category && <p className="text-xs text-orange-400">{k.category}</p>}
+                          {k.description && <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{k.description}</p>}
+                        </div>
+                        <ChevronRight size={14} className="text-gray-600 flex-shrink-0" />
+                      </button>
+                    ))}
+
+                    {/* COMMUNITIES */}
+                    {section === 'communities' && items.map(c => (
+                      <button key={c.id} onClick={() => navigate('/community-hub')}
+                        className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition active:scale-98"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                          style={{ background: 'rgba(16,185,129,0.15)' }}>🌸</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-white">{c.name}</p>
+                          {c.category && <p className="text-xs text-green-400">{c.category}</p>}
+                          {c.description && <p className="text-xs text-gray-500 truncate mt-0.5">{c.description}</p>}
+                        </div>
+                        <ChevronRight size={14} className="text-gray-600 flex-shrink-0" />
+                      </button>
+                    ))}
+
+                    {/* GLOW TIPS */}
+                    {section === 'tips' && items.map(tip => (
+                      <button key={tip.id} onClick={() => navigate('/glow-tips')}
+                        className="w-full flex items-start gap-3 p-3.5 rounded-2xl text-left transition active:scale-98"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                          style={{ background: 'rgba(192,132,252,0.15)' }}>✨</div>
+                        <div className="flex-1 min-w-0">
+                          {tip.category && <p className="text-[10px] font-bold uppercase tracking-wider text-purple-400 mb-0.5">{tip.category}</p>}
+                          <p className="text-sm text-white leading-relaxed line-clamp-2">{tip.tip_text}</p>
+                        </div>
+                      </button>
+                    ))}
+
+                    {/* WELLNESS GUIDES */}
+                    {section === 'wellness' && items.map(guide => (
+                      <button key={guide.id} onClick={() => navigate('/wellness-hub')}
+                        className="w-full flex items-start gap-3 p-3.5 rounded-2xl text-left transition active:scale-98"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                          style={{ background: 'rgba(52,211,153,0.15)' }}>💚</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-white">{guide.title}</p>
+                          {guide.category && <p className="text-xs text-green-400">{guide.category}</p>}
+                          {guide.content && <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{guide.content}</p>}
+                        </div>
+                        <ChevronRight size={14} className="text-gray-600 flex-shrink-0" />
                       </button>
                     ))}
 
