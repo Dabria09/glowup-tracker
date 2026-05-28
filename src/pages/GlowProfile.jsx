@@ -120,7 +120,7 @@ export default function GlowProfile() {
       </div>
 
       {/* ── Cover Banner ────────────────────────────────────────── */}
-      <div className="relative h-32" style={{ background: coverGradient }}>
+      <div className="relative h-20" style={{ background: coverGradient }}>
         <div className="absolute inset-0" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M20 28C13 22 6 16 6 10A6 6 0 0 1 12 4C15 4 18 6 20 9 22 6 25 4 28 4A6 6 0 0 1 34 10C34 16 27 22 20 28Z' fill='%23ffffff' opacity='0.07'/%3E%3C/svg%3E\")", backgroundSize: '40px 40px' }} />
         {profile.glow_era && (
           <div className="absolute bottom-3 right-4">
