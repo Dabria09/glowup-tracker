@@ -95,6 +95,7 @@ import Connect from './pages/Connect';
 import BanGate from './components/BanGate';
 import GlowPersona from './pages/GlowPersona';
 import Notifications from './pages/Notifications';
+import Search from './pages/Search';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -207,6 +208,7 @@ const AuthenticatedApp = () => {
       <Route path="/me" element={<Me />} />
       <Route path="/connect" element={<Connect />} />
       <Route path="/notifications" element={<Notifications />} />
+      <Route path="/search" element={<Search />} />
       <Route path="/glow" element={<Glow />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

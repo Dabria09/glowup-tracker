@@ -541,13 +541,12 @@ export default function Dashboard() {
 
         {/* ── SEARCH ───────────────────────────────────────────── */}
         <div className="px-5 mb-5 relative">
-          <div className="flex items-center gap-2.5 rounded-2xl px-4 py-3"
+          <button onClick={() => navigate('/search')}
+            className="w-full flex items-center gap-2.5 rounded-2xl px-4 py-3 text-left"
             style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
             <Search size={15} className="text-gray-500 flex-shrink-0" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search everything…"
-              className="bg-transparent text-sm text-white placeholder-gray-600 outline-none flex-1" />
-            {search && <button onClick={() => setSearch('')}><X size={14} className="text-gray-500" /></button>}
-          </div>
+            <span className="text-sm text-gray-600">Search everything…</span>
+          </button>
           {searchResults.length > 0 && (
             <div className="absolute top-full left-5 right-5 mt-1 rounded-2xl overflow-hidden z-20 shadow-2xl"
               style={{ background: 'rgba(18,8,28,0.97)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)' }}>

@@ -72,7 +72,7 @@ export default function GlowUpChallengeDetail() {
       const isChallengeComplete = completedDays.length === 30;
 
       // Calculate streak
-      const today = new Date().toISOString().split('T')[0];
+      const today = (() => { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })();
       const lastCompletedDate = userChallenge?.last_completed_date;
       let newStreak = userChallenge?.current_streak || 0;
       
@@ -141,11 +141,26 @@ export default function GlowUpChallengeDetail() {
     return phaseKey === 'foundation';
   };
 
+  function getLocalToday() {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+  }
+
   const canAccessDay = (day, phaseKey) => {
     if (!userChallenge) return day === 1 && phaseKey === 'foundation';
     if (user?.role === 'admin') return true;
-    const currentDay = userChallenge.current_day || 1;
-    return day <= currentDay;
+    const completed = userChallenge.completed_days ? JSON.parse(userChallenge.completed_days) : [];
+    // Already completed — always visible
+    if (completed.includes(day)) return true;
+    // Must be the very next day in sequence
+    const nextDay = completed.length + 1;
+    if (day !== nextDay) return false;
+    // Day 1 is always accessible to start
+    if (day === 1) return true;
+    // Day N+1 requires that the last completion was on a PREVIOUS calendar day
+    const lastCompleted = userChallenge.last_completed_date;
+    if (!lastCompleted) return true;
+    return lastCompleted < getLocalToday();
   };
 
   const canAccessChallenge = () => {
@@ -171,6 +186,8 @@ export default function GlowUpChallengeDetail() {
     completeDayMutation.mutate({ day, points, phase });
   };
 
+  // alias so inner scope can call it
+  const canAccessDay_ = canAccessDay;
   const completedDays = userChallenge?.completed_days ? JSON.parse(userChallenge.completed_days) : [];
   const progress = (completedDays.length / 30) * 100;
 
@@ -300,7 +317,7 @@ export default function GlowUpChallengeDetail() {
                           <div className="space-y-2 mt-3">
                             {phase.days.map(dayObj => {
                               const isDayCompleted = completedDays.includes(dayObj.day);
-                              const canAccessDay = dayObj.day <= (userChallenge?.current_day || 1) || user?.role === 'admin' || isDayCompleted;
+                              const canAccessDay = canAccessDay_(dayObj.day, phaseKey);
                               
                               return (
                                 <div key={dayObj.day} className="flex items-center gap-3 p-3 rounded-xl"

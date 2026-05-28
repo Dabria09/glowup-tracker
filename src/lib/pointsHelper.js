@@ -153,9 +153,36 @@ async function getConfiguredPoints(action) {
   return POINT_VALUES[action] ?? 0;
 }
 
+// Actions that can only be awarded once per calendar day
+const DAILY_CAPPED_ACTIONS = new Set([
+  'daily_checkin', 'diary_entry', 'fitness_log', 'cycle_tracked',
+  'calm_corner', 'gratitude_entry', 'spiritual_habit', 'glow_score_check',
+]);
+
+function getLocalDateStr() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+}
+
 export async function awardPoints(userEmail, action) {
   const pts = await getConfiguredPoints(action);
   if (!pts || !userEmail) return 0;
+
+  // Daily deduplication guard
+  if (DAILY_CAPPED_ACTIONS.has(action)) {
+    const todayStr = getLocalDateStr();
+    try {
+      const recentHistory = await base44.entities.PointsHistory.filter(
+        { user_email: userEmail, action },
+        '-created_date',
+        5
+      );
+      const alreadyToday = recentHistory.some(
+        h => h.created_date?.slice(0, 10) === todayStr
+      );
+      if (alreadyToday) return 0; // already awarded today, skip
+    } catch {}
+  }
 
   try {
     const existing = await base44.entities.UserPoints.filter({ user_email: userEmail });
