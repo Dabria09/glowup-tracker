@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import useAgeGroup from '@/lib/useAgeGroup';
 import useTranslation from '@/lib/useTranslation';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronRight, X, Plus, Check } from 'lucide-react';
@@ -13,63 +12,62 @@ const CDN = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663618716083/WDWw94kRE3
 const MANUS = 'https://gguapp-wdww94kr.manus.space/manus-storage/';
 const MEDIA = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/';
 
-// All available pages — image icons match Discover exactly
 const ALL_PAGES = [
   { id: 'daily-checkin', label: 'Glow Check-In', route: '/daily-checkin', image: MANUS + 'icon-glow-check-in_fe36a2ac.png', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', keywords: ['check in', 'mood', 'daily', 'points'] },
   { id: 'glow', label: 'My Glow', route: '/glow', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', emoji: '✨', keywords: ['challenges', 'streak', 'crown', 'badges', 'progress'] },
   { id: 'glow-feed', label: 'Glow Feed', route: '/glow-feed', image: CDN + 'icon-glow-up-feed-T2qbW3yLFS86GWn35JSQgk.webp', gradient: 'from-yellow-800 via-amber-900 to-pink-900', keywords: ['feed', 'posts', 'community', 'social'] },
-  { id: 'glow-board', label: 'Glow Board', route: '/glow-board', image: CDN + 'icon-glow-board-4XSLLnCWyfrrYDHQ8zApA2.webp', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', keywords: ['photos', 'vision', 'inspiration', 'images'] },
-  { id: 'glow-talk', label: 'Glow Talk', route: '/glow-talk', image: CDN + 'icon-glow-talk-ewK3HLMfZYVeNKLD3iLrKz.webp', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', keywords: ['chat', 'messages', 'talk', 'rooms'] },
-  { id: 'shout-outs', label: 'Shout Outs', route: '/shout-outs', image: CDN + 'icon-shout-outs-NTrE9c8n5rJCznKxgqLihW.webp', gradient: 'from-orange-900 via-red-900 to-pink-900', keywords: ['praise', 'recognition', 'props'] },
-  { id: 'leaderboard', label: 'Leaderboard', route: '/leaderboard', image: CDN + 'icon-leaderboard-WLMjT77VCu94JhWg7vXfbm.webp', gradient: 'from-yellow-800 via-pink-900 to-fuchsia-900', keywords: ['ranking', 'top', 'scores', 'competition'] },
-  { id: 'challenge-leaderboard', label: 'Challenge Board', route: '/challenge-leaderboard', image: CDN + 'icon-leaderboard-WLMjT77VCu94JhWg7vXfbm.webp', gradient: 'from-yellow-800 via-pink-900 to-fuchsia-900', keywords: ['challenge', 'ranking', 'competition'] },
+  { id: 'glow-board', label: 'Glow Board', route: '/glow-board', image: CDN + 'icon-glow-board-4XSLLnCWyfrrYDHQ8zApA2.webp', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', keywords: ['photos', 'vision', 'inspiration'] },
+  { id: 'glow-talk', label: 'Glow Talk', route: '/glow-talk', image: CDN + 'icon-glow-talk-ewK3HLMfZYVeNKLD3iLrKz.webp', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', keywords: ['chat', 'messages', 'talk'] },
+  { id: 'shout-outs', label: 'Shout Outs', route: '/shout-outs', image: CDN + 'icon-shout-outs-NTrE9c8n5rJCznKxgqLihW.webp', gradient: 'from-orange-900 via-red-900 to-pink-900', keywords: ['praise', 'recognition'] },
+  { id: 'leaderboard', label: 'Leaderboard', route: '/leaderboard', image: CDN + 'icon-leaderboard-WLMjT77VCu94JhWg7vXfbm.webp', gradient: 'from-yellow-800 via-pink-900 to-fuchsia-900', keywords: ['ranking', 'top', 'scores'] },
+  { id: 'challenge-leaderboard', label: 'Challenge Board', route: '/challenge-leaderboard', image: CDN + 'icon-leaderboard-WLMjT77VCu94JhWg7vXfbm.webp', gradient: 'from-yellow-800 via-pink-900 to-fuchsia-900', keywords: ['challenge', 'ranking'] },
   { id: 'glow-teams', label: 'Glow Teams', route: '/glow-teams', image: MANUS + 'icon-teams_6ca08712.png', gradient: 'from-purple-900 via-indigo-900 to-pink-900', keywords: ['team', 'group', 'compete'] },
-  { id: 'glow-squads', label: 'Glow Squads', route: '/glow-squads', image: MANUS + 'icon-glow-squads-v2_61c9bc2b.png', gradient: 'from-fuchsia-900 via-pink-900 to-purple-900', keywords: ['squad', 'friends', 'close', 'circle'] },
-  { id: 'community-hub', label: 'Community Hub', route: '/community-hub', image: CDN + 'icon-community-hub-v2-feRBzspWzoghy2BCvatoSn.webp', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', keywords: ['community', 'groups', 'people'] },
-  { id: 'mentorship', label: 'Mentorship', route: '/mentorship', image: CDN + 'icon-mentorship-HYC9V34WnU3LfmtQfCTwiP.webp', gradient: 'from-purple-900 via-pink-900 to-rose-900', keywords: ['mentor', 'guidance', 'learning', 'coach'] },
-  { id: 'meal-planner', label: 'Meal Planner', route: '/meal-planner', image: MEDIA + '3f8b8ce77_generated_image.png', gradient: 'from-green-900 via-teal-900 to-emerald-900', keywords: ['food', 'meals', 'nutrition', 'eat', 'diet'] },
-  { id: 'grocery-list', label: 'Grocery List', route: '/grocery-list', image: CDN + 'icon-grocery-list-Sz9GHLVJt4pRGz2JvYmwDw.webp', gradient: 'from-yellow-700 via-amber-800 to-orange-800', keywords: ['groceries', 'shopping', 'food', 'list'] },
-  { id: 'glow-kitchen', label: 'Glow Kitchen', route: '/glow-kitchen', image: CDN + 'icon-glow-kitchen-WyHBfNCsiaR38BJ6YjES3Q.webp', gradient: 'from-rose-900 via-pink-900 to-fuchsia-900', keywords: ['recipes', 'cook', 'kitchen', 'food'] },
-  { id: 'fitness-tracker', label: 'Fitness', route: '/fitness-tracker', image: CDN + 'icon-flex-fitness_tracker-QvdXMwiTH22d77fpWaYMoZ.webp', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', keywords: ['workout', 'exercise', 'fitness', 'health', 'gym'] },
-  { id: 'wellness-hub', label: 'Wellness Hub', route: '/wellness-hub', image: MANUS + 'icon-wellness-hub_a68ae95a.png', gradient: 'from-purple-900 via-pink-900 to-rose-900', keywords: ['wellness', 'health', 'self care', 'mental'] },
-  { id: 'cycle-tracker', label: 'Cycle Tracker', route: '/cycle-tracker', image: CDN + 'icon-cycle-tracker-mfEEuehTKonzHUdUSmTMaA.webp', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', keywords: ['period', 'cycle', 'health', 'body'] },
-  { id: 'calm-corner', label: 'Calm Corner', route: '/calm-corner', image: MANUS + 'icon-calm-corner_ef4b2861.png', gradient: 'from-amber-900 via-orange-900 to-rose-900', keywords: ['meditation', 'calm', 'relax', 'breathe'] },
-  { id: 'spiritual-glow', label: 'Spiritual Glow', route: '/spiritual-glow', image: CDN + 'icon-spiritual-glow-Y4zxRVLXJn8CpnpefTixYM.webp', gradient: 'from-indigo-900 via-purple-900 to-violet-900', keywords: ['spiritual', 'faith', 'prayer', 'gratitude'] },
-  { id: 'diary', label: 'My Diary', route: '/diary', image: CDN + 'icon-my-diary-hV9wyJJ7diLH36nJFHSGb4.webp', gradient: 'from-pink-800 via-purple-900 to-rose-900', keywords: ['journal', 'diary', 'write', 'thoughts', 'feelings'] },
-  { id: 'vision-board', label: 'Vision Board', route: '/vision-board', image: MEDIA + '6adb092a1_IMG_4341.jpeg', gradient: 'from-pink-900 via-rose-900 to-orange-900', keywords: ['goals', 'dreams', 'vision', 'future', 'manifestation'] },
-  { id: 'my-goals', label: 'My Goals', route: '/my-goals', image: MEDIA + 'a1aa2e5b9_IMG_4995.jpeg', gradient: 'from-purple-900 via-pink-900 to-fuchsia-900', keywords: ['goals', 'targets', 'achieve', 'aims'] },
-  { id: 'glow-up-challenges', label: 'Transformation', route: '/glow-up-challenges', image: CDN + 'icon-transformation-P5fD4QdfoP2Dkjf4cUfe5g.webp', gradient: 'from-purple-900 via-violet-900 to-fuchsia-900', keywords: ['challenge', '30 day', 'glow up', 'improve'] },
-  { id: 'my-certificates', label: 'Certificates', route: '/my-certificates', image: MEDIA + 'db352357b_generated_image.png', gradient: 'from-yellow-700 via-amber-800 to-yellow-900', keywords: ['certificate', 'achievement', 'completed', 'award'] },
-  { id: 'glow-score', label: 'Glow Score', route: '/glow-score', image: MEDIA + '93e848a21_IMG_4972.jpg', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', keywords: ['score', 'level', 'tier', 'points', 'ranking'] },
-  { id: 'daily-challenges', label: 'Daily Challenges', route: '/daily-challenges', image: CDN + 'icon-daily-challenges-5aR9HwiMcVmjJVeR6dG8u8.webp', gradient: 'from-pink-900 via-rose-900 to-red-900', keywords: ['tasks', 'daily', 'challenge', 'complete'] },
+  { id: 'glow-squads', label: 'Glow Squads', route: '/glow-squads', image: MANUS + 'icon-glow-squads-v2_61c9bc2b.png', gradient: 'from-fuchsia-900 via-pink-900 to-purple-900', keywords: ['squad', 'friends', 'circle'] },
+  { id: 'community-hub', label: 'Community Hub', route: '/community-hub', image: CDN + 'icon-community-hub-v2-feRBzspWzoghy2BCvatoSn.webp', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', keywords: ['community', 'groups'] },
+  { id: 'mentorship', label: 'Mentorship', route: '/mentorship', image: CDN + 'icon-mentorship-HYC9V34WnU3LfmtQfCTwiP.webp', gradient: 'from-purple-900 via-pink-900 to-rose-900', keywords: ['mentor', 'guidance', 'coach'] },
+  { id: 'meal-planner', label: 'Meal Planner', route: '/meal-planner', image: MEDIA + '3f8b8ce77_generated_image.png', gradient: 'from-green-900 via-teal-900 to-emerald-900', keywords: ['food', 'meals', 'nutrition'] },
+  { id: 'grocery-list', label: 'Grocery List', route: '/grocery-list', image: CDN + 'icon-grocery-list-Sz9GHLVJt4pRGz2JvYmwDw.webp', gradient: 'from-yellow-700 via-amber-800 to-orange-800', keywords: ['groceries', 'shopping', 'food'] },
+  { id: 'glow-kitchen', label: 'Glow Kitchen', route: '/glow-kitchen', image: CDN + 'icon-glow-kitchen-WyHBfNCsiaR38BJ6YjES3Q.webp', gradient: 'from-rose-900 via-pink-900 to-fuchsia-900', keywords: ['recipes', 'cook', 'kitchen'] },
+  { id: 'fitness-tracker', label: 'Fitness', route: '/fitness-tracker', image: CDN + 'icon-flex-fitness_tracker-QvdXMwiTH22d77fpWaYMoZ.webp', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', keywords: ['workout', 'exercise', 'fitness'] },
+  { id: 'wellness-hub', label: 'Wellness Hub', route: '/wellness-hub', image: MANUS + 'icon-wellness-hub_a68ae95a.png', gradient: 'from-purple-900 via-pink-900 to-rose-900', keywords: ['wellness', 'health', 'self care'] },
+  { id: 'cycle-tracker', label: 'Cycle Tracker', route: '/cycle-tracker', image: CDN + 'icon-cycle-tracker-mfEEuehTKonzHUdUSmTMaA.webp', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', keywords: ['period', 'cycle', 'health'] },
+  { id: 'calm-corner', label: 'Calm Corner', route: '/calm-corner', image: MANUS + 'icon-calm-corner_ef4b2861.png', gradient: 'from-amber-900 via-orange-900 to-rose-900', keywords: ['meditation', 'calm', 'relax'] },
+  { id: 'spiritual-glow', label: 'Spiritual Glow', route: '/spiritual-glow', image: CDN + 'icon-spiritual-glow-Y4zxRVLXJn8CpnpefTixYM.webp', gradient: 'from-indigo-900 via-purple-900 to-violet-900', keywords: ['spiritual', 'faith', 'prayer'] },
+  { id: 'diary', label: 'My Diary', route: '/diary', image: CDN + 'icon-my-diary-hV9wyJJ7diLH36nJFHSGb4.webp', gradient: 'from-pink-800 via-purple-900 to-rose-900', keywords: ['journal', 'diary', 'write', 'thoughts'] },
+  { id: 'vision-board', label: 'Vision Board', route: '/vision-board', image: MEDIA + '6adb092a1_IMG_4341.jpeg', gradient: 'from-pink-900 via-rose-900 to-orange-900', keywords: ['goals', 'dreams', 'vision'] },
+  { id: 'my-goals', label: 'My Goals', route: '/my-goals', image: MEDIA + 'a1aa2e5b9_IMG_4995.jpeg', gradient: 'from-purple-900 via-pink-900 to-fuchsia-900', keywords: ['goals', 'targets', 'achieve'] },
+  { id: 'glow-up-challenges', label: 'Transformation', route: '/glow-up-challenges', image: CDN + 'icon-transformation-P5fD4QdfoP2Dkjf4cUfe5g.webp', gradient: 'from-purple-900 via-violet-900 to-fuchsia-900', keywords: ['challenge', '30 day', 'glow up'] },
+  { id: 'my-certificates', label: 'Certificates', route: '/my-certificates', image: MEDIA + 'db352357b_generated_image.png', gradient: 'from-yellow-700 via-amber-800 to-yellow-900', keywords: ['certificate', 'achievement'] },
+  { id: 'glow-score', label: 'Glow Score', route: '/glow-score', image: MEDIA + '93e848a21_IMG_4972.jpg', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', keywords: ['score', 'level', 'tier', 'points'] },
+  { id: 'daily-challenges', label: 'Daily Challenges', route: '/daily-challenges', image: CDN + 'icon-daily-challenges-5aR9HwiMcVmjJVeR6dG8u8.webp', gradient: 'from-pink-900 via-rose-900 to-red-900', keywords: ['tasks', 'daily', 'challenge'] },
   { id: 'daily-quotes', label: 'Daily Quotes', route: '/daily-quotes', image: CDN + 'icon-daily-quotes-HvcRFzha7VDVnsWvcwnxkn.webp', gradient: 'from-yellow-800 via-amber-900 to-orange-900', keywords: ['quotes', 'inspiration', 'motivation'] },
-  { id: 'glow-tips', label: 'Glow Tips', route: '/glow-tips', image: CDN + 'icon-glow-tips-KryoBvfwicfNDGnBszfh8g.webp', gradient: 'from-violet-900 via-purple-900 to-indigo-900', keywords: ['tips', 'advice', 'beauty', 'self care'] },
-  { id: 'weekly-theme', label: 'Weekly Theme', route: '/weekly-theme', image: CDN + 'icon-weekly-theme-Ddu6T87k5StF8EDt5BYehk.webp', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', keywords: ['weekly', 'theme', 'focus', 'goals'] },
-  { id: 'me-vs-me', label: 'Me vs Me', route: '/me-vs-me', image: CDN + 'icon-me-vs-me-KYCb7xc6LGLzVW9UGpUEWp.webp', gradient: 'from-yellow-900 via-pink-900 to-black', keywords: ['progress', 'personal', 'growth', 'compare'] },
-  { id: 'scholarships', label: 'Scholarships', route: '/scholarships', image: MANUS + 'icon-diploma-education_12164ff4.png', gradient: 'from-amber-900 via-yellow-900 to-orange-900', keywords: ['scholarship', 'money', 'college', 'award', 'education'] },
-  { id: 'careers', label: 'Career Explorer', route: '/careers', image: CDN + 'icon-career-explorer-8j63MBeNyT9uZDM7Jtmztz.webp', gradient: 'from-yellow-800 via-amber-900 to-orange-900', keywords: ['career', 'jobs', 'profession', 'future'] },
-  { id: 'job-tracker', label: 'Job Tracker', route: '/job-tracker', gradient: 'from-blue-900 via-indigo-900 to-purple-900', emoji: '📋', keywords: ['job', 'application', 'work', 'employment'] },
-  { id: 'dream-calculator', label: 'Dream Calculator', route: '/dream-calculator', image: MANUS + 'icon-dream-calculator_0ac76f98.png', gradient: 'from-indigo-900 via-purple-900 to-blue-900', keywords: ['money', 'dream', 'salary', 'calculate'] },
-  { id: 'money-tracker', label: 'Money & Savings', route: '/money-tracker', image: CDN + 'icon-money-tracker-2TYacsiWgAXqNkGsYeqxTn.webp', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', keywords: ['money', 'budget', 'finance', 'spend', 'save'] },
-  { id: 'savings-goals', label: 'Savings Goals', route: '/savings-goals', gradient: 'from-green-900 via-emerald-900 to-teal-900', emoji: '🏦', keywords: ['save', 'savings', 'money', 'goals', 'bank'] },
-  { id: 'homework-tracker', label: 'Homework', route: '/homework-tracker', image: CDN + 'icon-homework-tracker-UzfmPy6kuzvUAsU3vgon39.webp', gradient: 'from-gray-800 via-slate-900 to-gray-900', keywords: ['homework', 'school', 'study', 'academic', 'assignment'] },
-  { id: 'ggu-academy', label: 'GGU Academy', route: '/ggu-academy', image: CDN + 'icon-ggu-academy-KcP2723cbWjawrV5CXFVoa.webp', gradient: 'from-pink-900 via-purple-900 to-pink-800', keywords: ['academy', 'learn', 'course', 'education', 'school'] },
-  { id: 'growth-mindset', label: 'Growth Mindset', route: '/growth-mindset', image: MANUS + 'icon-growth-mindset_a5fa4874.png', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', keywords: ['mindset', 'growth', 'positive', 'confidence'] },
-  { id: 'girls-library', label: "Girls' Library", route: '/girls-library', image: CDN + 'icon-library-fYQUmdRKLjKeb8kEpFXuZz.webp', gradient: 'from-amber-800 via-orange-900 to-yellow-900', keywords: ['books', 'read', 'library', 'literature'] },
-  { id: 'your-voice', label: 'Your Voice', route: '/your-voice', image: CDN + 'icon-your-voice-EfuNjY9nzEGsR3k7RWGZKq.webp', gradient: 'from-rose-900 via-red-900 to-pink-900', keywords: ['voice', 'speak', 'opinions', 'debate'] },
-  { id: 'glow-playlist', label: 'Glow Playlist', route: '/glow-playlist', image: MEDIA + '4fb776ff6_generated_image.png', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', keywords: ['playlist', 'music', 'songs', 'vibe'] },
-  { id: 'countdown', label: 'Countdown', route: '/countdown', image: CDN + 'icon-countdown-7HeWEhC3DPLUnHCzG43qTW.webp', gradient: 'from-fuchsia-900 via-purple-900 to-pink-900', keywords: ['countdown', 'timer', 'event', 'date'] },
-  { id: 'my-calendar', label: 'My Calendar', route: '/my-calendar', image: CDN + 'icon-my-calendar-55x8hsLegkBBMSVxNXFap5.webp', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', keywords: ['calendar', 'schedule', 'events', 'dates'] },
-  { id: 'birthday-planner', label: 'Birthday Planner', route: '/birthday-planner', image: CDN + 'icon-birthday-planner-Qp8X5ePr97LrHNc2yucHpS.webp', gradient: 'from-pink-800 via-rose-900 to-fuchsia-900', keywords: ['birthday', 'party', 'event', 'celebrate'] },
-  { id: 'trip-planner', label: 'Trip Planner', route: '/trip-planner', image: CDN + 'icon-trip-planner-QAiWdgEFB9pMKaHeuK6ZMu.webp', gradient: 'from-blue-900 via-indigo-900 to-purple-900', keywords: ['trip', 'travel', 'vacation', 'plan'] },
-  { id: 'cleaning-calendar', label: 'Cleaning Calendar', route: '/cleaning-calendar', image: CDN + 'icon-cleaning-calendar-XC5nXr5kSwExbkzykThJEr.webp', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', keywords: ['clean', 'chores', 'home', 'organize'] },
-  { id: 'sticky-notes', label: 'Sticky Notes', route: '/sticky-notes', image: CDN + 'icon-ggu-notes-YfCNPjnpsmHMjZkm5VACrP.webp', gradient: 'from-violet-900 via-purple-900 to-fuchsia-900', keywords: ['notes', 'reminder', 'sticky', 'memo'] },
-  { id: 'time-management', label: 'Time Management', route: '/time-management', image: CDN + 'icon-time-management-LRboeGD2hk8GxmG3SPgSrU.webp', gradient: 'from-purple-900 via-pink-900 to-rose-900', keywords: ['time', 'schedule', 'manage', 'productive'] },
-  { id: 'important-contacts', label: 'Contacts', route: '/important-contacts', image: CDN + 'icon-important-contacts-UbmbL7qNMiaxYU2N3To7LT.webp', gradient: 'from-teal-900 via-cyan-900 to-blue-900', keywords: ['contacts', 'phone', 'people', 'emergency'] },
-  { id: 'password-vault', label: 'Password Vault', route: '/password-vault', image: CDN + 'icon-password-vault-M6NfKgvjrqX84pzi4yKu4c.webp', gradient: 'from-yellow-800 via-amber-900 to-gray-900', keywords: ['password', 'security', 'vault', 'private'] },
-  { id: 'my-glow-link', label: 'My Glow Link', route: '/my-glow-link', image: CDN + 'icon-my-glow-link-74jzirPfc7YN8uTh9fGCeE.webp', gradient: 'from-yellow-800 via-amber-900 to-orange-900', keywords: ['profile', 'link', 'share', 'public'] },
-  { id: 'glow-store', label: 'Glow Store', route: '/glow-store', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', emoji: '🛍️', keywords: ['store', 'shop', 'rewards', 'items', 'buy'] },
-  { id: 'support', label: 'Help & Support', route: '/support', gradient: 'from-rose-900 via-pink-900 to-red-900', emoji: '💜', keywords: ['help', 'support', 'contact', 'issue'] },
+  { id: 'glow-tips', label: 'Glow Tips', route: '/glow-tips', image: CDN + 'icon-glow-tips-KryoBvfwicfNDGnBszfh8g.webp', gradient: 'from-violet-900 via-purple-900 to-indigo-900', keywords: ['tips', 'advice', 'beauty'] },
+  { id: 'weekly-theme', label: 'Weekly Theme', route: '/weekly-theme', image: CDN + 'icon-weekly-theme-Ddu6T87k5StF8EDt5BYehk.webp', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', keywords: ['weekly', 'theme', 'focus'] },
+  { id: 'me-vs-me', label: 'Me vs Me', route: '/me-vs-me', image: CDN + 'icon-me-vs-me-KYCb7xc6LGLzVW9UGpUEWp.webp', gradient: 'from-yellow-900 via-pink-900 to-black', keywords: ['progress', 'personal', 'growth'] },
+  { id: 'scholarships', label: 'Scholarships', route: '/scholarships', image: MANUS + 'icon-diploma-education_12164ff4.png', gradient: 'from-amber-900 via-yellow-900 to-orange-900', keywords: ['scholarship', 'money', 'college'] },
+  { id: 'careers', label: 'Career Explorer', route: '/careers', image: CDN + 'icon-career-explorer-8j63MBeNyT9uZDM7Jtmztz.webp', gradient: 'from-yellow-800 via-amber-900 to-orange-900', keywords: ['career', 'jobs', 'future'] },
+  { id: 'job-tracker', label: 'Job Tracker', route: '/job-tracker', gradient: 'from-blue-900 via-indigo-900 to-purple-900', emoji: '📋', keywords: ['job', 'application', 'work'] },
+  { id: 'dream-calculator', label: 'Dream Calculator', route: '/dream-calculator', image: MANUS + 'icon-dream-calculator_0ac76f98.png', gradient: 'from-indigo-900 via-purple-900 to-blue-900', keywords: ['money', 'dream', 'salary'] },
+  { id: 'money-tracker', label: 'Money & Savings', route: '/money-tracker', image: CDN + 'icon-money-tracker-2TYacsiWgAXqNkGsYeqxTn.webp', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', keywords: ['money', 'budget', 'finance'] },
+  { id: 'savings-goals', label: 'Savings Goals', route: '/savings-goals', gradient: 'from-green-900 via-emerald-900 to-teal-900', emoji: '🏦', keywords: ['save', 'savings', 'money', 'goals'] },
+  { id: 'homework-tracker', label: 'Homework', route: '/homework-tracker', image: CDN + 'icon-homework-tracker-UzfmPy6kuzvUAsU3vgon39.webp', gradient: 'from-gray-800 via-slate-900 to-gray-900', keywords: ['homework', 'school', 'study'] },
+  { id: 'ggu-academy', label: 'GGU Academy', route: '/ggu-academy', image: CDN + 'icon-ggu-academy-KcP2723cbWjawrV5CXFVoa.webp', gradient: 'from-pink-900 via-purple-900 to-pink-800', keywords: ['academy', 'learn', 'education'] },
+  { id: 'growth-mindset', label: 'Growth Mindset', route: '/growth-mindset', image: MANUS + 'icon-growth-mindset_a5fa4874.png', gradient: 'from-purple-900 via-fuchsia-900 to-pink-900', keywords: ['mindset', 'growth', 'positive'] },
+  { id: 'girls-library', label: "Girls' Library", route: '/girls-library', image: CDN + 'icon-library-fYQUmdRKLjKeb8kEpFXuZz.webp', gradient: 'from-amber-800 via-orange-900 to-yellow-900', keywords: ['books', 'read', 'library'] },
+  { id: 'your-voice', label: 'Your Voice', route: '/your-voice', image: CDN + 'icon-your-voice-EfuNjY9nzEGsR3k7RWGZKq.webp', gradient: 'from-rose-900 via-red-900 to-pink-900', keywords: ['voice', 'speak', 'opinions'] },
+  { id: 'glow-playlist', label: 'Glow Playlist', route: '/glow-playlist', image: MEDIA + '4fb776ff6_generated_image.png', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', keywords: ['playlist', 'music', 'songs'] },
+  { id: 'countdown', label: 'Countdown', route: '/countdown', image: CDN + 'icon-countdown-7HeWEhC3DPLUnHCzG43qTW.webp', gradient: 'from-fuchsia-900 via-purple-900 to-pink-900', keywords: ['countdown', 'timer', 'event'] },
+  { id: 'my-calendar', label: 'My Calendar', route: '/my-calendar', image: CDN + 'icon-my-calendar-55x8hsLegkBBMSVxNXFap5.webp', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', keywords: ['calendar', 'schedule', 'events'] },
+  { id: 'birthday-planner', label: 'Birthday Planner', route: '/birthday-planner', image: CDN + 'icon-birthday-planner-Qp8X5ePr97LrHNc2yucHpS.webp', gradient: 'from-pink-800 via-rose-900 to-fuchsia-900', keywords: ['birthday', 'party', 'event'] },
+  { id: 'trip-planner', label: 'Trip Planner', route: '/trip-planner', image: CDN + 'icon-trip-planner-QAiWdgEFB9pMKaHeuK6ZMu.webp', gradient: 'from-blue-900 via-indigo-900 to-purple-900', keywords: ['trip', 'travel', 'vacation'] },
+  { id: 'cleaning-calendar', label: 'Cleaning Calendar', route: '/cleaning-calendar', image: CDN + 'icon-cleaning-calendar-XC5nXr5kSwExbkzykThJEr.webp', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', keywords: ['clean', 'chores', 'home'] },
+  { id: 'sticky-notes', label: 'Sticky Notes', route: '/sticky-notes', image: CDN + 'icon-ggu-notes-YfCNPjnpsmHMjZkm5VACrP.webp', gradient: 'from-violet-900 via-purple-900 to-fuchsia-900', keywords: ['notes', 'reminder', 'sticky'] },
+  { id: 'time-management', label: 'Time Management', route: '/time-management', image: CDN + 'icon-time-management-LRboeGD2hk8GxmG3SPgSrU.webp', gradient: 'from-purple-900 via-pink-900 to-rose-900', keywords: ['time', 'schedule', 'manage'] },
+  { id: 'important-contacts', label: 'Contacts', route: '/important-contacts', image: CDN + 'icon-important-contacts-UbmbL7qNMiaxYU2N3To7LT.webp', gradient: 'from-teal-900 via-cyan-900 to-blue-900', keywords: ['contacts', 'phone', 'emergency'] },
+  { id: 'password-vault', label: 'Password Vault', route: '/password-vault', image: CDN + 'icon-password-vault-M6NfKgvjrqX84pzi4yKu4c.webp', gradient: 'from-yellow-800 via-amber-900 to-gray-900', keywords: ['password', 'security', 'vault'] },
+  { id: 'my-glow-link', label: 'My Glow Link', route: '/my-glow-link', image: CDN + 'icon-my-glow-link-74jzirPfc7YN8uTh9fGCeE.webp', gradient: 'from-yellow-800 via-amber-900 to-orange-900', keywords: ['profile', 'link', 'share'] },
+  { id: 'glow-store', label: 'Glow Store', route: '/glow-store', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', emoji: '🛍️', keywords: ['store', 'shop', 'rewards'] },
+  { id: 'support', label: 'Help & Support', route: '/support', gradient: 'from-rose-900 via-pink-900 to-red-900', emoji: '💜', keywords: ['help', 'support', 'contact'] },
 ];
 
 const DEFAULT_HOME_IDS = ['daily-checkin', 'glow', 'glow-feed', 'fitness-tracker', 'diary', 'vision-board', 'glow-up-challenges', 'my-goals'];
@@ -116,17 +114,11 @@ function loadSavedIds(key, defaults) {
   return defaults;
 }
 
-// iPhone-style app icon
-function HomeAppIcon({ app, isEdit, onRemove, dragHandleProps, dragInnerRef, isDragging, style }) {
+// App icon for home grid (not editable)
+function HomeAppIcon({ app, onNavigate }) {
   return (
-    <div ref={dragInnerRef} style={style} {...(dragHandleProps || {})}
-      className={`relative flex flex-col items-center gap-1.5 select-none ${isDragging ? 'opacity-70 scale-110 z-50' : ''} ${isEdit ? 'animate-[wiggle_0.35s_ease-in-out_infinite]' : ''}`}>
-      {isEdit && (
-        <button onPointerDown={e => { e.stopPropagation(); onRemove(); }}
-          className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-black border border-white/30 flex items-center justify-center text-white text-xs font-bold z-20 shadow-lg">
-          <X size={10} />
-        </button>
-      )}
+    <button onClick={() => onNavigate(app.route)}
+      className="flex flex-col items-center gap-1.5 select-none hover:opacity-80 active:scale-95 transition-transform">
       <div className={`w-[72px] h-[72px] rounded-[16px] overflow-hidden shadow-lg border border-white/10 ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient + ' flex items-center justify-center'}`}
         style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
         {app.image
@@ -134,7 +126,7 @@ function HomeAppIcon({ app, isEdit, onRemove, dragHandleProps, dragInnerRef, isD
           : <span className="text-3xl drop-shadow-lg">{app.emoji}</span>}
       </div>
       <span className="text-[10px] text-center text-gray-300 leading-tight w-[76px]">{app.label}</span>
-    </div>
+    </button>
   );
 }
 
@@ -152,7 +144,7 @@ function QuickChip({ app, onNavigate }) {
   );
 }
 
-// Page picker modal (search all pages)
+// Page picker modal
 function PagePickerModal({ title, currentIds, onSave, onClose }) {
   const [selected, setSelected] = useState([...currentIds]);
   const [search, setSearch] = useState('');
@@ -190,7 +182,7 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
             })}
           </div>
         </div>
-        <div className="px-4 py-4 border-t border-white/10 flex-shrink-0 grid grid-cols-2 gap-3">
+        <div className="px-4 pt-5 pb-12 border-t border-white/10 flex-shrink-0 grid grid-cols-2 gap-3">
           <button onClick={onClose} className="py-3 rounded-2xl text-sm font-semibold text-gray-400 bg-white/5">Cancel</button>
           <button onClick={() => { onSave(selected); onClose(); }} className="py-3 rounded-2xl text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg,#c44a55,#ff6a75)' }}>Save ({selected.length})</button>
         </div>
@@ -212,27 +204,15 @@ export default function Dashboard() {
   const [bgPattern, setBgPattern] = useState('none');
   const [bgImage, setBgImage] = useState(null);
   const [bgImagePos, setBgImagePos] = useState({ x: 50, y: 50 });
-  const [isEditMode, setIsEditMode] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
-  const [homeAppIds, setHomeAppIds] = useState(() => loadSavedIds('ggu_home_apps', DEFAULT_HOME_IDS));
+  const [homeAppIds] = useState(() => loadSavedIds('ggu_home_apps', DEFAULT_HOME_IDS));
   const [quickIds, setQuickIds] = useState(() => loadSavedIds('ggu_quick_access', DEFAULT_QUICK_IDS));
   const [showQuickAccess, setShowQuickAccess] = useState(() => { try { return localStorage.getItem('ggu_show_quick') !== 'false'; } catch { return true; } });
-  const [showHomePicker, setShowHomePicker] = useState(false);
   const [showQuickPicker, setShowQuickPicker] = useState(false);
-
-  // Long-press to enter edit mode (iPhone-style)
-  const longPressTimer = useRef(null);
-  const handleLongPressStart = () => {
-    longPressTimer.current = setTimeout(() => setIsEditMode(true), 600);
-  };
-  const handleLongPressEnd = () => {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-  };
 
   const homeApps = homeAppIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean);
   const quickApps = quickIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean);
 
-  useEffect(() => { localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds)); }, [homeAppIds]);
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
   useEffect(() => { localStorage.setItem('ggu_show_quick', showQuickAccess); }, [showQuickAccess]);
   useEffect(() => { localStorage.setItem('ggu_bg_color', bgColor); }, [bgColor]);
@@ -275,23 +255,14 @@ export default function Dashboard() {
       })
     : [];
 
-  const onDragEnd = (result) => {
-    if (!result.destination) return;
-    const items = [...homeAppIds];
-    const [moved] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, moved);
-    setHomeAppIds(items);
-  };
-
   return (
-    <div className="min-h-screen text-white pb-24 overflow-x-hidden relative" style={{ backgroundColor: '#080810' }}
-      onClick={isEditMode ? () => setIsEditMode(false) : undefined}>
+    <div className="min-h-screen text-white pb-24 overflow-x-hidden relative" style={{ backgroundColor: '#080810' }}>
       <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundColor: bgColor, opacity: 0.12 }} />
       {(bgPattern !== 'none' || bgImage) && (
         <div className="fixed inset-0 pointer-events-none z-0" style={patternStyle(bgPattern, bgImage, bgImagePos)} />
       )}
 
-      <div className="relative z-10" onClick={e => e.stopPropagation()}>
+      <div className="relative z-10">
 
         {/* World + Points row */}
         <div className="flex items-center justify-between px-4 pt-3">
@@ -312,14 +283,10 @@ export default function Dashboard() {
             {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" alt="avatar" /> : avatarConfig ? <AvatarPreview config={avatarConfig} size={56} /> : firstName[0]}
           </div>
           <div className="flex-1" />
-          {isEditMode ? (
-            <button onClick={() => setIsEditMode(false)} className="text-xs backdrop-blur-md bg-pink-500/20 border border-pink-500/40 rounded-full px-3 py-1.5 text-pink-300 font-semibold hover:bg-pink-500/30 transition">Done</button>
-          ) : (
-            <div className="flex gap-2">
-              <button onClick={() => setShowCustomize(true)} className="text-xs glass rounded-full px-3 py-1.5 text-gray-300 hover:text-white transition">{t('customize')}</button>
-              <button onClick={async () => { if (window.confirm('Are you sure you want to sign out?')) { await base44.auth.logout('/'); } }} className="text-xs backdrop-blur-md bg-red-500/20 border border-red-500/40 rounded-full px-3 py-1.5 text-red-300 font-semibold hover:bg-red-500/30 transition">Sign Out</button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            <button onClick={() => setShowCustomize(true)} className="text-xs glass rounded-full px-3 py-1.5 text-gray-300 hover:text-white transition">{t('customize')}</button>
+            <button onClick={async () => { if (window.confirm('Are you sure you want to sign out?')) { await base44.auth.logout('/'); } }} className="text-xs backdrop-blur-md bg-red-500/20 border border-red-500/40 rounded-full px-3 py-1.5 text-red-300 font-semibold hover:bg-red-500/30 transition">Sign Out</button>
+          </div>
         </div>
 
         {/* Greeting */}
@@ -345,32 +312,19 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Access */}
-        {(showQuickAccess || isEditMode) && (
+        {showQuickAccess && (
           <div className="px-4 mb-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-bold tracking-widest text-gray-500">{t('quick_access')}</p>
-              {isEditMode ? (
-                <div className="flex items-center gap-2">
-                  <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-xs text-pink-400 font-semibold"><Plus size={12} /> Edit</button>
-                  <button onClick={(e) => { e.stopPropagation(); setShowQuickAccess(v => !v); }} className={`text-xs font-semibold px-2 py-0.5 rounded-full border transition ${showQuickAccess ? 'border-green-500/40 bg-green-500/15 text-green-400' : 'border-gray-600 bg-white/5 text-gray-500'}`}>
-                    {showQuickAccess ? 'Visible' : 'Hidden'}
-                  </button>
-                </div>
-              ) : (
-                <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-xs text-pink-400 font-semibold"><Plus size={12} /> Edit</button>
-              )}
+              <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-xs text-pink-400 font-semibold"><Plus size={12} /> Edit</button>
             </div>
-            {showQuickAccess && (
-              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-                {quickApps.map(app => <QuickChip key={app.id} app={app} onNavigate={navigate} />)}
-                {!isEditMode && (
-                  <button onClick={() => setShowQuickPicker(true)} className="flex flex-col items-center justify-center gap-1 flex-shrink-0 rounded-2xl border border-dashed border-white/20 hover:border-pink-500/50 transition" style={{ width: 58, paddingTop: 6, paddingBottom: 6 }}>
-                    <Plus size={14} className="text-gray-500" />
-                    <span className="text-[9px] text-gray-500">Add</span>
-                  </button>
-                )}
-              </div>
-            )}
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+              {quickApps.map(app => <QuickChip key={app.id} app={app} onNavigate={navigate} />)}
+              <button onClick={() => setShowQuickPicker(true)} className="flex flex-col items-center justify-center gap-1 flex-shrink-0 rounded-2xl border border-dashed border-white/20 hover:border-pink-500/50 transition" style={{ width: 58, paddingTop: 6, paddingBottom: 6 }}>
+                <Plus size={14} className="text-gray-500" />
+                <span className="text-[9px] text-gray-500">Add</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -395,47 +349,12 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Home Apps — iPhone-style grid with long press to jiggle */}
+        {/* Home Apps — fixed grid */}
         <div className="px-4 mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold tracking-widest text-gray-500">{t('your_world')}</p>
-            {isEditMode ? (
-              <button onClick={() => setShowHomePicker(true)} className="flex items-center gap-1 text-xs text-pink-400 font-semibold"><Plus size={12} /> Add Apps</button>
-            ) : (
-              <p className="text-xs text-gray-600">Hold to rearrange</p>
-            )}
+          <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('your_world')}</p>
+          <div className="grid grid-cols-4 gap-x-2 gap-y-5">
+            {homeApps.map(app => <HomeAppIcon key={app.id} app={app} onNavigate={navigate} />)}
           </div>
-
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="apps" direction="horizontal">
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps}
-                  className="grid grid-cols-4 gap-x-2 gap-y-5"
-                  onMouseDown={isEditMode ? undefined : handleLongPressStart}
-                  onMouseUp={handleLongPressEnd}
-                  onMouseLeave={handleLongPressEnd}
-                  onTouchStart={isEditMode ? undefined : handleLongPressStart}
-                  onTouchEnd={handleLongPressEnd}>
-                  {homeApps.map((app, index) => (
-                    <Draggable key={app.id} draggableId={app.id} index={index} isDragDisabled={!isEditMode}>
-                      {(provided, snapshot) => (
-                        <HomeAppIcon
-                          app={app}
-                          isEdit={isEditMode}
-                          onRemove={() => setHomeAppIds(prev => prev.filter(x => x !== app.id))}
-                          dragHandleProps={{ ...provided.draggableProps, ...provided.dragHandleProps }}
-                          dragInnerRef={provided.innerRef}
-                          isDragging={snapshot.isDragging}
-                          style={provided.draggableProps.style}
-                        />
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
         </div>
 
         {/* Spacer between apps and social */}
@@ -465,9 +384,6 @@ export default function Dashboard() {
 
       {showCustomize && (
         <CustomizeModal bgColor={bgColor} setBgColor={setBgColor} bgPattern={bgPattern} setBgPattern={setBgPattern} bgImage={bgImage} setBgImage={setBgImage} bgImagePos={bgImagePos} setBgImagePos={setBgImagePos} onClose={() => setShowCustomize(false)} />
-      )}
-      {showHomePicker && (
-        <PagePickerModal title="Choose Home Apps" currentIds={homeAppIds} onSave={setHomeAppIds} onClose={() => setShowHomePicker(false)} />
       )}
       {showQuickPicker && (
         <PagePickerModal title="Choose Quick Access" currentIds={quickIds} onSave={setQuickIds} onClose={() => setShowQuickPicker(false)} />
