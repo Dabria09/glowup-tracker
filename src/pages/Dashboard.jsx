@@ -47,7 +47,6 @@ const ALL_PAGES = [
   { id: 'me-vs-me', label: 'Me vs Me', route: '/me-vs-me', image: CDN + 'icon-me-vs-me-KYCb7xc6LGLzVW9UGpUEWp.webp', gradient: 'from-yellow-900 via-pink-900 to-black', keywords: ['progress', 'personal', 'growth'] },
   { id: 'scholarships', label: 'Scholarships', route: '/scholarships', image: MANUS + 'icon-diploma-education_12164ff4.png', gradient: 'from-amber-900 via-yellow-900 to-orange-900', keywords: ['scholarship', 'money', 'college'] },
   { id: 'careers', label: 'Career Explorer', route: '/careers', image: CDN + 'icon-career-explorer-8j63MBeNyT9uZDM7Jtmztz.webp', gradient: 'from-yellow-800 via-amber-900 to-orange-900', keywords: ['career', 'jobs', 'future'] },
-  { id: 'job-tracker', label: 'Job Tracker', route: '/job-tracker', gradient: 'from-blue-900 via-indigo-900 to-purple-900', emoji: '📋', keywords: ['job', 'application', 'work'] },
   { id: 'dream-calculator', label: 'Dream Calculator', route: '/dream-calculator', image: MANUS + 'icon-dream-calculator_0ac76f98.png', gradient: 'from-indigo-900 via-purple-900 to-blue-900', keywords: ['money', 'dream', 'salary'] },
   { id: 'money-tracker', label: 'Money & Savings', route: '/money-tracker', image: CDN + 'icon-money-tracker-2TYacsiWgAXqNkGsYeqxTn.webp', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', keywords: ['money', 'budget', 'finance'] },
   { id: 'savings-goals', label: 'Savings Goals', route: '/savings-goals', gradient: 'from-green-900 via-emerald-900 to-teal-900', emoji: '🏦', keywords: ['save', 'savings', 'money', 'goals'] },
@@ -88,20 +87,17 @@ const PATTERN_SVGS = {
   hearts: "<svg xmlns='http://www.w3.org/2000/svg' width='55' height='55'><text x='8' y='40' font-size='28' fill='rgba(255,255,255,0.03)'>&#9829;</text></svg>",
   sparkles: "<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><text x='5' y='36' font-size='26' fill='rgba(255,255,255,0.035)'>&#10022;</text></svg>",
   flowers: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='8' y='42' font-size='30' fill='rgba(255,255,255,0.03)'>&#10047;</text></svg>",
-  butterflies: "<svg xmlns='http://www.w3.org/2000/svg' width='65' height='65'><text x='6' y='46' font-size='32' fill='rgba(255,255,255,0.03)'>&#129419;</text></svg>",
-  diamonds: "<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><polygon points='22,3 41,22 22,41 3,22' fill='rgba(255,255,255,0.03)'/></svg>",
-  crowns: "<svg xmlns='http://www.w3.org/2000/svg' width='65' height='65'><text x='8' y='46' font-size='32' fill='rgba(255,255,255,0.03)'>&#128081;</text></svg>",
   dots: "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'><circle cx='12' cy='12' r='2' fill='rgba(255,255,255,0.03)'/></svg>",
   moons: "<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><text x='8' y='42' font-size='30' fill='rgba(255,255,255,0.03)'>&#9790;</text></svg>",
 };
 
-const patternStyle = (pattern, bgImage, bgImagePos = { x: 50, y: 50 }) => {
+function patternStyle(pattern, bgImage, bgImagePos = { x: 50, y: 50 }) {
   if (bgImage) return { backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: `${bgImagePos.x}% ${bgImagePos.y}%` };
   if (pattern && pattern !== 'none' && PATTERN_SVGS[pattern]) {
     return { backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(PATTERN_SVGS[pattern])}")` };
   }
   return {};
-};
+}
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -110,12 +106,160 @@ function getGreeting() {
   return 'greeting_evening';
 }
 
-function loadSavedIds(key, defaults) {
+function loadSaved(key, defaults) {
   try { const s = localStorage.getItem(key); if (s) return JSON.parse(s); } catch {}
   return defaults;
 }
 
-// App icon — small (1×1) or widget (2×2)
+function getPageById(id) { return ALL_PAGES.find(p => p.id === id); }
+
+// Mini app icon used in folders and grids
+function MiniIcon({ app, size = 72 }) {
+  const s = size;
+  return (
+    <div
+      className={`rounded-[${Math.round(s * 0.22)}px] overflow-hidden flex items-center justify-center flex-shrink-0 ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
+      style={{ width: s, height: s, borderRadius: Math.round(s * 0.22) }}
+    >
+      {app.image
+        ? <img src={app.image} alt={app.label} className="w-full h-full object-cover" />
+        : <span style={{ fontSize: s * 0.42 }}>{app.emoji}</span>}
+    </div>
+  );
+}
+
+// Folder icon — 2×2 grid of mini app icons
+function FolderIcon({ folder, allPages, onOpen, onLongPress }) {
+  const apps = folder.appIds.slice(0, 4).map(id => getPageById(id)).filter(Boolean);
+  const longTimer = useRef(null);
+
+  const startPress = () => { longTimer.current = setTimeout(() => onLongPress && onLongPress(), 600); };
+  const endPress = () => { clearTimeout(longTimer.current); };
+
+  return (
+    <button
+      className="flex flex-col items-center gap-1.5 select-none w-full"
+      onClick={onOpen}
+      onMouseDown={startPress} onMouseUp={endPress} onMouseLeave={endPress}
+      onTouchStart={startPress} onTouchEnd={endPress} onTouchMove={endPress}
+    >
+      <div className="w-[72px] h-[72px] rounded-[16px] flex items-center justify-center p-1.5 border border-white/10"
+        style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', boxShadow: '0 4px 15px rgba(0,0,0,0.4)' }}>
+        <div className="grid grid-cols-2 gap-0.5 w-full h-full">
+          {[0, 1, 2, 3].map(i => apps[i] ? (
+            <MiniIcon key={i} app={apps[i]} size={28} />
+          ) : (
+            <div key={i} className="rounded-[6px] bg-white/10" style={{ width: 28, height: 28 }} />
+          ))}
+        </div>
+      </div>
+      <span className="text-[10px] text-center text-gray-300 leading-tight w-[76px]">{folder.name}</span>
+    </button>
+  );
+}
+
+// Folder open modal
+function FolderModal({ folder, folders, setFolders, homeAppIds, setHomeAppIds, navigate, onClose }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(folder.name);
+  const apps = folder.appIds.map(id => getPageById(id)).filter(Boolean);
+
+  const saveName = () => {
+    setFolders(prev => ({ ...prev, [folder.id]: { ...prev[folder.id], name: name.trim() || folder.name } }));
+    setEditing(false);
+  };
+
+  const removeApp = (appId) => {
+    const newAppIds = folder.appIds.filter(id => id !== appId);
+    if (newAppIds.length === 0) {
+      // Delete folder, put no apps back on home
+      const newFolders = { ...folders };
+      delete newFolders[folder.id];
+      setFolders(newFolders);
+      setHomeAppIds(prev => prev.filter(id => id !== folder.id));
+      onClose();
+    } else if (newAppIds.length === 1) {
+      // Dissolve folder, put the remaining app back on home
+      const newFolders = { ...folders };
+      delete newFolders[folder.id];
+      setFolders(newFolders);
+      setHomeAppIds(prev => prev.map(id => id === folder.id ? newAppIds[0] : id));
+      onClose();
+    } else {
+      setFolders(prev => ({ ...prev, [folder.id]: { ...prev[folder.id], appIds: newAppIds } }));
+    }
+  };
+
+  const deleteFolder = () => {
+    // Dissolve folder — move all apps back to home screen
+    const newFolders = { ...folders };
+    delete newFolders[folder.id];
+    setFolders(newFolders);
+    setHomeAppIds(prev => {
+      const idx = prev.indexOf(folder.id);
+      if (idx === -1) return prev;
+      const next = [...prev];
+      next.splice(idx, 1, ...folder.appIds);
+      return next;
+    });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(20px)' }} onClick={onClose}>
+      <div className="w-full rounded-3xl overflow-hidden" style={{ maxWidth: 340, background: 'rgba(20,10,35,0.95)', border: '1px solid rgba(255,255,255,0.15)' }} onClick={e => e.stopPropagation()}>
+        {/* Folder name header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+          {editing ? (
+            <input
+              autoFocus
+              value={name}
+              onChange={e => setName(e.target.value)}
+              onBlur={saveName}
+              onKeyDown={e => e.key === 'Enter' && saveName()}
+              className="font-bold text-white text-lg bg-transparent border-b border-pink-500 outline-none flex-1 mr-3"
+            />
+          ) : (
+            <button onClick={() => setEditing(true)} className="font-bold text-white text-lg flex items-center gap-1">
+              {folder.name} <span className="text-[11px] text-gray-500 font-normal">✏️</span>
+            </button>
+          )}
+          <button onClick={onClose}><X size={20} className="text-gray-400" /></button>
+        </div>
+
+        {/* Apps in folder */}
+        <div className="px-5 pb-4">
+          <div className="rounded-2xl p-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div className="grid grid-cols-3 gap-4">
+              {apps.map(app => (
+                <div key={app.id} className="relative flex flex-col items-center gap-1">
+                  <button
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center z-10 text-gray-300 text-xs leading-none"
+                    onClick={() => removeApp(app.id)}
+                    style={{ fontSize: 14 }}
+                  >×</button>
+                  <button onClick={() => { navigate(app.route); onClose(); }} className="active:scale-90 transition-transform">
+                    <MiniIcon app={app} size={56} />
+                  </button>
+                  <span className="text-[10px] text-gray-300 text-center leading-tight w-16">{app.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Delete folder button */}
+        <div className="px-5 pb-5">
+          <button onClick={deleteFolder} className="w-full py-2.5 rounded-2xl text-sm font-semibold text-red-400 border border-red-900/40 bg-red-900/10">
+            Dissolve Folder
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Home app icon (single app)
 function HomeAppIcon({ app, onNavigate, size = 'small' }) {
   if (size === 'widget') {
     return (
@@ -130,11 +274,9 @@ function HomeAppIcon({ app, onNavigate, size = 'small' }) {
           <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mb-0.5">Widget</p>
           <p className="text-base font-bold text-white leading-tight">{app.label}</p>
         </div>
-        <div className="absolute top-2 right-2 text-[10px] font-semibold text-white/40 bg-black/30 rounded-full px-1.5 py-0.5">2×2</div>
       </button>
     );
   }
-
   return (
     <button
       onClick={() => onNavigate(app.route)}
@@ -228,36 +370,34 @@ export default function Dashboard() {
   const [bgImage, setBgImage] = useState(null);
   const [bgImagePos, setBgImagePos] = useState({ x: 50, y: 50 });
   const [totalPoints, setTotalPoints] = useState(0);
-  const [homeAppIds, setHomeAppIds] = useState(() => loadSavedIds('ggu_home_apps', DEFAULT_HOME_IDS));
-  const [quickIds, setQuickIds] = useState(() => loadSavedIds('ggu_quick_access', DEFAULT_QUICK_IDS));
+  const [homeAppIds, setHomeAppIds] = useState(() => loadSaved('ggu_home_apps', DEFAULT_HOME_IDS));
+  const [quickIds, setQuickIds] = useState(() => loadSaved('ggu_quick_access', DEFAULT_QUICK_IDS));
   const [showQuickAccess] = useState(() => { try { return localStorage.getItem('ggu_show_quick') !== 'false'; } catch { return true; } });
   const [showQuickPicker, setShowQuickPicker] = useState(false);
-  const [appSizes, setAppSizes] = useState(() => { try { const s = localStorage.getItem('ggu_app_sizes'); return s ? JSON.parse(s) : {}; } catch { return {}; } });
+  const [appSizes, setAppSizes] = useState(() => loadSaved('ggu_app_sizes', {}));
   const [sizeMenu, setSizeMenu] = useState(null);
+  const [folders, setFolders] = useState(() => loadSaved('ggu_folders', {}));
+  const [openFolder, setOpenFolder] = useState(null);
   const [checkedInToday, setCheckedInToday] = useState(false);
 
-  // Long-press detection via timers stored in a ref
+  // Track which item is being hovered over during drag (for folder creation)
+  const [dragOverId, setDragOverId] = useState(null);
+  const draggedId = useRef(null);
+
+  // Long-press timers
   const longPressTimers = useRef({});
-
-  const startLongPress = (appId) => {
-    longPressTimers.current[appId] = setTimeout(() => {
-      setSizeMenu({ appId });
-    }, 600);
+  const startLongPress = (id) => {
+    longPressTimers.current[id] = setTimeout(() => setSizeMenu({ appId: id }), 600);
   };
-
-  const cancelLongPress = (appId) => {
-    if (longPressTimers.current[appId]) {
-      clearTimeout(longPressTimers.current[appId]);
-      delete longPressTimers.current[appId];
-    }
+  const cancelLongPress = (id) => {
+    clearTimeout(longPressTimers.current[id]);
+    delete longPressTimers.current[id];
   };
-
-  const homeApps = homeAppIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean);
-  const quickApps = quickIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean);
 
   useEffect(() => { localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds)); }, [homeAppIds]);
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
   useEffect(() => { localStorage.setItem('ggu_app_sizes', JSON.stringify(appSizes)); }, [appSizes]);
+  useEffect(() => { localStorage.setItem('ggu_folders', JSON.stringify(folders)); }, [folders]);
   useEffect(() => { localStorage.setItem('ggu_bg_color', bgColor); }, [bgColor]);
   useEffect(() => { localStorage.setItem('ggu_bg_pattern', bgPattern); }, [bgPattern]);
   useEffect(() => { if (bgImage) localStorage.setItem('ggu_bg_image', bgImage); else localStorage.removeItem('ggu_bg_image'); }, [bgImage]);
@@ -277,11 +417,9 @@ export default function Dashboard() {
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
-      // Check if user already checked in today
       const today = new Date().toISOString().split('T')[0];
       const diaryToday = await base44.entities.DiaryEntry.filter({ user_email: u.email, date: today });
       if (diaryToday.length > 0) setCheckedInToday(true);
-
       const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
       setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
@@ -293,6 +431,81 @@ export default function Dashboard() {
     }).catch(() => {});
   }, []);
 
+  // Drag handlers
+  const onDragStart = (start) => {
+    draggedId.current = start.draggableId;
+  };
+
+  const onDragUpdate = (update) => {
+    if (!update.destination) { setDragOverId(null); return; }
+    const destIndex = update.destination.index;
+    const destId = homeAppIds[destIndex];
+    // Hovering over a different item = folder merge candidate
+    if (destId && destId !== draggedId.current) {
+      setDragOverId(destId);
+    } else {
+      setDragOverId(null);
+    }
+  };
+
+  const onDragEnd = (result) => {
+    setDragOverId(null);
+    draggedId.current = null;
+    if (!result.destination) return;
+
+    const srcIndex = result.source.index;
+    const destIndex = result.destination.index;
+    const draggedItemId = homeAppIds[srcIndex];
+    const targetItemId = homeAppIds[destIndex];
+
+    // If dropped on same position → no-op
+    if (srcIndex === destIndex) return;
+
+    // If the drag ended with exactly the same position AND hovered over a different icon → create/join folder
+    // We detect this: if destIndex has an existing item that is NOT the dragged item
+    // and they end up in same slot (meaning no index shift created by the drop)
+    // Use a simple heuristic: if the dragged item lands at destIndex where targetItemId sits
+    // AND they're different → folder merge
+    const isFolder = (id) => id && id.startsWith('folder_');
+
+    // Check if we should merge into a folder
+    // Folder merge happens when the dragged item would land "on" another item
+    // @hello-pangea/dnd always moves items, so we detect merge by checking
+    // if source & destination are adjacent and the gap is zero
+    // Simple approach: after reorder, if two consecutive icons are at same visual spot = merge
+    // Actually, use the dragOverId we tracked
+    const shouldMerge = dragOverId !== null && dragOverId === targetItemId && srcIndex !== destIndex;
+
+    if (shouldMerge && !isFolder(draggedItemId)) {
+      // Merge draggedItemId into targetItemId (or into targetItemId's folder)
+      if (isFolder(targetItemId)) {
+        // Add to existing folder
+        setFolders(prev => ({
+          ...prev,
+          [targetItemId]: { ...prev[targetItemId], appIds: [...(prev[targetItemId]?.appIds || []), draggedItemId] }
+        }));
+        setHomeAppIds(prev => prev.filter(id => id !== draggedItemId));
+      } else {
+        // Create new folder from two apps
+        const folderId = 'folder_' + Date.now();
+        const folderName = 'Folder';
+        setFolders(prev => ({ ...prev, [folderId]: { id: folderId, name: folderName, appIds: [targetItemId, draggedItemId] } }));
+        // Replace targetItemId with folderId, remove draggedItemId
+        setHomeAppIds(prev => {
+          const next = prev.filter(id => id !== draggedItemId);
+          return next.map(id => id === targetItemId ? folderId : id);
+        });
+      }
+      return;
+    }
+
+    // Normal reorder
+    const items = [...homeAppIds];
+    const [moved] = items.splice(srcIndex, 1);
+    items.splice(destIndex, 0, moved);
+    setHomeAppIds(items);
+  };
+
   const firstName = user?.full_name?.split(' ')[0] || 'Gorgeous';
   const username = user?.email?.split('@')[0] || 'user';
 
@@ -302,6 +515,8 @@ export default function Dashboard() {
         return p.label.toLowerCase().includes(q) || p.keywords.some(k => k.toLowerCase().includes(q));
       })
     : [];
+
+  const currentFolder = openFolder ? folders[openFolder] : null;
 
   return (
     <div className="min-h-screen text-white pb-24 overflow-x-hidden relative" style={{ backgroundColor: '#080810' }}>
@@ -344,7 +559,7 @@ export default function Dashboard() {
           <p className="text-gray-500 text-sm">@{username}</p>
         </div>
 
-        {/* Daily Glow Check-In Banner — hidden after check-in, returns next day */}
+        {/* Daily Glow Check-In Banner */}
         {!checkedInToday && (
           <div className="px-4 mb-4">
             <button onClick={() => navigate('/daily-checkin')} className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition hover:opacity-90" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.5), rgba(168,85,247,0.4), rgba(236,72,153,0.3))', border: '1px solid rgba(168,85,247,0.4)' }}>
@@ -369,7 +584,7 @@ export default function Dashboard() {
               <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-xs text-pink-400 font-semibold"><Plus size={12} /> Edit</button>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-              {quickApps.map(app => <QuickChip key={app.id} app={app} onNavigate={navigate} />)}
+              {quickIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean).map(app => <QuickChip key={app.id} app={app} onNavigate={navigate} />)}
               <button onClick={() => setShowQuickPicker(true)} className="flex flex-col items-center justify-center gap-1 flex-shrink-0 rounded-2xl border border-dashed border-white/20 hover:border-pink-500/50 transition" style={{ width: 58, paddingTop: 6, paddingBottom: 6 }}>
                 <Plus size={14} className="text-gray-500" />
                 <span className="text-[9px] text-gray-500">Add</span>
@@ -399,19 +614,13 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Your World — drag to rearrange, hold to resize */}
+        {/* Your World — drag to rearrange, drag onto another to create folder, hold to resize */}
         <div className="px-4 mb-12">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-bold tracking-widest text-gray-500">{t('your_world')}</p>
-            <p className="text-[10px] text-gray-600">Drag to rearrange · Hold to resize</p>
+            <p className="text-[10px] text-gray-600">Drag onto icon to folder · Hold to resize</p>
           </div>
-          <DragDropContext onDragEnd={(result) => {
-            if (!result.destination) return;
-            const items = [...homeAppIds];
-            const [moved] = items.splice(result.source.index, 1);
-            items.splice(result.destination.index, 0, moved);
-            setHomeAppIds(items);
-          }}>
+          <DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
             <Droppable droppableId="home-apps" direction="horizontal">
               {(provided) => (
                 <div
@@ -420,29 +629,49 @@ export default function Dashboard() {
                   className="grid grid-cols-4 gap-2"
                   style={{ gridAutoRows: 'minmax(88px, auto)' }}
                 >
-                  {homeApps.map((app, index) => {
-                    const size = appSizes[app.id] || 'small';
+                  {homeAppIds.map((itemId, index) => {
+                    const isFolder = itemId.startsWith('folder_');
+                    const folder = isFolder ? folders[itemId] : null;
+                    const app = !isFolder ? getPageById(itemId) : null;
+                    const size = appSizes[itemId] || 'small';
+                    const isHoverTarget = dragOverId === itemId;
+
+                    if (isFolder && !folder) return null;
+                    if (!isFolder && !app) return null;
+
                     return (
-                      <Draggable key={app.id} draggableId={app.id} index={index} isDragDisabled={size === 'widget'}>
+                      <Draggable key={itemId} draggableId={itemId} index={index} isDragDisabled={size === 'widget'}>
                         {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                             style={provided.draggableProps.style}
-                            className={size === 'widget' ? 'col-span-2 row-span-2' : ''}
-                            onMouseDown={() => startLongPress(app.id)}
-                            onMouseUp={() => cancelLongPress(app.id)}
-                            onMouseLeave={() => cancelLongPress(app.id)}
-                            onTouchStart={() => startLongPress(app.id)}
-                            onTouchEnd={() => cancelLongPress(app.id)}
-                            onTouchMove={() => cancelLongPress(app.id)}
+                            className={`${size === 'widget' ? 'col-span-2 row-span-2' : ''} transition-all duration-150 ${isHoverTarget ? 'scale-110' : ''}`}
+                            onMouseDown={() => startLongPress(itemId)}
+                            onMouseUp={() => cancelLongPress(itemId)}
+                            onMouseLeave={() => cancelLongPress(itemId)}
+                            onTouchStart={() => startLongPress(itemId)}
+                            onTouchEnd={() => cancelLongPress(itemId)}
+                            onTouchMove={() => cancelLongPress(itemId)}
                           >
-                            <HomeAppIcon
-                              app={app}
-                              size={size}
-                              onNavigate={snapshot.isDragging ? () => {} : navigate}
-                            />
+                            {/* Folder merge highlight ring */}
+                            <div className={`relative rounded-[18px] transition-all duration-150 ${isHoverTarget ? 'ring-2 ring-pink-400 ring-offset-2 ring-offset-transparent' : ''}`}>
+                              {isFolder ? (
+                                <FolderIcon
+                                  folder={folder}
+                                  allPages={ALL_PAGES}
+                                  onOpen={() => !snapshot.isDragging && setOpenFolder(itemId)}
+                                  onLongPress={() => setOpenFolder(itemId)}
+                                />
+                              ) : (
+                                <HomeAppIcon
+                                  app={app}
+                                  size={size}
+                                  onNavigate={snapshot.isDragging ? () => {} : navigate}
+                                />
+                              )}
+                            </div>
                           </div>
                         )}
                       </Draggable>
@@ -455,7 +684,7 @@ export default function Dashboard() {
           </DragDropContext>
         </div>
 
-        {/* Spacer between apps and social */}
+        {/* Spacer */}
         <div className="mx-4 mb-8 border-t border-white/10" />
 
         {/* Glow Everywhere — Social */}
@@ -480,6 +709,7 @@ export default function Dashboard() {
 
       <BottomNav active="home" />
 
+      {/* Modals */}
       {showCustomize && (
         <CustomizeModal bgColor={bgColor} setBgColor={setBgColor} bgPattern={bgPattern} setBgPattern={setBgPattern} bgImage={bgImage} setBgImage={setBgImage} bgImagePos={bgImagePos} setBgImagePos={setBgImagePos} onClose={() => setShowCustomize(false)} />
       )}
@@ -487,32 +717,25 @@ export default function Dashboard() {
         <PagePickerModal title="Choose Quick Access" currentIds={quickIds} onSave={setQuickIds} onClose={() => setShowQuickPicker(false)} />
       )}
 
-      {/* Widget size picker modal */}
+      {/* Widget size picker */}
       {sizeMenu && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-8" onClick={() => setSizeMenu(null)}>
           <div className="w-full rounded-3xl overflow-hidden" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.12)' }} onClick={e => e.stopPropagation()}>
             <div className="px-5 py-4 border-b border-white/10">
-              <p className="font-bold text-white text-center">{ALL_PAGES.find(p => p.id === sizeMenu.appId)?.label}</p>
+              <p className="font-bold text-white text-center">{ALL_PAGES.find(p => p.id === sizeMenu.appId)?.label || folders[sizeMenu.appId]?.name}</p>
               <p className="text-xs text-gray-500 text-center mt-0.5">Choose widget size</p>
             </div>
             <div className="grid grid-cols-2 gap-3 p-4">
-              <button
-                onClick={() => { setAppSizes(s => ({ ...s, [sizeMenu.appId]: 'small' })); setSizeMenu(null); }}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition ${(appSizes[sizeMenu.appId] || 'small') === 'small' ? 'border-pink-500/50 bg-pink-500/15' : 'border-white/10 bg-white/5'}`}
-              >
+              <button onClick={() => { setAppSizes(s => ({ ...s, [sizeMenu.appId]: 'small' })); setSizeMenu(null); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition ${(appSizes[sizeMenu.appId] || 'small') === 'small' ? 'border-pink-500/50 bg-pink-500/15' : 'border-white/10 bg-white/5'}`}>
                 <div className="grid grid-cols-2 gap-1 w-12">
-                  <div className="w-5 h-5 rounded-md bg-white/20" />
-                  <div className="w-5 h-5 rounded-md bg-white/20" />
-                  <div className="w-5 h-5 rounded-md bg-white/20" />
-                  <div className="w-5 h-5 rounded-md bg-white/20" />
+                  {[0,1,2,3].map(i => <div key={i} className="w-5 h-5 rounded-md bg-white/20" />)}
                 </div>
                 <p className="text-xs font-semibold text-white">Small</p>
                 <p className="text-[10px] text-gray-500">1×1 icon</p>
               </button>
-              <button
-                onClick={() => { setAppSizes(s => ({ ...s, [sizeMenu.appId]: 'widget' })); setSizeMenu(null); }}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition ${appSizes[sizeMenu.appId] === 'widget' ? 'border-pink-500/50 bg-pink-500/15' : 'border-white/10 bg-white/5'}`}
-              >
+              <button onClick={() => { setAppSizes(s => ({ ...s, [sizeMenu.appId]: 'widget' })); setSizeMenu(null); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition ${appSizes[sizeMenu.appId] === 'widget' ? 'border-pink-500/50 bg-pink-500/15' : 'border-white/10 bg-white/5'}`}>
                 <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-[10px] font-bold text-white/60">2×2</div>
                 <p className="text-xs font-semibold text-white">Widget</p>
                 <p className="text-[10px] text-gray-500">Large tile</p>
@@ -523,6 +746,19 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Folder open modal */}
+      {currentFolder && (
+        <FolderModal
+          folder={currentFolder}
+          folders={folders}
+          setFolders={setFolders}
+          homeAppIds={homeAppIds}
+          setHomeAppIds={setHomeAppIds}
+          navigate={navigate}
+          onClose={() => setOpenFolder(null)}
+        />
       )}
     </div>
   );
