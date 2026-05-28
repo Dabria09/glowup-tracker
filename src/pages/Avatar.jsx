@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Camera, Upload, Trash2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, Trash2, Sparkles, Crown } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import AvatarBuilder from '@/components/avatar/AvatarBuilder';
 
@@ -147,10 +147,12 @@ export default function Avatar() {
         </div>
         <button
           onClick={() => navigate('/glow-persona')}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/25"
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-500 to-pink-600 text-white font-bold text-sm hover:opacity-90 transition shadow-xl shadow-pink-500/30 relative overflow-hidden group"
         >
-          <Sparkles size={16} className="text-yellow-300" />
-          Try AI Glow Persona — Transform Your Selfie
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"/>
+          <Sparkles size={18} className="text-yellow-300 animate-pulse" />
+          Try AI Glow Persona — Premium Transformation
+          <Crown size={16} className="text-yellow-300" />
         </button>
       </div>
 
