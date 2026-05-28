@@ -1,0 +1,35 @@
+{
+  "name": "GlowFollow",
+  "type": "object",
+  "properties": {
+    "follower_email": {
+      "type": "string",
+      "title": "Follower Email"
+    },
+    "followed_email": {
+      "type": "string",
+      "title": "Followed Email"
+    },
+    "follower_username": {
+      "type": "string",
+      "title": "Follower Username"
+    },
+    "followed_username": {
+      "type": "string",
+      "title": "Followed Username"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "active",
+        "blocked"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "follower_email",
+    "followed_email"
+  ]
+}

@@ -86,6 +86,7 @@ import MonthlySummary from './pages/MonthlySummary';
 import JoinGGU from './pages/JoinGGU';
 import GlowStore from './pages/GlowStore';
 import GlowProfile from './pages/GlowProfile';
+import GlowFollowers from './pages/GlowFollowers';
 import AdminPanel from './pages/AdminPanel';
 import WeeklyLeaderboardSummary from './pages/WeeklyLeaderboardSummary';
 import Me from './pages/Me';
@@ -199,6 +200,7 @@ const AuthenticatedApp = () => {
       <Route path="/join" element={<JoinGGU />} />
       <Route path="/glow-store" element={<GlowStore />} />
       <Route path="/glowlink/:username" element={<GlowProfile />} />
+      <Route path="/glowlink/:username/followers" element={<GlowFollowers />} />
       <Route path="/admin" element={<AdminPanel />} />
       <Route path="/weekly-leaderboard" element={<WeeklyLeaderboardSummary />} />
       <Route path="/me" element={<Me />} />

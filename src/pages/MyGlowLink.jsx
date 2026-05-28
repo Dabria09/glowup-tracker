@@ -614,6 +614,7 @@ export default function MyGlowLink() {
               <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 {[
                   { key: 'public_profile',    label: 'Public Profile',    desc: 'Anyone can view your Glow Link' },
+                  { key: 'allow_followers',   label: 'Allow Followers',   desc: 'Let others follow your glow journey' },
                   { key: 'show_achievements', label: 'Show Achievements', desc: 'Display your badges and stats' },
                   { key: 'show_streak',       label: 'Show Streak',       desc: 'Show your current streak' },
                   { key: 'show_links',        label: 'Show Links',        desc: 'Show your custom links' },

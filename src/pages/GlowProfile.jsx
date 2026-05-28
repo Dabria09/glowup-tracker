@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
-import { ChevronLeft, Share2, Heart, Link2, ExternalLink, Lock, Star, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { getGlowLevel, getTheme, getFrame, computeBadges, GLOW_THEMES, PROFILE_FRAMES } from '@/components/glowlink/GlowThemes';
+import { ChevronLeft, Share2, Heart, Link2, ExternalLink, Lock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { getGlowLevel, getTheme, getFrame, computeBadges } from '@/components/glowlink/GlowThemes';
 
 const DEFAULT_PRIVACY = {
   public_profile: true,
@@ -30,6 +30,12 @@ export default function GlowProfile() {
   const [activeTab, setActiveTab] = useState('timeline');
   const [postReactions, setPostReactions] = useState({});
   const [featuredSections, setFeaturedSections] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followRecordId, setFollowRecordId] = useState(null);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -40,11 +46,21 @@ export default function GlowProfile() {
       try { setPrivacy({ ...DEFAULT_PRIVACY, ...(p.privacy_settings ? JSON.parse(p.privacy_settings) : {}) }); } catch {}
       try { setFeaturedSections(p.featured_sections ? JSON.parse(p.featured_sections) : {}); } catch {}
 
-      const [userPosts, userPointsData] = await Promise.all([
+      const [userPosts, userPointsData, followersData, followingData, cu] = await Promise.all([
         base44.entities.GlowUpPost.filter({ user_email: p.user_email }, '-created_date', 30),
         base44.entities.UserPoints.filter({ user_email: p.user_email }),
+        base44.entities.GlowFollow.filter({ followed_email: p.user_email, status: 'active' }),
+        base44.entities.GlowFollow.filter({ follower_email: p.user_email, status: 'active' }),
+        base44.auth.me().catch(() => null),
       ]);
 
+      setFollowersCount(followersData.length);
+      setFollowingCount(followingData.length);
+      setCurrentUser(cu);
+      if (cu && cu.email !== p.user_email) {
+        const myFollow = followersData.find(r => r.follower_email === cu.email);
+        if (myFollow) { setIsFollowing(true); setFollowRecordId(myFollow.id); }
+      }
       setPosts(userPosts.filter(post => post.visibility === 'public'));
       if (userPointsData.length) setPoints(userPointsData[0]);
       setLoading(false);
@@ -57,11 +73,41 @@ export default function GlowProfile() {
     else navigator.clipboard?.writeText(window.location.href);
   };
 
+  const handleFollow = async () => {
+    if (!currentUser) { base44.auth.redirectToLogin(); return; }
+    setFollowLoading(true);
+    if (isFollowing && followRecordId) {
+      await base44.entities.GlowFollow.delete(followRecordId);
+      setIsFollowing(false);
+      setFollowRecordId(null);
+      setFollowersCount(c => Math.max(0, c - 1));
+    } else {
+      const record = await base44.entities.GlowFollow.create({
+        follower_email: currentUser.email,
+        followed_email: profile.user_email,
+        follower_username: currentUser.email.split('@')[0],
+        followed_username: profile.username || profile.user_email.split('@')[0],
+        status: 'active',
+      });
+      setIsFollowing(true);
+      setFollowRecordId(record.id);
+      setFollowersCount(c => c + 1);
+    }
+    setFollowLoading(false);
+  };
+
   const toggleReaction = (postId, emoji) => {
     setPostReactions(prev => {
       const current = prev[postId] || {};
-      const key = emoji;
-      return { ...prev, [postId]: { ...current, [key]: (current[key] || 0) + (current[`_reacted_${key}`] ? -1 : 1), [`_reacted_${key}`]: !current[`_reacted_${key}`] } };
+      const reacted = current[`_reacted_${emoji}`];
+      return {
+        ...prev,
+        [postId]: {
+          ...current,
+          [emoji]: (current[emoji] || 0) + (reacted ? -1 : 1),
+          [`_reacted_${emoji}`]: !reacted,
+        },
+      };
     });
   };
 
@@ -98,46 +144,54 @@ export default function GlowProfile() {
   const frame = getFrame(profile.profile_frame || 'default');
   const frameStyle = frame.style(theme.accent);
   const badges = computeBadges(totalPoints, points?.check_in_streak, points?.challenges_completed, posts.length);
-
   const personaImages = profile.glow_persona_images ? (() => { try { return JSON.parse(profile.glow_persona_images)?.images || {}; } catch { return {}; } })() : {};
   const allPhotos = [
     ...(profile.avatar_url ? [{ url: profile.avatar_url, label: 'Profile' }] : []),
     ...Object.entries(personaImages).map(([id, url]) => ({ url, label: id.replace(/_/g, ' ') })),
   ];
-
   const progressPct = glowLevel.next ? Math.min(100, Math.floor((totalPoints / glowLevel.next) * 100)) : 100;
 
   return (
     <div className="min-h-screen text-white pb-10" style={{ backgroundColor: theme.bg }}>
-      {/* Ambient background glow */}
+      {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute rounded-full" style={{ width: 400, height: 400, top: -100, left: -80, background: `radial-gradient(circle, ${theme.glow}, transparent 70%)`, filter: 'blur(80px)', opacity: 0.5 }} />
         <div className="absolute rounded-full" style={{ width: 300, height: 300, bottom: '20%', right: -60, background: `radial-gradient(circle, ${theme.glow}, transparent 70%)`, filter: 'blur(60px)', opacity: 0.3 }} />
       </div>
 
       {/* Sticky Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-md px-4 py-3 flex items-center gap-3 relative"
+      <div className="sticky top-0 z-20 backdrop-blur-md px-4 py-3 flex items-center gap-2 relative"
         style={{ background: `${theme.bg}CC`, borderBottom: `1px solid ${theme.cardBorder}` }}>
-        <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
+        <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0" style={{ background: 'rgba(255,255,255,0.1)' }}>
           <ChevronLeft size={20} />
         </button>
-        <div className="flex-1">
-          <h1 className="text-base font-bold">@{profile.username}</h1>
-          <p className="text-xs" style={{ color: theme.accent }}>Glow Link™ · {glowLevel.emoji} {glowLevel.name}</p>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-base font-bold truncate">@{profile.username}</h1>
+          <p className="text-xs truncate" style={{ color: theme.accent }}>Glow Link™ · {glowLevel.emoji} {glowLevel.name}</p>
         </div>
-        <button onClick={shareProfile} className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold"
+        {currentUser && currentUser.email !== profile?.user_email && (
+          <button onClick={handleFollow} disabled={followLoading}
+            className="px-4 py-2 rounded-full text-sm font-bold transition disabled:opacity-60 flex-shrink-0"
+            style={isFollowing
+              ? { background: 'rgba(255,255,255,0.1)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.2)' }
+              : { background: `linear-gradient(135deg,${theme.accent},${theme.accent2})`, color: '#fff' }}>
+            {followLoading ? '...' : isFollowing ? 'Following' : '+ Follow'}
+          </button>
+        )}
+        <button onClick={shareProfile} className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0"
           style={{ background: `${theme.accent}20`, border: `1px solid ${theme.accent}50`, color: theme.textAccent }}>
-          <Share2 size={14} /> Share
+          <Share2 size={16} />
         </button>
       </div>
 
       {/* Cover Banner */}
       <div className="relative h-16" style={{ background: theme.gradient }}>
         <div className="absolute inset-0 opacity-20"
-          style={{ backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)` }} />
+          style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)' }} />
         {profile.glow_era && (
           <div className="absolute bottom-2 right-4">
-            <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', color: theme.textAccent, border: `1px solid ${theme.cardBorder}` }}>
+            <span className="text-xs font-bold px-3 py-1 rounded-full"
+              style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', color: theme.textAccent, border: `1px solid ${theme.cardBorder}` }}>
               {theme.emoji} {profile.glow_era}
             </span>
           </div>
@@ -146,39 +200,47 @@ export default function GlowProfile() {
 
       <div className="px-4 relative z-10">
 
-        {/* ── Profile Header Card ──────────────────────────────── */}
+        {/* Profile Header */}
         <div className="mt-4 mb-5">
-          <div className="flex items-end justify-between mb-4">
-            {/* Avatar with frame & aura */}
+          <div className="flex items-end justify-between mb-3">
             <div className="relative">
-              {/* Aura rings */}
-              <div className="absolute inset-0 rounded-full animate-pulse" style={{ margin: -8, background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`, filter: 'blur(8px)' }} />
+              <div className="absolute inset-0 rounded-full animate-pulse"
+                style={{ margin: -8, background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`, filter: 'blur(8px)' }} />
               <div style={{ ...frameStyle, borderRadius: '50%', position: 'relative' }}>
                 <UserAvatarDisplay profile={profile} size={88} fallback={(profile.username?.[0] || '✨').toUpperCase()} showRing={false} />
               </div>
-              {/* Frame label emoji */}
               {frame.id !== 'default' && (
                 <div className="absolute -bottom-1 -right-1 text-base leading-none">{frame.emoji}</div>
               )}
             </div>
-
             <div className="flex flex-col items-end gap-1.5 pb-1">
-              {/* Glow Level Badge */}
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
                 style={{ background: glowLevel.gradient, boxShadow: `0 4px 16px ${glowLevel.color}40` }}>
                 <span>{glowLevel.emoji}</span>
                 <span className="text-white">{glowLevel.name}</span>
               </div>
               {totalPoints > 0 && (
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: `${theme.accent}20`, border: `1px solid ${theme.accent}40`, color: theme.textAccent }}>
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full"
+                  style={{ background: `${theme.accent}20`, border: `1px solid ${theme.accent}40`, color: theme.textAccent }}>
                   🏅 {totalPoints.toLocaleString()} pts
                 </span>
               )}
             </div>
           </div>
 
-          {/* Name & Username */}
-          <h1 className="text-2xl font-black text-white mb-0.5">@{profile.username}</h1>
+          <h1 className="text-2xl font-black text-white mb-2">@{profile.username}</h1>
+
+          {/* Followers / Following */}
+          <div className="flex items-center gap-5 mb-3">
+            <button onClick={() => navigate(`/glowlink/${profile.username}/followers?type=followers`)} className="text-left hover:opacity-80 transition">
+              <span className="text-lg font-black text-white">{followersCount}</span>
+              <span className="text-xs text-gray-500 ml-1">Followers</span>
+            </button>
+            <button onClick={() => navigate(`/glowlink/${profile.username}/followers?type=following`)} className="text-left hover:opacity-80 transition">
+              <span className="text-lg font-black text-white">{followingCount}</span>
+              <span className="text-xs text-gray-500 ml-1">Following</span>
+            </button>
+          </div>
 
           {/* Level progress bar */}
           {glowLevel.next && (
@@ -202,7 +264,8 @@ export default function GlowProfile() {
           {profile.bio && <p className="text-sm text-gray-300 mt-2 leading-relaxed">{profile.bio}</p>}
 
           {profile.motto && (
-            <p className="text-xs italic mt-2 px-3 py-2 rounded-xl" style={{ background: `${theme.accent}10`, borderLeft: `2px solid ${theme.accent}60`, color: theme.textAccent }}>
+            <p className="text-xs italic mt-2 px-3 py-2 rounded-xl"
+              style={{ background: `${theme.accent}10`, borderLeft: `2px solid ${theme.accent}60`, color: theme.textAccent }}>
               "{profile.motto}"
             </p>
           )}
@@ -257,7 +320,7 @@ export default function GlowProfile() {
           )}
         </div>
 
-        {/* ── Badges ──────────────────────────────────────────── */}
+        {/* Badges */}
         {privacy.show_achievements && badges.length > 0 && (
           <div className="mb-5">
             <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: theme.accent }}>Achievements</p>
@@ -273,7 +336,7 @@ export default function GlowProfile() {
           </div>
         )}
 
-        {/* ── Stats ───────────────────────────────────────────── */}
+        {/* Stats */}
         {privacy.show_achievements && totalPoints > 0 && (
           <div className="grid grid-cols-3 gap-2.5 mb-5">
             {privacy.show_streak && (
@@ -296,7 +359,7 @@ export default function GlowProfile() {
           </div>
         )}
 
-        {/* ── Tabs ────────────────────────────────────────────── */}
+        {/* Tabs */}
         {(privacy.show_timeline || privacy.show_photos) && (
           <>
             <div className="flex gap-1 p-1 rounded-2xl mb-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
@@ -316,7 +379,6 @@ export default function GlowProfile() {
               )}
             </div>
 
-            {/* Timeline */}
             {activeTab === 'timeline' && privacy.show_timeline && (
               <div className="space-y-4 pb-6">
                 {posts.length === 0 ? (
@@ -335,7 +397,7 @@ export default function GlowProfile() {
                   >
                     <div className="p-4">
                       <div className="flex items-center gap-2.5 mb-3">
-                        <div style={{ ...frame.style(theme.accent), borderRadius: '50%' }}>
+                        <div style={{ ...frameStyle, borderRadius: '50%' }}>
                           <UserAvatarDisplay profile={profile} size={34} fallback={(profile.username?.[0] || '✨').toUpperCase()} showRing={false} />
                         </div>
                         <div>
@@ -355,18 +417,14 @@ export default function GlowProfile() {
                         </div>
                       )}
                     </div>
-                    {/* Reactions bar */}
                     <div className="px-4 pb-3 flex items-center gap-1 flex-wrap">
                       {REACTIONS.map(emoji => {
-                        const count = (postReactions[post.id]?.[emoji] || 0);
+                        const count = postReactions[post.id]?.[emoji] || 0;
                         const reacted = postReactions[post.id]?.[`_reacted_${emoji}`];
                         return (
-                          <button
-                            key={emoji}
-                            onClick={() => toggleReaction(post.id, emoji)}
+                          <button key={emoji} onClick={() => toggleReaction(post.id, emoji)}
                             className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition"
-                            style={{ background: reacted ? `${theme.accent}30` : 'rgba(255,255,255,0.07)', border: `1px solid ${reacted ? theme.accent : 'rgba(255,255,255,0.1)'}`, color: reacted ? theme.textAccent : '#6b7280' }}
-                          >
+                            style={{ background: reacted ? `${theme.accent}30` : 'rgba(255,255,255,0.07)', border: `1px solid ${reacted ? theme.accent : 'rgba(255,255,255,0.1)'}`, color: reacted ? theme.textAccent : '#6b7280' }}>
                             {emoji}{count > 0 && <span>{count}</span>}
                           </button>
                         );
@@ -380,7 +438,6 @@ export default function GlowProfile() {
               </div>
             )}
 
-            {/* Photos */}
             {activeTab === 'photos' && privacy.show_photos && (
               <div className="pb-6">
                 {allPhotos.length === 0 ? (
@@ -391,14 +448,9 @@ export default function GlowProfile() {
                 ) : (
                   <div className="grid grid-cols-3 gap-2">
                     {allPhotos.map((photo, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.05 }}
+                      <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
                         className="relative aspect-square rounded-2xl overflow-hidden"
-                        style={{ border: `1px solid ${theme.cardBorder}` }}
-                      >
+                        style={{ border: `1px solid ${theme.cardBorder}` }}>
                         <img src={photo.url} alt={photo.label} className="w-full h-full object-cover" />
                         <div className="absolute bottom-0 left-0 right-0 px-2 py-1.5" style={{ background: 'linear-gradient(to top,rgba(0,0,0,0.8),transparent)' }}>
                           <p className="text-[9px] text-white/70 capitalize truncate">{photo.label}</p>
