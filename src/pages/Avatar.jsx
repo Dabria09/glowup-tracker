@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Camera, Upload, Trash2 } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, Trash2, Sparkles } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import AvatarBuilder from '@/components/avatar/AvatarBuilder';
 
@@ -141,8 +141,17 @@ export default function Avatar() {
       </div>
 
       {/* Info banner */}
-      <div className="mx-4 mt-2 mb-4 bg-gradient-to-r from-pink-900/40 to-purple-900/40 border border-pink-700/30 rounded-xl p-3">
-        <p className="text-xs text-pink-200">✨ Create your unique Roblox-style avatar! Mix and match hundreds of styles.</p>
+      <div className="mx-4 mt-2 mb-4 space-y-3">
+        <div className="bg-gradient-to-r from-pink-900/40 to-purple-900/40 border border-pink-700/30 rounded-xl p-3">
+          <p className="text-xs text-pink-200">✨ Create your unique Roblox-style avatar! Mix and match hundreds of styles.</p>
+        </div>
+        <button
+          onClick={() => navigate('/glow-persona')}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/25"
+        >
+          <Sparkles size={16} className="text-yellow-300" />
+          Try AI Glow Persona — Transform Your Selfie
+        </button>
       </div>
 
       {/* Tabs */}

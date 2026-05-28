@@ -92,6 +92,7 @@ import Me from './pages/Me';
 import Glow from './pages/Glow';
 import Connect from './pages/Connect';
 import BanGate from './components/BanGate';
+import GlowPersona from './pages/GlowPersona';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -121,6 +122,7 @@ const AuthenticatedApp = () => {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/avatar" element={<Avatar />} />
+      <Route path="/glow-persona" element={<GlowPersona />} />
       <Route path="/discover" element={<Discover />} />
       <Route path="/fitness-tracker" element={<FitnessTracker />} />
       <Route path="/password-vault" element={<PasswordVault />} />

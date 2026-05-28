@@ -79,6 +79,10 @@
       "type": "string",
       "title": "Avatar Builder Config (JSON)"
     },
+    "glow_persona_images": {
+      "type": "string",
+      "title": "Glow Persona Images (JSON)"
+    },
     "bio": {
       "type": "string",
       "title": "Bio"
