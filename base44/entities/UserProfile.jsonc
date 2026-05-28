@@ -130,6 +130,20 @@
       "type": "string",
       "title": "Equipped Store Items (JSON array)",
       "default": "[]"
+    },
+    "profile_theme": {
+      "type": "string",
+      "title": "Profile Theme ID",
+      "default": "default"
+    },
+    "profile_frame": {
+      "type": "string",
+      "title": "Profile Frame ID",
+      "default": "default"
+    },
+    "featured_sections": {
+      "type": "string",
+      "title": "Featured Sections (JSON)"
     }
   },
   "required": []
