@@ -97,7 +97,7 @@ export default function GlowProfile() {
   const personaImages = profile.glow_persona_images ? (() => { try { return JSON.parse(profile.glow_persona_images)?.images || {}; } catch { return {}; } })() : {};
   const allPhotos = [
     ...(profile.avatar_url ? [{ url: profile.avatar_url, label: 'Profile' }] : []),
-    ...Object.entries(personaImages).map(([id, url]) => ({ url, label: id.replace(/_/g,' ') })),
+    ...Object.entries(personaImages).map(([id, url]) => ({ url, label: id.replace(/_/g, ' ') })),
   ];
 
   return (
@@ -119,22 +119,19 @@ export default function GlowProfile() {
         </button>
       </div>
 
-      {/* ── Cover Banner ────────────────────────────────────────── */}
-      <div className="relative h-20" style={{ background: coverGradient }}>
-        <div className="absolute inset-0" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M20 28C13 22 6 16 6 10A6 6 0 0 1 12 4C15 4 18 6 20 9 22 6 25 4 28 4A6 6 0 0 1 34 10C34 16 27 22 20 28Z' fill='%23ffffff' opacity='0.07'/%3E%3C/svg%3E\")", backgroundSize: '40px 40px' }} />
+      {/* Cover Banner */}
+      <div className="relative h-12 flex items-center justify-end px-4" style={{ background: coverGradient }}>
         {profile.glow_era && (
-          <div className="absolute bottom-3 right-4">
-            <span className="text-xs font-bold px-3 py-1.5 rounded-full" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', color: 'rgba(255,255,255,0.9)' }}>
-              ✨ {profile.glow_era}
-            </span>
-          </div>
+          <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', color: 'rgba(255,255,255,0.9)' }}>
+            ✨ {profile.glow_era}
+          </span>
         )}
       </div>
 
       <div className="px-4">
 
-        {/* ── Profile Card ────────────────────────────────────── */}
-        <div className="-mt-10 mb-5">
+        {/* Profile Card */}
+        <div className="mt-4 mb-5">
           <div className="flex items-end justify-between mb-4">
             <div style={{ border: '3px solid #0d0608', borderRadius: '50%' }}>
               <UserAvatarDisplay profile={profile} size={80} fallback={(profile.username?.[0] || '✨').toUpperCase()} showRing />
@@ -163,11 +160,10 @@ export default function GlowProfile() {
             </p>
           )}
 
-          {/* Custom Links */}
           {privacy.show_links && links.length > 0 && (
             <div className="flex flex-col gap-2 mt-4">
               {links.map((link, i) => (
-                <a key={i} href={link.url.startsWith('http') ? link.url : 'https://'+link.url}
+                <a key={i} href={link.url.startsWith('http') ? link.url : 'https://' + link.url}
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-3 px-4 py-3 rounded-2xl transition group"
                   style={{ background: 'rgba(236,72,153,0.08)', border: '1px solid rgba(236,72,153,0.2)' }}>
@@ -180,7 +176,7 @@ export default function GlowProfile() {
           )}
         </div>
 
-        {/* ── Stats ───────────────────────────────────────────── */}
+        {/* Stats */}
         {privacy.show_achievements && totalPoints > 0 && (
           <div className="grid grid-cols-3 gap-3 mb-5">
             {privacy.show_streak && (
@@ -203,7 +199,7 @@ export default function GlowProfile() {
           </div>
         )}
 
-        {/* ── Tabs ────────────────────────────────────────────── */}
+        {/* Tabs */}
         {(privacy.show_timeline || privacy.show_photos) && (
           <>
             <div className="flex gap-1 p-1 rounded-2xl mb-4" style={{ background: 'rgba(255,255,255,0.05)' }}>
@@ -223,7 +219,6 @@ export default function GlowProfile() {
               )}
             </div>
 
-            {/* Timeline */}
             {activeTab === 'timeline' && privacy.show_timeline && (
               <div className="space-y-3 pb-6">
                 {posts.length === 0 ? (
@@ -243,7 +238,7 @@ export default function GlowProfile() {
                     <p className="text-sm text-gray-200 leading-relaxed">{post.content}</p>
                     {post.media_urls && JSON.parse(post.media_urls || '[]').length > 0 && (
                       <div className="grid grid-cols-2 gap-2 mt-3">
-                        {JSON.parse(post.media_urls).slice(0,4).map((url, i) => (
+                        {JSON.parse(post.media_urls).slice(0, 4).map((url, i) => (
                           <img key={i} src={url} alt="post" className="w-full h-28 rounded-xl object-cover" />
                         ))}
                       </div>
@@ -256,7 +251,6 @@ export default function GlowProfile() {
               </div>
             )}
 
-            {/* Photos */}
             {activeTab === 'photos' && privacy.show_photos && (
               <div className="pb-6">
                 {allPhotos.length === 0 ? (
