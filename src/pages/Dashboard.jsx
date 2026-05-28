@@ -356,6 +356,8 @@ export default function Dashboard() {
   const [folders, setFolders] = useState(() => loadSaved('ggu_folders', {}));
   const [openFolder, setOpenFolder] = useState(null);
   const [checkedInToday, setCheckedInToday] = useState(false);
+  const [communityIds, setCommunityIds] = useState(() => loadSaved('ggu_community_apps', ['glow-feed', 'community-hub', 'mentorship']));
+  const [showCommunityPicker, setShowCommunityPicker] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [dragOverId, setDragOverId] = useState(null);
   const draggedId = useRef(null);
@@ -363,6 +365,7 @@ export default function Dashboard() {
   useEffect(() => { localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds)); }, [homeAppIds]);
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
   useEffect(() => { localStorage.setItem('ggu_folders', JSON.stringify(folders)); }, [folders]);
+  useEffect(() => { localStorage.setItem('ggu_community_apps', JSON.stringify(communityIds)); }, [communityIds]);
 
   useEffect(() => {
     const savedColor = localStorage.getItem('ggu_bg_color');
@@ -676,13 +679,12 @@ export default function Dashboard() {
 
         {/* ── COMMUNITY ────────────────────────────────────────── */}
         <div className="px-5 mb-5">
-          <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase mb-3">Community</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase">Community</p>
+            <button onClick={() => setShowCommunityPicker(true)} className="flex items-center gap-1 text-[11px] text-pink-400 font-semibold"><Plus size={11} /> Edit</button>
+          </div>
           <div className="grid grid-cols-3 gap-2">
-            {[
-              { id: 'glow-feed', label: 'Glow Feed' },
-              { id: 'community-hub', label: 'Community' },
-              { id: 'mentorship', label: 'Mentors' },
-            ].map(({ id, label }) => {
+            {communityIds.map(id => {
               const app = getPageById(id);
               if (!app) return null;
               return (
@@ -691,7 +693,7 @@ export default function Dashboard() {
                   style={{ height: 90, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                   {app.image && <img src={app.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />}
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 50%, transparent)' }} />
-                  <span className="relative text-[11px] font-bold text-white z-10">{label}</span>
+                  <span className="relative text-[11px] font-bold text-white z-10">{app.label}</span>
                 </button>
               );
             })}
@@ -724,6 +726,9 @@ export default function Dashboard() {
         <CustomizeModal bgColor={bgColor} setBgColor={setBgColor} bgPattern={bgPattern} setBgPattern={setBgPattern}
           bgImage={bgImage} setBgImage={setBgImage} bgImagePos={bgImagePos} setBgImagePos={setBgImagePos}
           onClose={() => setShowCustomize(false)} />
+      )}
+      {showCommunityPicker && (
+        <PagePickerModal title="Customize Community" currentIds={communityIds} onSave={setCommunityIds} onClose={() => setShowCommunityPicker(false)} />
       )}
       {showQuickPicker && (
         <PagePickerModal title="Customize Your World" currentIds={homeAppIds} onSave={setHomeAppIds} onClose={() => setShowQuickPicker(false)} />
