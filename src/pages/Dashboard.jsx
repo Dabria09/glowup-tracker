@@ -115,31 +115,19 @@ function loadSavedIds(key, defaults) {
   return defaults;
 }
 
-// App icon for home grid — supports small (1×1) and widget (2×2) sizes
-function HomeAppIcon({ app, onNavigate, size = 'small', onLongPress }) {
-  const longPressTimer = useRef(null);
-  const isWidget = size === 'widget';
-
-  const startLongPress = () => {
-    longPressTimer.current = setTimeout(() => onLongPress && onLongPress(), 600);
-  };
-  const cancelLongPress = () => {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-  };
-
-  if (isWidget) {
+// App icon — small (1×1) or widget (2×2)
+function HomeAppIcon({ app, onNavigate, size = 'small' }) {
+  if (size === 'widget') {
     return (
       <button
         onClick={() => onNavigate(app.route)}
-        onMouseDown={startLongPress} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
-        onTouchStart={startLongPress} onTouchEnd={cancelLongPress}
-        className={`col-span-2 row-span-2 relative rounded-[22px] overflow-hidden active:scale-95 transition-transform select-none ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
-        style={{ boxShadow: '0 6px 24px rgba(0,0,0,0.6)', minHeight: 156 }}
+        className={`w-full h-full relative rounded-[22px] overflow-hidden active:scale-95 transition-transform select-none ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
+        style={{ minHeight: 156, boxShadow: '0 6px 24px rgba(0,0,0,0.6)' }}
       >
         {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover" />}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.72) 40%, rgba(0,0,0,0.1) 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.1) 100%)' }} />
         <div className="absolute inset-x-0 bottom-0 p-3 text-left">
-          <p className="text-[11px] font-bold text-white/70 uppercase tracking-widest mb-0.5">Widget</p>
+          <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mb-0.5">Widget</p>
           <p className="text-base font-bold text-white leading-tight">{app.label}</p>
         </div>
         <div className="absolute top-2 right-2 text-[10px] font-semibold text-white/40 bg-black/30 rounded-full px-1.5 py-0.5">2×2</div>
@@ -150,11 +138,12 @@ function HomeAppIcon({ app, onNavigate, size = 'small', onLongPress }) {
   return (
     <button
       onClick={() => onNavigate(app.route)}
-      onMouseDown={startLongPress} onMouseUp={cancelLongPress} onMouseLeave={cancelLongPress}
-      onTouchStart={startLongPress} onTouchEnd={cancelLongPress}
-      className="flex flex-col items-center gap-1.5 select-none hover:opacity-80 active:scale-95 transition-transform">
-      <div className={`w-[72px] h-[72px] rounded-[16px] overflow-hidden shadow-lg border border-white/10 ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient + ' flex items-center justify-center'}`}
-        style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
+      className="flex flex-col items-center gap-1.5 select-none hover:opacity-80 active:scale-95 transition-transform w-full"
+    >
+      <div
+        className={`w-[72px] h-[72px] rounded-[16px] overflow-hidden shadow-lg border border-white/10 ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient + ' flex items-center justify-center'}`}
+        style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}
+      >
         {app.image
           ? <img src={app.image} alt={app.label} className="w-full h-full object-cover" />
           : <span className="text-3xl drop-shadow-lg">{app.emoji}</span>}
@@ -240,19 +229,35 @@ export default function Dashboard() {
   const [bgImagePos, setBgImagePos] = useState({ x: 50, y: 50 });
   const [totalPoints, setTotalPoints] = useState(0);
   const [homeAppIds, setHomeAppIds] = useState(() => loadSavedIds('ggu_home_apps', DEFAULT_HOME_IDS));
-  const [appSizes, setAppSizes] = useState(() => { try { const s = localStorage.getItem('ggu_app_sizes'); return s ? JSON.parse(s) : {}; } catch { return {}; } });
-  const [sizeMenu, setSizeMenu] = useState(null); // { appId, x, y }
   const [quickIds, setQuickIds] = useState(() => loadSavedIds('ggu_quick_access', DEFAULT_QUICK_IDS));
-  const [showQuickAccess, setShowQuickAccess] = useState(() => { try { return localStorage.getItem('ggu_show_quick') !== 'false'; } catch { return true; } });
+  const [showQuickAccess] = useState(() => { try { return localStorage.getItem('ggu_show_quick') !== 'false'; } catch { return true; } });
   const [showQuickPicker, setShowQuickPicker] = useState(false);
+  const [appSizes, setAppSizes] = useState(() => { try { const s = localStorage.getItem('ggu_app_sizes'); return s ? JSON.parse(s) : {}; } catch { return {}; } });
+  const [sizeMenu, setSizeMenu] = useState(null);
+  const [checkedInToday, setCheckedInToday] = useState(false);
+
+  // Long-press detection via timers stored in a ref
+  const longPressTimers = useRef({});
+
+  const startLongPress = (appId) => {
+    longPressTimers.current[appId] = setTimeout(() => {
+      setSizeMenu({ appId });
+    }, 600);
+  };
+
+  const cancelLongPress = (appId) => {
+    if (longPressTimers.current[appId]) {
+      clearTimeout(longPressTimers.current[appId]);
+      delete longPressTimers.current[appId];
+    }
+  };
 
   const homeApps = homeAppIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean);
   const quickApps = quickIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean);
 
   useEffect(() => { localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds)); }, [homeAppIds]);
-  useEffect(() => { localStorage.setItem('ggu_app_sizes', JSON.stringify(appSizes)); }, [appSizes]);
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
-  useEffect(() => { localStorage.setItem('ggu_show_quick', showQuickAccess); }, [showQuickAccess]);
+  useEffect(() => { localStorage.setItem('ggu_app_sizes', JSON.stringify(appSizes)); }, [appSizes]);
   useEffect(() => { localStorage.setItem('ggu_bg_color', bgColor); }, [bgColor]);
   useEffect(() => { localStorage.setItem('ggu_bg_pattern', bgPattern); }, [bgPattern]);
   useEffect(() => { if (bgImage) localStorage.setItem('ggu_bg_image', bgImage); else localStorage.removeItem('ggu_bg_image'); }, [bgImage]);
@@ -272,6 +277,11 @@ export default function Dashboard() {
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
+      // Check if user already checked in today
+      const today = new Date().toISOString().split('T')[0];
+      const diaryToday = await base44.entities.DiaryEntry.filter({ user_email: u.email, date: today });
+      if (diaryToday.length > 0) setCheckedInToday(true);
+
       const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
       setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
@@ -315,7 +325,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Avatar + header controls */}
+        {/* Avatar + controls */}
         <div className="flex items-center gap-3 px-4 pt-2 pb-3">
           <div onClick={() => navigate('/avatar')} className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-lg font-bold overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition">
             {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" alt="avatar" /> : avatarConfig ? <AvatarPreview config={avatarConfig} size={56} /> : firstName[0]}
@@ -334,20 +344,22 @@ export default function Dashboard() {
           <p className="text-gray-500 text-sm">@{username}</p>
         </div>
 
-        {/* Daily Glow Check-In Banner */}
-        <div className="px-4 mb-4">
-          <button onClick={() => navigate('/daily-checkin')} className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition hover:opacity-90" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.5), rgba(168,85,247,0.4), rgba(236,72,153,0.3))', border: '1px solid rgba(168,85,247,0.4)' }}>
-            <div className="w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0">
-              <img src={MANUS + 'icon-glow-check-in_fe36a2ac.png'} className="w-full h-full object-cover" alt="check in" />
-            </div>
-            <div className="flex-1">
-              <p className="text-xs font-bold tracking-wider text-yellow-400 mb-0.5">DAILY GLOW CHECK-IN</p>
-              <p className="font-bold text-white text-base">How are you glowing today?</p>
-              <p className="text-xs text-gray-400">Tap to check in &amp; earn points ✨</p>
-            </div>
-            <ChevronRight size={18} className="text-gray-400 flex-shrink-0" />
-          </button>
-        </div>
+        {/* Daily Glow Check-In Banner — hidden after check-in, returns next day */}
+        {!checkedInToday && (
+          <div className="px-4 mb-4">
+            <button onClick={() => navigate('/daily-checkin')} className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition hover:opacity-90" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.5), rgba(168,85,247,0.4), rgba(236,72,153,0.3))', border: '1px solid rgba(168,85,247,0.4)' }}>
+              <div className="w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0">
+                <img src={MANUS + 'icon-glow-check-in_fe36a2ac.png'} className="w-full h-full object-cover" alt="check in" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold tracking-wider text-yellow-400 mb-0.5">DAILY GLOW CHECK-IN</p>
+                <p className="font-bold text-white text-base">How are you glowing today?</p>
+                <p className="text-xs text-gray-400">Tap to check in &amp; earn points ✨</p>
+              </div>
+              <ChevronRight size={18} className="text-gray-400 flex-shrink-0" />
+            </button>
+          </div>
+        )}
 
         {/* Quick Access */}
         {showQuickAccess && (
@@ -387,11 +399,11 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Home Apps — grid with drag-to-rearrange and widget sizing */}
+        {/* Your World — drag to rearrange, hold to resize */}
         <div className="px-4 mb-12">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-bold tracking-widest text-gray-500">{t('your_world')}</p>
-            <p className="text-[10px] text-gray-600">Hold icon to resize</p>
+            <p className="text-[10px] text-gray-600">Drag to rearrange · Hold to resize</p>
           </div>
           <DragDropContext onDragEnd={(result) => {
             if (!result.destination) return;
@@ -402,9 +414,12 @@ export default function Dashboard() {
           }}>
             <Droppable droppableId="home-apps" direction="horizontal">
               {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps}
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
                   className="grid grid-cols-4 gap-2"
-                  style={{ gridAutoRows: 'minmax(88px, auto)' }}>
+                  style={{ gridAutoRows: 'minmax(88px, auto)' }}
+                >
                   {homeApps.map((app, index) => {
                     const size = appSizes[app.id] || 'small';
                     return (
@@ -416,12 +431,17 @@ export default function Dashboard() {
                             {...provided.dragHandleProps}
                             style={provided.draggableProps.style}
                             className={size === 'widget' ? 'col-span-2 row-span-2' : ''}
+                            onMouseDown={() => startLongPress(app.id)}
+                            onMouseUp={() => cancelLongPress(app.id)}
+                            onMouseLeave={() => cancelLongPress(app.id)}
+                            onTouchStart={() => startLongPress(app.id)}
+                            onTouchEnd={() => cancelLongPress(app.id)}
+                            onTouchMove={() => cancelLongPress(app.id)}
                           >
                             <HomeAppIcon
                               app={app}
                               size={size}
                               onNavigate={snapshot.isDragging ? () => {} : navigate}
-                              onLongPress={() => setSizeMenu({ appId: app.id })}
                             />
                           </div>
                         )}
@@ -437,35 +457,6 @@ export default function Dashboard() {
 
         {/* Spacer between apps and social */}
         <div className="mx-4 mb-8 border-t border-white/10" />
-
-        {/* Widget size picker */}
-        {sizeMenu && (
-          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-8" onClick={() => setSizeMenu(null)}>
-            <div className="w-full rounded-3xl overflow-hidden" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.12)' }} onClick={e => e.stopPropagation()}>
-              <div className="px-5 py-4 border-b border-white/10">
-                <p className="font-bold text-white text-center">{ALL_PAGES.find(p => p.id === sizeMenu.appId)?.label}</p>
-                <p className="text-xs text-gray-500 text-center mt-0.5">Choose widget size</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3 p-4">
-                <button onClick={() => { setAppSizes(s => ({ ...s, [sizeMenu.appId]: 'small' })); setSizeMenu(null); }}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition ${(appSizes[sizeMenu.appId] || 'small') === 'small' ? 'border-pink-500/50 bg-pink-500/15' : 'border-white/10 bg-white/5'}`}>
-                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-xs font-bold text-gray-300">1×1</div>
-                  <p className="text-xs font-semibold text-white">Small</p>
-                  <p className="text-[10px] text-gray-500">Standard icon</p>
-                </button>
-                <button onClick={() => { setAppSizes(s => ({ ...s, [sizeMenu.appId]: 'widget' })); setSizeMenu(null); }}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition ${appSizes[sizeMenu.appId] === 'widget' ? 'border-pink-500/50 bg-pink-500/15' : 'border-white/10 bg-white/5'}`}>
-                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-xs font-bold text-gray-300">2×2</div>
-                  <p className="text-xs font-semibold text-white">Widget</p>
-                  <p className="text-[10px] text-gray-500">Large tile</p>
-                </button>
-              </div>
-              <div className="px-4 pb-5">
-                <button onClick={() => setSizeMenu(null)} className="w-full py-3 rounded-2xl text-sm text-gray-400 bg-white/5">Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Glow Everywhere — Social */}
         <div className="px-4 mb-6">
@@ -494,6 +485,44 @@ export default function Dashboard() {
       )}
       {showQuickPicker && (
         <PagePickerModal title="Choose Quick Access" currentIds={quickIds} onSave={setQuickIds} onClose={() => setShowQuickPicker(false)} />
+      )}
+
+      {/* Widget size picker modal */}
+      {sizeMenu && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-8" onClick={() => setSizeMenu(null)}>
+          <div className="w-full rounded-3xl overflow-hidden" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.12)' }} onClick={e => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b border-white/10">
+              <p className="font-bold text-white text-center">{ALL_PAGES.find(p => p.id === sizeMenu.appId)?.label}</p>
+              <p className="text-xs text-gray-500 text-center mt-0.5">Choose widget size</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 p-4">
+              <button
+                onClick={() => { setAppSizes(s => ({ ...s, [sizeMenu.appId]: 'small' })); setSizeMenu(null); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition ${(appSizes[sizeMenu.appId] || 'small') === 'small' ? 'border-pink-500/50 bg-pink-500/15' : 'border-white/10 bg-white/5'}`}
+              >
+                <div className="grid grid-cols-2 gap-1 w-12">
+                  <div className="w-5 h-5 rounded-md bg-white/20" />
+                  <div className="w-5 h-5 rounded-md bg-white/20" />
+                  <div className="w-5 h-5 rounded-md bg-white/20" />
+                  <div className="w-5 h-5 rounded-md bg-white/20" />
+                </div>
+                <p className="text-xs font-semibold text-white">Small</p>
+                <p className="text-[10px] text-gray-500">1×1 icon</p>
+              </button>
+              <button
+                onClick={() => { setAppSizes(s => ({ ...s, [sizeMenu.appId]: 'widget' })); setSizeMenu(null); }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition ${appSizes[sizeMenu.appId] === 'widget' ? 'border-pink-500/50 bg-pink-500/15' : 'border-white/10 bg-white/5'}`}
+              >
+                <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-[10px] font-bold text-white/60">2×2</div>
+                <p className="text-xs font-semibold text-white">Widget</p>
+                <p className="text-[10px] text-gray-500">Large tile</p>
+              </button>
+            </div>
+            <div className="px-4 pb-5">
+              <button onClick={() => setSizeMenu(null)} className="w-full py-3 rounded-2xl text-sm text-gray-400 bg-white/5">Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
