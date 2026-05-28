@@ -17,12 +17,12 @@ const BORDER = 'rgba(232,82,109,0.2)';
 const GOLD_BORDER = 'rgba(241,182,16,0.25)';
 
 const ALL_CHALLENGES = [
-  { id: 'confidence-boost', name: 'Confidence Boost', emoji: '✨', desc: 'Build unshakeable self-belief in 30 days', days: 30, color: PINK },
-  { id: 'glow-wellness', name: 'Glow Wellness', emoji: '🌸', desc: 'Mind, body & spirit habits that last', days: 30, color: '#a855f7' },
-  { id: 'money-moves', name: 'Money Moves', emoji: '💰', desc: 'Master your finances and future', days: 30, color: GOLD },
-  { id: 'academic-glow', name: 'Academic Glow', emoji: '📚', desc: 'Crush your studies and career goals', days: 30, color: '#3b82f6' },
-  { id: 'spiritual-glow', name: 'Spiritual Glow', emoji: '🙏', desc: 'Connect with your inner light and purpose', days: 30, color: '#10b981' },
-  { id: 'leadership-era', name: 'Leadership Era', emoji: '👑', desc: 'Step into your power and lead', days: 30, color: '#f59e0b' },
+  { id: 'confidence', name: 'Confidence Boost', emoji: '✨', desc: 'Build unshakeable self-belief in 30 days', days: 30, color: PINK },
+  { id: 'wellness', name: 'Glow Wellness', emoji: '🌸', desc: 'Mind, body & spirit habits that last', days: 30, color: '#a855f7' },
+  { id: 'money', name: 'Money Moves', emoji: '💰', desc: 'Master your finances and future', days: 30, color: GOLD },
+  { id: 'academic', name: 'Academic Glow', emoji: '📚', desc: 'Crush your studies and career goals', days: 30, color: '#3b82f6' },
+  { id: 'faith', name: 'Spiritual Glow', emoji: '🙏', desc: 'Connect with your inner light and purpose', days: 30, color: '#10b981' },
+  { id: 'leadership', name: 'Leadership Era', emoji: '👑', desc: 'Step into your power and lead', days: 30, color: '#f59e0b' },
 ];
 
 const BADGES = [
