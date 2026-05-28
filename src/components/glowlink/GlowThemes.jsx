@@ -1,10 +1,17 @@
 // ── Glow Level System ─────────────────────────────────────────────────────────
 export function getGlowLevel(points) {
-  if (points >= 1000) return { level: 5, name: 'Legendary Glow', emoji: '👑', color: '#fbbf24', gradient: 'linear-gradient(135deg,#78350f,#fbbf24)', next: null };
-  if (points >= 500)  return { level: 4, name: 'Icon Glow',      emoji: '💎', color: '#c084fc', gradient: 'linear-gradient(135deg,#4a044e,#c084fc)', next: 1000 };
-  if (points >= 200)  return { level: 3, name: 'Star Glow',      emoji: '⭐', color: '#60a5fa', gradient: 'linear-gradient(135deg,#1e3a8a,#60a5fa)', next: 500  };
-  if (points >= 50)   return { level: 2, name: 'Rising Glow',    emoji: '🌟', color: '#34d399', gradient: 'linear-gradient(135deg,#064e3b,#34d399)', next: 200  };
-  return               { level: 1, name: 'Spark',             emoji: '⚡', color: '#f472b6', gradient: 'linear-gradient(135deg,#831843,#f472b6)', next: 50   };
+  const cache = (typeof window !== 'undefined' && window.__pointsConfigCache) || {};
+  const t = {
+    rising:    cache['level_rising']    ?? 50,
+    star:      cache['level_star']      ?? 200,
+    icon:      cache['level_icon']      ?? 500,
+    legendary: cache['level_legendary'] ?? 1000,
+  };
+  if (points >= t.legendary) return { level: 5, name: 'Legendary Glow', emoji: '👑', color: '#fbbf24', gradient: 'linear-gradient(135deg,#78350f,#fbbf24)', next: null };
+  if (points >= t.icon)      return { level: 4, name: 'Icon Glow',      emoji: '💎', color: '#c084fc', gradient: 'linear-gradient(135deg,#4a044e,#c084fc)', next: t.legendary };
+  if (points >= t.star)      return { level: 3, name: 'Star Glow',      emoji: '⭐', color: '#60a5fa', gradient: 'linear-gradient(135deg,#1e3a8a,#60a5fa)', next: t.icon };
+  if (points >= t.rising)    return { level: 2, name: 'Rising Glow',    emoji: '🌟', color: '#34d399', gradient: 'linear-gradient(135deg,#064e3b,#34d399)', next: t.star };
+  return                     { level: 1, name: 'Spark',             emoji: '⚡', color: '#f472b6', gradient: 'linear-gradient(135deg,#831843,#f472b6)', next: t.rising };
 }
 
 // ── Profile Themes ─────────────────────────────────────────────────────────────

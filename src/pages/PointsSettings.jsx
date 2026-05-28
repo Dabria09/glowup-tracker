@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { POINT_VALUES } from '@/lib/pointsHelper';
+import { POINT_VALUES, DEFAULT_CERT_THRESHOLDS, DEFAULT_LEVEL_THRESHOLDS } from '@/lib/pointsHelper';
 import { RefreshCw } from 'lucide-react';
 
 const ACTIVITY_LABELS = {
@@ -44,6 +44,8 @@ export default function PointsSettings() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [values, setValues] = useState({ ...POINT_VALUES });
+  const [certValues, setCertValues] = useState({ ...DEFAULT_CERT_THRESHOLDS });
+  const [levelValues, setLevelValues] = useState({ ...DEFAULT_LEVEL_THRESHOLDS });
   const [configId, setConfigId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
@@ -57,7 +59,14 @@ export default function PointsSettings() {
         setConfigId(configs[0].id);
         try {
           const parsed = JSON.parse(configs[0].config_json);
-          setValues({ ...POINT_VALUES, ...parsed });
+          const certKeys = Object.keys(DEFAULT_CERT_THRESHOLDS).map(k => `cert_${k}`);
+          const levelKeys = Object.keys(DEFAULT_LEVEL_THRESHOLDS);
+          const actionVals = Object.fromEntries(Object.entries(parsed).filter(([k]) => !certKeys.includes(k) && !levelKeys.includes(k)));
+          const certVals   = Object.fromEntries(certKeys.filter(k => k in parsed).map(k => [k.replace('cert_', ''), parsed[k]]));
+          const levelVals  = Object.fromEntries(levelKeys.filter(k => k in parsed).map(k => [k, parsed[k]]));
+          setValues({ ...POINT_VALUES, ...actionVals });
+          setCertValues({ ...DEFAULT_CERT_THRESHOLDS, ...certVals });
+          setLevelValues({ ...DEFAULT_LEVEL_THRESHOLDS, ...levelVals });
         } catch {}
       }
     }).catch(() => navigate('/'));
@@ -66,14 +75,16 @@ export default function PointsSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const certEntries = Object.fromEntries(Object.entries(certValues).map(([k, v]) => [`cert_${k}`, v]));
+      const combined = { ...values, ...certEntries, ...levelValues };
       if (configId) {
-        await base44.entities.PointsConfig.update(configId, { config_json: JSON.stringify(values) });
+        await base44.entities.PointsConfig.update(configId, { config_json: JSON.stringify(combined) });
       } else {
-        const rec = await base44.entities.PointsConfig.create({ config_json: JSON.stringify(values) });
+        const rec = await base44.entities.PointsConfig.create({ config_json: JSON.stringify(combined) });
         setConfigId(rec.id);
       }
-      if (typeof window !== 'undefined') window.__pointsConfigCache = null;
-      toast.success('Point values saved! ✨');
+      if (typeof window !== 'undefined') window.__pointsConfigCache = combined;
+      toast.success('Settings saved! ✨');
     } catch {
       toast.error('Failed to save. Please try again.');
     }
@@ -93,6 +104,8 @@ export default function PointsSettings() {
 
   const handleReset = () => {
     setValues({ ...POINT_VALUES });
+    setCertValues({ ...DEFAULT_CERT_THRESHOLDS });
+    setLevelValues({ ...DEFAULT_LEVEL_THRESHOLDS });
     toast.info('Reset to default values. Hit Save to apply.');
   };
 
@@ -177,6 +190,64 @@ export default function PointsSettings() {
             </div>
           );
         })}
+
+        {/* Glow Levels */}
+        <div className="mb-8">
+          <p className="text-xs font-bold tracking-widest text-gray-500 mb-1 uppercase">🌟 Glow Level Thresholds</p>
+          <p className="text-xs text-gray-600 mb-3">Points required to reach each level (shown on profiles and leaderboard)</p>
+          <div className="space-y-3">
+            {[
+              { key: 'level_rising',    label: 'Rising Glow',    emoji: '🌟' },
+              { key: 'level_star',      label: 'Star Glow',      emoji: '⭐' },
+              { key: 'level_icon',      label: 'Icon Glow',      emoji: '💎' },
+              { key: 'level_legendary', label: 'Legendary Glow', emoji: '👑' },
+            ].map(({ key, label, emoji }) => (
+              <div key={key} className="flex items-center gap-4 px-4 py-3 rounded-2xl"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <span className="text-xl w-8 text-center flex-shrink-0">{emoji}</span>
+                <span className="flex-1 text-sm text-gray-200">{label}</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <input type="number" min={1} max={100000}
+                    value={levelValues[key] ?? 0}
+                    onChange={e => setLevelValues(prev => ({ ...prev, [key]: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-24 text-center rounded-xl px-3 py-2 text-sm font-bold text-yellow-400 outline-none"
+                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)' }} />
+                  <span className="text-xs text-gray-500 w-6">pts</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Certificates */}
+        <div className="mb-8">
+          <p className="text-xs font-bold tracking-widest text-gray-500 mb-1 uppercase">🏆 Certificate Thresholds</p>
+          <p className="text-xs text-gray-600 mb-3">Points required to earn each certificate</p>
+          <div className="space-y-3">
+            {[
+              { key: 'glow_starter',     label: 'Glow Starter',     emoji: '⭐' },
+              { key: 'rising_star',      label: 'Rising Star',      emoji: '🌟' },
+              { key: 'glow_girl',        label: 'Glow Girl',        emoji: '💫' },
+              { key: 'glow_queen',       label: 'Glow Queen',       emoji: '👑' },
+              { key: 'diamond_glow',     label: 'Diamond Glow',     emoji: '💎' },
+              { key: 'legendary_glower', label: 'Legendary Glower', emoji: '🏆' },
+            ].map(({ key, label, emoji }) => (
+              <div key={key} className="flex items-center gap-4 px-4 py-3 rounded-2xl"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <span className="text-xl w-8 text-center flex-shrink-0">{emoji}</span>
+                <span className="flex-1 text-sm text-gray-200">{label}</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <input type="number" min={1} max={100000}
+                    value={certValues[key] ?? 0}
+                    onChange={e => setCertValues(prev => ({ ...prev, [key]: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-24 text-center rounded-xl px-3 py-2 text-sm font-bold text-yellow-400 outline-none"
+                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)' }} />
+                  <span className="text-xs text-gray-500 w-6">pts</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <button onClick={handleSave} disabled={saving}
           className="w-full py-4 rounded-2xl font-bold text-white text-base disabled:opacity-50 transition"

@@ -44,6 +44,22 @@ export const POINT_VALUES = {
   mentor_session: 50,
 };
 
+export const DEFAULT_CERT_THRESHOLDS = {
+  glow_starter:      100,
+  rising_star:       500,
+  glow_girl:         1000,
+  glow_queen:        2500,
+  diamond_glow:      5000,
+  legendary_glower:  10000,
+};
+
+export const DEFAULT_LEVEL_THRESHOLDS = {
+  level_rising:    50,
+  level_star:      200,
+  level_icon:      500,
+  level_legendary: 1000,
+};
+
 export const CERTIFICATES = [
   {
     id: 'glow_starter',
@@ -229,10 +245,29 @@ export async function getUserPoints(userEmail) {
   }
 }
 
+// Merge static CERTIFICATES with any admin-configured thresholds from cache
+function getConfiguredCertificates() {
+  const cache = (typeof window !== 'undefined' && window.__pointsConfigCache) || {};
+  return CERTIFICATES.map(c => ({
+    ...c,
+    points: cache[`cert_${c.id}`] ?? c.points,
+  }));
+}
+
+export function getGlowLevelThresholds() {
+  const cache = (typeof window !== 'undefined' && window.__pointsConfigCache) || {};
+  return {
+    rising:    cache['level_rising']    ?? DEFAULT_LEVEL_THRESHOLDS.level_rising,
+    star:      cache['level_star']      ?? DEFAULT_LEVEL_THRESHOLDS.level_star,
+    icon:      cache['level_icon']      ?? DEFAULT_LEVEL_THRESHOLDS.level_icon,
+    legendary: cache['level_legendary'] ?? DEFAULT_LEVEL_THRESHOLDS.level_legendary,
+  };
+}
+
 export function getEarnedCertificates(totalPoints) {
-  return CERTIFICATES.filter(c => totalPoints >= c.points);
+  return getConfiguredCertificates().filter(c => totalPoints >= c.points);
 }
 
 export function getNextCertificate(totalPoints) {
-  return CERTIFICATES.find(c => totalPoints < c.points) || null;
+  return getConfiguredCertificates().find(c => totalPoints < c.points) || null;
 }
