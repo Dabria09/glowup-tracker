@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
+import UserAvatarDisplay from '@/components/UserAvatarDisplay';
 import {
   Edit3, Link2, BookOpen, Image, Quote, Briefcase, GraduationCap,
   MessageSquare, Heart, MessageCircle, LogOut, Trash2, ChevronRight,
-  Shield, FileText, Users, Sparkles
+  Shield, FileText, Users, Sparkles, X, Check, Copy, ExternalLink, Camera,
+  AlertTriangle,
 } from 'lucide-react';
 
-// Match home page color tokens exactly
 const BG = '#0d0608';
 const PINK = '#e8526d';
 const PINK_HOT = '#ff6a75';
@@ -22,51 +23,195 @@ const CARD = '#1e0d12';
 const BORDER = 'rgba(232,82,109,0.2)';
 
 const AGE_GROUPS = [
-  { id: 'glow_girls', emoji: '🌸', label: 'Glow Girl', ages: 'Ages 10–13', desc: 'Your glow journey starts here' },
-  { id: 'glow_teens', emoji: '✨', label: 'Glow Teen', ages: 'Ages 14–18', desc: 'Level up your life' },
-  { id: 'glow_women', emoji: '👑', label: 'Glow Woman', ages: 'Ages 19+', desc: 'Own your era' },
+  { id: 'glow_girls', emoji: '🌸', label: 'Glow Girl',  ages: 'Ages 10–13', desc: 'Your glow journey starts here', minAge: 10, maxAge: 13 },
+  { id: 'glow_teens', emoji: '✨', label: 'Glow Teen',  ages: 'Ages 14–18', desc: 'Level up your life',          minAge: 14, maxAge: 18 },
+  { id: 'glow_women', emoji: '👑', label: 'Glow Woman', ages: 'Ages 19+',   desc: 'Own your era',               minAge: 19, maxAge: 999 },
 ];
 
 const POST_TYPES = [
-  { type: 'Thought', emoji: '💭' },
-  { type: 'Win', emoji: '🏆' },
-  { type: 'Goal', emoji: '🎯' },
-  { type: 'Mood', emoji: '💜' },
+  { type: 'Thought',   emoji: '💭' },
+  { type: 'Win',       emoji: '🏆' },
+  { type: 'Goal',      emoji: '🎯' },
+  { type: 'Mood',      emoji: '💜' },
   { type: 'Gratitude', emoji: '🙏' },
 ];
 
 const MY_CONTENT = [
-  { label: 'My Diary', icon: BookOpen, route: '/diary' },
-  { label: 'My Vision Board', icon: Image, route: '/vision-board' },
-  { label: 'My Saved Quotes', icon: Quote, route: '/daily-quotes' },
-  { label: 'My Career Bookmarks', icon: Briefcase, route: '/careers' },
+  { label: 'My Diary',              icon: BookOpen,      route: '/diary' },
+  { label: 'My Vision Board',       icon: Image,         route: '/vision-board' },
+  { label: 'My Saved Quotes',       icon: Quote,         route: '/daily-quotes' },
+  { label: 'My Career Bookmarks',   icon: Briefcase,     route: '/careers' },
   { label: 'My Saved Scholarships', icon: GraduationCap, route: '/scholarships' },
 ];
 
 const MY_ACTIVITY = [
-  { label: 'My Posts', icon: MessageSquare, route: '/glow-feed' },
-  { label: 'My Reactions', icon: Heart, route: '/glow-feed' },
-  { label: 'My Comments', icon: MessageCircle, route: '/glow-feed' },
+  { label: 'My Posts',     icon: MessageSquare, route: '/glow-feed' },
+  { label: 'My Reactions', icon: Heart,         route: '/glow-feed' },
+  { label: 'My Comments',  icon: MessageCircle, route: '/glow-feed' },
 ];
 
 const SOCIAL_LINKS = [
-  { icon: '📸', label: 'Instagram', url: 'https://instagram.com/girlsglowingup', bg: 'linear-gradient(135deg,#e1306c,#833ab4)' },
-  { icon: '🎵', label: 'TikTok', url: 'https://tiktok.com/@girlsglowingup', bg: '#111' },
-  { icon: '▶️', label: 'YouTube', url: 'https://youtube.com/@girlsglowingup', bg: '#ff0000' },
-  { icon: '📘', label: 'Facebook', url: 'https://facebook.com/girlsglowingup', bg: '#1877f2' },
-  { icon: '👻', label: 'Snapchat', url: 'https://snapchat.com/add/girlsglowingup', bg: '#fffc00' },
-];
-
-const LEGAL = [
-  { label: 'Privacy Policy', icon: Shield, route: '/about' },
-  { label: 'Terms of Service', icon: FileText, route: '/guidelines' },
-  { label: 'Parental Consent (COPPA)', icon: Users, route: '/parent-dashboard' },
+  { icon: '📸', label: 'Instagram', url: 'https://instagram.com/girlsglowingup',     bg: 'linear-gradient(135deg,#e1306c,#833ab4)' },
+  { icon: '🎵', label: 'TikTok',    url: 'https://tiktok.com/@girlsglowingup',       bg: '#111' },
+  { icon: '▶️', label: 'YouTube',   url: 'https://youtube.com/@girlsglowingup',      bg: '#ff0000' },
+  { icon: '📘', label: 'Facebook',  url: 'https://facebook.com/girlsglowingup',      bg: '#1877f2' },
+  { icon: '👻', label: 'Snapchat',  url: 'https://snapchat.com/add/girlsglowingup',  bg: '#fffc00' },
 ];
 
 function SectionLabel({ text }) {
   return <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUTED2, marginBottom: 8 }}>{text}</p>;
 }
 
+// ── Edit Profile Modal ─────────────────────────────────────────────────────
+function EditProfileModal({ user, profile, onSave, onClose }) {
+  const navigate = useNavigate();
+  const [username, setUsername] = useState(profile?.username || user?.email?.split('@')[0] || '');
+  const [bio, setBio] = useState(profile?.bio || '');
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    if (saving) return;
+    setSaving(true);
+    const updates = { username: username.trim(), bio: bio.trim() };
+    if (profile) {
+      await base44.entities.UserProfile.update(profile.id, updates);
+    } else {
+      await base44.entities.UserProfile.create({ user_email: user.email, ...updates });
+    }
+    onSave(updates);
+    setSaving(false);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(12px)' }} onClick={onClose}>
+      <div className="w-full max-w-lg rounded-t-3xl p-5 pb-10" style={{ background: '#140a10', border: '1px solid rgba(232,82,109,0.25)', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="font-bold text-lg text-white">Edit Profile</h2>
+          <button onClick={onClose}><X size={20} className="text-gray-400" /></button>
+        </div>
+
+        {/* Avatar */}
+        <div className="flex flex-col items-center mb-5">
+          <UserAvatarDisplay profile={profile} size={80} fallback={user?.full_name?.[0] || 'G'} showRing />
+          <button onClick={() => { onClose(); navigate('/avatar'); }}
+            className="mt-2 flex items-center gap-1 text-xs font-semibold"
+            style={{ color: PINK }}>
+            <Camera size={12} /> Change Profile Picture
+          </button>
+        </div>
+
+        {/* Name (read-only — from auth) */}
+        <div className="mb-4">
+          <label className="block text-xs font-bold mb-1" style={{ color: MUTED2 }}>Full Name</label>
+          <div className="px-3 py-3 rounded-xl text-sm" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${BORDER}`, color: MUTED }}>
+            {user?.full_name} <span className="text-xs opacity-50">(managed by account)</span>
+          </div>
+        </div>
+
+        {/* Username */}
+        <div className="mb-4">
+          <label className="block text-xs font-bold mb-1" style={{ color: MUTED2 }}>Username</label>
+          <input
+            value={username}
+            onChange={e => setUsername(e.target.value.replace(/[^a-z0-9_.]/gi, '').toLowerCase())}
+            maxLength={30}
+            placeholder="yourname"
+            className="w-full px-3 py-3 rounded-xl text-sm outline-none"
+            style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${BORDER}`, color: WHITE }}
+          />
+          <p className="text-xs mt-1" style={{ color: MUTED2 }}>girlsglowingup.com/glowlink/{username || '...'}</p>
+        </div>
+
+        {/* Bio */}
+        <div className="mb-5">
+          <label className="block text-xs font-bold mb-1" style={{ color: MUTED2 }}>Bio</label>
+          <textarea
+            value={bio}
+            onChange={e => setBio(e.target.value.slice(0, 150))}
+            placeholder="Tell the community about yourself..."
+            rows={3}
+            className="w-full px-3 py-3 rounded-xl text-sm outline-none resize-none"
+            style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${BORDER}`, color: WHITE }}
+          />
+          <p className="text-xs text-right" style={{ color: MUTED2 }}>{bio.length}/150</p>
+        </div>
+
+        <button onClick={save} disabled={saving}
+          className="w-full py-3.5 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-50"
+          style={{ background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, boxShadow: '0 4px 16px rgba(232,82,109,0.4)' }}>
+          {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Check size={16} />}
+          {saving ? 'Saving...' : 'Save Changes'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Delete Account Modal ───────────────────────────────────────────────────
+function DeleteAccountModal({ profile, onClose }) {
+  const [step, setStep] = useState(1);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  const doDelete = async () => {
+    if (confirmText !== 'DELETE') return;
+    setDeleting(true);
+    if (profile) await base44.entities.UserProfile.delete(profile.id);
+    await base44.auth.logout('/');
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}>
+      <div className="w-full max-w-sm rounded-3xl p-6" style={{ background: '#1a0508', border: '1px solid rgba(220,38,38,0.4)' }}>
+        {step === 1 ? (
+          <>
+            <div className="flex justify-center mb-4">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'rgba(220,38,38,0.15)' }}>
+                <AlertTriangle size={28} className="text-red-400" />
+              </div>
+            </div>
+            <h3 className="text-center font-bold text-lg text-white mb-2">Delete Account?</h3>
+            <p className="text-center text-sm mb-1" style={{ color: MUTED }}>This will permanently delete:</p>
+            <ul className="text-sm mb-5 space-y-1" style={{ color: MUTED2 }}>
+              <li>• Your profile and all settings</li>
+              <li>• All posts, diary entries, and vision boards</li>
+              <li>• Points, challenges, and certificates</li>
+              <li>• All community content you've created</li>
+            </ul>
+            <p className="text-center text-xs font-bold text-red-400 mb-4">This action CANNOT be undone.</p>
+            <div className="flex gap-3">
+              <button onClick={onClose} className="flex-1 py-3 rounded-2xl font-semibold text-sm" style={{ background: 'rgba(255,255,255,0.05)', color: MUTED }}>Cancel</button>
+              <button onClick={() => setStep(2)} className="flex-1 py-3 rounded-2xl font-bold text-sm text-white" style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>Continue</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h3 className="text-center font-bold text-lg text-white mb-3">Confirm Deletion</h3>
+            <p className="text-sm text-center mb-4" style={{ color: MUTED }}>Type <strong className="text-red-400">DELETE</strong> to confirm</p>
+            <input
+              value={confirmText}
+              onChange={e => setConfirmText(e.target.value)}
+              placeholder="Type DELETE here"
+              className="w-full px-4 py-3 rounded-xl text-sm outline-none mb-4 text-center font-bold"
+              style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid rgba(220,38,38,0.3)`, color: '#f87171' }}
+            />
+            <div className="flex gap-3">
+              <button onClick={onClose} className="flex-1 py-3 rounded-2xl font-semibold text-sm" style={{ background: 'rgba(255,255,255,0.05)', color: MUTED }}>Cancel</button>
+              <button onClick={doDelete} disabled={confirmText !== 'DELETE' || deleting}
+                className="flex-1 py-3 rounded-2xl font-bold text-sm text-white disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>
+                {deleting ? 'Deleting...' : 'Delete Forever'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Main Me Page ───────────────────────────────────────────────────────────
 export default function Me() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -79,6 +224,10 @@ export default function Me() {
   const [postText, setPostText] = useState('');
   const [postType, setPostType] = useState('Thought');
   const [posting, setPosting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [glowLinkCopied, setGlowLinkCopied] = useState(false);
+  const [personaImages, setPersonaImages] = useState({});
 
   useEffect(() => {
     const load = async () => {
@@ -90,7 +239,13 @@ export default function Me() {
           base44.entities.UserPoints.filter({ user_email: u.email }),
           base44.entities.GlowUpPost.filter({ user_email: u.email }),
         ]);
-        if (profiles.length) setProfile(profiles[0]);
+        if (profiles.length) {
+          const p = profiles[0];
+          setProfile(p);
+          if (p.glow_persona_images) {
+            try { setPersonaImages(JSON.parse(p.glow_persona_images)?.images || {}); } catch {}
+          }
+        }
         if (pts.length) setPoints(pts[0]);
         setPosts(userPosts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
       } catch {
@@ -101,14 +256,42 @@ export default function Me() {
     load();
   }, []);
 
-  const handleStageChange = async (ageGroupId) => {
+  // ── Glow Stage age gate ──────────────────────────────────────────────────
+  const handleStageChange = async (group) => {
     if (!profile) return;
+    const userAge = profile.age || null;
+    // If we have age data, enforce it
+    if (userAge) {
+      if (userAge < group.minAge) {
+        alert(`You must be at least ${group.minAge} to join ${group.label}.`);
+        return;
+      }
+      if (userAge > group.maxAge && group.id !== 'glow_women') {
+        alert(`${group.label} is for ages ${group.ages}.`);
+        return;
+      }
+    }
     setSavingStage(true);
-    await base44.entities.UserProfile.update(profile.id, { age_group: ageGroupId });
-    setProfile(p => ({ ...p, age_group: ageGroupId }));
+    await base44.entities.UserProfile.update(profile.id, { age_group: group.id });
+    setProfile(p => ({ ...p, age_group: group.id }));
     setSavingStage(false);
   };
 
+  // ── Glow Link ────────────────────────────────────────────────────────────
+  const handleGlowLink = () => {
+    const username = profile?.username || user?.email?.split('@')[0] || '';
+    const url = `${window.location.origin}/glowlink/${username}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        setGlowLinkCopied(true);
+        setTimeout(() => setGlowLinkCopied(false), 2500);
+      });
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
+  // ── Post ─────────────────────────────────────────────────────────────────
   const handlePost = async () => {
     if (!postText.trim() || posting) return;
     setPosting(true);
@@ -135,10 +318,16 @@ export default function Me() {
   const tierEmoji = { Radiant: '👑', Glowing: '✨', Seedling: '🌱', Spark: '⚡' }[tier];
 
   const stats = [
-    { label: 'Days', value: profile ? Math.max(1, Math.floor((Date.now() - new Date(profile.created_date || Date.now())) / 86400000)) : 0, icon: '📅' },
+    { label: 'Days',       value: profile ? Math.max(1, Math.floor((Date.now() - new Date(profile.created_date || Date.now())) / 86400000)) : 0, icon: '📅' },
     { label: 'Challenges', value: points?.challenges_completed || 0, icon: '🏆' },
-    { label: 'Streak', value: points?.check_in_streak || 0, icon: '🔥' },
-    { label: 'Badges', value: Math.floor((points?.total_points || 0) / 100), icon: '⭐' },
+    { label: 'Streak',     value: points?.check_in_streak || 0, icon: '🔥' },
+    { label: 'Badges',     value: Math.floor((points?.total_points || 0) / 100), icon: '⭐' },
+  ];
+
+  // ── Photos for "My Photos" tab ────────────────────────────────────────────
+  const allPhotos = [
+    ...(profile?.avatar_url ? [{ url: profile.avatar_url, label: 'Profile Photo' }] : []),
+    ...Object.entries(personaImages).map(([id, url]) => ({ url, label: id.replace(/_/g, ' ') })),
   ];
 
   if (loading) return (
@@ -148,15 +337,13 @@ export default function Me() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, color: WHITE, fontFamily: '"DM Sans","Inter",sans-serif', paddingBottom: 110, overflowX: 'hidden' }}>
-      {/* Orbs */}
+    <div style={{ minHeight: '100vh', background: BG, color: WHITE, fontFamily: '"DM Sans","Inter",sans-serif', paddingBottom: 120, overflowX: 'hidden' }}>
+      {/* Background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute rounded-full" style={{ width: 600, height: 600, background: `radial-gradient(circle, rgba(232,82,109,0.35), transparent 70%)`, top: -250, left: -180, filter: 'blur(100px)' }} />
-        <div className="absolute rounded-full" style={{ width: 400, height: 400, background: `radial-gradient(circle, rgba(241,182,16,0.2), transparent 70%)`, top: '35%', right: -150, filter: 'blur(100px)' }} />
-        <div className="absolute rounded-full" style={{ width: 350, height: 350, background: `radial-gradient(circle, rgba(196,74,85,0.18), transparent 70%)`, bottom: '10%', left: '10%', filter: 'blur(100px)' }} />
+        <div className="absolute rounded-full" style={{ width: 600, height: 600, background: 'radial-gradient(circle, rgba(232,82,109,0.35), transparent 70%)', top: -250, left: -180, filter: 'blur(100px)' }} />
+        <div className="absolute rounded-full" style={{ width: 400, height: 400, background: 'radial-gradient(circle, rgba(241,182,16,0.2), transparent 70%)', top: '35%', right: -150, filter: 'blur(100px)' }} />
       </div>
-      {/* Hearts pattern */}
-      <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M22 34 C11 25 4 18 4 11 C4 7 7.5 3.5 12 3.5 C15.5 3.5 18.5 5.5 22 9 C25.5 5.5 28.5 3.5 32 3.5 C36.5 3.5 40 7 40 11 C40 18 33 25 22 34Z' fill='%23e8526d' opacity='0.04'/%3E%3C/svg%3E\")", backgroundSize: '44px 44px' }} />
+      <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cpath d='M22 34 C11 25 4 18 4 11 C4 7 7.5 3.5 12 3.5 C15.5 3.5 18.5 5.5 22 9 C25.5 5.5 28.5 3.5 32 3.5 C36.5 3.5 40 7 40 11 C40 18 33 25 22 34Z' fill='%23e8526d' opacity='0.04'/%3E%3C/svg%3E\")", backgroundSize: '44px 44px' }} />
 
       <div className="relative z-10 px-4">
 
@@ -167,15 +354,16 @@ export default function Me() {
           </button>
         </div>
 
-        {/* Profile Header */}
+        {/* ── Profile Header ───────────────────────────────────── */}
         <div style={{ background: 'linear-gradient(135deg, rgba(232,82,109,0.12), rgba(196,74,85,0.07))', border: `1px solid ${BORDER}`, borderRadius: 24, padding: 20, marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-            <div onClick={() => navigate('/avatar')} style={{ width: 80, height: 80, borderRadius: 18, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, boxShadow: `0 0 24px rgba(232,82,109,0.45)`, overflow: 'hidden', flexShrink: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 900 }}>
-              {profile?.avatar_url ? <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (user?.full_name?.[0] || 'G')}
-            </div>
+            <button onClick={() => navigate('/avatar')}>
+              <UserAvatarDisplay profile={profile} size={80} fallback={user?.full_name?.[0] || 'G'} showRing />
+            </button>
             <div style={{ flex: 1 }}>
               <p style={{ fontWeight: 700, fontSize: 20, color: WHITE, margin: 0 }}>{user?.full_name}</p>
               <p style={{ fontSize: 13, color: MUTED, margin: '2px 0 0' }}>@{profile?.username || user?.email?.split('@')[0]}</p>
+              {profile?.bio && <p style={{ fontSize: 12, color: MUTED2, margin: '4px 0 0', lineHeight: 1.4 }}>{profile.bio}</p>}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                 <span>{tierEmoji}</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: '#ffb2c0' }}>{tier}</span>
@@ -187,16 +375,27 @@ export default function Me() {
 
           {/* Action buttons */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-            <button onClick={() => navigate('/my-glow-link')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK}, ${PINK_HOT})`, color: '#fff', fontWeight: 800, fontSize: 14, padding: '11px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: `0 4px 16px rgba(232,82,109,0.4)` }}>
+            <button onClick={() => setShowEditModal(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK}, ${PINK_HOT})`, color: '#fff', fontWeight: 800, fontSize: 14, padding: '11px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: `0 4px 16px rgba(232,82,109,0.4)` }}>
               <Edit3 size={15} /> Edit Profile
             </button>
-            <button onClick={() => navigate('/my-glow-link')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: 'rgba(241,182,16,0.08)', border: '1.5px solid rgba(241,182,16,0.35)', color: GOLD_LT, fontWeight: 700, fontSize: 14, padding: '11px', borderRadius: 14, cursor: 'pointer' }}>
-              <Link2 size={15} /> Glow Link
+            <button onClick={handleGlowLink} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: 'rgba(241,182,16,0.08)', border: '1.5px solid rgba(241,182,16,0.35)', color: GOLD_LT, fontWeight: 700, fontSize: 14, padding: '11px', borderRadius: 14, cursor: 'pointer' }}>
+              {glowLinkCopied ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Glow Link</>}
             </button>
           </div>
 
+          {/* Glow Link preview */}
+          <button onClick={() => navigate(`/glowlink/${profile?.username || user?.email?.split('@')[0]}`)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left"
+            style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${BORDER}` }}>
+            <ExternalLink size={12} style={{ color: MUTED2, flexShrink: 0 }} />
+            <span style={{ fontSize: 11, color: MUTED2, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {window.location.origin}/glowlink/{profile?.username || user?.email?.split('@')[0]}
+            </span>
+            <span style={{ fontSize: 10, color: PINK, fontWeight: 700 }}>View →</span>
+          </button>
+
           {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginTop: 12 }}>
             {stats.map(s => (
               <div key={s.label} style={{ textAlign: 'center', padding: '10px 4px', borderRadius: 14, background: 'rgba(0,0,0,0.35)', border: `1px solid ${BORDER}` }}>
                 <p style={{ fontSize: 18, margin: '0 0 2px' }}>{s.icon}</p>
@@ -207,7 +406,7 @@ export default function Me() {
           </div>
         </div>
 
-        {/* My Content */}
+        {/* ── My Content ───────────────────────────────────────── */}
         <div style={{ marginBottom: 16 }}>
           <SectionLabel text="My Content" />
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, overflow: 'hidden' }}>
@@ -224,7 +423,7 @@ export default function Me() {
           </div>
         </div>
 
-        {/* My Activity */}
+        {/* ── My Activity ──────────────────────────────────────── */}
         <div style={{ marginBottom: 16 }}>
           <SectionLabel text="My Activity" />
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, overflow: 'hidden' }}>
@@ -241,7 +440,7 @@ export default function Me() {
           </div>
         </div>
 
-        {/* Thread / Photos Tabs */}
+        {/* ── Thread / Photos Tabs ──────────────────────────────── */}
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', borderBottom: `1px solid ${BORDER}`, marginBottom: 16 }}>
             {[{ id: 'thread', label: 'My Thread', icon: MessageSquare }, { id: 'photos', label: 'My Photos', icon: Image }].map(tab => {
@@ -260,7 +459,7 @@ export default function Me() {
               {/* Post type chips */}
               <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
                 {POST_TYPES.map(({ type, emoji }) => (
-                  <button key={type} onClick={() => setPostType(type)} style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: postType === type ? `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})` : 'rgba(232,82,109,0.07)', color: postType === type ? '#fff' : MUTED, border: postType === type ? 'none' : `1px solid ${BORDER}`, boxShadow: postType === type ? `0 2px 8px rgba(232,82,109,0.35)` : 'none' }}>
+                  <button key={type} onClick={() => setPostType(type)} style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: postType === type ? `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})` : 'rgba(232,82,109,0.07)', color: postType === type ? '#fff' : MUTED, border: postType === type ? 'none' : `1px solid ${BORDER}`, boxShadow: postType === type ? '0 2px 8px rgba(232,82,109,0.35)' : 'none' }}>
                     {emoji} {type}
                   </button>
                 ))}
@@ -268,10 +467,16 @@ export default function Me() {
 
               {/* Post input */}
               <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 12 }}>
-                <textarea value={postText} onChange={e => setPostText(e.target.value)} placeholder="Share a thought, win, goal, or mood..." style={{ width: '100%', background: 'transparent', border: 'none', color: WHITE, fontSize: 14, outline: 'none', resize: 'none', minHeight: 64, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                <textarea
+                  value={postText}
+                  onChange={e => setPostText(e.target.value.slice(0, 500))}
+                  placeholder="Share a thought, win, goal, or mood..."
+                  style={{ width: '100%', background: 'transparent', border: 'none', color: WHITE, fontSize: 14, outline: 'none', resize: 'none', minHeight: 72, fontFamily: 'inherit', boxSizing: 'border-box' }}
+                />
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-                  <span style={{ fontSize: 11, color: MUTED2 }}>{postText.length}/500</span>
-                  <button onClick={handlePost} disabled={!postText.trim() || posting} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', border: 'none', cursor: 'pointer', opacity: (!postText.trim() || posting) ? 0.4 : 1 }}>
+                  <span style={{ fontSize: 11, color: postText.length >= 450 ? '#f59e0b' : MUTED2 }}>{postText.length}/500</span>
+                  <button onClick={handlePost} disabled={!postText.trim() || posting}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', border: 'none', cursor: 'pointer', opacity: (!postText.trim() || posting) ? 0.4 : 1 }}>
                     {posting ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : '➤'} Post
                   </button>
                 </div>
@@ -284,7 +489,7 @@ export default function Me() {
                   <div key={post.id} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: 16 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                       <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(232,82,109,0.15)', border: `1px solid ${BORDER}`, color: '#ffb2c0' }}>
-                        💭 {post.post_type || 'Thought'}
+                        {POST_TYPES.find(p => p.type === post.post_type)?.emoji || '💭'} {post.post_type || 'Thought'}
                       </span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 10, color: MUTED2 }}>{new Date(post.created_date).toLocaleDateString()}</span>
@@ -299,84 +504,125 @@ export default function Me() {
           )}
 
           {activeTab === 'photos' && (
-            <div style={{ textAlign: 'center', padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <div style={{ fontSize: 48 }}>📸</div>
-              <p style={{ fontSize: 14, color: MUTED }}>Add up to 5 photos to your profile gallery</p>
-              <button onClick={() => navigate('/my-glow-link')} style={{ padding: '10px 24px', borderRadius: 20, fontSize: 14, fontWeight: 700, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', border: 'none', cursor: 'pointer', boxShadow: `0 4px 16px rgba(232,82,109,0.4)` }}>
-                + Add Your First Photo
-              </button>
+            <div>
+              {allPhotos.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                  <div style={{ fontSize: 48 }}>📸</div>
+                  <p style={{ fontSize: 14, color: MUTED }}>No photos yet.</p>
+                  <p style={{ fontSize: 12, color: MUTED2, maxWidth: 240 }}>Upload a selfie or create a Glow Persona to populate your gallery.</p>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                    <button onClick={() => navigate('/avatar')} style={{ padding: '9px 20px', borderRadius: 20, fontSize: 13, fontWeight: 700, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', border: 'none', cursor: 'pointer' }}>📸 Add Selfie</button>
+                    <button onClick={() => navigate('/glow-persona')} style={{ padding: '9px 20px', borderRadius: 20, fontSize: 13, fontWeight: 700, background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.35)', color: '#d8b4fe', cursor: 'pointer' }}>✨ Glow Persona</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                  {allPhotos.map((photo, i) => (
+                    <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: 14, overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: `1px solid ${BORDER}` }}>
+                      <img src={photo.url} alt={photo.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 6px', background: 'linear-gradient(to top,rgba(0,0,0,0.8),transparent)' }}>
+                        <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', margin: 0, textTransform: 'capitalize' }}>{photo.label}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <button onClick={() => navigate('/avatar')} style={{ aspectRatio: '1', borderRadius: 14, border: `2px dashed ${BORDER}`, background: 'rgba(232,82,109,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', color: MUTED2, fontSize: 11 }}>
+                    <Camera size={20} style={{ color: PINK }} />
+                    <span>Add More</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* My Glow Stage */}
+        {/* ── My Glow Stage ────────────────────────────────────── */}
         <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, padding: 16, marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <Sparkles size={15} style={{ color: PINK }} />
             <p style={{ fontWeight: 700, fontSize: 14, color: WHITE, margin: 0 }}>My Glow Stage</p>
           </div>
-          <p style={{ fontSize: 12, color: MUTED2, marginBottom: 12 }}>Personalize your app experience for your life stage</p>
+          <p style={{ fontSize: 12, color: MUTED2, marginBottom: 12 }}>Your stage shapes your content, challenges, and community</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {AGE_GROUPS.map(group => {
               const isActive = profile?.age_group === group.id;
+              const userAge = profile?.age;
+              const isAgeRestricted = userAge && userAge < group.minAge;
               return (
-                <button key={group.id} onClick={() => handleStageChange(group.id)} disabled={savingStage} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 14, background: isActive ? 'rgba(232,82,109,0.12)' : 'rgba(0,0,0,0.2)', border: isActive ? `1px solid ${PINK}` : `1px solid ${BORDER}`, cursor: 'pointer', textAlign: 'left' }}>
+                <button key={group.id} onClick={() => handleStageChange(group)} disabled={savingStage || isAgeRestricted}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 14, background: isActive ? 'rgba(232,82,109,0.12)' : 'rgba(0,0,0,0.2)', border: isActive ? `1px solid ${PINK}` : `1px solid ${BORDER}`, cursor: isAgeRestricted ? 'not-allowed' : 'pointer', textAlign: 'left', opacity: isAgeRestricted ? 0.45 : 1 }}>
                   <span style={{ fontSize: 20 }}>{group.emoji}</span>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontWeight: 600, fontSize: 13, color: WHITE, margin: 0 }}>{group.label}</p>
                     <p style={{ fontSize: 11, color: MUTED2, margin: 0 }}>{group.ages} · {group.desc}</p>
                   </div>
                   {isActive && <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(232,82,109,0.25)', border: `1px solid ${BORDER}`, color: '#ffb2c0' }}>Active</span>}
+                  {isAgeRestricted && <span style={{ fontSize: 10, color: MUTED2 }}>🔒</span>}
                 </button>
               );
             })}
           </div>
+          <p style={{ fontSize: 11, color: MUTED2, marginTop: 8, lineHeight: 1.4 }}>
+            Age restrictions protect younger members. If your stage is locked, it's based on your registered age.
+          </p>
         </div>
 
-        {/* Sign Out */}
+        {/* ── Sign Out ─────────────────────────────────────────── */}
         <div style={{ marginBottom: 16 }}>
-          <button onClick={async () => { if (window.confirm('Sign out?')) await base44.auth.logout('/'); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', borderRadius: 16, background: CARD, border: `1px solid ${BORDER}`, color: MUTED, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={async () => { if (window.confirm('Sign out of Girls Glowing Up?')) await base44.auth.logout('/'); }}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', borderRadius: 16, background: CARD, border: `1px solid ${BORDER}`, color: MUTED, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
             <LogOut size={16} /> Sign Out
           </button>
         </div>
 
-        {/* Follow Us */}
+        {/* ── Follow Us ────────────────────────────────────────── */}
         <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, padding: 16, marginBottom: 16 }}>
           <p style={{ fontWeight: 700, fontSize: 14, color: WHITE, margin: '0 0 2px' }}>Follow Us 💜</p>
-          <p style={{ fontSize: 12, color: MUTED2, margin: '0 0 12px' }}>Tap to visit our pages — no account connection, no data sharing</p>
+          <p style={{ fontSize: 12, color: MUTED2, margin: '0 0 12px' }}>Opens the external app — no account connection, no data sharing</p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             {SOCIAL_LINKS.map(s => (
               <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
-                <div style={{ width: 48, height: 48, borderRadius: '50%', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{s.icon}</div>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2px solid rgba(255,255,255,0.1)' }}>{s.icon}</div>
                 <span style={{ fontSize: 9, color: MUTED2 }}>{s.label}</span>
               </a>
             ))}
           </div>
         </div>
 
-        {/* Help and Support */}
+        {/* ── Help & Support ───────────────────────────────────── */}
         <div style={{ marginBottom: 16 }}>
           <SectionLabel text="Help and Support" />
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, overflow: 'hidden' }}>
-            <button onClick={() => navigate('/support')} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+            <button onClick={() => navigate('/support')} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', borderBottom: `1px solid ${BORDER}`, cursor: 'pointer', textAlign: 'left' }}>
               <MessageCircle size={16} style={{ color: MUTED, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: 14, color: WHITE, margin: 0 }}>Contact Support</p>
-                <p style={{ fontSize: 11, color: MUTED2, margin: 0 }}>Report a bug or get help</p>
+                <p style={{ fontSize: 11, color: MUTED2, margin: 0 }}>Report a bug, ask for help, or give feedback</p>
               </div>
               <ChevronRight size={14} style={{ color: MUTED2 }} />
             </button>
+            <a href="mailto:support@girlsglowingup.com" style={{ textDecoration: 'none', width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: 'none', cursor: 'pointer' }}>
+              <MessageSquare size={16} style={{ color: MUTED, flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 14, color: WHITE, margin: 0 }}>Email Us</p>
+                <p style={{ fontSize: 11, color: MUTED2, margin: 0 }}>support@girlsglowingup.com</p>
+              </div>
+              <ExternalLink size={14} style={{ color: MUTED2 }} />
+            </a>
           </div>
         </div>
 
-        {/* Legal and Privacy */}
+        {/* ── Legal ────────────────────────────────────────────── */}
         <div style={{ marginBottom: 16 }}>
           <SectionLabel text="Legal and Privacy" />
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, overflow: 'hidden' }}>
-            {LEGAL.map((item, i) => {
+            {[
+              { label: 'Privacy Policy',            icon: Shield,   route: '/about' },
+              { label: 'Terms of Service',           icon: FileText, route: '/guidelines' },
+              { label: 'Parental Consent (COPPA)',   icon: Users,    route: '/parent-dashboard' },
+            ].map((item, i, arr) => {
               const Icon = item.icon;
               return (
-                <button key={item.label} onClick={() => navigate(item.route)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', borderBottom: i < LEGAL.length - 1 ? `1px solid ${BORDER}` : 'none', cursor: 'pointer', textAlign: 'left' }}>
+                <button key={item.label} onClick={() => navigate(item.route)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', borderBottom: i < arr.length - 1 ? `1px solid ${BORDER}` : 'none', cursor: 'pointer', textAlign: 'left' }}>
                   <Icon size={15} style={{ color: MUTED, flexShrink: 0 }} />
                   <span style={{ flex: 1, fontSize: 14, color: WHITE }}>{item.label}</span>
                   <ChevronRight size={14} style={{ color: MUTED2 }} />
@@ -384,22 +630,36 @@ export default function Me() {
               );
             })}
           </div>
-          <p style={{ textAlign: 'center', fontSize: 10, color: 'rgba(196,148,158,0.35)', marginTop: 10 }}>2025 Girls Glowing Up LLC. All rights reserved.</p>
+          <p style={{ textAlign: 'center', fontSize: 10, color: 'rgba(196,148,158,0.35)', marginTop: 10 }}>© 2025 Girls Glowing Up LLC. All rights reserved.</p>
         </div>
 
-        {/* Danger Zone */}
-        <div style={{ marginBottom: 24 }}>
+        {/* ── Danger Zone ──────────────────────────────────────── */}
+        <div style={{ marginBottom: 32 }}>
           <div style={{ background: 'rgba(196,74,85,0.07)', border: '1px solid rgba(196,74,85,0.3)', borderRadius: 18, padding: 16 }}>
             <p style={{ fontWeight: 700, fontSize: 13, color: '#f87171', margin: '0 0 4px' }}>DANGER ZONE</p>
-            <p style={{ fontSize: 12, color: MUTED2, margin: '0 0 12px' }}>Permanently delete your account and all data. Cannot be undone.</p>
-            <button onClick={async () => { if (!window.confirm('Delete account permanently?')) return; if (profile) await base44.entities.UserProfile.delete(profile.id); await base44.auth.logout('/'); }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 14, background: 'linear-gradient(135deg, #dc2626, #991b1b)', color: '#fff', fontSize: 14, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+            <p style={{ fontSize: 12, color: MUTED2, margin: '0 0 12px', lineHeight: 1.5 }}>Permanently delete your account and all data. This cannot be undone and your Glow Points, posts, and achievements will be lost forever.</p>
+            <button onClick={() => setShowDeleteModal(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 14, background: 'linear-gradient(135deg, #dc2626, #991b1b)', color: '#fff', fontSize: 14, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
               <Trash2 size={15} /> Delete My Account
             </button>
           </div>
         </div>
 
       </div>
+
       <BottomNav active="me" />
+
+      {/* Modals */}
+      {showEditModal && (
+        <EditProfileModal
+          user={user}
+          profile={profile}
+          onSave={(updates) => setProfile(p => ({ ...p, ...updates }))}
+          onClose={() => setShowEditModal(false)}
+        />
+      )}
+      {showDeleteModal && (
+        <DeleteAccountModal profile={profile} onClose={() => setShowDeleteModal(false)} />
+      )}
     </div>
   );
 }
