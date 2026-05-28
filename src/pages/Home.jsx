@@ -49,10 +49,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      if (u) navigate('/dashboard', { replace: true });
-    }).catch(() => setUser(null));
+    base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
   const handleJoin = () => navigate(user ? '/dashboard' : '/join');
