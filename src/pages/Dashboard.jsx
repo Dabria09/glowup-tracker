@@ -4,7 +4,7 @@ import useAgeGroup from '@/lib/useAgeGroup';
 import useTranslation from '@/lib/useTranslation';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, X, Plus, Check } from 'lucide-react';
+import { Search, X, Plus, Check, ChevronRight, Settings } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import CustomizeModal from '@/components/CustomizeModal';
 import AvatarPreview from '@/components/avatar/AvatarPreview';
@@ -74,12 +74,12 @@ const DEFAULT_HOME_IDS = ['daily-checkin', 'glow', 'glow-feed', 'fitness-tracker
 const DEFAULT_QUICK_IDS = ['daily-checkin', 'glow', 'diary', 'money-tracker'];
 
 const SOCIAL = [
-  { name: 'Instagram', handle: '@girlsglowingup', url: 'https://instagram.com/girlsglowingup', color: 'bg-gradient-to-br from-pink-600 to-purple-600', icon: '📸' },
-  { name: 'TikTok', handle: '@girlsglowingup', url: 'https://tiktok.com/@girlsglowingup', color: 'bg-black border border-gray-600', icon: '🎵' },
-  { name: 'YouTube', handle: 'Girls Glowing Up', url: 'https://youtube.com/@girlsglowingup', color: 'bg-red-600', icon: '▶️' },
-  { name: 'X / Twitter', handle: '@girlsglowingup', url: 'https://x.com/girlsglowingup', color: 'bg-black border border-gray-600', icon: '✖️' },
-  { name: 'Facebook', handle: 'Girls Glowing Up', url: 'https://facebook.com/girlsglowingup', color: 'bg-blue-600', icon: '📘' },
-  { name: 'Snapchat', handle: 'girlsglowingup', url: 'https://snapchat.com/add/girlsglowingup', color: 'bg-yellow-400', icon: '👻' },
+  { name: 'Instagram', handle: '@girlsglowingup', url: 'https://instagram.com/girlsglowingup', color: '#e1306c', icon: '📸' },
+  { name: 'TikTok', handle: '@girlsglowingup', url: 'https://tiktok.com/@girlsglowingup', color: '#000', icon: '🎵' },
+  { name: 'YouTube', handle: 'Girls Glowing Up', url: 'https://youtube.com/@girlsglowingup', color: '#ff0000', icon: '▶️' },
+  { name: 'X / Twitter', handle: '@girlsglowingup', url: 'https://x.com/girlsglowingup', color: '#000', icon: '✖️' },
+  { name: 'Facebook', handle: 'Girls Glowing Up', url: 'https://facebook.com/girlsglowingup', color: '#1877f2', icon: '📘' },
+  { name: 'Snapchat', handle: 'girlsglowingup', url: 'https://snapchat.com/add/girlsglowingup', color: '#fffc00', icon: '👻' },
 ];
 
 const PATTERN_SVGS = {
@@ -113,52 +113,48 @@ function loadSaved(key, defaults) {
 
 function getPageById(id) { return ALL_PAGES.find(p => p.id === id); }
 
-// Mini app icon used in folders and grids
-function MiniIcon({ app, size = 72 }) {
-  const s = size;
+// ─── Widget Icon (iOS-style rounded square) ─────────────────────────────────
+function AppIcon({ app, size = 64 }) {
   return (
     <div
-      className={`rounded-[${Math.round(s * 0.22)}px] overflow-hidden flex items-center justify-center flex-shrink-0 ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
-      style={{ width: s, height: s, borderRadius: Math.round(s * 0.22) }}
+      className={`overflow-hidden flex items-center justify-center flex-shrink-0 ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
+      style={{ width: size, height: size, borderRadius: size * 0.225, boxShadow: '0 4px 14px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)' }}
     >
       {app.image
         ? <img src={app.image} alt={app.label} className="w-full h-full object-cover" />
-        : <span style={{ fontSize: s * 0.42 }}>{app.emoji}</span>}
+        : <span style={{ fontSize: size * 0.42 }}>{app.emoji}</span>}
     </div>
   );
 }
 
-// Folder icon — 2×2 grid of mini app icons
-function FolderIcon({ folder, allPages, onOpen, onLongPress }) {
+// ─── Folder Icon ─────────────────────────────────────────────────────────────
+function FolderIcon({ folder, onOpen, onLongPress }) {
   const apps = folder.appIds.slice(0, 4).map(id => getPageById(id)).filter(Boolean);
   const longTimer = useRef(null);
-
   const startPress = () => { longTimer.current = setTimeout(() => onLongPress && onLongPress(), 600); };
-  const endPress = () => { clearTimeout(longTimer.current); };
+  const endPress = () => clearTimeout(longTimer.current);
 
   return (
-    <button
-      className="flex flex-col items-center gap-1.5 select-none w-full"
-      onClick={onOpen}
+    <button className="flex flex-col items-center gap-1.5 select-none w-full" onClick={onOpen}
       onMouseDown={startPress} onMouseUp={endPress} onMouseLeave={endPress}
-      onTouchStart={startPress} onTouchEnd={endPress} onTouchMove={endPress}
-    >
-      <div className="w-[72px] h-[72px] rounded-[16px] flex items-center justify-center p-1.5 border border-white/10"
-        style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', boxShadow: '0 4px 15px rgba(0,0,0,0.4)' }}>
+      onTouchStart={startPress} onTouchEnd={endPress} onTouchMove={endPress}>
+      <div className="w-16 h-16 rounded-[18px] flex items-center justify-center p-1.5"
+        style={{ background: 'rgba(255,255,255,0.13)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
         <div className="grid grid-cols-2 gap-0.5 w-full h-full">
-          {[0, 1, 2, 3].map(i => apps[i] ? (
-            <MiniIcon key={i} app={apps[i]} size={28} />
-          ) : (
-            <div key={i} className="rounded-[6px] bg-white/10" style={{ width: 28, height: 28 }} />
-          ))}
+          {[0,1,2,3].map(i => apps[i] ? (
+            <div key={i} className={`rounded-[5px] overflow-hidden ${apps[i].image ? '' : 'bg-gradient-to-br ' + apps[i].gradient}`}
+              style={{ width: 26, height: 26 }}>
+              {apps[i].image && <img src={apps[i].image} alt="" className="w-full h-full object-cover" />}
+            </div>
+          ) : <div key={i} className="rounded-[5px] bg-white/10" style={{ width: 26, height: 26 }} />)}
         </div>
       </div>
-      <span className="text-[10px] text-center text-gray-300 leading-tight w-[76px]">{folder.name}</span>
+      <span className="text-[10px] text-center text-gray-300 leading-tight" style={{ maxWidth: 68 }}>{folder.name}</span>
     </button>
   );
 }
 
-// Folder open modal
+// ─── Folder Modal ─────────────────────────────────────────────────────────────
 function FolderModal({ folder, folders, setFolders, homeAppIds, setHomeAppIds, navigate, onClose }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(folder.name);
@@ -171,19 +167,15 @@ function FolderModal({ folder, folders, setFolders, homeAppIds, setHomeAppIds, n
 
   const removeApp = (appId) => {
     const newAppIds = folder.appIds.filter(id => id !== appId);
-    if (newAppIds.length === 0) {
-      // Delete folder, put no apps back on home
+    if (newAppIds.length <= 1) {
       const newFolders = { ...folders };
       delete newFolders[folder.id];
       setFolders(newFolders);
-      setHomeAppIds(prev => prev.filter(id => id !== folder.id));
-      onClose();
-    } else if (newAppIds.length === 1) {
-      // Dissolve folder, put the remaining app back on home
-      const newFolders = { ...folders };
-      delete newFolders[folder.id];
-      setFolders(newFolders);
-      setHomeAppIds(prev => prev.map(id => id === folder.id ? newAppIds[0] : id));
+      setHomeAppIds(prev => {
+        const next = prev.filter(id => id !== folder.id);
+        if (newAppIds.length === 1) { const idx = prev.indexOf(folder.id); next.splice(idx, 0, newAppIds[0]); }
+        return next;
+      });
       onClose();
     } else {
       setFolders(prev => ({ ...prev, [folder.id]: { ...prev[folder.id], appIds: newAppIds } }));
@@ -191,7 +183,6 @@ function FolderModal({ folder, folders, setFolders, homeAppIds, setHomeAppIds, n
   };
 
   const deleteFolder = () => {
-    // Dissolve folder — move all apps back to home screen
     const newFolders = { ...folders };
     delete newFolders[folder.id];
     setFolders(newFolders);
@@ -206,110 +197,38 @@ function FolderModal({ folder, folders, setFolders, homeAppIds, setHomeAppIds, n
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(20px)' }} onClick={onClose}>
-      <div className="w-full rounded-3xl overflow-hidden" style={{ maxWidth: 340, background: 'rgba(20,10,35,0.95)', border: '1px solid rgba(255,255,255,0.15)' }} onClick={e => e.stopPropagation()}>
-        {/* Folder name header */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(24px)' }} onClick={onClose}>
+      <div className="w-full rounded-3xl overflow-hidden" style={{ maxWidth: 340, background: 'rgba(18,8,28,0.96)', border: '1px solid rgba(255,255,255,0.12)' }} onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           {editing ? (
-            <input
-              autoFocus
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onBlur={saveName}
-              onKeyDown={e => e.key === 'Enter' && saveName()}
-              className="font-bold text-white text-lg bg-transparent border-b border-pink-500 outline-none flex-1 mr-3"
-            />
+            <input autoFocus value={name} onChange={e => setName(e.target.value)} onBlur={saveName} onKeyDown={e => e.key === 'Enter' && saveName()} className="font-bold text-white text-lg bg-transparent border-b border-pink-500 outline-none flex-1 mr-3" />
           ) : (
-            <button onClick={() => setEditing(true)} className="font-bold text-white text-lg flex items-center gap-1">
-              {folder.name} <span className="text-[11px] text-gray-500 font-normal">✏️</span>
-            </button>
+            <button onClick={() => setEditing(true)} className="font-bold text-white text-lg flex items-center gap-1">{folder.name} <span className="text-[11px] text-gray-500 font-normal">✏️</span></button>
           )}
           <button onClick={onClose}><X size={20} className="text-gray-400" /></button>
         </div>
-
-        {/* Apps in folder */}
         <div className="px-5 pb-4">
-          <div className="rounded-2xl p-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div className="rounded-2xl p-3" style={{ background: 'rgba(255,255,255,0.05)' }}>
             <div className="grid grid-cols-3 gap-4">
               {apps.map(app => (
                 <div key={app.id} className="relative flex flex-col items-center gap-1">
-                  <button
-                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center z-10 text-gray-300 text-xs leading-none"
-                    onClick={() => removeApp(app.id)}
-                    style={{ fontSize: 14 }}
-                  >×</button>
-                  <button onClick={() => { navigate(app.route); onClose(); }} className="active:scale-90 transition-transform">
-                    <MiniIcon app={app} size={56} />
-                  </button>
+                  <button className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center z-10 text-gray-300 text-xs" onClick={() => removeApp(app.id)} style={{ fontSize: 14 }}>×</button>
+                  <button onClick={() => { navigate(app.route); onClose(); }} className="active:scale-90 transition-transform"><AppIcon app={app} size={54} /></button>
                   <span className="text-[10px] text-gray-300 text-center leading-tight w-16">{app.label}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
-
-        {/* Delete folder button */}
         <div className="px-5 pb-5">
-          <button onClick={deleteFolder} className="w-full py-2.5 rounded-2xl text-sm font-semibold text-red-400 border border-red-900/40 bg-red-900/10">
-            Dissolve Folder
-          </button>
+          <button onClick={deleteFolder} className="w-full py-2.5 rounded-2xl text-sm font-semibold text-red-400 border border-red-900/40 bg-red-900/10">Dissolve Folder</button>
         </div>
       </div>
     </div>
   );
 }
 
-// Home app icon (single app)
-function HomeAppIcon({ app, onNavigate, size = 'small' }) {
-  if (size === 'widget') {
-    return (
-      <button
-        onClick={() => onNavigate(app.route)}
-        className={`w-full h-full relative rounded-[22px] overflow-hidden active:scale-95 transition-transform select-none ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
-        style={{ minHeight: 156, boxShadow: '0 6px 24px rgba(0,0,0,0.6)' }}
-      >
-        {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover" />}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.1) 100%)' }} />
-        <div className="absolute inset-x-0 bottom-0 p-3 text-left">
-          <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mb-0.5">Widget</p>
-          <p className="text-base font-bold text-white leading-tight">{app.label}</p>
-        </div>
-      </button>
-    );
-  }
-  return (
-    <button
-      onClick={() => onNavigate(app.route)}
-      className="flex flex-col items-center gap-1.5 select-none hover:opacity-80 active:scale-95 transition-transform w-full"
-    >
-      <div
-        className={`w-[72px] h-[72px] rounded-[16px] overflow-hidden shadow-lg border border-white/10 ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient + ' flex items-center justify-center'}`}
-        style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}
-      >
-        {app.image
-          ? <img src={app.image} alt={app.label} className="w-full h-full object-cover" />
-          : <span className="text-3xl drop-shadow-lg">{app.emoji}</span>}
-      </div>
-      <span className="text-[10px] text-center text-gray-300 leading-tight w-[76px]">{app.label}</span>
-    </button>
-  );
-}
-
-// Quick access compact chip
-function QuickChip({ app, onNavigate }) {
-  return (
-    <button onClick={() => onNavigate(app.route)}
-      className="flex flex-col items-center gap-1 flex-shrink-0 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition overflow-hidden"
-      style={{ width: 58, paddingTop: 6, paddingBottom: 6 }}>
-      <div className={`w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}>
-        {app.image ? <img src={app.image} alt={app.label} className="w-full h-full object-cover" /> : <span className="text-base">{app.emoji}</span>}
-      </div>
-      <span className="text-[9px] text-gray-400 text-center leading-tight px-1" style={{ maxWidth: 54 }}>{app.label}</span>
-    </button>
-  );
-}
-
-// Page picker modal
+// ─── Page Picker Modal ────────────────────────────────────────────────────────
 function PagePickerModal({ title, currentIds, onSave, onClose }) {
   const [selected, setSelected] = useState([...currentIds]);
   const [search, setSearch] = useState('');
@@ -318,9 +237,10 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
     return p.label.toLowerCase().includes(q) || p.keywords.some(k => k.includes(q));
   });
   const toggle = (id) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-end" onClick={onClose}>
-      <div className="w-full rounded-t-3xl flex flex-col" style={{ maxHeight: '85vh', background: '#0f0a1e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/75 z-50 flex items-end" onClick={onClose}>
+      <div className="w-full rounded-t-3xl flex flex-col" style={{ maxHeight: '88vh', background: '#0f0a1e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 flex-shrink-0">
           <h3 className="font-bold text-white">{title}</h3>
           <button onClick={onClose}><X size={20} className="text-gray-400" /></button>
@@ -328,7 +248,7 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
         <div className="px-4 py-3 flex-shrink-0">
           <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-2">
             <Search size={14} className="text-gray-500" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search all pages..." className="bg-transparent text-sm text-white outline-none flex-1 placeholder-gray-500" autoFocus />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…" className="bg-transparent text-sm text-white outline-none flex-1 placeholder-gray-500" autoFocus />
           </div>
         </div>
         <div className="overflow-y-auto flex-1 px-4 pb-4">
@@ -336,10 +256,9 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
             {filtered.map(page => {
               const isOn = selected.includes(page.id);
               return (
-                <button key={page.id} onClick={() => toggle(page.id)} className="flex items-center gap-2 p-3 rounded-2xl text-left transition" style={{ background: isOn ? 'rgba(236,72,153,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${isOn ? 'rgba(236,72,153,0.4)' : 'rgba(255,255,255,0.08)'}` }}>
-                  <div className={`w-8 h-8 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center ${page.image ? '' : 'bg-gradient-to-br ' + page.gradient}`}>
-                    {page.image ? <img src={page.image} alt={page.label} className="w-full h-full object-cover" /> : <span className="text-base">{page.emoji}</span>}
-                  </div>
+                <button key={page.id} onClick={() => toggle(page.id)} className="flex items-center gap-2 p-3 rounded-2xl text-left transition"
+                  style={{ background: isOn ? 'rgba(236,72,153,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${isOn ? 'rgba(236,72,153,0.4)' : 'rgba(255,255,255,0.08)'}` }}>
+                  <AppIcon app={page} size={32} />
                   <span className="text-xs font-semibold text-white flex-1 leading-tight">{page.label}</span>
                   {isOn && <Check size={12} className="text-pink-400 flex-shrink-0" />}
                 </button>
@@ -347,7 +266,7 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
             })}
           </div>
         </div>
-        <div className="px-4 pt-5 pb-12 border-t border-white/10 flex-shrink-0 grid grid-cols-2 gap-3">
+        <div className="px-4 pt-4 pb-12 border-t border-white/10 flex-shrink-0 grid grid-cols-2 gap-3">
           <button onClick={onClose} className="py-3 rounded-2xl text-sm font-semibold text-gray-400 bg-white/5">Cancel</button>
           <button onClick={() => { onSave(selected); onClose(); }} className="py-3 rounded-2xl text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg,#c44a55,#ff6a75)' }}>Save ({selected.length})</button>
         </div>
@@ -356,6 +275,67 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
   );
 }
 
+// ─── Featured Widget (large 2-col) ────────────────────────────────────────────
+function FeaturedWidget({ app, onNavigate }) {
+  return (
+    <button onClick={() => onNavigate(app.route)}
+      className={`relative rounded-[24px] overflow-hidden active:scale-98 transition-all select-none text-left ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
+      style={{ height: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
+      {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover" />}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.05) 100%)' }} />
+      <div className="absolute inset-x-0 bottom-0 p-4">
+        <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">Featured</p>
+        <p className="text-base font-bold text-white leading-tight">{app.label}</p>
+      </div>
+      <div className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
+        <ChevronRight size={14} className="text-white" />
+      </div>
+    </button>
+  );
+}
+
+// ─── Medium Widget (1-col) ────────────────────────────────────────────────────
+function MediumWidget({ app, onNavigate }) {
+  return (
+    <button onClick={() => onNavigate(app.route)}
+      className={`relative rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left w-full ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
+      style={{ height: 110, boxShadow: '0 6px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
+      {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover" />}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.65) 100%)' }} />
+      <div className="absolute inset-0 p-4 flex flex-col justify-between">
+        <div className="w-9 h-9 rounded-[10px] overflow-hidden flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)' }}>
+          {app.image ? <img src={app.image} alt="" className="w-full h-full object-cover" /> : <span className="text-base">{app.emoji}</span>}
+        </div>
+        <p className="text-sm font-bold text-white leading-tight">{app.label}</p>
+      </div>
+    </button>
+  );
+}
+
+// ─── Small App Icon (4-col grid) ─────────────────────────────────────────────
+function SmallAppIcon({ app, onNavigate }) {
+  return (
+    <button onClick={() => onNavigate(app.route)} className="flex flex-col items-center gap-1.5 select-none active:scale-90 transition-transform w-full">
+      <AppIcon app={app} size={64} />
+      <span className="text-[10px] text-center text-gray-300 leading-tight" style={{ maxWidth: 68 }}>{app.label}</span>
+    </button>
+  );
+}
+
+// ─── Quick Chip ───────────────────────────────────────────────────────────────
+function QuickChip({ app, onNavigate }) {
+  return (
+    <button onClick={() => onNavigate(app.route)}
+      className="flex flex-col items-center gap-1 flex-shrink-0 py-2.5 px-2 rounded-2xl transition"
+      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', minWidth: 60 }}>
+      <AppIcon app={app} size={36} />
+      <span className="text-[9px] text-gray-400 text-center leading-tight" style={{ maxWidth: 58 }}>{app.label}</span>
+    </button>
+  );
+}
+
+// ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -372,27 +352,17 @@ export default function Dashboard() {
   const [totalPoints, setTotalPoints] = useState(0);
   const [homeAppIds, setHomeAppIds] = useState(() => loadSaved('ggu_home_apps', DEFAULT_HOME_IDS));
   const [quickIds, setQuickIds] = useState(() => loadSaved('ggu_quick_access', DEFAULT_QUICK_IDS));
-  const [showQuickAccess] = useState(() => { try { return localStorage.getItem('ggu_show_quick') !== 'false'; } catch { return true; } });
   const [showQuickPicker, setShowQuickPicker] = useState(false);
-  const [appSizes, setAppSizes] = useState(() => loadSaved('ggu_app_sizes', {}));
-  const [sizeMenu, setSizeMenu] = useState(null);
   const [folders, setFolders] = useState(() => loadSaved('ggu_folders', {}));
   const [openFolder, setOpenFolder] = useState(null);
   const [checkedInToday, setCheckedInToday] = useState(false);
   const [editMode, setEditMode] = useState(false);
-
-  // Track which item is being hovered over during drag (for folder creation)
   const [dragOverId, setDragOverId] = useState(null);
   const draggedId = useRef(null);
 
   useEffect(() => { localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds)); }, [homeAppIds]);
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
-  useEffect(() => { localStorage.setItem('ggu_app_sizes', JSON.stringify(appSizes)); }, [appSizes]);
   useEffect(() => { localStorage.setItem('ggu_folders', JSON.stringify(folders)); }, [folders]);
-  useEffect(() => { localStorage.setItem('ggu_bg_color', bgColor); }, [bgColor]);
-  useEffect(() => { localStorage.setItem('ggu_bg_pattern', bgPattern); }, [bgPattern]);
-  useEffect(() => { if (bgImage) localStorage.setItem('ggu_bg_image', bgImage); else localStorage.removeItem('ggu_bg_image'); }, [bgImage]);
-  useEffect(() => { localStorage.setItem('ggu_bg_image_pos', JSON.stringify(bgImagePos)); }, [bgImagePos]);
 
   useEffect(() => {
     const savedColor = localStorage.getItem('ggu_bg_color');
@@ -407,17 +377,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     let email = null;
-
     const checkCheckin = async (userEmail) => {
       const today = new Date().toISOString().split('T')[0];
       if (localStorage.getItem('ggu_checkin_date') === today) { setCheckedInToday(true); return; }
       const rows = await base44.entities.DiaryEntry.filter({ user_email: userEmail, date: today });
       if (rows.length > 0) { localStorage.setItem('ggu_checkin_date', today); setCheckedInToday(true); }
     };
-
     const onFocus = () => { if (email) checkCheckin(email); };
     window.addEventListener('focus', onFocus);
-
     base44.auth.me().then(async (u) => {
       email = u.email;
       setUser(u);
@@ -431,79 +398,38 @@ export default function Dashboard() {
         if (profile.avatar_builder_config) { try { setAvatarConfig(JSON.parse(profile.avatar_builder_config)); } catch {} }
       }
     }).catch(() => {});
-
     return () => window.removeEventListener('focus', onFocus);
   }, []);
 
-  // Drag handlers
-  const onDragStart = (start) => {
-    draggedId.current = start.draggableId;
-  };
-
+  // ── Drag handlers ────────────────────────────────────────────────────────────
+  const onDragStart = (start) => { draggedId.current = start.draggableId; };
   const onDragUpdate = (update) => {
     if (!update.destination) { setDragOverId(null); return; }
-    const destIndex = update.destination.index;
-    const destId = homeAppIds[destIndex];
-    // Hovering over a different item = folder merge candidate
-    if (destId && destId !== draggedId.current) {
-      setDragOverId(destId);
-    } else {
-      setDragOverId(null);
-    }
+    const destId = homeAppIds[update.destination.index];
+    setDragOverId(destId && destId !== draggedId.current ? destId : null);
   };
-
   const onDragEnd = (result) => {
     setDragOverId(null);
     draggedId.current = null;
     if (!result.destination) return;
-
     const srcIndex = result.source.index;
     const destIndex = result.destination.index;
+    if (srcIndex === destIndex) return;
     const draggedItemId = homeAppIds[srcIndex];
     const targetItemId = homeAppIds[destIndex];
-
-    // If dropped on same position → no-op
-    if (srcIndex === destIndex) return;
-
-    // If the drag ended with exactly the same position AND hovered over a different icon → create/join folder
-    // We detect this: if destIndex has an existing item that is NOT the dragged item
-    // and they end up in same slot (meaning no index shift created by the drop)
-    // Use a simple heuristic: if the dragged item lands at destIndex where targetItemId sits
-    // AND they're different → folder merge
     const isFolder = (id) => id && id.startsWith('folder_');
-
-    // Check if we should merge into a folder
-    // Folder merge happens when the dragged item would land "on" another item
-    // @hello-pangea/dnd always moves items, so we detect merge by checking
-    // if source & destination are adjacent and the gap is zero
-    // Simple approach: after reorder, if two consecutive icons are at same visual spot = merge
-    // Actually, use the dragOverId we tracked
-    const shouldMerge = dragOverId !== null && dragOverId === targetItemId && srcIndex !== destIndex;
-
+    const shouldMerge = dragOverId !== null && dragOverId === targetItemId;
     if (shouldMerge && !isFolder(draggedItemId)) {
-      // Merge draggedItemId into targetItemId (or into targetItemId's folder)
       if (isFolder(targetItemId)) {
-        // Add to existing folder
-        setFolders(prev => ({
-          ...prev,
-          [targetItemId]: { ...prev[targetItemId], appIds: [...(prev[targetItemId]?.appIds || []), draggedItemId] }
-        }));
+        setFolders(prev => ({ ...prev, [targetItemId]: { ...prev[targetItemId], appIds: [...(prev[targetItemId]?.appIds || []), draggedItemId] } }));
         setHomeAppIds(prev => prev.filter(id => id !== draggedItemId));
       } else {
-        // Create new folder from two apps
         const folderId = 'folder_' + Date.now();
-        const folderName = 'Folder';
-        setFolders(prev => ({ ...prev, [folderId]: { id: folderId, name: folderName, appIds: [targetItemId, draggedItemId] } }));
-        // Replace targetItemId with folderId, remove draggedItemId
-        setHomeAppIds(prev => {
-          const next = prev.filter(id => id !== draggedItemId);
-          return next.map(id => id === targetItemId ? folderId : id);
-        });
+        setFolders(prev => ({ ...prev, [folderId]: { id: folderId, name: 'Folder', appIds: [targetItemId, draggedItemId] } }));
+        setHomeAppIds(prev => { const next = prev.filter(id => id !== draggedItemId); return next.map(id => id === targetItemId ? folderId : id); });
       }
       return;
     }
-
-    // Normal reorder
     const items = [...homeAppIds];
     const [moved] = items.splice(srcIndex, 1);
     items.splice(destIndex, 0, moved);
@@ -512,174 +438,220 @@ export default function Dashboard() {
 
   const firstName = user?.full_name?.split(' ')[0] || 'Gorgeous';
   const username = user?.email?.split('@')[0] || 'user';
+  const greetingEmoji = { greeting_morning: '🌅', greeting_afternoon: '☀️', greeting_evening: '🌙' };
+  const greetingKey = getGreeting();
 
   const searchResults = search.trim().length > 1
-    ? ALL_PAGES.filter(p => {
-        const q = search.toLowerCase();
-        return p.label.toLowerCase().includes(q) || p.keywords.some(k => k.toLowerCase().includes(q));
-      })
+    ? ALL_PAGES.filter(p => { const q = search.toLowerCase(); return p.label.toLowerCase().includes(q) || p.keywords.some(k => k.toLowerCase().includes(q)); })
     : [];
 
   const currentFolder = openFolder ? folders[openFolder] : null;
 
+  // Featured widget = first homeAppId that has an image or emoji
+  const featuredId = homeAppIds[0];
+  const featuredApp = featuredId && !featuredId.startsWith('folder_') ? getPageById(featuredId) : null;
+  // Medium widgets = next 2
+  const mediumIds = homeAppIds.slice(1, 3);
+  // Grid = rest
+  const gridIds = homeAppIds.slice(3);
+
   return (
-    <div className="min-h-screen text-white pb-24 overflow-x-hidden relative" style={{ backgroundColor: '#080810' }}>
-      <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundColor: bgColor, opacity: 0.12 }} />
+    <div className="min-h-screen text-white pb-28 overflow-x-hidden relative" style={{ backgroundColor: '#08060e' }}>
+      {/* Background tint */}
+      <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundColor: bgColor, opacity: 0.1 }} />
+      {/* Ambient glows */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute rounded-full" style={{ width: 400, height: 400, top: -100, left: -80, background: 'radial-gradient(circle, rgba(232,82,109,0.18), transparent 70%)', filter: 'blur(60px)' }} />
+        <div className="absolute rounded-full" style={{ width: 300, height: 300, top: '40%', right: -60, background: 'radial-gradient(circle, rgba(168,85,247,0.12), transparent 70%)', filter: 'blur(60px)' }} />
+      </div>
       {(bgPattern !== 'none' || bgImage) && (
         <div className="fixed inset-0 pointer-events-none z-0" style={patternStyle(bgPattern, bgImage, bgImagePos)} />
       )}
 
       <div className="relative z-10">
 
-        {/* World + Points row */}
-        <div className="flex items-center justify-between px-4 pt-3">
+        {/* ── TOP STATUS BAR ─────────────────────────────────────── */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-2">
           {worldInfo && (
-            <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold" style={{ background: worldInfo.bgColor, border: `1px solid ${worldInfo.borderColor}`, color: worldInfo.color }}>
+            <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold"
+              style={{ background: worldInfo.bgColor, border: `1px solid ${worldInfo.borderColor}`, color: worldInfo.color }}>
               <span>{worldInfo.emoji}</span><span>{worldInfo.label}</span>
             </div>
           )}
           <div className="flex-1" />
-          <button onClick={() => navigate('/glow-score')} className="flex items-center gap-1 glass rounded-full px-3 py-1 text-xs font-bold hover:opacity-80 transition">
-            <span>🏅</span><span className="text-yellow-400">{totalPoints.toLocaleString()} {t('points')}</span><span className="text-gray-500 ml-1">›</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => navigate('/glow-score')}
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold"
+              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)' }}>
+              <span>🏅</span><span className="text-yellow-400">{totalPoints.toLocaleString()}</span><span className="text-gray-500">pts</span>
+            </button>
+            <button onClick={() => setShowCustomize(true)}
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)' }}>
+              <Settings size={14} className="text-gray-300" />
+            </button>
+          </div>
+        </div>
+
+        {/* ── GREETING & AVATAR ─────────────────────────────────── */}
+        <div className="flex items-center gap-4 px-5 pt-2 pb-4">
+          <button onClick={() => navigate('/avatar')}
+            className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #e8526d, #a855f7)', boxShadow: '0 0 0 2px rgba(232,82,109,0.4), 0 4px 16px rgba(0,0,0,0.4)' }}>
+            {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" alt="avatar" />
+              : avatarConfig ? <AvatarPreview config={avatarConfig} size={44} />
+              : <span className="text-xl font-bold">{firstName[0]}</span>}
+          </button>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] text-gray-500 font-medium">{greetingEmoji[greetingKey]} {t(greetingKey)}</p>
+            <h1 className="text-xl font-bold leading-tight truncate">Hey, {firstName} ✨</h1>
+            <p className="text-[11px] text-gray-500">@{username}</p>
+          </div>
+          <button onClick={async () => { if (window.confirm('Sign out?')) { await base44.auth.logout('/'); } }}
+            className="text-[11px] font-semibold px-3 py-1.5 rounded-full flex-shrink-0"
+            style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+            Sign Out
           </button>
         </div>
 
-        {/* Avatar + controls */}
-        <div className="flex items-center gap-3 px-4 pt-2 pb-3">
-          <div onClick={() => navigate('/avatar')} className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-lg font-bold overflow-hidden flex-shrink-0 cursor-pointer hover:opacity-80 transition">
-            {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" alt="avatar" /> : avatarConfig ? <AvatarPreview config={avatarConfig} size={56} /> : firstName[0]}
-          </div>
-          <div className="flex-1" />
-          <div className="flex gap-2">
-            <button onClick={() => setShowCustomize(true)} className="text-xs glass rounded-full px-3 py-1.5 text-gray-300 hover:text-white transition">{t('customize')}</button>
-            <button onClick={async () => { if (window.confirm('Are you sure you want to sign out?')) { await base44.auth.logout('/'); } }} className="text-xs backdrop-blur-md bg-red-500/20 border border-red-500/40 rounded-full px-3 py-1.5 text-red-300 font-semibold hover:bg-red-500/30 transition">Sign Out</button>
-          </div>
-        </div>
-
-        {/* Greeting */}
-        <div className="px-4 mb-4">
-          <p className="text-gray-400 text-sm">{t(getGreeting())} ✨</p>
-          <h1 className="text-2xl font-bold">Hey, {firstName} ✨</h1>
-          <p className="text-gray-500 text-sm">@{username}</p>
-        </div>
-
-        {/* Daily Glow Check-In Banner */}
+        {/* ── DAILY GLOW CHECK-IN BANNER ────────────────────────── */}
         {!checkedInToday && (
-          <div className="px-4 mb-4">
-            <button onClick={() => navigate('/daily-checkin')} className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl text-left transition hover:opacity-90" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.5), rgba(168,85,247,0.4), rgba(236,72,153,0.3))', border: '1px solid rgba(168,85,247,0.4)' }}>
-              <div className="w-11 h-11 rounded-2xl overflow-hidden flex-shrink-0">
+          <div className="px-5 mb-5">
+            <button onClick={() => navigate('/daily-checkin')}
+              className="w-full flex items-center gap-4 px-4 py-4 rounded-[22px] text-left active:scale-98 transition-all"
+              style={{ background: 'linear-gradient(135deg, rgba(139,44,170,0.6), rgba(232,82,109,0.5))', border: '1px solid rgba(232,82,109,0.35)', backdropFilter: 'blur(16px)', boxShadow: '0 8px 32px rgba(232,82,109,0.2)' }}>
+              <div className="w-12 h-12 rounded-[14px] overflow-hidden flex-shrink-0" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
                 <img src={MANUS + 'icon-glow-check-in_fe36a2ac.png'} className="w-full h-full object-cover" alt="check in" />
               </div>
-              <div className="flex-1">
-                <p className="text-xs font-bold tracking-wider text-yellow-400 mb-0.5">DAILY GLOW CHECK-IN</p>
-                <p className="font-bold text-white text-base">How are you glowing today?</p>
-                <p className="text-xs text-gray-400">Tap to check in &amp; earn points ✨</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold tracking-wider text-yellow-300 mb-0.5 uppercase">Daily Glow Check-In</p>
+                <p className="font-bold text-white text-[15px]">How are you glowing today?</p>
+                <p className="text-[11px] text-white/50">Tap to check in &amp; earn points ✨</p>
               </div>
-              <ChevronRight size={18} className="text-gray-400 flex-shrink-0" />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                <ChevronRight size={16} className="text-white" />
+              </div>
             </button>
           </div>
         )}
 
-        {/* Quick Access */}
-        {showQuickAccess && (
-          <div className="px-4 mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-bold tracking-widest text-gray-500">{t('quick_access')}</p>
-              <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-xs text-pink-400 font-semibold"><Plus size={12} /> Edit</button>
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-              {quickIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean).map(app => <QuickChip key={app.id} app={app} onNavigate={navigate} />)}
-              <button onClick={() => setShowQuickPicker(true)} className="flex flex-col items-center justify-center gap-1 flex-shrink-0 rounded-2xl border border-dashed border-white/20 hover:border-pink-500/50 transition" style={{ width: 58, paddingTop: 6, paddingBottom: 6 }}>
-                <Plus size={14} className="text-gray-500" />
-                <span className="text-[9px] text-gray-500">Add</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Search bar */}
-        <div className="px-4 mb-5 relative">
-          <div className="flex items-center glass rounded-full px-4 py-2.5 gap-2">
-            <Search size={16} className="text-gray-500" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_placeholder')} className="bg-transparent text-sm text-white placeholder-gray-500 outline-none flex-1" />
+        {/* ── SEARCH ───────────────────────────────────────────── */}
+        <div className="px-5 mb-5 relative">
+          <div className="flex items-center gap-2.5 rounded-2xl px-4 py-3"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
+            <Search size={15} className="text-gray-500 flex-shrink-0" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search everything…"
+              className="bg-transparent text-sm text-white placeholder-gray-600 outline-none flex-1" />
             {search && <button onClick={() => setSearch('')}><X size={14} className="text-gray-500" /></button>}
           </div>
           {searchResults.length > 0 && (
-            <div className="absolute top-full left-4 right-4 mt-1 bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden z-10 shadow-xl">
+            <div className="absolute top-full left-5 right-5 mt-1 rounded-2xl overflow-hidden z-20 shadow-2xl"
+              style={{ background: 'rgba(18,8,28,0.97)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)' }}>
               {searchResults.slice(0, 8).map(r => (
-                <button key={r.id} onClick={() => { navigate(r.route); setSearch(''); }} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-gray-800 border-b border-gray-800 last:border-0 text-left">
-                  <div className={`w-7 h-7 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center ${r.image ? '' : 'bg-gradient-to-br ' + r.gradient}`}>
-                    {r.image ? <img src={r.image} alt={r.label} className="w-full h-full object-cover" /> : <span className="text-sm">{r.emoji}</span>}
-                  </div>
-                  <span>{r.label}</span>
+                <button key={r.id} onClick={() => { navigate(r.route); setSearch(''); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 border-b border-white/5 last:border-0 text-left">
+                  <AppIcon app={r} size={32} />
+                  <span className="text-sm text-gray-200">{r.label}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Your World — drag to rearrange, drag onto icon to folder, Edit mode to resize */}
-        <div className="px-4 mb-12">
+        {/* ── QUICK ACCESS ─────────────────────────────────────── */}
+        <div className="px-5 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold tracking-widest text-gray-500">{t('your_world')}</p>
-            <button
-              onClick={() => setEditMode(e => !e)}
-              className={`text-[11px] font-semibold px-3 py-1 rounded-full transition ${editMode ? 'bg-pink-500 text-white' : 'bg-white/10 text-gray-400 hover:text-white'}`}
-            >{editMode ? 'Done' : 'Edit'}</button>
+            <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase">Quick Access</p>
+            <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-[11px] text-pink-400 font-semibold"><Plus size={11} /> Edit</button>
           </div>
+          <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            {quickIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean).map(app =>
+              <QuickChip key={app.id} app={app} onNavigate={navigate} />
+            )}
+            <button onClick={() => setShowQuickPicker(true)}
+              className="flex flex-col items-center justify-center gap-1 flex-shrink-0 py-2.5 px-3 rounded-2xl border border-dashed border-white/15 hover:border-pink-500/40 transition"
+              style={{ minWidth: 60 }}>
+              <Plus size={14} className="text-gray-600" />
+              <span className="text-[9px] text-gray-600">Add</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── YOUR WORLD ───────────────────────────────────────── */}
+        <div className="px-5 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase">Your World</p>
+            <button onClick={() => setEditMode(e => !e)}
+              className={`text-[11px] font-semibold px-3 py-1 rounded-full transition ${editMode ? 'bg-pink-500 text-white' : 'bg-white/8 text-gray-400 border border-white/10'}`}>
+              {editMode ? 'Done' : 'Edit'}
+            </button>
+          </div>
+
+          {/* Featured widget (first item) */}
+          {featuredApp && (
+            <div className="mb-3">
+              <FeaturedWidget app={featuredApp} onNavigate={navigate} />
+            </div>
+          )}
+
+          {/* Medium widgets (items 2–3) */}
+          {mediumIds.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              {mediumIds.map(id => {
+                if (!id) return null;
+                const isFolder = id.startsWith('folder_');
+                const folder = isFolder ? folders[id] : null;
+                const app = !isFolder ? getPageById(id) : null;
+                if (isFolder && folder) {
+                  return (
+                    <button key={id} onClick={() => setOpenFolder(id)}
+                      className="relative rounded-[22px] overflow-hidden flex items-center justify-center"
+                      style={{ height: 110, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)' }}>
+                      <div className="grid grid-cols-2 gap-1 p-3">
+                        {folder.appIds.slice(0,4).map(aid => getPageById(aid)).filter(Boolean).map((a,i) => (
+                          <AppIcon key={i} app={a} size={28} />
+                        ))}
+                      </div>
+                      <p className="absolute bottom-2 inset-x-0 text-center text-[11px] font-semibold text-gray-300">{folder.name}</p>
+                    </button>
+                  );
+                }
+                if (app) return <MediumWidget key={id} app={app} onNavigate={navigate} />;
+                return null;
+              })}
+            </div>
+          )}
+
+          {/* Icon grid (rest of items) */}
           <DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
             <Droppable droppableId="home-apps" direction="horizontal">
               {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className="grid grid-cols-4 gap-2"
-                  style={{ gridAutoRows: 'minmax(88px, auto)' }}
-                >
-                  {homeAppIds.map((itemId, index) => {
+                <div ref={provided.innerRef} {...provided.droppableProps}
+                  className="grid grid-cols-4 gap-x-2 gap-y-4">
+                  {gridIds.map((itemId, index) => {
                     const isFolder = itemId.startsWith('folder_');
                     const folder = isFolder ? folders[itemId] : null;
                     const app = !isFolder ? getPageById(itemId) : null;
-                    const size = appSizes[itemId] || 'small';
                     const isHoverTarget = dragOverId === itemId;
-
                     if (isFolder && !folder) return null;
                     if (!isFolder && !app) return null;
-
                     return (
-                      <Draggable key={itemId} draggableId={itemId} index={index} isDragDisabled={size === 'widget'}>
+                      <Draggable key={itemId} draggableId={itemId} index={index + 3}>
                         {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
+                          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
                             style={provided.draggableProps.style}
-                            className={`${size === 'widget' ? 'col-span-2 row-span-2' : ''} transition-all duration-150 ${isHoverTarget ? 'scale-110' : ''}`}
-                          >
-                            {/* Folder merge highlight ring */}
-                            <div className={`relative rounded-[18px] transition-all duration-150 ${isHoverTarget ? 'ring-2 ring-pink-400 ring-offset-2 ring-offset-transparent' : ''}`}>
-                            {isFolder ? (
-                              <FolderIcon
-                                folder={folder}
-                                allPages={ALL_PAGES}
-                                onOpen={() => !snapshot.isDragging && setOpenFolder(itemId)}
-                                onLongPress={() => setOpenFolder(itemId)}
-                              />
-                            ) : (
-                              <HomeAppIcon
-                                app={app}
-                                size={size}
-                                onNavigate={snapshot.isDragging ? () => {} : navigate}
-                              />
-                            )}
-                            {/* Edit mode: resize button, no long-press conflict */}
-                            {editMode && (
-                              <button
-                                onPointerDown={e => { e.stopPropagation(); setSizeMenu({ appId: itemId }); }}
-                                className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-pink-500 border-2 border-black flex items-center justify-center z-20 shadow-lg"
-                                style={{ fontSize: 11, color: 'white', lineHeight: 1 }}
-                              >⤢</button>
-                            )}
+                            className={`transition-all duration-150 select-none cursor-grab active:cursor-grabbing ${isHoverTarget ? 'scale-110' : ''}`}>
+                            <div className={`relative rounded-[18px] transition-all ${isHoverTarget ? 'ring-2 ring-pink-400 ring-offset-1 ring-offset-transparent' : ''}`}>
+                              {isFolder ? (
+                                <FolderIcon folder={folder} onOpen={() => !snapshot.isDragging && setOpenFolder(itemId)} onLongPress={() => setOpenFolder(itemId)} />
+                              ) : (
+                                <SmallAppIcon app={app} onNavigate={snapshot.isDragging ? () => {} : navigate} />
+                              )}
+                              {editMode && (
+                                <button onPointerDown={e => { e.stopPropagation(); setHomeAppIds(prev => prev.filter(id => id !== itemId)); }}
+                                  className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center z-20 shadow"
+                                  style={{ fontSize: 13, color: '#f87171', lineHeight: 1 }}>×</button>
+                              )}
                             </div>
                           </div>
                         )}
@@ -687,87 +659,78 @@ export default function Dashboard() {
                     );
                   })}
                   {provided.placeholder}
+                  {/* Add more button */}
+                  <button onClick={() => setShowQuickPicker(true)}
+                    className="flex flex-col items-center gap-1.5 select-none"
+                    style={{ width: '100%' }}>
+                    <div className="w-16 h-16 rounded-[18px] flex items-center justify-center border-2 border-dashed border-white/15 hover:border-pink-500/40 transition">
+                      <Plus size={20} className="text-gray-600" />
+                    </div>
+                    <span className="text-[10px] text-gray-600">Add</span>
+                  </button>
                 </div>
               )}
             </Droppable>
           </DragDropContext>
         </div>
 
-        {/* Spacer */}
-        <div className="mx-4 mb-8 border-t border-white/10" />
-
-        {/* Glow Everywhere — Social */}
-        <div className="px-4 mb-6">
-          <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('glow_everywhere')}</p>
-          <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-            {SOCIAL.map((s, i) => (
-              <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-3 px-4 py-3.5 hover:bg-white/5 transition ${i < SOCIAL.length - 1 ? 'border-b border-white/10' : ''}`}>
-                <div className={`w-9 h-9 rounded-full ${s.color} flex items-center justify-center text-sm flex-shrink-0`}>{s.icon}</div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold">{s.name}</p>
-                  <p className="text-xs text-gray-500">{s.handle}</p>
-                </div>
-                <ChevronRight size={16} className="text-gray-500" />
-              </a>
-            ))}
+        {/* ── COMMUNITY ────────────────────────────────────────── */}
+        <div className="px-5 mb-5">
+          <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase mb-3">Community</p>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { id: 'glow-feed', label: 'Glow Feed' },
+              { id: 'community-hub', label: 'Community' },
+              { id: 'mentorship', label: 'Mentors' },
+            ].map(({ id, label }) => {
+              const app = getPageById(id);
+              if (!app) return null;
+              return (
+                <button key={id} onClick={() => navigate(app.route)}
+                  className="relative rounded-[18px] overflow-hidden flex flex-col items-start justify-end p-3 active:scale-95 transition-all"
+                  style={{ height: 90, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  {app.image && <img src={app.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />}
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 50%, transparent)' }} />
+                  <span className="relative text-[11px] font-bold text-white z-10">{label}</span>
+                </button>
+              );
+            })}
           </div>
-          <p className="text-center text-xs text-gray-600 mt-2">Tapping opens the app — GGU is not affiliated with these platforms</p>
+        </div>
+
+        {/* ── SOCIAL MEDIA (subtle, at bottom) ─────────────────── */}
+        <div className="px-5 mb-6">
+          <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase mb-3">Follow Us</p>
+          <div className="rounded-[20px] overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex flex-wrap gap-2 p-3">
+              {SOCIAL.map(s => (
+                <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold text-gray-400 hover:text-gray-200 transition"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <span>{s.icon}</span><span>{s.name}</span>
+                </a>
+              ))}
+            </div>
+            <p className="text-center text-[10px] text-gray-700 pb-3 px-4">Tapping opens the app — GGU is not affiliated with these platforms</p>
+          </div>
         </div>
 
       </div>
 
       <BottomNav active="home" />
 
-      {/* Modals */}
+      {/* ── MODALS ───────────────────────────────────────────────── */}
       {showCustomize && (
-        <CustomizeModal bgColor={bgColor} setBgColor={setBgColor} bgPattern={bgPattern} setBgPattern={setBgPattern} bgImage={bgImage} setBgImage={setBgImage} bgImagePos={bgImagePos} setBgImagePos={setBgImagePos} onClose={() => setShowCustomize(false)} />
+        <CustomizeModal bgColor={bgColor} setBgColor={setBgColor} bgPattern={bgPattern} setBgPattern={setBgPattern}
+          bgImage={bgImage} setBgImage={setBgImage} bgImagePos={bgImagePos} setBgImagePos={setBgImagePos}
+          onClose={() => setShowCustomize(false)} />
       )}
       {showQuickPicker && (
-        <PagePickerModal title="Choose Quick Access" currentIds={quickIds} onSave={setQuickIds} onClose={() => setShowQuickPicker(false)} />
+        <PagePickerModal title="Customize Your World" currentIds={homeAppIds} onSave={setHomeAppIds} onClose={() => setShowQuickPicker(false)} />
       )}
-
-      {/* Widget size picker */}
-      {sizeMenu && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-8" onClick={() => setSizeMenu(null)}>
-          <div className="w-full rounded-3xl overflow-hidden" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.12)' }} onClick={e => e.stopPropagation()}>
-            <div className="px-5 py-4 border-b border-white/10">
-              <p className="font-bold text-white text-center">{ALL_PAGES.find(p => p.id === sizeMenu.appId)?.label || folders[sizeMenu.appId]?.name}</p>
-              <p className="text-xs text-gray-500 text-center mt-0.5">Choose widget size</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 p-4">
-              <button onClick={() => { setAppSizes(s => ({ ...s, [sizeMenu.appId]: 'small' })); setSizeMenu(null); }}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition ${(appSizes[sizeMenu.appId] || 'small') === 'small' ? 'border-pink-500/50 bg-pink-500/15' : 'border-white/10 bg-white/5'}`}>
-                <div className="grid grid-cols-2 gap-1 w-12">
-                  {[0,1,2,3].map(i => <div key={i} className="w-5 h-5 rounded-md bg-white/20" />)}
-                </div>
-                <p className="text-xs font-semibold text-white">Small</p>
-                <p className="text-[10px] text-gray-500">1×1 icon</p>
-              </button>
-              <button onClick={() => { setAppSizes(s => ({ ...s, [sizeMenu.appId]: 'widget' })); setSizeMenu(null); }}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition ${appSizes[sizeMenu.appId] === 'widget' ? 'border-pink-500/50 bg-pink-500/15' : 'border-white/10 bg-white/5'}`}>
-                <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-[10px] font-bold text-white/60">2×2</div>
-                <p className="text-xs font-semibold text-white">Widget</p>
-                <p className="text-[10px] text-gray-500">Large tile</p>
-              </button>
-            </div>
-            <div className="px-4 pb-5">
-              <button onClick={() => setSizeMenu(null)} className="w-full py-3 rounded-2xl text-sm text-gray-400 bg-white/5">Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Folder open modal */}
       {currentFolder && (
-        <FolderModal
-          folder={currentFolder}
-          folders={folders}
-          setFolders={setFolders}
-          homeAppIds={homeAppIds}
-          setHomeAppIds={setHomeAppIds}
-          navigate={navigate}
-          onClose={() => setOpenFolder(null)}
-        />
+        <FolderModal folder={currentFolder} folders={folders} setFolders={setFolders}
+          homeAppIds={homeAppIds} setHomeAppIds={setHomeAppIds} navigate={navigate} onClose={() => setOpenFolder(null)} />
       )}
     </div>
   );
