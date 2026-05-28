@@ -98,8 +98,12 @@ const AuthenticatedApp = () => {
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black">
-        <div className="w-8 h-8 border-4 border-gray-700 border-t-pink-500 rounded-full animate-spin"></div>
+      <div className="fixed inset-0 flex flex-col items-center justify-center" style={{ background: '#0d0608' }}>
+        <div style={{ fontFamily: '"Playfair Display", serif', fontWeight: 900, fontSize: 28, background: 'linear-gradient(135deg, #e8526d, #f1b610)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 24 }}>
+          Girls Glowing Up™
+        </div>
+        <div className="w-8 h-8 border-4 rounded-full animate-spin" style={{ borderColor: 'rgba(232,82,109,0.2)', borderTopColor: '#e8526d' }}></div>
+        <p style={{ color: 'rgba(196,148,158,0.5)', fontSize: 13, marginTop: 16 }}>Loading your glow...</p>
       </div>
     );
   }
