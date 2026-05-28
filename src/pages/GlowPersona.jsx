@@ -182,7 +182,7 @@ export default function GlowPersona() {
   }
 
   return (
-    <div className="min-h-screen bg-[#130a10] text-white pb-24 relative overflow-hidden">
+    <div className="min-h-screen bg-[#130a10] text-white pb-40 relative overflow-hidden">
       {/* Animated background particles */}
       <div className="fixed inset-0 pointer-events-none">
         {[...Array(20)].map((_, i) => (

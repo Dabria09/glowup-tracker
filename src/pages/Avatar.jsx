@@ -170,7 +170,7 @@ export default function Avatar() {
   const firstName = user?.full_name?.split(' ')[0] || 'You';
 
   return (
-    <div className="min-h-screen bg-[#130a10] text-white pb-28">
+    <div className="min-h-screen bg-[#130a10] text-white pb-40">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-300 text-sm">
