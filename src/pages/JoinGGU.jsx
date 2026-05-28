@@ -48,7 +48,7 @@ export default function JoinGGU() {
   };
 
   const signIn = () => base44.auth.redirectToLogin('/dashboard');
-  const createAccount = () => { setShowSuccess(true); setTimeout(() => base44.auth.redirectToLogin('/onboarding'), 2500); };
+  const createAccount = () => { setShowSuccess(true); setTimeout(() => base44.auth.redirectToLogin('/onboarding'), 1800); };
 
   const dot = (s, active, done) => (
     <div key={s} className="rounded-full" style={{ width: 8, height: 8, background: done ? GOLD : active ? PINK : 'rgba(232,82,109,0.2)', border: `1px solid ${done ? GOLD : active ? PINK : 'rgba(232,82,109,0.3)'}`, boxShadow: active ? '0 0 8px rgba(232,82,109,0.6)' : 'none' }} />
