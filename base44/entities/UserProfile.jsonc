@@ -117,6 +117,10 @@
       "type": "string",
       "title": "Custom Links (JSON array)"
     },
+    "privacy_settings": {
+      "type": "string",
+      "title": "Privacy Settings (JSON)"
+    },
     "owned_store_items": {
       "type": "string",
       "title": "Owned Store Items (JSON array)",
