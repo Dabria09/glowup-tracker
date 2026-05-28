@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { GLOW_THEMES, PROFILE_FRAMES, getGlowLevel, getTheme, computeBadges } from '@/components/glowlink/GlowThemes';
+import GlowProfilePreview from '@/components/glowlink/GlowProfilePreview';
 
 const GLOW_ERAS = [
   'Confidence Era','Glow Up Era','Boss Era','Healing Era','Growth Era',
@@ -68,6 +69,7 @@ export default function MyGlowLink() {
   const [newLinkLabel, setNewLinkLabel] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
 
+  const [showPreview, setShowPreview] = useState(false);
   const [showPostForm, setShowPostForm] = useState(false);
   const [postText, setPostText] = useState('');
   const [postVisibility, setPostVisibility] = useState('public');
@@ -233,6 +235,11 @@ export default function MyGlowLink() {
           <h1 className="text-base font-bold">My Glow Link™</h1>
           <p className="text-xs text-gray-500">{glowLevel.emoji} {glowLevel.name} · {totalPoints} pts</p>
         </div>
+        <button onClick={() => setShowPreview(true)}
+          className="px-4 py-2 rounded-full font-bold text-sm transition"
+          style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#e2e8f0' }}>
+          👁 Preview
+        </button>
         <button onClick={handleSave} disabled={saving}
           className="px-5 py-2 rounded-full font-bold text-white text-sm disabled:opacity-60 transition"
           style={{ background: 'linear-gradient(135deg,#c44a55,#ec4899)' }}>
@@ -673,6 +680,17 @@ export default function MyGlowLink() {
             </div>
           </div>
         </div>
+      )}
+
+      {showPreview && (
+        <GlowProfilePreview
+          profile={profile}
+          overrides={{ bio, motto, glowEra, profileTheme, profileFrame, links, featuredMood, featuredAffirmation, featuredGoal }}
+          posts={posts}
+          pointsRecord={pointsRecord}
+          username={username}
+          onClose={() => setShowPreview(false)}
+        />
       )}
 
       <BottomNav active="connect" />
