@@ -224,7 +224,7 @@ export default function Me() {
   const [postText, setPostText] = useState('');
   const [postType, setPostType] = useState('Thought');
   const [posting, setPosting] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false); // kept for compat
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [glowLinkCopied, setGlowLinkCopied] = useState(false);
   const [personaImages, setPersonaImages] = useState({});
@@ -375,7 +375,7 @@ export default function Me() {
 
           {/* Action buttons */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-            <button onClick={() => setShowEditModal(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK}, ${PINK_HOT})`, color: '#fff', fontWeight: 800, fontSize: 14, padding: '11px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: `0 4px 16px rgba(232,82,109,0.4)` }}>
+            <button onClick={() => navigate('/my-glow-link')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK}, ${PINK_HOT})`, color: '#fff', fontWeight: 800, fontSize: 14, padding: '11px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: `0 4px 16px rgba(232,82,109,0.4)` }}>
               <Edit3 size={15} /> Edit Profile
             </button>
             <button onClick={handleGlowLink} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: 'rgba(241,182,16,0.08)', border: '1.5px solid rgba(241,182,16,0.35)', color: GOLD_LT, fontWeight: 700, fontSize: 14, padding: '11px', borderRadius: 14, cursor: 'pointer' }}>
@@ -649,14 +649,7 @@ export default function Me() {
       <BottomNav active="me" />
 
       {/* Modals */}
-      {showEditModal && (
-        <EditProfileModal
-          user={user}
-          profile={profile}
-          onSave={(updates) => setProfile(p => ({ ...p, ...updates }))}
-          onClose={() => setShowEditModal(false)}
-        />
-      )}
+
       {showDeleteModal && (
         <DeleteAccountModal profile={profile} onClose={() => setShowDeleteModal(false)} />
       )}
