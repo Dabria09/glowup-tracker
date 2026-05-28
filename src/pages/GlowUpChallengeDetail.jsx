@@ -6,6 +6,11 @@ import { ChevronLeft, Check, Lock, Star, ChevronDown } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { getChallengeById, PHASE_INFO } from '@/components/challenges/challengeData';
 
+function getLocalToday() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+}
+
 export default function GlowUpChallengeDetail() {
   const { challengeId } = useParams();
   const navigate = useNavigate();
@@ -19,9 +24,9 @@ export default function GlowUpChallengeDetail() {
     queryKey: ['userChallenge', challengeId, user?.email],
     queryFn: async () => {
       if (!user || !challenge) return null;
-      const challenges = await base44.entities.GlowUpChallenge.filter({ 
-        user_email: user.email, 
-        challenge_id: challengeId 
+      const challenges = await base44.entities.GlowUpChallenge.filter({
+        user_email: user.email,
+        challenge_id: challengeId,
       });
       return challenges[0] || null;
     },
@@ -61,45 +66,30 @@ export default function GlowUpChallengeDetail() {
 
   const completeDayMutation = useMutation({
     mutationFn: async ({ day, points, phase }) => {
-      const completedDays = userChallenge?.completed_days ? JSON.parse(userChallenge.completed_days) : [];
-      if (!completedDays.includes(day)) {
-        completedDays.push(day);
-      }
-      
-      const newPoints = (userChallenge?.total_points || 0) + points;
-      const isPhaseComplete = isPhaseCompleted(phase, completedDays, challenge);
-      const nextPhase = getNextPhase(phase);
-      const isChallengeComplete = completedDays.length === 30;
+      const existing = userChallenge?.completed_days ? JSON.parse(userChallenge.completed_days) : [];
+      // Guard: don't re-award if already completed
+      if (existing.includes(day)) return;
+      const updatedDays = [...existing, day];
 
-      // Calculate streak
-      const today = (() => { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })();
+      const newPoints = (userChallenge?.total_points || 0) + points;
+      const phaseDays = challenge.phases[phase]?.days.map(d => d.day) || [];
+      const isPhaseComplete = phaseDays.every(d => updatedDays.includes(d));
+      const phases = ['foundation', 'growth', 'mastery'];
+      const nextPhase = phases[phases.indexOf(phase) + 1] || null;
+      const isChallengeComplete = updatedDays.length === 30;
+
+      const today = getLocalToday();
       const lastCompletedDate = userChallenge?.last_completed_date;
       let newStreak = userChallenge?.current_streak || 0;
-      
-      if (lastCompletedDate) {
-        const lastDate = new Date(lastCompletedDate);
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
-        
-        if (today === lastCompletedDate) {
-          // Already completed today, don't increase streak
-        } else if (today === yesterdayStr || today > lastCompletedDate) {
-          // Consecutive day or later
-          newStreak = (userChallenge?.current_streak || 0) + 1;
-        } else {
-          // Streak broken, reset to 1
-          newStreak = 1;
-        }
-      } else {
-        // First completion
+      if (!lastCompletedDate) {
         newStreak = 1;
+      } else if (lastCompletedDate < today) {
+        newStreak = (userChallenge?.current_streak || 0) + 1;
       }
-
       const bestStreak = Math.max(newStreak, userChallenge?.best_streak || 0);
 
       return await base44.entities.GlowUpChallenge.update(userChallenge.id, {
-        completed_days: JSON.stringify(completedDays),
+        completed_days: JSON.stringify(updatedDays),
         total_points: newPoints,
         current_day: Math.min(day + 1, 30),
         phase: isPhaseComplete && nextPhase ? nextPhase : phase,
@@ -135,15 +125,26 @@ export default function GlowUpChallengeDetail() {
     );
   }
 
-  const isPhaseCompleted = (phaseKey, completedDays, chal) => {
-    const phaseDays = chal.phases[phaseKey]?.days.map(d => d.day) || [];
-    return phaseDays.every(day => completedDays.includes(day));
-  };
+  // ── Derived state ──────────────────────────────────────────────────────────
+  const completedDays = (() => {
+    try { return userChallenge?.completed_days ? JSON.parse(userChallenge.completed_days) : []; }
+    catch { return []; }
+  })();
 
-  const getNextPhase = (currentPhase) => {
-    const phases = ['foundation', 'growth', 'mastery'];
-    const currentIndex = phases.indexOf(currentPhase);
-    return phases[currentIndex + 1] || null;
+  const today = getLocalToday();
+  const lastCompletedDate = userChallenge?.last_completed_date || null;
+  const completedTodayAlready = lastCompletedDate === today;
+  const progress = (completedDays.length / 30) * 100;
+
+  // Returns true if the day is accessible (completed OR the next unlocked day)
+  const canAccessDay = (day) => {
+    if (user?.role === 'admin') return true;
+    if (completedDays.includes(day)) return true;
+    const nextDay = completedDays.length + 1;
+    if (day !== nextDay) return false;
+    if (day === 1) return true; // Day 1 always open
+    // Day 2+ needs prev day done AND a new calendar day
+    return lastCompletedDate !== null && lastCompletedDate < today;
   };
 
   const canAccessPhase = (phaseKey) => {
@@ -153,26 +154,9 @@ export default function GlowUpChallengeDetail() {
     return phaseKey === 'foundation';
   };
 
-  function getLocalToday() {
-    const n = new Date();
-    return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
-  }
-
-  const canAccessDay = (day, phaseKey) => {
-    if (!userChallenge) return day === 1 && phaseKey === 'foundation';
-    if (user?.role === 'admin') return true;
-    const completed = userChallenge.completed_days ? JSON.parse(userChallenge.completed_days) : [];
-    // Already completed — always visible
-    if (completed.includes(day)) return true;
-    // Must be the very next day in sequence
-    const nextDay = completed.length + 1;
-    if (day !== nextDay) return false;
-    // Day 1 is always accessible to start
-    if (day === 1) return true;
-    // Day N+1 requires that the last completion was on a PREVIOUS calendar day
-    const lastCompleted = userChallenge.last_completed_date;
-    if (!lastCompleted) return true;
-    return lastCompleted < getLocalToday();
+  const isPhaseCompleted = (phaseKey) => {
+    const phaseDays = challenge.phases[phaseKey]?.days.map(d => d.day) || [];
+    return phaseDays.every(d => completedDays.includes(d));
   };
 
   const canAccessChallenge = () => {
@@ -183,26 +167,18 @@ export default function GlowUpChallengeDetail() {
   };
 
   const handleStart = () => {
-    if (!user) {
-      alert('Please log in to start challenges');
-      return;
-    }
+    if (!user) { alert('Please log in to start challenges'); return; }
     startMutation.mutate();
   };
 
   const handleCompleteDay = (day, points, phase) => {
-    if (!user) {
-      alert('Please log in to track progress');
-      return;
-    }
+    if (!user) { alert('Please log in to track progress'); return; }
+    if (completedTodayAlready) return; // one task per day
+    if (completedDays.includes(day)) return; // already done
     completeDayMutation.mutate({ day, points, phase });
   };
 
-  // alias so inner scope can call it
-  const canAccessDay_ = canAccessDay;
-  const completedDays = userChallenge?.completed_days ? JSON.parse(userChallenge.completed_days) : [];
-  const progress = (completedDays.length / 30) * 100;
-
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen text-white pb-28"
       style={{ background: 'radial-gradient(ellipse at top, #2d0a1e 0%, #1a0a18 40%, #0d0610 100%)' }}>
@@ -225,7 +201,6 @@ export default function GlowUpChallengeDetail() {
           </div>
         </div>
 
-        {/* Locked Challenge Message */}
         {!canAccessChallenge() ? (
           <div className="text-center py-12">
             <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl"
@@ -249,7 +224,7 @@ export default function GlowUpChallengeDetail() {
                 <p className="text-sm font-bold" style={{ color: challenge.color }}>{Math.round(progress)}%</p>
               </div>
               <div className="h-3 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full rounded-full transition-all" 
+                <div className="h-full rounded-full transition-all"
                   style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${challenge.color}, ${challenge.color}80)` }} />
               </div>
               <div className="flex items-center justify-between mt-3">
@@ -290,7 +265,7 @@ export default function GlowUpChallengeDetail() {
                   {challenge.emoji}
                 </div>
                 <h2 className="text-xl font-bold text-white mb-2">Start Your {challenge.name} Journey</h2>
-                <p className="text-sm text-gray-400 mb-6">30 days to transform your {challenge.name.toLowerCase()}</p>
+                <p className="text-sm text-gray-400 mb-6">30 days to transform your life</p>
                 <button onClick={handleStart}
                   className="w-full py-3 rounded-2xl font-bold text-white"
                   style={{ background: `linear-gradient(135deg, ${challenge.color}, ${challenge.color}cc)` }}>
@@ -301,13 +276,18 @@ export default function GlowUpChallengeDetail() {
               <div className="space-y-4">
                 {Object.entries(challenge.phases).map(([phaseKey, phase]) => {
                   const canAccess = canAccessPhase(phaseKey);
-                  const isCompleted = isPhaseCompleted(phaseKey, completedDays, challenge);
+                  const phaseCompleted = isPhaseCompleted(phaseKey);
                   const phaseInfo = PHASE_INFO[phaseKey];
+
+                  const visibleDays = phase.days.filter(d => completedDays.includes(d.day) || canAccessDay(d.day));
+                  const lockedCount = phase.days.length - visibleDays.length;
+                  const hasAvailableToday = phase.days.some(d => !completedDays.includes(d.day) && canAccessDay(d.day));
 
                   return (
                     <div key={phaseKey} className="rounded-2xl overflow-hidden"
                       style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', opacity: canAccess ? 1 : 0.5 }}>
-                      <button onClick={() => canAccess && setExpandedPhase(expandedPhase === phaseKey ? null : phaseKey)}
+                      <button
+                        onClick={() => canAccess && setExpandedPhase(expandedPhase === phaseKey ? null : phaseKey)}
                         className="w-full flex items-center gap-3 p-4 transition"
                         style={{ background: expandedPhase === phaseKey ? 'rgba(255,255,255,0.08)' : 'transparent' }}>
                         <span className="text-2xl">{phaseInfo.emoji}</span>
@@ -317,24 +297,27 @@ export default function GlowUpChallengeDetail() {
                         </div>
                         {!canAccess ? (
                           <Lock size={18} className="text-gray-500" />
-                        ) : isCompleted ? (
+                        ) : phaseCompleted ? (
                           <Star size={18} className="text-yellow-400" />
                         ) : (
-                          <ChevronDown size={18} className="text-gray-500" style={{ transform: expandedPhase === phaseKey ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                          <ChevronDown size={18} className="text-gray-500"
+                            style={{ transform: expandedPhase === phaseKey ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
                         )}
                       </button>
 
                       {canAccess && expandedPhase === phaseKey && (
                         <div className="px-4 pb-4 pt-0 border-t border-white/5">
                           <div className="space-y-2 mt-3">
-                            {phase.days.map(dayObj => {
+                            {/* Completed + currently available days only */}
+                            {visibleDays.map(dayObj => {
                               const isDayCompleted = completedDays.includes(dayObj.day);
-                              const canAccessThisDay = canAccessDay_(dayObj.day, phaseKey);
-                              // Hide locked future days — only show completed + currently available
-                              if (!isDayCompleted && !canAccessThisDay) return null;
+                              const isActionable = !isDayCompleted && !completedTodayAlready && !completeDayMutation.isPending;
                               return (
                                 <div key={dayObj.day} className="flex items-center gap-3 p-3 rounded-xl"
-                                  style={{ background: isDayCompleted ? `${challenge.color}20` : 'rgba(255,255,255,0.05)', border: `1px solid ${isDayCompleted ? challenge.color + '40' : 'rgba(255,255,255,0.08)'}` }}>
+                                  style={{
+                                    background: isDayCompleted ? `${challenge.color}20` : 'rgba(255,255,255,0.05)',
+                                    border: `1px solid ${isDayCompleted ? challenge.color + '40' : 'rgba(255,255,255,0.08)'}`,
+                                  }}>
                                   {isDayCompleted ? (
                                     <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
                                       style={{ background: challenge.color }}>
@@ -342,11 +325,14 @@ export default function GlowUpChallengeDetail() {
                                     </div>
                                   ) : (
                                     <button
-                                      onClick={() => !completeDayMutation.isLoading && handleCompleteDay(dayObj.day, dayObj.points, phaseKey)}
-                                      disabled={completeDayMutation.isLoading}
-                                      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 hover:scale-110 transition disabled:opacity-50"
-                                      style={{ background: 'rgba(255,255,255,0.1)', border: `1px solid ${challenge.color}60` }}>
-                                      <span className="text-xs text-gray-300">{dayObj.day}</span>
+                                      onClick={() => handleCompleteDay(dayObj.day, dayObj.points, phaseKey)}
+                                      disabled={!isActionable}
+                                      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition disabled:opacity-40"
+                                      style={{
+                                        background: isActionable ? challenge.color + '30' : 'rgba(0,0,0,0.3)',
+                                        border: `1px solid ${isActionable ? challenge.color + '80' : 'rgba(255,255,255,0.1)'}`,
+                                      }}>
+                                      <span className="text-xs" style={{ color: isActionable ? challenge.color : '#6b7280' }}>{dayObj.day}</span>
                                     </button>
                                   )}
                                   <div className="flex-1">
@@ -354,28 +340,38 @@ export default function GlowUpChallengeDetail() {
                                       {dayObj.task}
                                     </p>
                                   </div>
-                                  <span className="text-xs font-bold" style={{ color: isDayCompleted ? 'rgba(255,255,255,0.4)' : challenge.color }}>+{dayObj.points}</span>
+                                  <span className="text-xs font-bold"
+                                    style={{ color: isDayCompleted ? 'rgba(255,255,255,0.35)' : challenge.color }}>
+                                    +{dayObj.points}
+                                  </span>
                                 </div>
                               );
                             })}
+
+                            {/* Already completed today — block next task */}
+                            {completedTodayAlready && hasAvailableToday && (
+                              <div className="flex items-center gap-2 p-3 rounded-xl"
+                                style={{ background: `${challenge.color}10`, border: `1px solid ${challenge.color}30` }}>
+                                <span className="text-sm">⏰</span>
+                                <p className="text-xs flex-1" style={{ color: challenge.color }}>
+                                  You already completed today's task. Come back tomorrow to unlock the next day!
+                                </p>
+                              </div>
+                            )}
+
                             {/* Locked days summary */}
-                            {(() => {
-                              const lockedDays = phase.days.filter(d => !completedDays.includes(d.day) && !canAccessDay_(d.day, phaseKey));
-                              if (lockedDays.length === 0) return null;
-                              const nextDay = phase.days.find(d => !completedDays.includes(d.day) && canAccessDay_(d.day, phaseKey));
-                              return (
-                                <div className="flex items-center gap-3 p-3 rounded-xl mt-1"
-                                  style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(0,0,0,0.4)' }}>
-                                    <Lock size={12} className="text-gray-500" />
-                                  </div>
-                                  <p className="text-xs text-gray-500 flex-1">
-                                    {lockedDays.length} day{lockedDays.length > 1 ? 's' : ''} locked
-                                    {nextDay ? ` — complete Day ${nextDay.day} and return tomorrow` : ''}
-                                  </p>
+                            {lockedCount > 0 && (
+                              <div className="flex items-center gap-3 p-3 rounded-xl"
+                                style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                                  style={{ background: 'rgba(0,0,0,0.4)' }}>
+                                  <Lock size={12} className="text-gray-500" />
                                 </div>
-                              );
-                            })()}
+                                <p className="text-xs text-gray-500 flex-1">
+                                  {lockedCount} day{lockedCount > 1 ? 's' : ''} locked — complete each day one at a time
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
