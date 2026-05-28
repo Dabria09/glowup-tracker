@@ -83,6 +83,24 @@
       "type": "string",
       "title": "Glow Persona Images (JSON)"
     },
+    "identity_type": {
+      "type": "string",
+      "title": "Identity Type",
+      "enum": [
+        "selfie",
+        "persona",
+        "icon"
+      ],
+      "default": "selfie"
+    },
+    "active_persona_id": {
+      "type": "string",
+      "title": "Active Persona ID"
+    },
+    "selected_icon_id": {
+      "type": "string",
+      "title": "Selected Aesthetic Icon ID"
+    },
     "bio": {
       "type": "string",
       "title": "Bio"
