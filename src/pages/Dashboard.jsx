@@ -379,20 +379,11 @@ export default function Dashboard() {
   const [folders, setFolders] = useState(() => loadSaved('ggu_folders', {}));
   const [openFolder, setOpenFolder] = useState(null);
   const [checkedInToday, setCheckedInToday] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   // Track which item is being hovered over during drag (for folder creation)
   const [dragOverId, setDragOverId] = useState(null);
   const draggedId = useRef(null);
-
-  // Long-press timers
-  const longPressTimers = useRef({});
-  const startLongPress = (id) => {
-    longPressTimers.current[id] = setTimeout(() => setSizeMenu({ appId: id }), 600);
-  };
-  const cancelLongPress = (id) => {
-    clearTimeout(longPressTimers.current[id]);
-    delete longPressTimers.current[id];
-  };
 
   useEffect(() => { localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds)); }, [homeAppIds]);
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
@@ -415,11 +406,22 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    base44.auth.me().then(async (u) => {
-      setUser(u);
+    let email = null;
+
+    const checkCheckin = async (userEmail) => {
       const today = new Date().toISOString().split('T')[0];
-      const diaryToday = await base44.entities.DiaryEntry.filter({ user_email: u.email, date: today });
-      if (diaryToday.length > 0) setCheckedInToday(true);
+      if (localStorage.getItem('ggu_checkin_date') === today) { setCheckedInToday(true); return; }
+      const rows = await base44.entities.DiaryEntry.filter({ user_email: userEmail, date: today });
+      if (rows.length > 0) { localStorage.setItem('ggu_checkin_date', today); setCheckedInToday(true); }
+    };
+
+    const onFocus = () => { if (email) checkCheckin(email); };
+    window.addEventListener('focus', onFocus);
+
+    base44.auth.me().then(async (u) => {
+      email = u.email;
+      setUser(u);
+      await checkCheckin(u.email);
       const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
       setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
@@ -429,6 +431,8 @@ export default function Dashboard() {
         if (profile.avatar_builder_config) { try { setAvatarConfig(JSON.parse(profile.avatar_builder_config)); } catch {} }
       }
     }).catch(() => {});
+
+    return () => window.removeEventListener('focus', onFocus);
   }, []);
 
   // Drag handlers
@@ -614,11 +618,14 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Your World — drag to rearrange, drag onto another to create folder, hold to resize */}
+        {/* Your World — drag to rearrange, drag onto icon to folder, Edit mode to resize */}
         <div className="px-4 mb-12">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-bold tracking-widest text-gray-500">{t('your_world')}</p>
-            <p className="text-[10px] text-gray-600">Drag onto icon to folder · Hold to resize</p>
+            <button
+              onClick={() => setEditMode(e => !e)}
+              className={`text-[11px] font-semibold px-3 py-1 rounded-full transition ${editMode ? 'bg-pink-500 text-white' : 'bg-white/10 text-gray-400 hover:text-white'}`}
+            >{editMode ? 'Done' : 'Edit'}</button>
           </div>
           <DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
             <Droppable droppableId="home-apps" direction="horizontal">
@@ -648,29 +655,31 @@ export default function Dashboard() {
                             {...provided.dragHandleProps}
                             style={provided.draggableProps.style}
                             className={`${size === 'widget' ? 'col-span-2 row-span-2' : ''} transition-all duration-150 ${isHoverTarget ? 'scale-110' : ''}`}
-                            onMouseDown={() => startLongPress(itemId)}
-                            onMouseUp={() => cancelLongPress(itemId)}
-                            onMouseLeave={() => cancelLongPress(itemId)}
-                            onTouchStart={() => startLongPress(itemId)}
-                            onTouchEnd={() => cancelLongPress(itemId)}
-                            onTouchMove={() => cancelLongPress(itemId)}
                           >
                             {/* Folder merge highlight ring */}
                             <div className={`relative rounded-[18px] transition-all duration-150 ${isHoverTarget ? 'ring-2 ring-pink-400 ring-offset-2 ring-offset-transparent' : ''}`}>
-                              {isFolder ? (
-                                <FolderIcon
-                                  folder={folder}
-                                  allPages={ALL_PAGES}
-                                  onOpen={() => !snapshot.isDragging && setOpenFolder(itemId)}
-                                  onLongPress={() => setOpenFolder(itemId)}
-                                />
-                              ) : (
-                                <HomeAppIcon
-                                  app={app}
-                                  size={size}
-                                  onNavigate={snapshot.isDragging ? () => {} : navigate}
-                                />
-                              )}
+                            {isFolder ? (
+                              <FolderIcon
+                                folder={folder}
+                                allPages={ALL_PAGES}
+                                onOpen={() => !snapshot.isDragging && setOpenFolder(itemId)}
+                                onLongPress={() => setOpenFolder(itemId)}
+                              />
+                            ) : (
+                              <HomeAppIcon
+                                app={app}
+                                size={size}
+                                onNavigate={snapshot.isDragging ? () => {} : navigate}
+                              />
+                            )}
+                            {/* Edit mode: resize button, no long-press conflict */}
+                            {editMode && (
+                              <button
+                                onPointerDown={e => { e.stopPropagation(); setSizeMenu({ appId: itemId }); }}
+                                className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-pink-500 border-2 border-black flex items-center justify-center z-20 shadow-lg"
+                                style={{ fontSize: 11, color: 'white', lineHeight: 1 }}
+                              >⤢</button>
+                            )}
                             </div>
                           </div>
                         )}
