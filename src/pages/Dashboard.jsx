@@ -266,9 +266,9 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
             })}
           </div>
         </div>
-        <div className="px-4 pt-4 pb-12 border-t border-white/10 flex-shrink-0 grid grid-cols-2 gap-3">
-          <button onClick={onClose} className="py-3 rounded-2xl text-sm font-semibold text-gray-400 bg-white/5">Cancel</button>
-          <button onClick={() => { onSave(selected); onClose(); }} className="py-3 rounded-2xl text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg,#c44a55,#ff6a75)' }}>Save ({selected.length})</button>
+        <div className="px-4 pt-6 pb-12 border-t border-white/10 flex-shrink-0 grid grid-cols-2 gap-3">
+          <button onClick={onClose} className="py-4 rounded-2xl text-sm font-semibold text-gray-400 bg-white/5">Cancel</button>
+          <button onClick={() => { onSave(selected); onClose(); }} className="py-4 rounded-2xl text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg,#c44a55,#ff6a75)' }}>Save ({selected.length})</button>
         </div>
       </div>
     </div>
@@ -731,7 +731,7 @@ export default function Dashboard() {
         <PagePickerModal title="Customize Community" currentIds={communityIds} onSave={setCommunityIds} onClose={() => setShowCommunityPicker(false)} />
       )}
       {showQuickPicker && (
-        <PagePickerModal title="Customize Your World" currentIds={homeAppIds} onSave={setHomeAppIds} onClose={() => setShowQuickPicker(false)} />
+        <PagePickerModal title="Customize Quick Access" currentIds={quickIds} onSave={setQuickIds} onClose={() => setShowQuickPicker(false)} />
       )}
       {currentFolder && (
         <FolderModal folder={currentFolder} folders={folders} setFolders={setFolders}
