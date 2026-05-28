@@ -106,7 +106,9 @@ export default function DailyCheckIn() {
       content: JSON.stringify({ mood, confidence, stress, goals, affirmation, focus: todayFocus.label }),
       mood: mood.label,
       tags: `daily-checkin,daily-checkin-${todayKey}`,
+      date: todayKey,
     });
+    localStorage.setItem('ggu_checkin_date', todayKey);
     await awardPoints(user.email, 'daily_checkin');
     setAlreadyCheckedIn(true);
     setSubmitting(false);

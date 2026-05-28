@@ -383,7 +383,9 @@ export default function Dashboard() {
   useEffect(() => {
     let email = null;
     const checkCheckin = async (userEmail) => {
-      const today = new Date().toISOString().split('T')[0];
+      const _now = new Date();
+      const today = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
+
       if (localStorage.getItem('ggu_checkin_date') === today) { setCheckedInToday(true); return; }
       const rows = await base44.entities.DiaryEntry.filter({ user_email: userEmail, date: today });
       if (rows.length > 0) { localStorage.setItem('ggu_checkin_date', today); setCheckedInToday(true); }
