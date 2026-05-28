@@ -10,6 +10,14 @@
       "type": "string",
       "title": "Username"
     },
+    "display_name": {
+      "type": "string",
+      "title": "Display Name"
+    },
+    "pronouns": {
+      "type": "string",
+      "title": "Pronouns"
+    },
     "date_of_birth": {
       "type": "string",
       "title": "Date of Birth"
@@ -113,6 +121,14 @@
       "type": "string",
       "title": "Personal Motto"
     },
+    "vibe": {
+      "type": "string",
+      "title": "Personality Vibe"
+    },
+    "interests": {
+      "type": "string",
+      "title": "Interests (JSON array)"
+    },
     "links": {
       "type": "string",
       "title": "Custom Links (JSON array)"
@@ -144,6 +160,14 @@
     "featured_sections": {
       "type": "string",
       "title": "Featured Sections (JSON)"
+    },
+    "pinned_post_id": {
+      "type": "string",
+      "title": "Pinned Post ID"
+    },
+    "featured_quote": {
+      "type": "string",
+      "title": "Featured Quote"
     }
   },
   "required": []

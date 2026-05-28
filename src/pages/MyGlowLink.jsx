@@ -3,83 +3,162 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
-import {
-  ChevronLeft, Plus, X, Upload, Check, Copy, Share2, ExternalLink,
-  Trash2, Link2, Sparkles, Camera, Lock,
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import { GLOW_THEMES, PROFILE_FRAMES, getGlowLevel, getTheme, computeBadges } from '@/components/glowlink/GlowThemes';
 import GlowProfilePreview from '@/components/glowlink/GlowProfilePreview';
+import {
+  ChevronLeft, ChevronRight, Plus, X, Upload, Check, Copy, Share2, ExternalLink,
+  Trash2, Link2, Sparkles, Camera, Lock, Eye, User, Palette, Globe, Star,
+  Settings, LogOut, Shield, Bell, ChevronDown, ChevronUp
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { GLOW_THEMES, PROFILE_FRAMES, getGlowLevel, getTheme, computeBadges } from '@/components/glowlink/GlowThemes';
 
+/* ── Constants ─────────────────────────────────── */
 const GLOW_ERAS = [
   'Confidence Era','Glow Up Era','Boss Era','Healing Era','Growth Era',
   'Abundance Era','Queen Era','Unbothered Era','Focused Era','Elevation Era',
 ];
-
+const PRONOUN_OPTIONS = ['she/her','he/him','they/them','she/they','he/they','any/all'];
+const VIBE_OPTIONS = [
+  { id: 'soft_girl',   label: 'Soft Girl',    emoji: '🌸' },
+  { id: 'boss_era',    label: 'Boss Era',     emoji: '👑' },
+  { id: 'fitness',     label: 'Fitness Glow', emoji: '💪' },
+  { id: 'creative',   label: 'Creative',     emoji: '🎨' },
+  { id: 'wellness',   label: 'Wellness',     emoji: '🧘' },
+  { id: 'academic',   label: 'Academic',     emoji: '📚' },
+  { id: 'spiritual',  label: 'Spiritual',    emoji: '✨' },
+  { id: 'adventure',  label: 'Adventure',    emoji: '🌍' },
+];
+const INTEREST_OPTIONS = [
+  'Fashion','Beauty','Fitness','Mental Health','Cooking','Travel',
+  'Music','Art','Dance','Reading','Gaming','Finance','Career','Spirituality',
+];
 const DEFAULT_PRIVACY = {
-  public_profile: true,
-  show_achievements: true,
-  show_streak: true,
-  show_goals: true,
-  show_links: true,
-  show_timeline: true,
-  show_photos: true,
+  public_profile: true, allow_followers: true, show_achievements: true,
+  show_streak: true, show_goals: true, show_links: true,
+  show_timeline: true, show_photos: true,
 };
 
+/* ── Sub-components ─────────────────────────────── */
 function Toggle({ on, onToggle }) {
   return (
-    <button onClick={onToggle}
-      className="relative w-11 h-6 rounded-full transition-colors flex-shrink-0"
+    <button onClick={onToggle} className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
       style={{ background: on ? '#ec4899' : 'rgba(255,255,255,0.15)' }}>
-      <div className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
-        style={{ transform: on ? 'translateX(22px)' : 'translateX(2px)' }} />
+      <motion.div animate={{ x: on ? 24 : 2 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow" />
     </button>
   );
 }
 
+function SectionCard({ icon, title, subtitle, children, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="rounded-3xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center gap-3 px-4 py-4 text-left">
+        <div className="w-9 h-9 rounded-2xl flex items-center justify-center text-base flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg,rgba(236,72,153,0.2),rgba(168,85,247,0.2))', border: '1px solid rgba(236,72,153,0.2)' }}>
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-white">{title}</p>
+          {subtitle && <p className="text-xs text-gray-500 truncate mt-0.5">{subtitle}</p>}
+        </div>
+        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown size={16} className="text-gray-500" />
+        </motion.div>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div className="px-4 pb-5 pt-1 space-y-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function FieldLabel({ children }) {
+  return <p className="text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">{children}</p>;
+}
+
+function TextInput({ value, onChange, placeholder, maxLength, ...rest }) {
+  return (
+    <input value={value} onChange={onChange} placeholder={placeholder} maxLength={maxLength}
+      className="w-full rounded-2xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none"
+      style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+      {...rest} />
+  );
+}
+
+function TextArea({ value, onChange, placeholder, maxLength, rows = 3 }) {
+  return (
+    <textarea value={value} onChange={onChange} placeholder={placeholder} maxLength={maxLength} rows={rows}
+      className="w-full rounded-2xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none resize-none"
+      style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }} />
+  );
+}
+
+/* ── Main Component ─────────────────────────────── */
 export default function MyGlowLink() {
   const navigate = useNavigate();
+  const fileInputRef = useRef();
+  const usernameTimer = useRef(null);
+
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [activeTab, setActiveTab] = useState('timeline');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [posts, setPosts] = useState([]);
   const [totalPoints, setTotalPoints] = useState(0);
   const [pointsRecord, setPointsRecord] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
+  // Identity fields
   const [username, setUsername] = useState('');
-  const [usernameStatus, setUsernameStatus] = useState('');
-  const [usernameSuggestions, setUsernameSuggestions] = useState([]);
-  const [glowEra, setGlowEra] = useState('Glow Up Era');
+  const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [motto, setMotto] = useState('');
-  const [links, setLinks] = useState([]);
-  const [privacy, setPrivacy] = useState(DEFAULT_PRIVACY);
+  const [pronouns, setPronouns] = useState('');
+  const [glowEra, setGlowEra] = useState('Glow Up Era');
+  const [vibe, setVibe] = useState('');
+  const [interests, setInterests] = useState([]);
+  const [usernameStatus, setUsernameStatus] = useState('');
+  const [usernameSuggestions, setUsernameSuggestions] = useState([]);
 
   // Customization
   const [profileTheme, setProfileTheme] = useState('default');
   const [profileFrame, setProfileFrame] = useState('default');
+
+  // Featured / Personalization
   const [featuredMood, setFeaturedMood] = useState('');
   const [featuredAffirmation, setFeaturedAffirmation] = useState('');
   const [featuredGoal, setFeaturedGoal] = useState('');
+  const [featuredQuote, setFeaturedQuote] = useState('');
 
+  // Links
+  const [links, setLinks] = useState([]);
   const [showLinkForm, setShowLinkForm] = useState(false);
   const [newLinkLabel, setNewLinkLabel] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
 
-  const [showPreview, setShowPreview] = useState(false);
-  const [showPostForm, setShowPostForm] = useState(false);
-  const [postText, setPostText] = useState('');
-  const [postVisibility, setPostVisibility] = useState('public');
-  const [postingPost, setPostingPost] = useState(false);
-
-  const fileInputRef = useRef();
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const usernameTimer = useRef(null);
+  // Privacy
+  const [privacy, setPrivacy] = useState(DEFAULT_PRIVACY);
 
   const theme = getTheme(profileTheme);
+  const glowLinkUrl = `${window.location.origin}/glowlink/${username || user?.email?.split('@')[0] || 'me'}`;
+  const glowLevel = getGlowLevel(totalPoints);
+  const badges = computeBadges(totalPoints, pointsRecord?.check_in_streak, pointsRecord?.challenges_completed, posts.length);
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -89,17 +168,21 @@ export default function MyGlowLink() {
         base44.entities.UserPoints.filter({ user_email: u.email }),
         base44.entities.GlowUpPost.filter({ user_email: u.email }, '-created_date', 30),
       ]);
-
       if (profiles.length) {
         const p = profiles[0];
         setProfile(p);
         setUsername(p.username || '');
-        setGlowEra(p.glow_era || 'Glow Up Era');
+        setDisplayName(p.display_name || '');
         setBio(p.bio || '');
         setMotto(p.motto || '');
+        setPronouns(p.pronouns || '');
+        setGlowEra(p.glow_era || 'Glow Up Era');
+        setVibe(p.vibe || '');
         setProfileTheme(p.profile_theme || 'default');
         setProfileFrame(p.profile_frame || 'default');
+        setFeaturedQuote(p.featured_quote || '');
         try { setLinks(p.links ? JSON.parse(p.links) : []); } catch {}
+        try { setInterests(p.interests ? JSON.parse(p.interests) : []); } catch {}
         try { setPrivacy({ ...DEFAULT_PRIVACY, ...(p.privacy_settings ? JSON.parse(p.privacy_settings) : {}) }); } catch {}
         try {
           const fs = p.featured_sections ? JSON.parse(p.featured_sections) : {};
@@ -108,11 +191,7 @@ export default function MyGlowLink() {
           setFeaturedGoal(fs.goal || '');
         } catch {}
       }
-
-      if (pts.length) {
-        setTotalPoints(pts[0].total_points || 0);
-        setPointsRecord(pts[0]);
-      }
+      if (pts.length) { setTotalPoints(pts[0].total_points || 0); setPointsRecord(pts[0]); }
       setPosts(userPosts);
       setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());
@@ -128,7 +207,7 @@ export default function MyGlowLink() {
       const taken = existing.some(p => p.user_email !== user?.email);
       if (taken) {
         setUsernameStatus('taken');
-        setUsernameSuggestions([`${val}${Math.floor(Math.random()*99)+1}`, `${val}_glow`, `${val}_ggу`]);
+        setUsernameSuggestions([`${val}${Math.floor(Math.random()*99)+1}`, `${val}_glow`, `${val}.ggу`]);
       } else {
         setUsernameStatus('available');
         setUsernameSuggestions([]);
@@ -138,8 +217,7 @@ export default function MyGlowLink() {
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert('Max 5 MB'); return; }
+    if (!file || file.size > 5 * 1024 * 1024) return;
     setUploadingPhoto(true);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     const updates = { avatar_url: file_url, identity_type: 'selfie' };
@@ -151,18 +229,25 @@ export default function MyGlowLink() {
   };
 
   const handleSave = async () => {
-    if (usernameStatus === 'taken') { setSaveMsg('❌ Username is taken. Please choose another.'); setTimeout(() => setSaveMsg(''), 3000); return; }
+    if (usernameStatus === 'taken') {
+      setSaveMsg('❌ Username is already taken.');
+      setTimeout(() => setSaveMsg(''), 3000);
+      return;
+    }
     setSaving(true);
     const data = {
-      bio: bio.trim(),
-      motto: motto.trim(),
-      glow_era: glowEra,
-      username: username.trim(),
+      bio: bio.trim(), motto: motto.trim(), display_name: displayName.trim(),
+      pronouns: pronouns.trim(), glow_era: glowEra, username: username.trim(),
+      vibe, interests: JSON.stringify(interests),
       links: JSON.stringify(links),
       privacy_settings: JSON.stringify(privacy),
-      profile_theme: profileTheme,
-      profile_frame: profileFrame,
-      featured_sections: JSON.stringify({ mood: featuredMood.trim(), affirmation: featuredAffirmation.trim(), goal: featuredGoal.trim() }),
+      profile_theme: profileTheme, profile_frame: profileFrame,
+      featured_quote: featuredQuote.trim(),
+      featured_sections: JSON.stringify({
+        mood: featuredMood.trim(),
+        affirmation: featuredAffirmation.trim(),
+        goal: featuredGoal.trim(),
+      }),
     };
     try {
       if (profile) {
@@ -172,7 +257,7 @@ export default function MyGlowLink() {
         const np = await base44.entities.UserProfile.create({ user_email: user.email, ...data });
         setProfile(np);
       }
-      setSaveMsg('✅ Glow Link saved!');
+      setSaveMsg('✅ Profile saved!');
     } catch {
       setSaveMsg('❌ Save failed. Try again.');
     }
@@ -180,41 +265,14 @@ export default function MyGlowLink() {
     setTimeout(() => setSaveMsg(''), 3000);
   };
 
-  const handlePost = async () => {
-    if (!postText.trim() || postingPost) return;
-    setPostingPost(true);
-    const post = await base44.entities.GlowUpPost.create({
-      user_email: user.email,
-      content: postText.trim(),
-      media_urls: '[]',
-      visibility: postVisibility,
-      likes: 0,
-      comments: 0,
-    });
-    setPosts(prev => [post, ...prev]);
-    setPostText('');
-    setPostingPost(false);
-    setShowPostForm(false);
-  };
-
-  const handleDeletePost = async (id) => {
-    await base44.entities.GlowUpPost.delete(id);
-    setPosts(prev => prev.filter(p => p.id !== id));
-  };
-
-  const glowLinkUrl = `${window.location.origin}/glowlink/${username || user?.email?.split('@')[0] || 'me'}`;
-  const glowLevel = getGlowLevel(totalPoints);
-  const badges = computeBadges(totalPoints, pointsRecord?.check_in_streak, pointsRecord?.challenges_completed, posts.length);
-
   const copyLink = () => {
     navigator.clipboard?.writeText(glowLinkUrl);
     setSaveMsg('📋 Link copied!');
     setTimeout(() => setSaveMsg(''), 2000);
   };
 
-  const shareLink = () => {
-    if (navigator.share) navigator.share({ title: 'My Glow Link', url: glowLinkUrl }).catch(() => {});
-    else copyLink();
+  const toggleInterest = (tag) => {
+    setInterests(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
   };
 
   if (loading) return (
@@ -224,464 +282,457 @@ export default function MyGlowLink() {
   );
 
   return (
-    <div className="min-h-screen text-white pb-28" style={{ backgroundColor: '#0d0608' }}>
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-md px-4 py-3 flex items-center gap-3"
-        style={{ background: 'rgba(13,6,8,0.9)', borderBottom: '1px solid rgba(232,82,109,0.15)' }}>
-        <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+    <div className="min-h-screen text-white" style={{ backgroundColor: '#0d0608' }}>
+
+      {/* ── Sticky Header ──────────────────────────────── */}
+      <div className="sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
+        style={{ background: 'rgba(13,6,8,0.92)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <button onClick={() => navigate(-1)}
+          className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.08)' }}>
           <ChevronLeft size={20} />
         </button>
         <div className="flex-1">
-          <h1 className="text-base font-bold">My Glow Link™</h1>
-          <p className="text-xs text-gray-500">{glowLevel.emoji} {glowLevel.name} · {totalPoints} pts</p>
+          <h1 className="text-base font-bold text-white">Edit Profile</h1>
+          <p className="text-[11px]" style={{ color: theme.textAccent }}>{glowLevel.emoji} {glowLevel.name} · {totalPoints.toLocaleString()} pts</p>
         </div>
         <button onClick={() => setShowPreview(true)}
-          className="px-4 py-2 rounded-full font-bold text-sm transition"
-          style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#e2e8f0' }}>
-          👁 Preview
-        </button>
-        <button onClick={handleSave} disabled={saving}
-          className="px-5 py-2 rounded-full font-bold text-white text-sm disabled:opacity-60 transition"
-          style={{ background: 'linear-gradient(135deg,#c44a55,#ec4899)' }}>
-          {saving ? '...' : 'Save'}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold"
+          style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: '#cbd5e1' }}>
+          <Eye size={13} /> Preview
         </button>
       </div>
 
-      {saveMsg && (
-        <div className="mx-4 mt-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-center"
-          style={{ background: saveMsg.startsWith('✅') || saveMsg.startsWith('📋') ? 'rgba(52,211,153,0.15)' : 'rgba(239,68,68,0.15)', border: `1px solid ${saveMsg.startsWith('✅') || saveMsg.startsWith('📋') ? 'rgba(52,211,153,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
-          {saveMsg}
-        </div>
-      )}
-
-      <div className="px-4 pt-4 space-y-5">
-
-        {/* ── Glow Level Card ───────────────────────────────────── */}
-        <div className="rounded-3xl p-4 overflow-hidden relative" style={{ background: glowLevel.gradient, boxShadow: `0 8px 32px ${glowLevel.color}30` }}>
-          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.4), transparent 60%)' }} />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white/70">Your Glow Level</p>
-                <h2 className="text-2xl font-black text-white">{glowLevel.emoji} {glowLevel.name}</h2>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-black text-white">{totalPoints}</p>
-                <p className="text-xs text-white/70">points</p>
-              </div>
-            </div>
-            {glowLevel.next && (
-              <div>
-                <div className="h-2 rounded-full bg-white/20 overflow-hidden">
-                  <div className="h-full rounded-full bg-white" style={{ width: `${Math.min(100,(totalPoints/glowLevel.next)*100)}%` }} />
-                </div>
-                <p className="text-xs text-white/60 mt-1">{glowLevel.next - totalPoints} pts to next level</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── Earned Badges ─────────────────────────────────────── */}
-        {badges.length > 0 && (
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Your Badges ({badges.length})</p>
-            <div className="flex flex-wrap gap-2">
-              {badges.map(badge => (
-                <div key={badge.id} title={badge.desc} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
-                  style={{ background: 'rgba(236,72,153,0.12)', border: '1px solid rgba(236,72,153,0.3)', color: '#f9a8d4' }}>
-                  {badge.emoji} {badge.name}
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* ── Save Status Toast ──────────────────────────── */}
+      <AnimatePresence>
+        {saveMsg && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="mx-4 mt-2 px-4 py-2.5 rounded-2xl text-sm font-semibold text-center"
+            style={{
+              background: saveMsg.startsWith('✅') || saveMsg.startsWith('📋') ? 'rgba(52,211,153,0.12)' : 'rgba(239,68,68,0.12)',
+              border: `1px solid ${saveMsg.startsWith('✅') || saveMsg.startsWith('📋') ? 'rgba(52,211,153,0.3)' : 'rgba(239,68,68,0.3)'}`,
+            }}>
+            {saveMsg}
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* ── Profile Preview ───────────────────────────────────── */}
-        <div className="rounded-3xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(232,82,109,0.2)' }}>
-          <div className="h-14 relative" style={{ background: theme.gradient }}>
-            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,0.05) 10px,rgba(255,255,255,0.05) 20px)' }} />
-          </div>
-          <div className="px-4 pb-4">
-            <div className="flex items-end gap-3 -mt-8 mb-3">
-              <div className="relative flex-shrink-0">
-                <UserAvatarDisplay profile={profile} size={64} fallback={user?.full_name?.[0] || 'G'} showRing />
-                <button onClick={() => fileInputRef.current?.click()}
-                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
-                  style={{ background: '#ec4899', border: '2px solid #0d0608' }}>
-                  <Camera size={11} className="text-white" />
-                </button>
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-              </div>
-              <div className="flex-1 min-w-0 pt-8">
-                <p className="font-bold text-white text-base truncate">{user?.full_name}</p>
-                <p className="text-xs text-gray-400">@{username || user?.email?.split('@')[0]}</p>
-              </div>
-              <div className="pb-1">
-                <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: glowLevel.gradient, color: '#fff' }}>{glowLevel.emoji} {glowLevel.name}</span>
-              </div>
+      {/* ── Hero Avatar Block ──────────────────────────── */}
+      <div className="relative flex flex-col items-center py-8"
+        style={{ background: 'linear-gradient(180deg, rgba(236,72,153,0.08) 0%, transparent 100%)' }}>
+        {/* Level glow ring */}
+        <div className="relative mb-3">
+          <div className="absolute inset-0 rounded-full" style={{ margin: -12, background: `radial-gradient(circle, ${glowLevel.color}40, transparent 70%)`, filter: 'blur(12px)' }} />
+          <div className="relative" style={{ background: glowLevel.gradient, padding: 3, borderRadius: '50%' }}>
+            <div style={{ background: '#0d0608', borderRadius: '50%', padding: 3 }}>
+              <UserAvatarDisplay profile={profile} size={90} fallback={user?.full_name?.[0] || '✨'} showRing={false} />
             </div>
-            {bio && <p className="text-sm text-gray-300 leading-relaxed">{bio}</p>}
           </div>
+          <button onClick={() => fileInputRef.current?.click()}
+            className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg"
+            style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)', border: '2px solid #0d0608' }}>
+            {uploadingPhoto
+              ? <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              : <Camera size={14} className="text-white" />}
+          </button>
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
         </div>
 
-        {/* ── Link URL bar ──────────────────────────────────────── */}
-        <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <p className="text-xs text-gray-500 mb-2 font-semibold uppercase tracking-widest">Your Link</p>
-          <div className="px-3 py-2.5 rounded-xl mb-3" style={{ background: 'rgba(0,0,0,0.4)' }}>
-            <p className="text-sm font-mono text-yellow-400 truncate">{glowLinkUrl}</p>
+        <h2 className="text-xl font-black text-white">{user?.full_name}</h2>
+        <p className="text-sm font-medium mt-0.5" style={{ color: theme.textAccent }}>@{username || user?.email?.split('@')[0]}</p>
+
+        <div className="flex items-center gap-2 mt-3">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+            style={{ background: glowLevel.gradient, boxShadow: `0 4px 16px ${glowLevel.color}40` }}>
+            <span>{glowLevel.emoji}</span> <span className="text-white">{glowLevel.name}</span>
           </div>
-          <div className="flex gap-2">
-            <button onClick={copyLink} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border" style={{ borderColor: 'rgba(236,72,153,0.4)', color: '#f9a8d4' }}>
-              <Copy size={14} /> Copy
-            </button>
-            <button onClick={shareLink} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border" style={{ borderColor: 'rgba(236,72,153,0.4)', color: '#f9a8d4' }}>
-              <Share2 size={14} /> Share
-            </button>
-            <button onClick={() => navigate(`/glowlink/${username || user?.email?.split('@')[0]}`)}
-              className="w-11 flex items-center justify-center rounded-xl border" style={{ borderColor: 'rgba(236,72,153,0.4)', color: '#f9a8d4' }}>
-              <ExternalLink size={16} />
-            </button>
-          </div>
+          <button onClick={() => navigate('/avatar')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border"
+            style={{ borderColor: 'rgba(236,72,153,0.4)', color: '#f9a8d4' }}>
+            <Sparkles size={11} /> Change Identity
+          </button>
         </div>
 
-        {/* ── New Post ─────────────────────────────────────────── */}
-        <button onClick={() => setShowPostForm(true)}
-          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl"
-          style={{ background: 'linear-gradient(135deg,rgba(236,72,153,0.15),rgba(168,85,247,0.15))', border: '1px solid rgba(236,72,153,0.25)' }}>
-          <Plus size={18} className="text-pink-400" />
-          <span className="text-sm font-semibold text-pink-400">Share a post</span>
-        </button>
-
-        {/* ── Tabs ─────────────────────────────────────────────── */}
-        <div className="flex gap-1 p-1 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          {['timeline','customize','settings'].map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className="flex-1 py-2.5 rounded-xl font-semibold text-xs capitalize transition"
-              style={{ background: activeTab === tab ? 'linear-gradient(135deg,#c44a55,#ec4899)' : 'transparent', color: activeTab === tab ? '#fff' : '#9ca3af' }}>
-              {tab === 'timeline' ? '📝 Posts' : tab === 'customize' ? '🎨 Style' : '⚙️ Settings'}
-            </button>
-          ))}
-        </div>
-
-        {/* ── Timeline Tab ─────────────────────────────────────── */}
-        {activeTab === 'timeline' && (
-          <div className="space-y-3 pb-4">
-            {posts.length === 0 ? (
-              <div className="text-center py-14">
-                <span className="text-4xl block mb-3">✨</span>
-                <p className="text-gray-400 text-sm">No posts yet. Share your glow journey!</p>
-              </div>
-            ) : posts.map(post => (
-              <div key={post.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <UserAvatarDisplay profile={profile} size={32} fallback={user?.full_name?.[0]} />
-                    <div>
-                      <p className="text-xs font-semibold text-white">{user?.full_name}</p>
-                      <p className="text-[10px] text-gray-500">{new Date(post.created_date).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: post.visibility === 'public' ? 'rgba(52,211,153,0.15)' : 'rgba(168,85,247,0.15)', color: post.visibility === 'public' ? '#86efac' : '#d8b4fe' }}>
-                      {post.visibility === 'public' ? '🌍' : '👥'}
-                    </span>
-                    <button onClick={() => handleDeletePost(post.id)} className="text-gray-600 hover:text-red-400 transition">
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-200 leading-relaxed">{post.content}</p>
-              </div>
+        {badges.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap justify-center mt-3 px-6">
+            {badges.slice(0, 4).map(b => (
+              <span key={b.id} className="text-xs px-2.5 py-1 rounded-full font-semibold"
+                style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.2)', color: '#f9a8d4' }}>
+                {b.emoji} {b.name}
+              </span>
             ))}
           </div>
         )}
-
-        {/* ── Customize Tab ────────────────────────────────────── */}
-        {activeTab === 'customize' && (
-          <div className="space-y-7 pb-6">
-
-            {/* Profile Themes */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase">Profile Theme</h3>
-                <span className="text-xs text-gray-600">Unlock with points ✨</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2.5">
-                {GLOW_THEMES.map(t => {
-                  const isUnlocked = totalPoints >= t.requiredPoints;
-                  const isActive = profileTheme === t.id;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => isUnlocked && setProfileTheme(t.id)}
-                      className="relative rounded-2xl p-3 text-left transition-all overflow-hidden"
-                      style={{
-                        background: isActive ? t.gradient : 'rgba(255,255,255,0.05)',
-                        border: `1.5px solid ${isActive ? t.accent : 'rgba(255,255,255,0.08)'}`,
-                        opacity: isUnlocked ? 1 : 0.5,
-                        boxShadow: isActive ? `0 4px 20px ${t.glow}` : 'none',
-                      }}
-                    >
-                      {!isUnlocked && (
-                        <div className="absolute top-2 right-2"><Lock size={10} className="text-gray-500" /></div>
-                      )}
-                      {isActive && (
-                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center bg-white/20">
-                          <Check size={10} className="text-white" />
-                        </div>
-                      )}
-                      <p className="text-lg mb-1">{t.emoji}</p>
-                      <p className="text-xs font-bold text-white">{t.name}</p>
-                      <p className="text-[10px] text-white/60">{t.requiredPoints === 0 ? 'Free' : `${t.requiredPoints} pts`}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Profile Frames */}
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-gray-500 mb-3 uppercase">Profile Frame</h3>
-              <div className="grid grid-cols-4 gap-2">
-                {PROFILE_FRAMES.map(f => {
-                  const isUnlocked = totalPoints >= f.requiredPoints;
-                  const isActive = profileFrame === f.id;
-                  const fStyle = f.style(theme.accent);
-                  return (
-                    <button
-                      key={f.id}
-                      onClick={() => isUnlocked && setProfileFrame(f.id)}
-                      className="flex flex-col items-center gap-1.5 p-2 rounded-2xl transition"
-                      style={{ background: isActive ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1.5px solid ${isActive ? theme.accent : 'rgba(255,255,255,0.08)'}`, opacity: isUnlocked ? 1 : 0.5 }}
-                    >
-                      <div style={{ ...fStyle, borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                        {f.emoji}
-                      </div>
-                      <p className="text-[9px] text-center text-gray-400 leading-tight">{f.name}</p>
-                      {!isUnlocked && <Lock size={8} className="text-gray-600" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Featured Sections */}
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-gray-500 mb-3 uppercase">Featured Sections</h3>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-gray-400 mb-1.5">😊 Current Mood</p>
-                  <input value={featuredMood} onChange={e => setFeaturedMood(e.target.value.slice(0, 80))}
-                    placeholder="How are you feeling right now?"
-                    className="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none"
-                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }} />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-1.5">💬 Affirmation</p>
-                  <input value={featuredAffirmation} onChange={e => setFeaturedAffirmation(e.target.value.slice(0, 150))}
-                    placeholder="Your current affirmation..."
-                    className="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none"
-                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }} />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-1.5">🎯 Current Goal</p>
-                  <input value={featuredGoal} onChange={e => setFeaturedGoal(e.target.value.slice(0, 150))}
-                    placeholder="What are you working toward?"
-                    className="w-full rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 outline-none"
-                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }} />
-                </div>
-              </div>
-            </div>
-
-            <button onClick={handleSave} disabled={saving}
-              className="w-full py-4 rounded-2xl font-bold text-white text-sm disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)', boxShadow: '0 4px 20px rgba(236,72,153,0.35)' }}>
-              {saving ? 'Saving...' : 'Save Customization 🎨'}
-            </button>
-          </div>
-        )}
-
-        {/* ── Settings Tab ─────────────────────────────────────── */}
-        {activeTab === 'settings' && (
-          <div className="space-y-6 pb-6">
-
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-gray-500 mb-3 uppercase">Profile Photo</h3>
-              <div className="flex items-center gap-4">
-                <UserAvatarDisplay profile={profile} size={72} fallback={user?.full_name?.[0]} showRing />
-                <div className="flex flex-col gap-2">
-                  <button onClick={() => navigate('/avatar')}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold text-white"
-                    style={{ background: 'linear-gradient(135deg,#c44a55,#ec4899)' }}>
-                    <Sparkles size={14} /> Change Identity
-                  </button>
-                  <label className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold cursor-pointer" style={{ border: '1px solid rgba(236,72,153,0.4)', color: '#f9a8d4' }}>
-                    {uploadingPhoto ? 'Uploading...' : <><Upload size={13} /> Upload Photo</>}
-                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploadingPhoto} />
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-gray-500 mb-3 uppercase">Username</h3>
-              <div className="flex items-center gap-2 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${usernameStatus === 'taken' ? 'rgba(239,68,68,0.5)' : usernameStatus === 'available' ? 'rgba(52,211,153,0.5)' : 'rgba(255,255,255,0.1)'}` }}>
-                <span className="text-gray-400 font-semibold">@</span>
-                <input value={username} onChange={e => checkUsername(e.target.value.replace(/[^a-z0-9_.]/gi, '').toLowerCase())}
-                  maxLength={30} placeholder="yourname"
-                  className="bg-transparent text-white outline-none flex-1 text-sm" />
-                {usernameStatus === 'checking' && <div className="w-4 h-4 border-2 border-gray-500 border-t-pink-400 rounded-full animate-spin" />}
-                {usernameStatus === 'available' && <Check size={16} className="text-green-400" />}
-                {usernameStatus === 'taken' && <X size={16} className="text-red-400" />}
-              </div>
-              {usernameStatus === 'taken' && (
-                <div className="mt-2">
-                  <p className="text-xs text-red-400 font-semibold mb-1">✕ Already taken. Try:</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {usernameSuggestions.map(s => (
-                      <button key={s} onClick={() => { setUsername(s); setUsernameStatus(''); }}
-                        className="text-xs px-3 py-1 rounded-full font-semibold" style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)', color: '#86efac' }}>
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-gray-500 mb-3 uppercase">Glow Era</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {GLOW_ERAS.map(era => (
-                  <button key={era} onClick={() => setGlowEra(era)}
-                    className="px-3 py-2.5 rounded-xl text-xs font-semibold transition"
-                    style={{ background: glowEra === era ? 'linear-gradient(135deg,#c44a55,#ec4899)' : 'rgba(255,255,255,0.05)', border: `1px solid ${glowEra === era ? 'transparent' : 'rgba(255,255,255,0.1)'}`, color: glowEra === era ? '#fff' : '#9ca3af' }}>
-                    {era}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-gray-500 mb-1 uppercase">Your Bio</h3>
-              <textarea value={bio} onChange={e => setBio(e.target.value.slice(0, 500))}
-                placeholder="Your bio..."
-                className="w-full rounded-2xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none resize-none"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', minHeight: 80 }} />
-              <p className="text-xs text-right text-gray-600 mt-1">{bio.length}/500</p>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-gray-500 mb-3 uppercase">Personal Motto</h3>
-              <input value={motto} onChange={e => setMotto(e.target.value.slice(0, 150))}
-                placeholder="Your personal motto or favorite quote..."
-                className="w-full rounded-2xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }} />
-            </div>
-
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-gray-500 mb-3 uppercase">Your Links ({links.length}/3)</h3>
-              <div className="space-y-2 mb-3">
-                {links.map((link, i) => (
-                  <div key={i} className="flex items-center gap-3 px-3 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <Link2 size={14} className="text-pink-400 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-white">{link.label}</p>
-                      <p className="text-xs text-gray-500 truncate">{link.url}</p>
-                    </div>
-                    <button onClick={() => setLinks(prev => prev.filter((_, j) => j !== i))} className="text-gray-600 hover:text-red-400 transition">
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {links.length < 3 && !showLinkForm && (
-                <button onClick={() => setShowLinkForm(true)}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm text-white"
-                  style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
-                  <Plus size={16} /> Add Link
-                </button>
-              )}
-              {showLinkForm && (
-                <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(236,72,153,0.2)' }}>
-                  <input value={newLinkLabel} onChange={e => setNewLinkLabel(e.target.value)} placeholder="Label (e.g. TikTok, Portfolio)"
-                    className="w-full rounded-xl px-3 py-2.5 text-sm text-white outline-none" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
-                  <input value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} placeholder="https://..."
-                    className="w-full rounded-xl px-3 py-2.5 text-sm text-white outline-none" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
-                  <div className="flex gap-2">
-                    <button onClick={() => { setShowLinkForm(false); setNewLinkLabel(''); setNewLinkUrl(''); }} className="flex-1 py-2 rounded-xl text-sm text-gray-400" style={{ background: 'rgba(255,255,255,0.05)' }}>Cancel</button>
-                    <button onClick={() => { if (newLinkLabel.trim() && newLinkUrl.trim()) { setLinks(prev => [...prev, { label: newLinkLabel.trim(), url: newLinkUrl.trim().startsWith('http') ? newLinkUrl.trim() : 'https://' + newLinkUrl.trim() }]); setShowLinkForm(false); setNewLinkLabel(''); setNewLinkUrl(''); }}} className="flex-1 py-2 rounded-xl text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg,#c44a55,#ec4899)' }}>Add</button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-gray-500 mb-3 uppercase">Privacy Controls</h3>
-              <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                {[
-                  { key: 'public_profile',    label: 'Public Profile',    desc: 'Anyone can view your Glow Link' },
-                  { key: 'allow_followers',   label: 'Allow Followers',   desc: 'Let others follow your glow journey' },
-                  { key: 'show_achievements', label: 'Show Achievements', desc: 'Display your badges and stats' },
-                  { key: 'show_streak',       label: 'Show Streak',       desc: 'Show your current streak' },
-                  { key: 'show_links',        label: 'Show Links',        desc: 'Show your custom links' },
-                  { key: 'show_timeline',     label: 'Show Timeline',     desc: 'Show your posts' },
-                  { key: 'show_photos',       label: 'Show Photos',       desc: 'Show your photos tab' },
-                ].map(item => (
-                  <div key={item.key} className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div>
-                      <p className="text-sm font-semibold text-white">{item.label}</p>
-                      <p className="text-xs text-gray-500">{item.desc}</p>
-                    </div>
-                    <Toggle on={privacy[item.key]} onToggle={() => setPrivacy(p => ({ ...p, [item.key]: !p[item.key] }))} />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button onClick={handleSave} disabled={saving || usernameStatus === 'taken'}
-              className="w-full py-4 rounded-2xl font-bold text-white text-sm disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)', boxShadow: '0 4px 20px rgba(236,72,153,0.35)' }}>
-              {saving ? 'Saving...' : 'Save My Glow Link 💜'}
-            </button>
-          </div>
-        )}
-
       </div>
 
-      {/* Post Modal */}
-      {showPostForm && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-end" onClick={() => setShowPostForm(false)}>
-          <div className="w-full rounded-t-3xl p-5 pb-8" style={{ background: '#1a0a14', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-lg">New Post</h3>
-              <div className="flex items-center gap-2">
-                <button onClick={handlePost} disabled={!postText.trim() || postingPost}
-                  className="px-5 py-2 rounded-full font-bold text-sm text-white disabled:opacity-40"
-                  style={{ background: 'linear-gradient(135deg,#c44a55,#ec4899)' }}>
-                  {postingPost ? '...' : 'Post'}
-                </button>
-                <button onClick={() => setShowPostForm(false)}><X size={20} className="text-gray-400" /></button>
-              </div>
+      {/* ── Scrollable Sections ────────────────────────── */}
+      <div className="px-4 space-y-3 pb-40">
+
+        {/* 1. Profile Identity */}
+        <SectionCard icon="🪪" title="Profile Identity" subtitle="Name, username, bio & more" defaultOpen>
+
+          <div>
+            <FieldLabel>Full Name</FieldLabel>
+            <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-sm text-gray-300 flex-1">{user?.full_name}</p>
+              <span className="text-[10px] text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">Managed by account</span>
             </div>
-            <textarea value={postText} onChange={e => setPostText(e.target.value.slice(0, 500))}
-              placeholder="What's on your mind? ✨"
-              className="w-full rounded-2xl px-4 py-3 text-sm text-white placeholder-gray-500 outline-none resize-none mb-3"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', minHeight: 100 }} />
-            <p className="text-xs text-gray-600 text-right mb-3">{postText.length}/500</p>
-            <div className="flex gap-2">
-              {['public', 'followers'].map(v => (
-                <button key={v} onClick={() => setPostVisibility(v)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold capitalize transition"
-                  style={{ background: postVisibility === v ? 'linear-gradient(135deg,#c44a55,#ec4899)' : 'rgba(255,255,255,0.05)', color: postVisibility === v ? '#fff' : '#9ca3af', border: `1px solid ${postVisibility === v ? 'transparent' : 'rgba(255,255,255,0.1)'}` }}>
-                  {v === 'public' ? '🌍 Public' : '👥 Followers'}
+          </div>
+
+          <div>
+            <FieldLabel>Display Name</FieldLabel>
+            <TextInput value={displayName} onChange={e => setDisplayName(e.target.value.slice(0,40))} placeholder="How you want to be known..." maxLength={40} />
+          </div>
+
+          <div>
+            <FieldLabel>Username</FieldLabel>
+            <div className="flex items-center gap-2 px-4 py-3 rounded-2xl"
+              style={{ background: 'rgba(255,255,255,0.07)', border: `1px solid ${usernameStatus === 'taken' ? 'rgba(239,68,68,0.5)' : usernameStatus === 'available' ? 'rgba(52,211,153,0.5)' : 'rgba(255,255,255,0.1)'}` }}>
+              <span className="text-pink-400 font-bold text-sm">@</span>
+              <input value={username}
+                onChange={e => checkUsername(e.target.value.replace(/[^a-z0-9_.]/gi,'').toLowerCase())}
+                maxLength={30} placeholder="yourname"
+                className="bg-transparent text-white outline-none flex-1 text-sm" />
+              {usernameStatus === 'checking' && <div className="w-4 h-4 border-2 border-gray-500 border-t-pink-400 rounded-full animate-spin" />}
+              {usernameStatus === 'available' && <Check size={15} className="text-green-400" />}
+              {usernameStatus === 'taken' && <X size={15} className="text-red-400" />}
+            </div>
+            <p className="text-[11px] text-gray-600 mt-1.5 px-1">girlsglowingup.com/glowlink/{username || '...'}</p>
+            {usernameStatus === 'taken' && (
+              <div className="mt-2 flex gap-2 flex-wrap">
+                {usernameSuggestions.map(s => (
+                  <button key={s} onClick={() => { setUsername(s); setUsernameStatus(''); }}
+                    className="text-xs px-3 py-1 rounded-full font-semibold"
+                    style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)', color: '#86efac' }}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <FieldLabel>Pronouns (optional)</FieldLabel>
+            <div className="flex gap-2 flex-wrap">
+              {PRONOUN_OPTIONS.map(p => (
+                <button key={p} onClick={() => setPronouns(pronouns === p ? '' : p)}
+                  className="text-xs px-3 py-1.5 rounded-full font-semibold transition"
+                  style={{ background: pronouns === p ? 'linear-gradient(135deg,#ec4899,#a855f7)' : 'rgba(255,255,255,0.06)', border: `1px solid ${pronouns === p ? 'transparent' : 'rgba(255,255,255,0.1)'}`, color: pronouns === p ? '#fff' : '#9ca3af' }}>
+                  {p}
                 </button>
               ))}
             </div>
           </div>
-        </div>
-      )}
 
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <FieldLabel>Bio</FieldLabel>
+              <span className="text-[10px] text-gray-600">{bio.length}/300</span>
+            </div>
+            <TextArea value={bio} onChange={e => setBio(e.target.value.slice(0,300))} placeholder="Tell your glow story..." maxLength={300} rows={3} />
+          </div>
+
+          <div>
+            <FieldLabel>Personal Motto / Tagline</FieldLabel>
+            <TextInput value={motto} onChange={e => setMotto(e.target.value.slice(0,150))} placeholder="Your power phrase..." maxLength={150} />
+          </div>
+
+          <div>
+            <FieldLabel>Glow Era</FieldLabel>
+            <div className="grid grid-cols-2 gap-2">
+              {GLOW_ERAS.map(era => (
+                <button key={era} onClick={() => setGlowEra(era)}
+                  className="px-3 py-2.5 rounded-xl text-xs font-semibold transition text-left"
+                  style={{ background: glowEra === era ? 'linear-gradient(135deg,#c44a55,#ec4899)' : 'rgba(255,255,255,0.05)', border: `1px solid ${glowEra === era ? 'transparent' : 'rgba(255,255,255,0.08)'}`, color: glowEra === era ? '#fff' : '#9ca3af' }}>
+                  {era}
+                </button>
+              ))}
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* 2. Personality & Vibe */}
+        <SectionCard icon="✨" title="Personality & Vibe" subtitle="Your energy, interests & mood">
+
+          <div>
+            <FieldLabel>Your Vibe</FieldLabel>
+            <div className="grid grid-cols-2 gap-2">
+              {VIBE_OPTIONS.map(v => (
+                <button key={v.id} onClick={() => setVibe(vibe === v.id ? '' : v.id)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-2xl text-sm font-semibold transition"
+                  style={{ background: vibe === v.id ? 'linear-gradient(135deg,rgba(236,72,153,0.3),rgba(168,85,247,0.3))' : 'rgba(255,255,255,0.05)', border: `1.5px solid ${vibe === v.id ? 'rgba(236,72,153,0.6)' : 'rgba(255,255,255,0.08)'}`, color: vibe === v.id ? '#f9a8d4' : '#9ca3af' }}>
+                  <span>{v.emoji}</span> <span>{v.label}</span>
+                  {vibe === v.id && <Check size={12} className="ml-auto text-pink-400" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <FieldLabel>Interests</FieldLabel>
+            <div className="flex gap-2 flex-wrap">
+              {INTEREST_OPTIONS.map(tag => (
+                <button key={tag} onClick={() => toggleInterest(tag)}
+                  className="text-xs px-3 py-1.5 rounded-full font-semibold transition"
+                  style={{ background: interests.includes(tag) ? 'linear-gradient(135deg,#ec4899,#a855f7)' : 'rgba(255,255,255,0.06)', border: `1px solid ${interests.includes(tag) ? 'transparent' : 'rgba(255,255,255,0.1)'}`, color: interests.includes(tag) ? '#fff' : '#9ca3af' }}>
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <FieldLabel>Current Mood</FieldLabel>
+            <TextInput value={featuredMood} onChange={e => setFeaturedMood(e.target.value.slice(0,80))} placeholder="How are you feeling right now?" maxLength={80} />
+          </div>
+
+          <div>
+            <FieldLabel>Current Goal</FieldLabel>
+            <TextInput value={featuredGoal} onChange={e => setFeaturedGoal(e.target.value.slice(0,150))} placeholder="What are you working toward?" maxLength={150} />
+          </div>
+
+          <div>
+            <FieldLabel>Favorite Affirmation</FieldLabel>
+            <TextInput value={featuredAffirmation} onChange={e => setFeaturedAffirmation(e.target.value.slice(0,150))} placeholder="Your current affirmation..." maxLength={150} />
+          </div>
+
+          <div>
+            <FieldLabel>Featured Quote</FieldLabel>
+            <TextArea value={featuredQuote} onChange={e => setFeaturedQuote(e.target.value.slice(0,200))} placeholder="A quote that defines you..." maxLength={200} rows={2} />
+          </div>
+        </SectionCard>
+
+        {/* 3. Profile Style */}
+        <SectionCard icon="🎨" title="Profile Style" subtitle="Theme, frame & visual identity">
+
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <FieldLabel>Profile Theme</FieldLabel>
+              <span className="text-[10px] text-gray-600">Unlock with points ✨</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {GLOW_THEMES.map(t => {
+                const isUnlocked = totalPoints >= t.requiredPoints;
+                const isActive = profileTheme === t.id;
+                return (
+                  <button key={t.id} onClick={() => isUnlocked && setProfileTheme(t.id)}
+                    className="relative rounded-2xl p-3 text-left transition-all overflow-hidden"
+                    style={{ background: isActive ? t.gradient : 'rgba(255,255,255,0.05)', border: `1.5px solid ${isActive ? t.accent : 'rgba(255,255,255,0.08)'}`, opacity: isUnlocked ? 1 : 0.5, boxShadow: isActive ? `0 4px 20px ${t.glow}` : 'none' }}>
+                    {!isUnlocked && <div className="absolute top-2 right-2"><Lock size={10} className="text-gray-500" /></div>}
+                    {isActive && <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center bg-white/20"><Check size={10} className="text-white" /></div>}
+                    <p className="text-lg mb-1">{t.emoji}</p>
+                    <p className="text-xs font-bold text-white">{t.name}</p>
+                    <p className="text-[10px] text-white/60">{t.requiredPoints === 0 ? 'Free' : `${t.requiredPoints} pts`}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <FieldLabel>Profile Frame</FieldLabel>
+            <div className="grid grid-cols-4 gap-2">
+              {PROFILE_FRAMES.map(f => {
+                const isUnlocked = totalPoints >= f.requiredPoints;
+                const isActive = profileFrame === f.id;
+                const fStyle = f.style(theme.accent);
+                return (
+                  <button key={f.id} onClick={() => isUnlocked && setProfileFrame(f.id)}
+                    className="flex flex-col items-center gap-1.5 p-2 rounded-2xl transition"
+                    style={{ background: isActive ? `${theme.accent}20` : 'rgba(255,255,255,0.05)', border: `1.5px solid ${isActive ? theme.accent : 'rgba(255,255,255,0.08)'}`, opacity: isUnlocked ? 1 : 0.5 }}>
+                    <div style={{ ...fStyle, borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+                      {f.emoji}
+                    </div>
+                    <p className="text-[9px] text-center text-gray-400 leading-tight">{f.name}</p>
+                    {!isUnlocked && <Lock size={8} className="text-gray-600" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Future premium placeholder */}
+          <div className="rounded-2xl p-3 flex items-center gap-3" style={{ background: 'rgba(251,191,36,0.05)', border: '1px dashed rgba(251,191,36,0.2)' }}>
+            <span className="text-xl">🔮</span>
+            <div>
+              <p className="text-xs font-bold text-yellow-400">Coming Soon: Premium Effects</p>
+              <p className="text-[11px] text-gray-500">Profile music, animations & seasonal styles</p>
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* 4. Glow Link */}
+        <SectionCard icon="🔗" title="Glow Link" subtitle={`glowlink/${username || '...'}`}>
+
+          <div className="px-3 py-3 rounded-2xl" style={{ background: 'rgba(0,0,0,0.3)' }}>
+            <p className="text-xs text-gray-500 mb-1">Your public link</p>
+            <p className="text-sm font-mono text-yellow-400 break-all">{glowLinkUrl}</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <button onClick={copyLink} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl transition"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <Copy size={18} className="text-pink-400" />
+              <span className="text-xs text-gray-400 font-medium">Copy</span>
+            </button>
+            <button onClick={() => navigator.share ? navigator.share({ url: glowLinkUrl }).catch(() => {}) : copyLink()}
+              className="flex flex-col items-center gap-1.5 py-3 rounded-2xl transition"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <Share2 size={18} className="text-purple-400" />
+              <span className="text-xs text-gray-400 font-medium">Share</span>
+            </button>
+            <button onClick={() => navigate(`/glowlink/${username || user?.email?.split('@')[0]}`)}
+              className="flex flex-col items-center gap-1.5 py-3 rounded-2xl transition"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <ExternalLink size={18} className="text-blue-400" />
+              <span className="text-xs text-gray-400 font-medium">View</span>
+            </button>
+          </div>
+
+          <div>
+            <FieldLabel>Custom Links ({links.length}/3)</FieldLabel>
+            <div className="space-y-2 mb-2">
+              {links.map((link, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-3 rounded-2xl"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <Link2 size={14} className="text-pink-400 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white">{link.label}</p>
+                    <p className="text-xs text-gray-500 truncate">{link.url}</p>
+                  </div>
+                  <button onClick={() => setLinks(prev => prev.filter((_, j) => j !== i))} className="text-gray-600 hover:text-red-400 transition p-1">
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            {links.length < 3 && !showLinkForm && (
+              <button onClick={() => setShowLinkForm(true)}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-bold text-white"
+                style={{ background: 'linear-gradient(135deg,rgba(236,72,153,0.2),rgba(168,85,247,0.2))', border: '1px solid rgba(236,72,153,0.3)' }}>
+                <Plus size={15} /> Add Link
+              </button>
+            )}
+            {showLinkForm && (
+              <div className="p-3 rounded-2xl space-y-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(236,72,153,0.15)' }}>
+                <TextInput value={newLinkLabel} onChange={e => setNewLinkLabel(e.target.value)} placeholder="Label (e.g. TikTok, Portfolio)" />
+                <TextInput value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} placeholder="https://..." />
+                <div className="flex gap-2">
+                  <button onClick={() => { setShowLinkForm(false); setNewLinkLabel(''); setNewLinkUrl(''); }}
+                    className="flex-1 py-2.5 rounded-xl text-sm text-gray-400" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    Cancel
+                  </button>
+                  <button onClick={() => {
+                    if (newLinkLabel.trim() && newLinkUrl.trim()) {
+                      setLinks(prev => [...prev, { label: newLinkLabel.trim(), url: newLinkUrl.trim().startsWith('http') ? newLinkUrl.trim() : 'https://' + newLinkUrl.trim() }]);
+                      setShowLinkForm(false); setNewLinkLabel(''); setNewLinkUrl('');
+                    }
+                  }} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white"
+                    style={{ background: 'linear-gradient(135deg,#c44a55,#ec4899)' }}>
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </SectionCard>
+
+        {/* 5. Privacy & Social */}
+        <SectionCard icon="🔒" title="Privacy & Social" subtitle="Control who sees what">
+          <div className="rounded-2xl overflow-hidden divide-y" style={{ border: '1px solid rgba(255,255,255,0.08)', divideColor: 'rgba(255,255,255,0.06)' }}>
+            {[
+              { key: 'public_profile',    label: 'Public Profile',     desc: 'Anyone can view your Glow Link', emoji: '🌍' },
+              { key: 'allow_followers',   label: 'Allow Followers',    desc: 'Let others follow your glow', emoji: '💜' },
+              { key: 'show_achievements', label: 'Show Achievements',  desc: 'Display badges & stats', emoji: '🏅' },
+              { key: 'show_streak',       label: 'Show Streak',        desc: 'Show your day streak', emoji: '🔥' },
+              { key: 'show_links',        label: 'Show Links',         desc: 'Show your custom links', emoji: '🔗' },
+              { key: 'show_timeline',     label: 'Show Timeline',      desc: 'Show your posts', emoji: '📝' },
+              { key: 'show_photos',       label: 'Show Photos',        desc: 'Show your photos tab', emoji: '📸' },
+            ].map(item => (
+              <div key={item.key} className="flex items-center justify-between px-4 py-3.5" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                <div className="flex items-center gap-3">
+                  <span className="text-base">{item.emoji}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{item.label}</p>
+                    <p className="text-xs text-gray-500">{item.desc}</p>
+                  </div>
+                </div>
+                <Toggle on={!!privacy[item.key]} onToggle={() => setPrivacy(p => ({ ...p, [item.key]: !p[item.key] }))} />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        {/* 6. Account */}
+        <SectionCard icon="⚙️" title="Account Settings" subtitle="Email, security & more">
+
+          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <span className="text-base">📧</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-500">Email</p>
+              <p className="text-sm text-white truncate">{user?.email}</p>
+            </div>
+            <span className="text-[10px] text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">Verified</span>
+          </div>
+
+          <button onClick={() => navigate('/support')}
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition hover:opacity-80"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <span className="text-base">🔑</span>
+            <span className="text-sm font-semibold text-white flex-1 text-left">Password Reset</span>
+            <ChevronRight size={15} className="text-gray-500" />
+          </button>
+
+          <button onClick={() => navigate('/support')}
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition hover:opacity-80"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <Bell size={16} className="text-gray-400" />
+            <span className="text-sm font-semibold text-white flex-1 text-left">Notification Settings</span>
+            <ChevronRight size={15} className="text-gray-500" />
+          </button>
+
+          <button onClick={() => base44.auth.logout()}
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition hover:opacity-80"
+            style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)' }}>
+            <LogOut size={16} className="text-red-400" />
+            <span className="text-sm font-semibold text-red-400 flex-1 text-left">Sign Out</span>
+          </button>
+        </SectionCard>
+
+      </div>
+
+      {/* ── Floating Save Bar (safe-area aware) ────────── */}
+      <div className="fixed bottom-0 left-0 right-0 z-40"
+        style={{
+          background: 'rgba(13,6,8,0.97)',
+          backdropFilter: 'blur(24px)',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 12px)',
+          paddingTop: 12,
+          paddingLeft: 16,
+          paddingRight: 16,
+          // Sits above the BottomNav (which is ~64px)
+          marginBottom: 64,
+        }}>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={handleSave}
+          disabled={saving || usernameStatus === 'taken'}
+          className="w-full py-4 rounded-2xl font-bold text-white text-base disabled:opacity-50"
+          style={{ background: 'linear-gradient(135deg,#c44a55,#ec4899)', boxShadow: '0 4px 24px rgba(236,72,153,0.4)' }}>
+          {saving ? (
+            <span className="flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              Saving...
+            </span>
+          ) : '✨ Save Profile'}
+        </motion.button>
+      </div>
+
+      {/* ── Bottom Nav ─────────────────────────────────── */}
+      <BottomNav active="me" />
+
+      {/* ── Preview Modal ───────────────────────────────── */}
       {showPreview && (
         <GlowProfilePreview
           profile={profile}
@@ -692,8 +743,6 @@ export default function MyGlowLink() {
           onClose={() => setShowPreview(false)}
         />
       )}
-
-      <BottomNav active="connect" />
     </div>
   );
 }
