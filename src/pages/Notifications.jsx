@@ -1,0 +1,191 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import UserAvatarDisplay from '@/components/UserAvatarDisplay';
+import BottomNav from '@/components/BottomNav';
+import { ChevronLeft, Bell, BellOff } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const TYPE_META = {
+  follow:       { emoji: '💜', label: 'followed you', color: '#ec4899' },
+  reaction:     { emoji: '✨', label: 'reacted to your Glow Link', color: '#a855f7' },
+  profile_view: { emoji: '👀', label: 'viewed your Glow Link', color: '#3b82f6' },
+  shoutout:     { emoji: '📣', label: 'shouted you out', color: '#f59e0b' },
+};
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+export default function Notifications() {
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [actorProfiles, setActorProfiles] = useState({});
+
+  useEffect(() => {
+    base44.auth.me().then(async (u) => {
+      setUser(u);
+      const notifs = await base44.entities.Notification.filter(
+        { recipient_email: u.email },
+        '-created_date',
+        50
+      );
+      setNotifications(notifs);
+
+      // Fetch actor profiles for avatars
+      const uniqueEmails = [...new Set(notifs.map(n => n.actor_email).filter(Boolean))];
+      if (uniqueEmails.length) {
+        const profiles = await Promise.all(
+          uniqueEmails.map(email =>
+            base44.entities.UserProfile.filter({ user_email: email }).then(r => r[0] || null)
+          )
+        );
+        const map = {};
+        uniqueEmails.forEach((email, i) => { if (profiles[i]) map[email] = profiles[i]; });
+        setActorProfiles(map);
+      }
+
+      // Mark all as read
+      const unread = notifs.filter(n => !n.is_read);
+      unread.forEach(n => base44.entities.Notification.update(n.id, { is_read: true }));
+      setLoading(false);
+    }).catch(() => base44.auth.redirectToLogin());
+  }, []);
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  return (
+    <div className="min-h-screen text-white pb-28" style={{ backgroundColor: '#0d0608' }}>
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute rounded-full" style={{ width: 400, height: 400, top: -100, left: -80, background: 'radial-gradient(circle, rgba(236,72,153,0.15), transparent 70%)', filter: 'blur(80px)' }} />
+      </div>
+
+      {/* Header */}
+      <div className="sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
+        style={{ background: 'rgba(13,6,8,0.94)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <button onClick={() => navigate(-1)}
+          className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.08)' }}>
+          <ChevronLeft size={20} />
+        </button>
+        <div className="flex-1">
+          <h1 className="text-base font-bold text-white flex items-center gap-2">
+            <Bell size={16} className="text-pink-400" />
+            Notifications
+            {unreadCount > 0 && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                style={{ background: 'linear-gradient(135deg,#c44a55,#ec4899)', color: '#fff' }}>
+                {unreadCount} new
+              </span>
+            )}
+          </h1>
+          <p className="text-[11px] text-gray-500">Follows &amp; Glow Link activity</p>
+        </div>
+      </div>
+
+      <div className="relative z-10 px-4 pt-4">
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" />
+          </div>
+        ) : notifications.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center py-24 text-center px-8"
+          >
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
+              style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.2)' }}>
+              <BellOff size={32} className="text-pink-400 opacity-60" />
+            </div>
+            <h2 className="text-lg font-bold text-white mb-2">No notifications yet</h2>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              When someone follows you or interacts with your Glow Link, you'll see it here.
+            </p>
+            <button
+              onClick={() => navigate('/my-glow-link')}
+              className="mt-6 px-6 py-3 rounded-full text-sm font-bold text-white"
+              style={{ background: 'linear-gradient(135deg,#c44a55,#ec4899)' }}>
+              Set Up Glow Link ✨
+            </button>
+          </motion.div>
+        ) : (
+          <div className="space-y-2">
+            <AnimatePresence>
+              {notifications.map((notif, i) => {
+                const meta = TYPE_META[notif.type] || TYPE_META.follow;
+                const actorProfile = actorProfiles[notif.actor_email];
+                const isUnread = !notif.is_read;
+
+                return (
+                  <motion.button
+                    key={notif.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    onClick={() => notif.link && navigate(notif.link)}
+                    className="w-full flex items-center gap-3 p-4 rounded-3xl text-left transition active:scale-98"
+                    style={{
+                      background: isUnread
+                        ? `linear-gradient(135deg, rgba(236,72,153,0.07), rgba(168,85,247,0.07))`
+                        : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${isUnread ? 'rgba(236,72,153,0.2)' : 'rgba(255,255,255,0.07)'}`,
+                    }}
+                  >
+                    {/* Avatar or emoji */}
+                    <div className="relative flex-shrink-0">
+                      {actorProfile ? (
+                        <UserAvatarDisplay profile={actorProfile} size={46} fallback={(notif.actor_username?.[0] || '?').toUpperCase()} showRing={false} />
+                      ) : (
+                        <div className="w-11 h-11 rounded-full flex items-center justify-center text-xl"
+                          style={{ background: `${meta.color}20`, border: `1px solid ${meta.color}40` }}>
+                          {meta.emoji}
+                        </div>
+                      )}
+                      {/* Type badge */}
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs"
+                        style={{ background: meta.color, boxShadow: '0 0 0 2px #0d0608' }}>
+                        {meta.emoji}
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-white leading-snug">
+                        <span style={{ color: meta.color }}>@{notif.actor_username || 'Someone'}</span>
+                        {' '}{meta.label}
+                      </p>
+                      {notif.message && (
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">{notif.message}</p>
+                      )}
+                      <p className="text-[10px] text-gray-600 mt-1">{timeAgo(notif.created_date)}</p>
+                    </div>
+
+                    {/* Unread dot */}
+                    {isUnread && (
+                      <div className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ background: '#ec4899', boxShadow: '0 0 6px rgba(236,72,153,0.6)' }} />
+                    )}
+                  </motion.button>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      <BottomNav active="connect" />
+    </div>
+  );
+}

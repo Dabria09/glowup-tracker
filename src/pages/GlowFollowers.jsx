@@ -71,6 +71,16 @@ export default function GlowFollowers() {
         status: 'active',
       });
       setFollowing(prev => ({ ...prev, [person.user_email]: record.id }));
+      // Create follow notification
+      base44.entities.Notification.create({
+        recipient_email: person.user_email,
+        type: 'follow',
+        actor_email: currentUser.email,
+        actor_username: currentUser.email.split('@')[0],
+        message: 'Started following you',
+        link: `/glowlink/${person.username || person.user_email.split('@')[0]}/followers?type=followers`,
+        is_read: false,
+      }).catch(() => {});
     }
   };
 

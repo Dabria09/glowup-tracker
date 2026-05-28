@@ -37,6 +37,7 @@ const SECTIONS = [
       { icon: '🌸', label: 'Community Hub', desc: 'Find your people and join groups', route: '/community-hub', accent: '#10b981' },
       { icon: '🎓', label: 'Mentorship', desc: 'Connect with mentors who get it', route: '/mentorship', accent: GOLD },
       { icon: '🌐', label: 'My Glow Link', desc: 'Your shareable profile page', route: '/my-glow-link', accent: PINK },
+      { icon: '🔔', label: 'Notifications', desc: 'Follows and Glow Link activity', route: '/notifications', accent: '#a855f7' },
     ],
   },
   {

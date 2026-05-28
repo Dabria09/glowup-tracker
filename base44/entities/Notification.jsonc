@@ -1,0 +1,50 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string",
+      "title": "Recipient Email"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "enum": [
+        "follow",
+        "reaction",
+        "profile_view",
+        "shoutout"
+      ],
+      "default": "follow"
+    },
+    "actor_email": {
+      "type": "string",
+      "title": "Actor Email"
+    },
+    "actor_username": {
+      "type": "string",
+      "title": "Actor Username"
+    },
+    "actor_avatar": {
+      "type": "string",
+      "title": "Actor Avatar URL"
+    },
+    "message": {
+      "type": "string",
+      "title": "Message"
+    },
+    "link": {
+      "type": "string",
+      "title": "Link (route)"
+    },
+    "is_read": {
+      "type": "boolean",
+      "title": "Is Read",
+      "default": false
+    }
+  },
+  "required": [
+    "recipient_email",
+    "type"
+  ]
+}

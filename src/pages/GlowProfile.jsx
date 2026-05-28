@@ -92,6 +92,16 @@ export default function GlowProfile() {
       setIsFollowing(true);
       setFollowRecordId(record.id);
       setFollowersCount(c => c + 1);
+      // Create follow notification
+      base44.entities.Notification.create({
+        recipient_email: profile.user_email,
+        type: 'follow',
+        actor_email: currentUser.email,
+        actor_username: currentUser.email.split('@')[0],
+        message: 'Started following you',
+        link: `/glowlink/${profile.username || profile.user_email.split('@')[0]}/followers?type=followers`,
+        is_read: false,
+      }).catch(() => {});
     }
     setFollowLoading(false);
   };
