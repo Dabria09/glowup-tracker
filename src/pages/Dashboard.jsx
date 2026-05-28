@@ -8,6 +8,7 @@ import { Search, X, Plus, Check, ChevronRight, Settings } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import CustomizeModal from '@/components/CustomizeModal';
 import AvatarPreview from '@/components/avatar/AvatarPreview';
+import UserAvatarDisplay from '@/components/UserAvatarDisplay';
 
 const CDN = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663618716083/WDWw94kRE3Ddo7F9rGLvjC/';
 const MANUS = 'https://gguapp-wdww94kr.manus.space/manus-storage/';
@@ -342,6 +343,7 @@ export default function Dashboard() {
   const { worldInfo } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const [profileData, setProfileData] = useState(null);
   const [avatarConfig, setAvatarConfig] = useState(null);
   const [search, setSearch] = useState('');
   const [showCustomize, setShowCustomize] = useState(false);
@@ -396,9 +398,10 @@ export default function Dashboard() {
       setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
       if (profiles.length) {
-        const profile = profiles[0];
-        if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
-        if (profile.avatar_builder_config) { try { setAvatarConfig(JSON.parse(profile.avatar_builder_config)); } catch {} }
+      const profile = profiles[0];
+      setProfileData(profile);
+      if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+      if (profile.avatar_builder_config) { try { setAvatarConfig(JSON.parse(profile.avatar_builder_config)); } catch {} }
       }
     }).catch(() => {});
     return () => window.removeEventListener('focus', onFocus);
@@ -498,12 +501,8 @@ export default function Dashboard() {
 
         {/* ── GREETING & AVATAR ─────────────────────────────────── */}
         <div className="flex items-center gap-4 px-5 pt-2 pb-4">
-          <button onClick={() => navigate('/avatar')}
-            className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #e8526d, #a855f7)', boxShadow: '0 0 0 2px rgba(232,82,109,0.4), 0 4px 16px rgba(0,0,0,0.4)' }}>
-            {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" alt="avatar" />
-              : avatarConfig ? <AvatarPreview config={avatarConfig} size={44} />
-              : <span className="text-xl font-bold">{firstName[0]}</span>}
+          <button onClick={() => navigate('/avatar')}>
+            <UserAvatarDisplay profile={profileData} size={54} fallback={firstName[0]} showRing={true} />
           </button>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] text-gray-500 font-medium">{greetingEmoji[greetingKey]} {t(greetingKey)}</p>
