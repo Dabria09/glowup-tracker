@@ -138,6 +138,7 @@ export default function GlowUpChallengeDetail() {
 
   // Returns true if the day is accessible (completed OR the next unlocked day)
   const canAccessDay = (day) => {
+    if (user?.role === 'admin') return true;
     if (completedDays.includes(day)) return true;
     const nextDay = completedDays.length + 1;
     if (day !== nextDay) return false;
