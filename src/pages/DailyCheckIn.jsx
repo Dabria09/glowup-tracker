@@ -53,7 +53,11 @@ const MOODS = [
 ];
 
 function getTodayKey() {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function getTodayFocus() {
@@ -86,7 +90,7 @@ export default function DailyCheckIn() {
       if (profiles.length) setProfile(profiles[0]);
       // Check if already checked in today
       const entries = await base44.entities.DiaryEntry.filter({ user_email: u.email });
-      const todayCheckIn = entries.find(e => e.tags && e.tags.includes('daily-checkin') && e.created_date?.slice(0, 10) === todayKey);
+      const todayCheckIn = entries.find(e => e.tags && e.tags.includes(`daily-checkin-${todayKey}`));
       if (todayCheckIn) { setAlreadyCheckedIn(true); setTodayEntry(todayCheckIn); }
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
@@ -101,7 +105,7 @@ export default function DailyCheckIn() {
       title: `Daily Check-In — ${todayFocus.label}`,
       content: JSON.stringify({ mood, confidence, stress, goals, affirmation, focus: todayFocus.label }),
       mood: mood.label,
-      tags: 'daily-checkin',
+      tags: `daily-checkin,daily-checkin-${todayKey}`,
     });
     await awardPoints(user.email, 'daily_checkin');
     setAlreadyCheckedIn(true);
