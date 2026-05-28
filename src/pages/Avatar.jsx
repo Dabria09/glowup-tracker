@@ -3,11 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Camera, Upload, Trash2, Sparkles, Crown } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
-import AvatarBuilder from '@/components/avatar/AvatarBuilder';
 
 export default function Avatar() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState('photo');
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
@@ -141,10 +139,7 @@ export default function Avatar() {
       </div>
 
       {/* Info banner */}
-      <div className="mx-4 mt-2 mb-4 space-y-3">
-        <div className="bg-gradient-to-r from-pink-900/40 to-purple-900/40 border border-pink-700/30 rounded-xl p-3">
-          <p className="text-xs text-pink-200">✨ Create your unique Roblox-style avatar! Mix and match hundreds of styles.</p>
-        </div>
+      <div className="mx-4 mt-2 mb-6">
         <button
           onClick={() => navigate('/glow-persona')}
           className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-500 to-pink-600 text-white font-bold text-sm hover:opacity-90 transition shadow-xl shadow-pink-500/30 relative overflow-hidden group"
@@ -156,24 +151,8 @@ export default function Avatar() {
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex rounded-full bg-gray-800/60 p-1 mx-4 mt-3 mb-6">
-        <button
-          onClick={() => setTab('photo')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-semibold transition ${tab === 'photo' ? 'bg-white text-black' : 'text-gray-400'}`}
-        >
-          <Camera size={15} /> My Photo
-        </button>
-        <button
-          onClick={() => setTab('build')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-semibold transition ${tab === 'build' ? 'bg-white text-black' : 'text-gray-400'}`}
-        >
-          ✨ Build Avatar
-        </button>
-      </div>
-
-      {tab === 'photo' ? (
-        <div className="flex flex-col items-center px-4">
+      {/* Photo Upload Section */}
+      <div className="flex flex-col items-center px-4">
           {/* Circle photo */}
           <div
             className="w-44 h-44 rounded-full border-4 border-purple-600/60 overflow-hidden bg-gray-800 flex items-center justify-center mb-3 relative select-none"
@@ -252,10 +231,7 @@ export default function Avatar() {
           )}
 
           <p className="text-xs text-gray-600">Max file size: 5 MB · Supported: JPG, PNG, WEBP, GIF</p>
-        </div>
-      ) : (
-        <AvatarBuilder profile={profile} setProfile={setProfile} user={user} />
-      )}
+      </div>
 
       <BottomNav active="me" />
     </div>
