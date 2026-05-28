@@ -101,7 +101,7 @@ export default function Home() {
             <div className="flex items-center gap-3 w-full" style={{ color: 'rgba(196,148,158,0.4)', fontSize: 11, letterSpacing: 1 }}>
               <div style={{ flex: 1, height: 1, background: 'rgba(232,82,109,0.18)' }} /><span>OR</span><div style={{ flex: 1, height: 1, background: 'rgba(232,82,109,0.18)' }} />
             </div>
-            <button onClick={() => base44.auth.redirectToLogin()} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5" style={{ background: 'transparent', border: `2px solid rgba(241,182,16,0.55)`, color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 15, fontWeight: 700, padding: '15px 28px', borderRadius: 16, cursor: 'pointer' }}>
+            <button onClick={() => base44.auth.redirectToLogin('/mentorship')} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5" style={{ background: 'transparent', border: `2px solid rgba(241,182,16,0.55)`, color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 15, fontWeight: 700, padding: '15px 28px', borderRadius: 16, cursor: 'pointer' }}>
               🎓 Mentor Sign In
             </button>
           </div>

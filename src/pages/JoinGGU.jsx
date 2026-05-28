@@ -47,8 +47,8 @@ export default function JoinGGU() {
     setPassValid(VALID_PASSES.includes(v));
   };
 
-  const signIn = () => base44.auth.redirectToLogin();
-  const createAccount = () => { setShowSuccess(true); setTimeout(() => base44.auth.redirectToLogin(), 2500); };
+  const signIn = () => base44.auth.redirectToLogin('/dashboard');
+  const createAccount = () => { setShowSuccess(true); setTimeout(() => base44.auth.redirectToLogin('/onboarding'), 2500); };
 
   const dot = (s, active, done) => (
     <div key={s} className="rounded-full" style={{ width: 8, height: 8, background: done ? GOLD : active ? PINK : 'rgba(232,82,109,0.2)', border: `1px solid ${done ? GOLD : active ? PINK : 'rgba(232,82,109,0.3)'}`, boxShadow: active ? '0 0 8px rgba(232,82,109,0.6)' : 'none' }} />
@@ -90,8 +90,8 @@ export default function JoinGGU() {
               <button onClick={signIn} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg,${PINK_DEEP},${PINK} 40%,${PINK_HOT} 100%)`, color: 'white', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 15, fontWeight: 800, padding: 16, borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: '0 8px 28px rgba(232,82,109,0.45)' }}>
                 ✦ Sign In with Google
               </button>
-              <button onClick={signIn} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 mt-2.5" style={{ background: 'transparent', border: `2px solid rgba(241,182,16,0.4)`, color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 14, fontWeight: 700, padding: 13, borderRadius: 14, cursor: 'pointer' }}>
-                🎓 Mentor Sign In
+              <button onClick={() => base44.auth.redirectToLogin('/mentorship')} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 mt-2.5" style={{ background: 'transparent', border: `2px solid rgba(241,182,16,0.4)`, color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 14, fontWeight: 700, padding: 13, borderRadius: 14, cursor: 'pointer' }}>
+                🎓 Mentor Sign In → Mentor Hub
               </button>
               <div className="flex items-center gap-2.5 my-3.5" style={{ color: 'rgba(196,148,158,0.4)', fontSize: 11, letterSpacing: 1 }}>
                 <div style={{ flex: 1, height: 1, background: 'rgba(232,82,109,0.18)' }} /><span>OR</span><div style={{ flex: 1, height: 1, background: 'rgba(232,82,109,0.18)' }} />
