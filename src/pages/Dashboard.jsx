@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import useAgeGroup from '@/lib/useAgeGroup';
 import useTranslation from '@/lib/useTranslation';
 import { base44 } from '@/api/base44Client';
@@ -205,7 +206,7 @@ export default function Dashboard() {
   const [bgImage, setBgImage] = useState(null);
   const [bgImagePos, setBgImagePos] = useState({ x: 50, y: 50 });
   const [totalPoints, setTotalPoints] = useState(0);
-  const [homeAppIds] = useState(() => loadSavedIds('ggu_home_apps', DEFAULT_HOME_IDS));
+  const [homeAppIds, setHomeAppIds] = useState(() => loadSavedIds('ggu_home_apps', DEFAULT_HOME_IDS));
   const [quickIds, setQuickIds] = useState(() => loadSavedIds('ggu_quick_access', DEFAULT_QUICK_IDS));
   const [showQuickAccess, setShowQuickAccess] = useState(() => { try { return localStorage.getItem('ggu_show_quick') !== 'false'; } catch { return true; } });
   const [showQuickPicker, setShowQuickPicker] = useState(false);
@@ -213,6 +214,7 @@ export default function Dashboard() {
   const homeApps = homeAppIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean);
   const quickApps = quickIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean);
 
+  useEffect(() => { localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds)); }, [homeAppIds]);
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
   useEffect(() => { localStorage.setItem('ggu_show_quick', showQuickAccess); }, [showQuickAccess]);
   useEffect(() => { localStorage.setItem('ggu_bg_color', bgColor); }, [bgColor]);
@@ -349,16 +351,46 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Home Apps — fixed grid */}
+        {/* Home Apps — draggable iPhone-style grid */}
         <div className="px-4 mb-8">
-          <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('your_world')}</p>
-          <div className="grid grid-cols-4 gap-x-2 gap-y-5">
-            {homeApps.map(app => <HomeAppIcon key={app.id} app={app} onNavigate={navigate} />)}
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-bold tracking-widest text-gray-500">{t('your_world')}</p>
+            <p className="text-[10px] text-gray-600">Hold &amp; drag to rearrange</p>
           </div>
+          <DragDropContext onDragEnd={(result) => {
+            if (!result.destination) return;
+            const items = [...homeAppIds];
+            const [moved] = items.splice(result.source.index, 1);
+            items.splice(result.destination.index, 0, moved);
+            setHomeAppIds(items);
+          }}>
+            <Droppable droppableId="home-apps" direction="horizontal">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-4 gap-x-2 gap-y-5">
+                  {homeApps.map((app, index) => (
+                    <Draggable key={app.id} draggableId={app.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          style={provided.draggableProps.style}
+                          className={`transition-transform ${snapshot.isDragging ? 'scale-110 z-50 opacity-80' : ''}`}
+                        >
+                          <HomeAppIcon app={app} onNavigate={snapshot.isDragging ? () => {} : navigate} />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </div>
 
         {/* Spacer between apps and social */}
-        <div className="mx-4 mb-6 border-t border-white/8" />
+        <div className="mx-4 mb-8 border-t border-white/10" />
 
         {/* Glow Everywhere — Social */}
         <div className="px-4 mb-6">
