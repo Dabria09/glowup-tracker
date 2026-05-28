@@ -382,16 +382,29 @@ export default function Dashboard() {
 
   useEffect(() => {
     let email = null;
-    const checkCheckin = async (userEmail) => {
-      const _now = new Date();
-      const today = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
 
-      if (localStorage.getItem('ggu_checkin_date') === today) { setCheckedInToday(true); return; }
-      const rows = await base44.entities.DiaryEntry.filter({ user_email: userEmail, date: today });
-      if (rows.length > 0) { localStorage.setItem('ggu_checkin_date', today); setCheckedInToday(true); }
+    const getTodayKey = () => {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     };
-    const onFocus = () => { if (email) checkCheckin(email); };
-    window.addEventListener('focus', onFocus);
+
+    const checkCheckin = async (userEmail) => {
+      const today = getTodayKey();
+      const lsKey = `ggu_checkin_${userEmail}_date`;
+      // Fast path: localStorage already recorded for this user + today
+      if (localStorage.getItem(lsKey) === today) { setCheckedInToday(true); return; }
+      // Slow path: query DB (same tag format as DailyCheckIn page)
+      const rows = await base44.entities.DiaryEntry.filter({ user_email: userEmail });
+      const found = rows.find(e => e.tags && e.tags.includes(`daily-checkin-${today}`));
+      if (found) { localStorage.setItem(lsKey, today); setCheckedInToday(true); }
+      else { setCheckedInToday(false); }
+    };
+
+    const onVisibility = () => { if (email && document.visibilityState === 'visible') checkCheckin(email); };
+    const onCheckinComplete = () => { if (email) checkCheckin(email); };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('ggu_checkin_complete', onCheckinComplete);
+
     base44.auth.me().then(async (u) => {
       email = u.email;
       setUser(u);
@@ -400,13 +413,17 @@ export default function Dashboard() {
       setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
       if (profiles.length) {
-      const profile = profiles[0];
-      setProfileData(profile);
-      if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
-      if (profile.avatar_builder_config) { try { setAvatarConfig(JSON.parse(profile.avatar_builder_config)); } catch {} }
+        const profile = profiles[0];
+        setProfileData(profile);
+        if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+        if (profile.avatar_builder_config) { try { setAvatarConfig(JSON.parse(profile.avatar_builder_config)); } catch {} }
       }
     }).catch(() => {});
-    return () => window.removeEventListener('focus', onFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('ggu_checkin_complete', onCheckinComplete);
+    };
   }, []);
 
   // ── Drag handlers ────────────────────────────────────────────────────────────
@@ -519,8 +536,21 @@ export default function Dashboard() {
         </div>
 
         {/* ── DAILY GLOW CHECK-IN BANNER ────────────────────────── */}
-        {!checkedInToday && (
-          <div className="px-5 mb-5">
+        <div className="px-5 mb-5">
+          {checkedInToday ? (
+            <div className="w-full flex items-center gap-4 px-4 py-4 rounded-[22px]"
+              style={{ background: 'linear-gradient(135deg, rgba(52,211,153,0.18), rgba(16,185,129,0.12))', border: '1px solid rgba(52,211,153,0.3)', backdropFilter: 'blur(16px)' }}>
+              <div className="w-12 h-12 rounded-[14px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(52,211,153,0.2)' }}>
+                <span className="text-2xl">✅</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold tracking-wider text-green-400 mb-0.5 uppercase">Daily Glow Check-In</p>
+                <p className="font-bold text-white text-[15px]">Checked in today ✨</p>
+                <p className="text-[11px] text-white/40">Come back tomorrow for your next check-in</p>
+              </div>
+              <span className="text-green-400 text-lg flex-shrink-0">🌟</span>
+            </div>
+          ) : (
             <button onClick={() => navigate('/daily-checkin')}
               className="w-full flex items-center gap-4 px-4 py-4 rounded-[22px] text-left active:scale-98 transition-all"
               style={{ background: 'linear-gradient(135deg, rgba(139,44,170,0.6), rgba(232,82,109,0.5))', border: '1px solid rgba(232,82,109,0.35)', backdropFilter: 'blur(16px)', boxShadow: '0 8px 32px rgba(232,82,109,0.2)' }}>
@@ -536,8 +566,8 @@ export default function Dashboard() {
                 <ChevronRight size={16} className="text-white" />
               </div>
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* ── SEARCH ───────────────────────────────────────────── */}
         <div className="px-5 mb-5 relative">

@@ -108,8 +108,10 @@ export default function DailyCheckIn() {
       tags: `daily-checkin,daily-checkin-${todayKey}`,
       date: todayKey,
     });
-    localStorage.setItem('ggu_checkin_date', todayKey);
+    localStorage.setItem(`ggu_checkin_${user.email}_date`, todayKey);
     await awardPoints(user.email, 'daily_checkin');
+    // Notify Dashboard to refresh check-in state immediately
+    window.dispatchEvent(new CustomEvent('ggu_checkin_complete'));
     setAlreadyCheckedIn(true);
     setSubmitting(false);
     toast.success('Check-in complete! +10 pts ✨');
