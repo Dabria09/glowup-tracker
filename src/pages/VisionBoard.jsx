@@ -473,7 +473,7 @@ export default function VisionBoard() {
         {/* Word Input Modal */}
         {showWordInput && (
           <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" onClick={() => setShowWordInput(false)}>
-            <div className="w-full max-w-lg rounded-t-3xl p-6" style={{ background: activeTheme.bg, border: `1px solid ${activeTheme.border}` }} onClick={e => e.stopPropagation()}>
+            <div className="w-full max-w-lg rounded-t-3xl p-6" style={{ background: activeTheme.bg, border: `1px solid ${activeTheme.border}`, paddingBottom: 'calc(1.5rem + var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px))' }} onClick={e => e.stopPropagation()}>
               <p className="font-bold text-lg mb-1" style={{ color: activeTheme.text }}>Add a Word or Phrase</p>
               <p className="text-xs mb-4" style={{ color: activeTheme.caption }}>A word, mantra, or short phrase displayed as a styled tile</p>
               <input autoFocus value={wordText} onChange={e => setWordText(e.target.value)}
