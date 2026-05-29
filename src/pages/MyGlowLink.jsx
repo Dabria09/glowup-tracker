@@ -702,18 +702,7 @@ export default function MyGlowLink() {
       </div>
 
       {/* ── Floating Save Bar (safe-area aware) ────────── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40"
-        style={{
-          background: 'rgba(13,6,8,0.97)',
-          backdropFilter: 'blur(24px)',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
-          paddingBottom: 'max(env(safe-area-inset-bottom), 12px)',
-          paddingTop: 12,
-          paddingLeft: 16,
-          paddingRight: 16,
-          // Sits above the BottomNav (which is ~64px)
-          marginBottom: 64,
-        }}>
+      <div style={{ position: 'fixed', bottom: 'calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px))', left: 0, right: 0, zIndex: 40, background: 'rgba(13,6,8,0.97)', backdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,255,255,0.08)', padding: '12px 16px' }}>
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={handleSave}

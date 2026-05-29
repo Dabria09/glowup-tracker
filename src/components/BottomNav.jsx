@@ -16,7 +16,7 @@ export default function BottomNav({ active }) {
   ];
 
   return (
-    <div style={{position:'fixed',bottom:'0',left:'0',right:'0',zIndex:'9999',margin:'0',padding:'0',width:'100%',background:'rgba(8,6,20,0.95)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',borderTop:'1px solid rgba(255,255,255,0.15)',boxShadow:'0 -4px 30px rgba(0,0,0,0.5)'}}>
+    <div style={{position:'fixed',bottom:'0',left:'0',right:'0',zIndex:'9999',margin:'0',padding:'0',width:'100%',background:'rgba(8,6,20,0.95)',backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',borderTop:'1px solid rgba(255,255,255,0.15)',boxShadow:'0 -4px 30px rgba(0,0,0,0.5)',paddingBottom:'env(safe-area-inset-bottom, 0px)'}}>
       <div className="flex items-center justify-around px-2 py-2" style={{width:'100%',boxSizing:'border-box'}}>
       {tabs.map(tab => {
         const Icon = tab.icon;

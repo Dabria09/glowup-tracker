@@ -176,7 +176,7 @@ export default function MyGoals() {
           onClick={() => setShowForm(false)}
         >
           <div
-            className="absolute bottom-0 left-0 right-0 rounded-t-3xl"
+            className="absolute bottom-0 left-0 right-0 rounded-t-3xl bottom-sheet"
             style={{
               background: '#1a0a18',
               borderTop: '1px solid rgba(255,255,255,0.1)',

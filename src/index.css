@@ -194,6 +194,82 @@ body.light-mode input {
   50% { transform: rotate(1.5deg); }
 }
 
+/* ── Global Mobile Safe-Area & Scroll Utilities ───────────────────────────
+   These classes are available everywhere in the app.
+   pb-safe-nav  = clears the fixed bottom nav + iPhone home indicator
+   pb-safe      = clears only the iPhone home indicator (no nav)
+   sticky-save  = pins a save/action bar just above the bottom nav
+──────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Height of the fixed BottomNav bar */
+  --bottom-nav-h: 64px;
+  /* iPhone home indicator + a little breathing room */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Every page that has a BottomNav should use pb-safe-nav on its scroll root */
+.pb-safe-nav {
+  padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 1rem) !important;
+}
+
+/* Pages WITHOUT a bottom nav but still need safe-area clearance */
+.pb-safe {
+  padding-bottom: calc(var(--safe-bottom) + 1rem) !important;
+}
+
+/* Sticky action bar (Save / Submit / Continue) pinned above bottom nav */
+.sticky-save {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-h) + var(--safe-bottom));
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Ensure iOS doesn't cut off the bottom nav itself */
+.bottom-nav-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Global: any element with a BottomNav sibling gets auto bottom padding via
+   the .page-root class — applied to page wrappers automatically */
+.page-root {
+  min-height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 1.5rem);
+}
+
+/* ── Global override: every page using pb-24 (bottom-nav clearance) also gets
+   iPhone safe-area so buttons are NEVER hidden under the home bar ──────── */
+.pb-24 {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+.pb-28 {
+  padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+.pb-32 {
+  padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+.pb-36 {
+  padding-bottom: calc(9rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+.pb-40 {
+  padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Bottom-sheet modals: always clear the iPhone home bar */
+.bottom-sheet {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem) !important;
+}
+
+/* Inputs & textareas: scroll into view when keyboard opens */
+input:focus, textarea:focus, select:focus {
+  scroll-margin-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 80px);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
