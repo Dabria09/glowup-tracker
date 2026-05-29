@@ -4,7 +4,8 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Plus, Check, X, Upload, Palette, Layout, Maximize2, Minimize2 } from 'lucide-react';
+import { ChevronLeft, Plus, Check, X, Upload, Palette, Layout, Maximize2, Minimize2, Share2, Printer } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { toast } from 'sonner';
 
 const THEMES = [
@@ -82,7 +83,9 @@ export default function VisionBoard() {
   const [activeLayout, setActiveLayout] = useState(LAYOUTS[0]);
   const [showWordInput, setShowWordInput] = useState(false);
   const [wordText, setWordText] = useState('');
+  const [exporting, setExporting] = useState(false);
   const fileRef = useRef();
+  const boardRef = useRef();
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -160,6 +163,41 @@ export default function VisionBoard() {
     setShowLayouts(false);
     await base44.entities.VisionBoard.update(board.id, { layout: ly.id });
     setBoard(prev => ({ ...prev, layout: ly.id }));
+  };
+
+  const handleShare = async () => {
+    if (!boardRef.current) return;
+    setExporting(true);
+    try {
+      const canvas = await html2canvas(boardRef.current, { useCORS: true, backgroundColor: null, scale: 2 });
+      canvas.toBlob(async (blob) => {
+        if (navigator.share && navigator.canShare?.({ files: [new File([blob], 'vision-board.png', { type: 'image/png' })] })) {
+          await navigator.share({ files: [new File([blob], 'vision-board.png', { type: 'image/png' })], title: 'My Vision Board', text: 'My Girls Glowing Up Vision Board ✨' });
+        } else {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'vision-board.png';
+          a.click();
+          URL.revokeObjectURL(url);
+          toast.success('Vision board saved! ✨');
+        }
+      }, 'image/png');
+    } catch {}
+    setExporting(false);
+  };
+
+  const handlePrint = async () => {
+    if (!boardRef.current) return;
+    setExporting(true);
+    try {
+      const canvas = await html2canvas(boardRef.current, { useCORS: true, backgroundColor: '#000', scale: 2 });
+      const dataUrl = canvas.toDataURL('image/png');
+      const win = window.open('', '_blank');
+      win.document.write(`<html><head><title>My Vision Board</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#000;}img{max-width:100%;max-height:100vh;object-fit:contain;}@media print{body{background:#fff;}}</style></head><body><img src="${dataUrl}" onload="window.print();window.close();"/></body></html>`);
+      win.document.close();
+    } catch {}
+    setExporting(false);
   };
 
   const addWord = async () => {
@@ -408,6 +446,16 @@ export default function VisionBoard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={handlePrint} disabled={exporting || items.length === 0}
+              className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg disabled:opacity-40"
+              style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.border}`, color: activeTheme.text }}>
+              <Printer size={16} />
+            </button>
+            <button onClick={handleShare} disabled={exporting || items.length === 0}
+              className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg disabled:opacity-40"
+              style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.border}`, color: activeTheme.text }}>
+              <Share2 size={16} />
+            </button>
             <button onClick={() => setShowWordInput(true)}
               className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg font-bold text-sm"
               style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.border}`, color: activeTheme.text }}>
@@ -498,7 +546,7 @@ export default function VisionBoard() {
         )}
 
         {/* Collage */}
-        <div className="rounded-3xl overflow-hidden p-3 mb-4" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.border}`, minHeight: 200 }}>
+        <div ref={boardRef} className="rounded-3xl overflow-hidden p-3 mb-4" style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.border}`, minHeight: 200 }}>
           {renderCollage()}
         </div>
 
