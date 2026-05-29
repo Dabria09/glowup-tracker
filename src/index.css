@@ -242,8 +242,14 @@ body.light-mode input {
   padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 1.5rem);
 }
 
-/* ── Global override: every page using pb-24 (bottom-nav clearance) also gets
+/* ── Global override: every page using pb-N (bottom-nav clearance) also gets
    iPhone safe-area so buttons are NEVER hidden under the home bar ──────── */
+.pb-16 {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+.pb-20 {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)) !important;
+}
 .pb-24 {
   padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important;
 }
@@ -259,6 +265,12 @@ body.light-mode input {
 .pb-40 {
   padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px)) !important;
 }
+.pb-44 {
+  padding-bottom: calc(11rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+.pb-48 {
+  padding-bottom: calc(12rem + env(safe-area-inset-bottom, 0px)) !important;
+}
 
 /* Bottom-sheet modals: always clear the iPhone home bar */
 .bottom-sheet {
@@ -268,6 +280,87 @@ body.light-mode input {
 /* Inputs & textareas: scroll into view when keyboard opens */
 input:focus, textarea:focus, select:focus {
   scroll-margin-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 80px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GLOBAL MOBILE SAFE-AREA & SCROLL FIX
+   All rules below are automatic — no per-page class needed.
+   They target the Tailwind patterns already used throughout the app.
+═══════════════════════════════════════════════════════════════════════ */
+
+/* 1. FIXED BOTTOM BARS — any element pinned to the bottom of the screen
+      gets automatic safe-area clearance so it clears the iPhone home bar.
+      Covers: nav bars, save bars, action bars, modal footers. */
+.fixed.bottom-0 {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+}
+
+/* 2. STICKY BOTTOM BARS (non-fixed) */
+.sticky.bottom-0 {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* 3. PAGE SCROLL CONTAINERS
+      Any overflow-y-auto/scroll div automatically gets enough bottom padding
+      to clear both the BottomNav (64px) and the iPhone home bar. */
+.overflow-y-auto,
+.overflow-y-scroll,
+.overflow-auto,
+.overflow-scroll {
+  padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 1.5rem);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 4. MAIN PAGE WRAPPERS
+      Every min-h-screen page wrapper gets automatic clearance.
+      Uses a lower specificity so explicit pb-* classes still win. */
+.min-h-screen {
+  padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 1rem);
+}
+
+/* 5. OVERRIDE: if a page explicitly zeroes padding, respect that */
+.pb-0 {
+  padding-bottom: 0 !important;
+}
+
+/* 6. FORM & BUTTON CLEARANCE
+      Any form whose last action is near the bottom gets extra breathing room.
+      Targets forms that wrap button[type=submit] or role=button. */
+form {
+  padding-bottom: calc(var(--safe-bottom) + 0.5rem);
+}
+
+/* 7. MODAL / SHEET CONTENT AREAS
+      Bottom sheets and dialogs that contain scrollable content. */
+[role="dialog"] .overflow-y-auto,
+[data-radix-scroll-area-viewport] {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+}
+
+/* 8. KEYBOARD SAFE SCROLL
+      When the virtual keyboard is open iOS shrinks the viewport.
+      Using dvh (dynamic viewport height) ensures scroll works correctly. */
+@supports (height: 100dvh) {
+  .min-h-screen {
+    min-height: 100dvh;
+  }
+  .h-screen {
+    height: 100dvh;
+  }
+}
+
+/* 9. PREVENT HORIZONTAL OVERFLOW on all pages */
+.min-h-screen,
+.page-root {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* 10. FIXED BOTTOM ACTION BARS that sit above the BottomNav
+       Target the common pattern: fixed bottom + high z-index bars */
+.fixed[style*="bottom: 0"],
+.fixed[style*="bottom:0"] {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @layer base {
