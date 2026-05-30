@@ -235,7 +235,7 @@ export default function VisionBoard() {
         <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
           onContextMenu={e => e.preventDefault()}
           className="relative group flex flex-col items-center"
-          style={{ background: 'white', padding: '8px 8px 32px 8px', borderRadius: '4px', boxShadow: activeTheme.shadow }}>
+          style={{ background: 'white', padding: '8px 8px 32px 8px', borderRadius: '4px', boxShadow: activeTheme.shadow, touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', ...provided?.draggableProps?.style }}>
           {item.image_url ? (
             <img src={item.image_url} alt="" className="w-full object-cover rounded-sm" style={{ aspectRatio: '1/1' }} />
           ) : isWord ? (
@@ -264,7 +264,7 @@ export default function VisionBoard() {
         <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
           onContextMenu={e => e.preventDefault()}
           className="relative group rounded-2xl overflow-hidden"
-          style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow }}>
+          style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow, touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', ...provided?.draggableProps?.style }}>
           {item.image_url ? (
             <img src={item.image_url} alt="" className="w-full object-cover"
               style={{ aspectRatio: isHero ? '16/9' : '3/1', maxHeight: isHero ? 220 : 110 }} />
@@ -292,7 +292,7 @@ export default function VisionBoard() {
         <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
           onContextMenu={e => e.preventDefault()}
           className="relative group rounded-2xl overflow-hidden mb-3"
-          style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow }}>
+          style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow, touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', ...provided?.draggableProps?.style }}>
           {item.image_url ? (
             <img src={item.image_url} alt="" className="w-full object-cover"
               style={{ maxHeight: size === 'large' ? 220 : size === 'small' ? 90 : 140, minHeight: 70 }} />
@@ -320,7 +320,7 @@ export default function VisionBoard() {
       <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
         onContextMenu={e => e.preventDefault()}
         className={`relative group rounded-2xl overflow-hidden ${colSpan}`}
-        style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow, background: activeTheme.cardBg }}>
+        style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow, background: activeTheme.cardBg, touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', ...provided?.draggableProps?.style }}>
         {item.image_url ? (
           <img src={item.image_url} alt="" className="w-full object-cover" style={{ aspectRatio }} />
         ) : isWord ? (
@@ -413,7 +413,7 @@ export default function VisionBoard() {
                         <div ref={p.innerRef} {...p.draggableProps} {...p.dragHandleProps}
                           onContextMenu={e => e.preventDefault()}
                           className="relative group flex flex-col items-center select-none cursor-grab active:cursor-grabbing"
-                          style={{ transform: `rotate(${tilt}deg)`, transformOrigin: 'center top', marginTop: i % 2 === 1 ? 16 : 0, ...p.draggableProps.style }}>
+                          style={{ transformOrigin: 'center top', marginTop: i % 2 === 1 ? 16 : 0, touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', ...p.draggableProps.style }}>
                           <div style={{ width: 40, height: 14, background: 'rgba(255,255,255,0.55)', borderRadius: 3, marginBottom: -7, zIndex: 2, position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
                           <div style={{ background: bg, padding: '6px 6px 24px 6px', borderRadius: 4, boxShadow: '0 4px 16px rgba(0,0,0,0.35)', width: '100%' }}>
                             {item.image_url
