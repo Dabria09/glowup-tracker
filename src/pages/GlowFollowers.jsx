@@ -59,29 +59,38 @@ export default function GlowFollowers() {
     if (!currentUser) { base44.auth.redirectToLogin(); return; }
     if (currentUser.email === person.user_email) return;
     const alreadyFollowing = following[person.user_email];
-    if (alreadyFollowing) {
-      await base44.entities.GlowFollow.delete(alreadyFollowing);
-      setFollowing(prev => { const n = { ...prev }; delete n[person.user_email]; return n; });
-    } else {
-      const record = await base44.entities.GlowFollow.create({
-        follower_email: currentUser.email,
-        followed_email: person.user_email,
-        follower_username: currentUser.email.split('@')[0],
-        followed_username: person.username || person.user_email.split('@')[0],
-        status: 'active',
-      });
-      setFollowing(prev => ({ ...prev, [person.user_email]: record.id }));
-      // Create follow notification
-      base44.entities.Notification.create({
-        recipient_email: person.user_email,
-        type: 'follow',
-        actor_email: currentUser.email,
-        actor_username: currentUser.email.split('@')[0],
-        message: 'Started following you',
-        link: `/glowlink/${person.username || person.user_email.split('@')[0]}/followers?type=followers`,
-        is_read: false,
-      }).catch(() => {});
-    }
+    try {
+      if (alreadyFollowing) {
+        await base44.entities.GlowFollow.delete(alreadyFollowing);
+        setFollowing(prev => { const n = { ...prev }; delete n[person.user_email]; return n; });
+      } else {
+        // Prevent duplicate follows
+        const existing = await base44.entities.GlowFollow.filter({ follower_email: currentUser.email, followed_email: person.user_email });
+        let recordId;
+        if (existing.length > 0) {
+          recordId = existing[0].id;
+        } else {
+          const record = await base44.entities.GlowFollow.create({
+            follower_email: currentUser.email,
+            followed_email: person.user_email,
+            follower_username: currentUser.email.split('@')[0],
+            followed_username: person.username || person.user_email.split('@')[0],
+            status: 'active',
+          });
+          recordId = record.id;
+          base44.entities.Notification.create({
+            recipient_email: person.user_email,
+            type: 'follow',
+            actor_email: currentUser.email,
+            actor_username: currentUser.email.split('@')[0],
+            message: 'Started following you',
+            link: `/glowlink/${person.username || person.user_email.split('@')[0]}/followers?type=followers`,
+            is_read: false,
+          }).catch(() => {});
+        }
+        setFollowing(prev => ({ ...prev, [person.user_email]: recordId }));
+      }
+    } catch (e) { console.error('Follow error', e); }
   };
 
   const filtered = people.filter(p => {

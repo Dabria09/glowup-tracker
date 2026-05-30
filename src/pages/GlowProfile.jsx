@@ -45,6 +45,7 @@ export default function GlowProfile() {
   const [postReactions, setPostReactions] = useState({});
   const [featuredSections, setFeaturedSections] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followRecordId, setFollowRecordId] = useState(null);
   const [followersCount, setFollowersCount] = useState(0);
@@ -71,9 +72,12 @@ export default function GlowProfile() {
       setFollowersCount(followersData.length);
       setFollowingCount(followingData.length);
       setCurrentUser(cu);
-      if (cu && cu.email !== p.user_email) {
-        const myFollow = followersData.find(r => r.follower_email === cu.email);
-        if (myFollow) { setIsFollowing(true); setFollowRecordId(myFollow.id); }
+      if (cu) {
+        base44.entities.UserProfile.filter({ user_email: cu.email }).then(r => { if (r[0]) setCurrentUserProfile(r[0]); }).catch(() => {});
+        if (cu.email !== p.user_email) {
+          const myFollow = followersData.find(r => r.follower_email === cu.email);
+          if (myFollow) { setIsFollowing(true); setFollowRecordId(myFollow.id); }
+        }
       }
       setPosts(userPosts.filter(post => post.visibility === 'public' || post.visibility === 'followers'));
       if (userPointsData.length) setPoints(userPointsData[0]);
@@ -89,35 +93,46 @@ export default function GlowProfile() {
 
   const handleFollow = async () => {
     if (!currentUser) { base44.auth.redirectToLogin(); return; }
+    if (!privacy.allow_followers) return;
     setFollowLoading(true);
-    if (isFollowing && followRecordId) {
-      await base44.entities.GlowFollow.delete(followRecordId);
-      setIsFollowing(false);
-      setFollowRecordId(null);
-      setFollowersCount(c => Math.max(0, c - 1));
-    } else {
-      const record = await base44.entities.GlowFollow.create({
-        follower_email: currentUser.email,
-        followed_email: profile.user_email,
-        follower_username: currentUser.email.split('@')[0],
-        followed_username: profile.username || profile.user_email.split('@')[0],
-        status: 'active',
-      });
-      setIsFollowing(true);
-      setFollowRecordId(record.id);
-      setFollowersCount(c => c + 1);
-      // Create follow notification
-      base44.entities.Notification.create({
-        recipient_email: profile.user_email,
-        type: 'follow',
-        actor_email: currentUser.email,
-        actor_username: currentUser.email.split('@')[0],
-        message: 'Started following you',
-        link: `/glowlink/${profile.username || profile.user_email.split('@')[0]}/followers?type=followers`,
-        is_read: false,
-      }).catch(() => {});
+    try {
+      const myUsername = currentUserProfile?.username || currentUser.email.split('@')[0];
+      if (isFollowing && followRecordId) {
+        await base44.entities.GlowFollow.delete(followRecordId);
+        setIsFollowing(false);
+        setFollowRecordId(null);
+        setFollowersCount(c => Math.max(0, c - 1));
+      } else {
+        // Prevent duplicate follows
+        const existing = await base44.entities.GlowFollow.filter({ follower_email: currentUser.email, followed_email: profile.user_email });
+        if (existing.length > 0) {
+          setIsFollowing(true);
+          setFollowRecordId(existing[0].id);
+        } else {
+          const record = await base44.entities.GlowFollow.create({
+            follower_email: currentUser.email,
+            followed_email: profile.user_email,
+            follower_username: myUsername,
+            followed_username: profile.username || profile.user_email.split('@')[0],
+            status: 'active',
+          });
+          setIsFollowing(true);
+          setFollowRecordId(record.id);
+          setFollowersCount(c => c + 1);
+          base44.entities.Notification.create({
+            recipient_email: profile.user_email,
+            type: 'follow',
+            actor_email: currentUser.email,
+            actor_username: myUsername,
+            message: 'Started following you',
+            link: `/glowlink/${profile.username || profile.user_email.split('@')[0]}/followers?type=followers`,
+            is_read: false,
+          }).catch(() => {});
+        }
+      }
+    } finally {
+      setFollowLoading(false);
     }
-    setFollowLoading(false);
   };
 
   const toggleReaction = (postId, emoji) => {
