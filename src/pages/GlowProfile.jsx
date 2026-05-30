@@ -61,7 +61,7 @@ export default function GlowProfile() {
         const myFollow = followersData.find(r => r.follower_email === cu.email);
         if (myFollow) { setIsFollowing(true); setFollowRecordId(myFollow.id); }
       }
-      setPosts(userPosts.filter(post => post.visibility === 'public'));
+      setPosts(userPosts.filter(post => post.visibility === 'public' || post.visibility === 'followers'));
       if (userPointsData.length) setPoints(userPointsData[0]);
       setLoading(false);
     };
@@ -155,9 +155,11 @@ export default function GlowProfile() {
   const frameStyle = frame.style(theme.accent);
   const badges = computeBadges(totalPoints, points?.check_in_streak, points?.challenges_completed, posts.length);
   const personaImages = profile.glow_persona_images ? (() => { try { return JSON.parse(profile.glow_persona_images)?.images || {}; } catch { return {}; } })() : {};
+  const galleryImages = profile.gallery_images ? (() => { try { return JSON.parse(profile.gallery_images) || []; } catch { return []; } })() : [];
   const allPhotos = [
     ...(profile.avatar_url ? [{ url: profile.avatar_url, label: 'Profile' }] : []),
     ...Object.entries(personaImages).map(([id, url]) => ({ url, label: id.replace(/_/g, ' ') })),
+    ...galleryImages.map(url => ({ url, label: 'Gallery' })),
   ];
   const progressPct = glowLevel.next ? Math.min(100, Math.floor((totalPoints / glowLevel.next) * 100)) : 100;
 

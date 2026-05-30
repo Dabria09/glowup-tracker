@@ -393,35 +393,46 @@ export default function VisionBoard() {
     // Scrapbook: tilted cards with tape effect
     if (activeLayout.id === 'scrapbook') {
       return (
-        <div className="grid grid-cols-2 gap-4 p-2">
-          {items.map((item, i) => {
-            const isWord = !item.image_url && item.caption;
-            const tilts = [-3, 2, -1.5, 3.5, -2.5, 1, -4, 2.5];
-            const tilt = tilts[i % tilts.length];
-            const bgColors = ['#fff9e6', '#ffe4f0', '#e8f4ff', '#f0ffe8', '#f5e6ff'];
-            const bg = bgColors[i % bgColors.length];
-            return (
-              <div key={item.id} className="relative group flex flex-col items-center"
-                style={{ transform: `rotate(${tilt}deg)`, transformOrigin: 'center top', marginTop: i % 2 === 1 ? 16 : 0 }}>
-                {/* Tape strip */}
-                <div style={{ width: 40, height: 14, background: 'rgba(255,255,255,0.55)', borderRadius: 3, marginBottom: -7, zIndex: 2, position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
-                <div style={{ background: bg, padding: '6px 6px 24px 6px', borderRadius: 4, boxShadow: '0 4px 16px rgba(0,0,0,0.35)', width: '100%' }}>
-                  {item.image_url
-                    ? <img src={item.image_url} alt="" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 2, display: 'block' }} />
-                    : isWord
-                      ? <div style={{ aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#f3e8ff,#fce7f3)', borderRadius: 2 }}>
-                          <p style={{ color: '#7c3aed', fontFamily: "'Dancing Script', cursive", fontSize: 'clamp(13px,4vw,20px)', fontWeight: 700, textAlign: 'center', padding: 8, wordBreak: 'break-word' }}>{item.caption}</p>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="scrapbook" direction="horizontal">
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-2 gap-4 p-2">
+                {items.map((item, i) => {
+                  const isWord = !item.image_url && item.caption;
+                  const tilts = [-3, 2, -1.5, 3.5, -2.5, 1, -4, 2.5];
+                  const tilt = tilts[i % tilts.length];
+                  const bgColors = ['#fff9e6', '#ffe4f0', '#e8f4ff', '#f0ffe8', '#f5e6ff'];
+                  const bg = bgColors[i % bgColors.length];
+                  return (
+                    <Draggable key={item.id} draggableId={item.id} index={i}>
+                      {(p) => (
+                        <div ref={p.innerRef} {...p.draggableProps} {...p.dragHandleProps}
+                          className="relative group flex flex-col items-center select-none cursor-grab active:cursor-grabbing"
+                          style={{ transform: `rotate(${tilt}deg)`, transformOrigin: 'center top', marginTop: i % 2 === 1 ? 16 : 0, ...p.draggableProps.style }}>
+                          <div style={{ width: 40, height: 14, background: 'rgba(255,255,255,0.55)', borderRadius: 3, marginBottom: -7, zIndex: 2, position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
+                          <div style={{ background: bg, padding: '6px 6px 24px 6px', borderRadius: 4, boxShadow: '0 4px 16px rgba(0,0,0,0.35)', width: '100%' }}>
+                            {item.image_url
+                              ? <img src={item.image_url} alt="" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 2, display: 'block' }} />
+                              : isWord
+                                ? <div style={{ aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#f3e8ff,#fce7f3)', borderRadius: 2 }}>
+                                    <p style={{ color: '#7c3aed', fontFamily: "'Dancing Script', cursive", fontSize: 'clamp(13px,4vw,20px)', fontWeight: 700, textAlign: 'center', padding: 8, wordBreak: 'break-word' }}>{item.caption}</p>
+                                  </div>
+                                : <div style={{ aspectRatio: '1/1', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 2 }}><span className="text-3xl opacity-30">🖼️</span></div>}
+                            {!isWord && <p style={{ textAlign: 'center', fontSize: 10, color: '#666', marginTop: 4, fontFamily: "'Dancing Script', cursive" }}>{item.caption || 'caption...'}</p>}
+                          </div>
+                          <button onClick={() => deleteItem(item)}
+                            className="absolute top-2 right-2 w-5 h-5 bg-red-500 rounded-full text-white items-center justify-center hidden group-hover:flex"
+                            style={{ fontSize: 10, zIndex: 10 }}>×</button>
                         </div>
-                      : <div style={{ aspectRatio: '1/1', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 2 }}><span className="text-3xl opacity-30">🖼️</span></div>}
-                  {!isWord && <p style={{ textAlign: 'center', fontSize: 10, color: '#666', marginTop: 4, fontFamily: "'Dancing Script', cursive" }}>{item.caption || 'caption...'}</p>}
-                </div>
-                <button onClick={() => deleteItem(item)}
-                  className="absolute top-2 right-2 w-5 h-5 bg-red-500 rounded-full text-white items-center justify-center hidden group-hover:flex"
-                  style={{ fontSize: 10, zIndex: 10 }}>×</button>
+                      )}
+                    </Draggable>
+                  );
+                })}
+                {provided.placeholder}
               </div>
-            );
-          })}
-        </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       );
     }
 
