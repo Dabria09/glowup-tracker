@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
+import DailyPollSection from '@/components/glow/DailyPollSection';
 
 const BG = '#0d0608';
 const PINK = '#e8526d';
@@ -118,7 +119,7 @@ export default function Glow() {
   const [challenges, setChallenges] = useState([]);
   const [certificates, setCertificates] = useState([]);
   const [mySquads, setMySquads] = useState([]);
-  const [squadMembers, setSquadMembers] = useState([]);
+  const [glowLevels, setGlowLevels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mood, setMood] = useState(null);
   const [moodSaved, setMoodSaved] = useState(false);
@@ -133,7 +134,7 @@ export default function Glow() {
       try {
         const u = await base44.auth.me();
         setUser(u);
-        const [pts, ch, certs, quotes, msgs, squadMem, savedQ] = await Promise.all([
+        const [pts, ch, certs, quotes, msgs, squadMem, savedQ, lvls, recentPts] = await Promise.all([
           base44.entities.UserPoints.filter({ user_email: u.email }),
           base44.entities.GlowUpChallenge.filter({ user_email: u.email }),
           base44.entities.GlowUpCertificate.filter({ user_email: u.email }),
@@ -141,6 +142,8 @@ export default function Glow() {
           base44.entities.MsGlowMessage.filter({ is_active: true }),
           base44.entities.SquadMember.filter({ user_email: u.email }),
           base44.entities.SavedQuote.filter({ user_email: u.email }, '-created_date', 1),
+          base44.entities.GlowLevel.filter({ is_active: true }).catch(() => []),
+          base44.entities.PointsHistory.filter({ user_email: u.email }, '-created_date', 15).catch(() => []),
         ]);
         if (pts.length) setUserPoints(pts[0]);
         setChallenges(ch);
@@ -154,7 +157,24 @@ export default function Glow() {
           setMsGlowMsg(msgs[idx]);
         }
         setMySquads(squadMem);
+        setGlowLevels(lvls);
         if (savedQ.length) setSavedQuote(savedQ[0]);
+
+        // Sync check-in: detect if user checked in today via PointsHistory
+        const todayStr = new Date().toDateString();
+        const checkedInToday = recentPts.some(ph =>
+          (ph.action === 'daily_checkin' || ph.action === 'check_in') &&
+          new Date(ph.created_date).toDateString() === todayStr
+        );
+        if (checkedInToday) {
+          const goalsKey2 = `ggu_goals_${u.email}_${todayStr}`;
+          const existing = JSON.parse(localStorage.getItem(goalsKey2) || '{}');
+          if (!existing.checkin) {
+            existing.checkin = true;
+            localStorage.setItem(goalsKey2, JSON.stringify(existing));
+            setGoalsChecked(prev => ({ ...prev, checkin: true }));
+          }
+        }
 
         // Check saved mood for today
         const todayKey = `ggu_mood_${u.email}_${new Date().toDateString()}`;
@@ -184,10 +204,21 @@ export default function Glow() {
   const totalDays = userPoints ? Math.max(1, Math.floor((Date.now() - new Date(userPoints.created_date || Date.now())) / 86400000)) : 0;
   const badgesEarned = Math.floor(totalPoints / 100);
   const crownPct = Math.min(100, (completedChallenges / 6) * 100);
-  const glowLevel = getGlowLevel(totalPoints);
-  const nextReward = getNextReward(totalPoints);
-  const levelProgress = glowLevel.max === Infinity ? 100 : Math.round(((totalPoints - glowLevel.min) / (glowLevel.max - glowLevel.min)) * 100);
-  const ptsToNextLevel = glowLevel.max === Infinity ? 0 : glowLevel.max - totalPoints;
+  // Use DB levels if available, else fall back to defaults
+  const activeLevels = glowLevels.length > 0 ? [...glowLevels].sort((a, b) => a.min_points - b.min_points) : null;
+  const rawGlowLevel = activeLevels
+    ? (activeLevels.slice().reverse().find(l => totalPoints >= (l.min_points || 0)) || activeLevels[0])
+    : GLOW_LEVELS.find(l => totalPoints >= l.min && totalPoints < l.max) || GLOW_LEVELS[GLOW_LEVELS.length - 1];
+  const glowLevel = activeLevels
+    ? { level: rawGlowLevel.level_number, name: rawGlowLevel.name, emoji: rawGlowLevel.emoji, min: rawGlowLevel.min_points, max: rawGlowLevel.max_points || 99999 }
+    : rawGlowLevel;
+  const nextLevelEntry = activeLevels ? activeLevels.find(l => (l.min_points || 0) > totalPoints) : null;
+  const nextReward = activeLevels && nextLevelEntry && nextLevelEntry.unlock_reward
+    ? { pts: nextLevelEntry.min_points, name: nextLevelEntry.unlock_reward, emoji: nextLevelEntry.unlock_emoji || '🎁', type: nextLevelEntry.unlock_type || 'badge' }
+    : NEXT_REWARDS.find(r => totalPoints < r.pts) || null;
+  const glowMax = glowLevel.max >= 99999 ? 99999 : glowLevel.max;
+  const levelProgress = glowMax >= 99999 ? 100 : Math.round(((totalPoints - glowLevel.min) / (glowMax - glowLevel.min)) * 100);
+  const ptsToNextLevel = glowMax >= 99999 ? 0 : glowMax - totalPoints;
 
   // Monthly stats (rough estimate)
   const monthlyCheckins = userPoints?.check_in_streak ? Math.min(streak, 30) : 0;
@@ -274,6 +305,12 @@ export default function Glow() {
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', color: GOLD_LT, margin: '0 0 6px', textTransform: 'uppercase' }}>Today's Affirmation</p>
           <p style={{ fontSize: 15, fontWeight: 600, color: WHITE, margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>"{todayAffirmation}"</p>
         </div>
+
+        {/* Daily Poll */}
+        <DailyPollSection
+          userEmail={user?.email}
+          onPointsAwarded={(n) => setUserPoints(prev => prev ? { ...prev, total_points: (prev.total_points || 0) + n } : prev)}
+        />
 
         {/* Mood Check-In */}
         <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, padding: '14px 16px', marginBottom: 12 }}>
@@ -365,7 +402,7 @@ export default function Glow() {
                 <p style={{ fontSize: 11, color: MUTED2, margin: 0 }}>{totalPoints.toLocaleString()} points total</p>
               </div>
             </div>
-            {glowLevel.max !== Infinity && (
+            {glowMax < 99999 && (
               <div style={{ textAlign: 'right' }}>
                 <p style={{ fontWeight: 900, fontSize: 20, color: GOLD_LT, margin: 0 }}>{levelProgress}%</p>
                 <p style={{ fontSize: 10, color: MUTED2, margin: 0 }}>to next level</p>
@@ -374,7 +411,7 @@ export default function Glow() {
           </div>
 
           {/* Progress bar */}
-          {glowLevel.max !== Infinity && (
+          {glowMax < 99999 && (
             <>
               <ProgressBar value={totalPoints - glowLevel.min} max={glowLevel.max - glowLevel.min} color={GOLD} height={8} />
               <p style={{ fontSize: 11, color: MUTED2, margin: '6px 0 12px' }}>

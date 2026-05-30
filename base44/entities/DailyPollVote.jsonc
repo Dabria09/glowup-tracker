@@ -1,0 +1,33 @@
+{
+  "name": "DailyPollVote",
+  "type": "object",
+  "properties": {
+    "poll_id": {
+      "type": "string",
+      "title": "Poll ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "choice": {
+      "type": "string",
+      "title": "Choice",
+      "enum": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    },
+    "vote_date": {
+      "type": "string",
+      "title": "Vote Date (YYYY-MM-DD)"
+    }
+  },
+  "required": [
+    "poll_id",
+    "user_email",
+    "choice"
+  ]
+}

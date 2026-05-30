@@ -1,10 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, ChevronDown, BookOpen, Award, Clock, GraduationCap } from 'lucide-react';
+import { ChevronLeft, ChevronDown, BookOpen, Award, Clock, GraduationCap, CheckCircle2 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import QuizModal from '@/components/ggu-academy/QuizModal';
 import { QUIZ_DATA } from '@/components/ggu-academy/quizData';
+
+// Lesson content keyed by lesson id
+const LESSON_CONTENT = {
+  what_makes_you_glow: "Every girl has a unique glow — something special that lives inside her that no one else has. Your glow isn't about what you look like or what you own. It's about your kindness, your creativity, your bravery, and the way you make others feel. When you know what makes you YOU, your confidence grows from the inside out. Take time today to think about your gifts: What do people come to you for? What do you love doing even when no one is watching? What makes you feel most alive? These are the seeds of your glow.",
+  authentic_beauty: "Social media shows us a world full of filters, edits, and carefully curated highlight reels. But the girls who glow the brightest aren't the most filtered — they're the most real. Authentic beauty means loving what makes you different: your skin, your hair, your laugh, your story. When you scroll past an image that makes you feel less than, remember you're comparing your behind-the-scenes to someone else's highlight reel. Your natural self is not a flaw to fix — it is a gift to celebrate.",
+  i_am_enough: "You are enough right now. Not when you lose weight, not when you get the grades, not when someone likes you back. RIGHT NOW. Self-worth doesn't come from achievements or approval — it comes from knowing who you are and deciding that she is worth protecting, loving, and celebrating. Practice saying 'I am enough' every single day until you feel it in your bones. Because it's true — it has always been true.",
+  confidence_crown: "Confidence is not something you're born with — it's something you build, one brave moment at a time. Every time you speak up in class, try something new, or stand up for yourself, you add a jewel to your confidence crown. Posture matters: when you stand tall, your brain actually starts to feel more confident. Walk into every room like you belong there — because you do. Your crown may be invisible, but it is always on your head.",
+  identity_beyond_mirror: "You are so much more than what you see in the mirror. You are your values, your dreams, your relationships, your experiences, and your choices. When you build your identity from the inside out — based on what you believe and who you choose to be — no one can take that from you. Spend time this week asking: What do I stand for? What would I never compromise? Who do I want to be remembered as? These answers are your identity blueprint.",
+  healing_self_compassion: "Healing is not linear and it is not loud. Sometimes it looks like giving yourself permission to rest. Sometimes it looks like crying and letting the feelings move through you. Self-compassion means treating yourself with the same kindness you would give your best friend. When you make a mistake, instead of beating yourself up, try saying: 'That was hard. I'm learning. I deserve grace.' You can hold yourself accountable AND be gentle with yourself at the same time.",
+  feelings_are_ok: "Every single feeling you have is valid — happiness, sadness, anger, fear, excitement, confusion. Feelings aren't good or bad, they are information. When you feel something strongly, your body is trying to tell you something important. The key is learning to express feelings in healthy ways instead of bottling them up or letting them explode. Naming your feelings is the first step: 'I feel scared because...' or 'I feel angry because...' This small habit builds massive emotional strength.",
+  managing_big_emotions: "Big emotions like rage, grief, or anxiety can feel overwhelming — like a wave that knocks you over. But you can learn to ride the wave instead of drowning in it. Grounding techniques (like the 5-4-3-2-1 method: 5 things you see, 4 you hear, 3 you can touch, 2 you smell, 1 you taste) can bring you back to the present moment. Box breathing — inhale 4 counts, hold 4, exhale 4, hold 4 — calms your nervous system in minutes. You have more power over your emotions than you think.",
+  emotional_intelligence: "Emotional intelligence (EQ) is your ability to understand and manage your own emotions, and to empathize with others. Research shows EQ predicts success more than IQ. The four pillars of EQ are: self-awareness (knowing what you feel), self-management (choosing how to respond), social awareness (reading others), and relationship management (building strong connections). Start by noticing your emotional patterns this week — what triggers you, what calms you, and what helps you show up as your best self.",
+  morning_routine: "How you start your morning sets the tone for your entire day. A strong morning routine doesn't have to be long — even 15-20 minutes of intentional time can transform your energy. Consider including: movement (stretch, dance, walk), hydration (a glass of water before anything else), a moment of quiet (prayer, breathing, journaling), and getting dressed in something that makes you feel good. When you take care of yourself first thing, you show yourself you matter — and that confidence carries through the whole day.",
+  time_management: "Time is the one resource that cannot be refilled. Queens who glow protect their time. Start by auditing where your time actually goes — you might be surprised. The Pomodoro technique (25 minutes focused work, 5 minute break) boosts productivity and reduces burnout. Prioritize tasks by importance AND urgency. And remember: saying no to things that drain you is saying yes to things that build you. Your time is sacred — treat it that way.",
+  adulting_101: "Adulting doesn't have to be scary — it just takes practice. Some essentials every girl should know: how to create a basic budget (income minus expenses equals what you have left), how to read a pay stub (gross pay vs net pay, and what all those deductions mean), how to write a professional email (subject line, greeting, clear message, professional sign-off), and basic home and car maintenance. Learning these skills now puts you ahead of most adults. You're building the foundation for your future queen life.",
+  what_is_leadership: "A leader is not the loudest person in the room — a leader is someone who makes others feel seen, heard, and capable. Leadership is about influence, not authority. You are a leader every time you choose kindness over cruelty, truth over gossip, or courage over comfort. Leadership looks like standing up for someone being bullied, organizing a study group, encouraging a friend to try out, or simply being the person others know they can count on. You were born to lead.",
+  finding_your_voice: "Your voice is one of the most powerful tools you have. Using it confidently doesn't mean being loud or aggressive — it means being clear, honest, and unapologetic about who you are and what you believe. Practice using 'I' statements: 'I feel...', 'I need...', 'I think...' instead of blaming language. When you speak up — in class, with friends, or for yourself — you practice using your voice and it gets stronger every time. The world needs to hear what you have to say.",
+  entrepreneurial_mindset: "Every successful business starts with someone who saw a problem and decided to solve it. You don't have to wait until you're 'old enough' to think like an entrepreneur. Start now: What problems do you notice in your school or community? What are you good at that others might pay for? What ideas light you up? An entrepreneurial mindset means being creative, resilient, and always looking for opportunity. It means seeing failure as data, not defeat. Your next big idea might change everything.",
+  being_a_good_friend: "A real friend is rare and precious. Being a good friend means showing up consistently — not just when things are fun, but when things are hard. It means celebrating your friends' wins without jealousy, being honest with love, and keeping confidences. It also means knowing when a friendship isn't healthy. Signs of a healthy friendship: you feel good after spending time together, you can be yourself, you trust each other, and you build each other up. Be the kind of friend you wish you had.",
+  navigating_drama: "Drama is exhausting and often unnecessary. Most drama comes from miscommunication, insecurity, or unspoken expectations. The most powerful thing you can do in a dramatic situation is stay calm and choose your response intentionally. Before reacting, ask: Is this actually my problem? Does engaging help or hurt? What do I actually want from this situation? Walking away from drama is not weakness — it is wisdom. Your peace is more valuable than winning any argument.",
+  building_your_tribe: "Your circle should inspire you, challenge you gently, and support you fiercely. The people you spend the most time with influence your mindset, your habits, and your dreams. Evaluate your friendships honestly: Are you growing? Are you respected? Do you feel safe being real? Building your tribe takes courage — you may need to let some people go and intentionally pursue new connections. Quality over quantity. Five deep, genuine friendships are worth more than fifty shallow ones.",
+};
 
 const ACADEMY_DATA = {
   pillars: [
@@ -569,8 +591,9 @@ function AddOnCard({ addon, expanded, onExpand, onTakeQuiz }) {
 }
 
 function PillarCard({ pillar, expanded, onExpand, onTakeQuiz }) {
+  const [lessonRead, setLessonRead] = useState({});
   const totalLessons = Object.values(pillar.lessons).reduce((sum, lessons) => sum + lessons.length, 0);
-  const completedLessons = 0; // Would track from backend
+  const completedLessons = 0;
 
   return (
     <div className="rounded-2xl p-5 transition" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -613,7 +636,24 @@ function PillarCard({ pillar, expanded, onExpand, onTakeQuiz }) {
                       </div>
                     </div>
                     <div className="mt-3">
-                      <p className="text-xs font-bold text-pink-400 uppercase mb-2">Activities</p>
+                      {LESSON_CONTENT[lesson.id] && (
+                        <div className="mb-3 p-3 rounded-xl" style={{ background: 'rgba(255,215,0,0.06)', border: '1px solid rgba(255,215,0,0.15)' }}>
+                          <p className="text-xs font-bold text-yellow-400 uppercase mb-2">📖 Lesson</p>
+                          <p className="text-xs text-gray-300 leading-relaxed mb-2">{LESSON_CONTENT[lesson.id]}</p>
+                          {!lessonRead[lesson.id] ? (
+                            <button onClick={(e) => { e.stopPropagation(); setLessonRead(prev => ({ ...prev, [lesson.id]: true })); }}
+                              className="w-full py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5"
+                              style={{ background: 'rgba(255,215,0,0.15)', color: '#fcd34d' }}>
+                              <CheckCircle2 size={12} /> I've Read This Lesson
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-xs text-green-400 font-semibold">
+                              <CheckCircle2 size={12} /> Lesson complete ✓
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <p className="text-xs font-bold text-pink-400 uppercase mb-2">✏️ Activities</p>
                       <ul className="space-y-1">
                         {lesson.activities.map((activity, idx) => (
                           <li key={idx} className="text-xs text-gray-300 flex gap-2">
@@ -626,13 +666,14 @@ function PillarCard({ pillar, expanded, onExpand, onTakeQuiz }) {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (LESSON_CONTENT[lesson.id] && !lessonRead[lesson.id]) return;
                         onTakeQuiz(lesson);
                       }}
                       className="mt-3 w-full py-2 rounded-lg font-bold text-white text-sm flex items-center justify-center gap-2"
-                      style={{ background: 'linear-gradient(135deg, #EC4899, #A855F7)' }}
+                      style={{ background: LESSON_CONTENT[lesson.id] && !lessonRead[lesson.id] ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #EC4899, #A855F7)', cursor: LESSON_CONTENT[lesson.id] && !lessonRead[lesson.id] ? 'not-allowed' : 'pointer', opacity: LESSON_CONTENT[lesson.id] && !lessonRead[lesson.id] ? 0.5 : 1 }}
                     >
                       <GraduationCap size={16} />
-                      Take Quiz (15 Questions)
+                      {LESSON_CONTENT[lesson.id] && !lessonRead[lesson.id] ? 'Read Lesson First to Unlock Quiz' : 'Take Quiz (15 Questions)'}
                     </button>
                   </div>
                 ))}

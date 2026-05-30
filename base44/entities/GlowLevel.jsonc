@@ -1,0 +1,75 @@
+{
+  "name": "GlowLevel",
+  "type": "object",
+  "properties": {
+    "level_number": {
+      "type": "number",
+      "title": "Level Number"
+    },
+    "name": {
+      "type": "string",
+      "title": "Level Name"
+    },
+    "emoji": {
+      "type": "string",
+      "title": "Emoji"
+    },
+    "min_points": {
+      "type": "number",
+      "title": "Min Points Required"
+    },
+    "max_points": {
+      "type": "number",
+      "title": "Max Points (exclusive)"
+    },
+    "unlock_reward": {
+      "type": "string",
+      "title": "Unlock Reward Name"
+    },
+    "unlock_emoji": {
+      "type": "string",
+      "title": "Unlock Reward Emoji"
+    },
+    "unlock_type": {
+      "type": "string",
+      "title": "Reward Type",
+      "enum": [
+        "badge",
+        "frame",
+        "theme",
+        "banner",
+        "background",
+        "avatar_item"
+      ]
+    },
+    "badge_requirement": {
+      "type": "number",
+      "title": "Badges Required",
+      "default": 0
+    },
+    "streak_requirement": {
+      "type": "number",
+      "title": "Streak Days Required",
+      "default": 0
+    },
+    "challenge_requirement": {
+      "type": "number",
+      "title": "Challenges Required",
+      "default": 0
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    },
+    "description": {
+      "type": "string",
+      "title": "Level Description"
+    }
+  },
+  "required": [
+    "level_number",
+    "name",
+    "min_points"
+  ]
+}

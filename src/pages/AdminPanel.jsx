@@ -23,6 +23,8 @@ import AnalyticsTab from '@/components/admin/AnalyticsTab';
 import PointsRewards from '@/components/admin/PointsRewards';
 import CodesTab from '@/components/admin/CodesTab';
 import FlaggedReportTab from '@/components/admin/FlaggedReportTab';
+import PollsAdminTab from '@/components/admin/PollsAdminTab';
+import LevelsAdminTab from '@/components/admin/LevelsAdminTab';
 
 const TABS = [
   { id: 'overview',    label: 'Overview',         icon: BarChart2 },
@@ -44,6 +46,8 @@ const TABS = [
   { id: 'points',      label: 'Points & Rewards',  icon: BarChart2 },
   { id: 'codes',       label: 'Join Codes',         icon: Tag },
   { id: 'flagreport',  label: 'Flag Report',        icon: AlertTriangle },
+  { id: 'polls',       label: 'Daily Polls',        icon: MessageSquare },
+  { id: 'levels',      label: 'Glow Levels',        icon: Crown },
 ];
 
 export default function AdminPanel() {
@@ -87,6 +91,8 @@ export default function AdminPanel() {
       case 'points':     return <PointsRewards />;
       case 'codes':      return <CodesTab />;
       case 'flagreport':  return <FlaggedReportTab />;
+      case 'polls':      return <PollsAdminTab />;
+      case 'levels':     return <LevelsAdminTab />;
       default:           return <OverviewTab />;
     }
   };

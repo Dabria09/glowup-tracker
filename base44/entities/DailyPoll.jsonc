@@ -1,0 +1,105 @@
+{
+  "name": "DailyPoll",
+  "type": "object",
+  "properties": {
+    "question": {
+      "type": "string",
+      "title": "Poll Question"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "Confidence",
+        "Friendships",
+        "Leadership",
+        "School",
+        "Bullying",
+        "Social Media",
+        "Relationships",
+        "Self-Esteem",
+        "Decision Making",
+        "Career Exploration",
+        "Money",
+        "Mental Wellness"
+      ]
+    },
+    "option_a": {
+      "type": "string",
+      "title": "Option A"
+    },
+    "option_b": {
+      "type": "string",
+      "title": "Option B"
+    },
+    "option_c": {
+      "type": "string",
+      "title": "Option C"
+    },
+    "option_d": {
+      "type": "string",
+      "title": "Option D"
+    },
+    "insight_a": {
+      "type": "string",
+      "title": "Insight for A"
+    },
+    "insight_b": {
+      "type": "string",
+      "title": "Insight for B"
+    },
+    "insight_c": {
+      "type": "string",
+      "title": "Insight for C"
+    },
+    "insight_d": {
+      "type": "string",
+      "title": "Insight for D"
+    },
+    "coaching_tip": {
+      "type": "string",
+      "title": "Coaching Tip (shown after vote)"
+    },
+    "points_awarded": {
+      "type": "number",
+      "title": "Points Awarded",
+      "default": 15
+    },
+    "scheduled_date": {
+      "type": "string",
+      "title": "Scheduled Date (YYYY-MM-DD)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    },
+    "votes_a": {
+      "type": "number",
+      "title": "Votes A",
+      "default": 0
+    },
+    "votes_b": {
+      "type": "number",
+      "title": "Votes B",
+      "default": 0
+    },
+    "votes_c": {
+      "type": "number",
+      "title": "Votes C",
+      "default": 0
+    },
+    "votes_d": {
+      "type": "number",
+      "title": "Votes D",
+      "default": 0
+    }
+  },
+  "required": [
+    "question",
+    "option_a",
+    "option_b",
+    "option_c",
+    "option_d"
+  ]
+}
