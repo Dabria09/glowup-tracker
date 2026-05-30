@@ -400,17 +400,22 @@ export default function Dashboard() {
       else { setCheckedInToday(false); }
     };
 
-    const onVisibility = () => { if (email && document.visibilityState === 'visible') checkCheckin(email); };
-    const onCheckinComplete = () => { if (email) checkCheckin(email); };
-    document.addEventListener('visibilitychange', onVisibility);
+    const onCheckinComplete = () => { if (email) { checkCheckin(email); refreshPoints(email); } };
+    document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('ggu_checkin_complete', onCheckinComplete);
+
+    const refreshPoints = async (userEmail) => {
+      const pts = await base44.entities.UserPoints.filter({ user_email: userEmail });
+      setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
+    };
+
+    const onVisibilityChange = () => { if (email && document.visibilityState === 'visible') { checkCheckin(email); refreshPoints(email); } };
 
     base44.auth.me().then(async (u) => {
       email = u.email;
       setUser(u);
       await checkCheckin(u.email);
-      const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
-      setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
+      await refreshPoints(u.email);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
       if (profiles.length) {
         const profile = profiles[0];
@@ -421,7 +426,7 @@ export default function Dashboard() {
     }).catch(() => {});
 
     return () => {
-      document.removeEventListener('visibilitychange', onVisibility);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       window.removeEventListener('ggu_checkin_complete', onCheckinComplete);
     };
   }, []);

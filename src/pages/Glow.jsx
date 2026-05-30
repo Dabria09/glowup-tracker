@@ -160,14 +160,13 @@ export default function Glow() {
         setGlowLevels(lvls);
         if (savedQ.length) setSavedQuote(savedQ[0]);
 
-        // Sync check-in: detect if user checked in today via PointsHistory
-        const todayStr = new Date().toDateString();
-        const checkedInToday = recentPts.some(ph =>
-          (ph.action === 'daily_checkin' || ph.action === 'check_in') &&
-          new Date(ph.created_date).toDateString() === todayStr
-        );
+        // Sync check-in: use the same localStorage key as Dashboard (set by DailyCheckIn page)
+        const todayStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const lsCheckinKey = `ggu_checkin_${u.email}_date`;
+        const checkedInToday = localStorage.getItem(lsCheckinKey) === todayStr;
         if (checkedInToday) {
-          const goalsKey2 = `ggu_goals_${u.email}_${todayStr}`;
+          const todayDisplay = new Date().toDateString();
+          const goalsKey2 = `ggu_goals_${u.email}_${todayDisplay}`;
           const existing = JSON.parse(localStorage.getItem(goalsKey2) || '{}');
           if (!existing.checkin) {
             existing.checkin = true;
