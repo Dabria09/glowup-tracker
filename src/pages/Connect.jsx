@@ -38,6 +38,7 @@ const SECTIONS = [
       { icon: '🎓', label: 'Mentorship', desc: 'Connect with mentors who get it', route: '/mentorship', accent: GOLD },
       { icon: '🌐', label: 'My Glow Link', desc: 'Your shareable profile page', route: '/my-glow-link', accent: PINK },
       { icon: '🔔', label: 'Notifications', desc: 'Follows and Glow Link activity', route: '/notifications', accent: '#a855f7' },
+      { icon: '💌', label: 'Messages', desc: 'Private DMs · 14+ only', route: '/messages', accent: PINK },
     ],
   },
   {

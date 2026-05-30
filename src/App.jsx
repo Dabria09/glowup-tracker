@@ -102,6 +102,7 @@ import SavedQuotes from './pages/SavedQuotes';
 import SavedScholarships from './pages/SavedScholarships';
 import SavedCareers from './pages/SavedCareers';
 import AdminQAChecklist from './pages/AdminQAChecklist';
+import DirectMessages from './pages/DirectMessages';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -222,6 +223,7 @@ const AuthenticatedApp = () => {
       <Route path="/saved-scholarships" element={<SavedScholarships />} />
       <Route path="/saved-careers" element={<SavedCareers />} />
       <Route path="/admin-qa" element={<AdminQAChecklist />} />
+      <Route path="/messages" element={<DirectMessages />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </BanGate>

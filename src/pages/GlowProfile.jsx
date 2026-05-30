@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
-import { ChevronLeft, Share2, Heart, Link2, ExternalLink, Lock } from 'lucide-react';
+import { ChevronLeft, Share2, Heart, Link2, ExternalLink, Lock, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getGlowLevel, getTheme, getFrame, computeBadges } from '@/components/glowlink/GlowThemes';
 
@@ -287,6 +287,25 @@ export default function GlowProfile() {
               <span className="text-xs text-gray-500 ml-1">Following</span>
             </button>
           </div>
+
+          {/* Message / Follow action row */}
+          {currentUser && currentUser.email !== profile?.user_email && (
+            <div className="flex gap-2 mb-4">
+              <button onClick={handleFollow} disabled={followLoading}
+                className="flex-1 py-2.5 rounded-2xl text-sm font-bold transition disabled:opacity-60"
+                style={isFollowing
+                  ? { background: 'rgba(255,255,255,0.08)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.15)' }
+                  : { background: `linear-gradient(135deg,${theme.accent},${theme.accent2})`, color: '#fff' }}>
+                {followLoading ? '...' : isFollowing ? '✓ Following' : '+ Follow'}
+              </button>
+              <button
+                onClick={() => navigate(`/messages?to=${encodeURIComponent(profile.user_email)}&username=${encodeURIComponent(profile.username || profile.user_email.split('@')[0])}`)}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm font-bold transition"
+                style={{ background: 'rgba(255,255,255,0.08)', color: 'white', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <MessageCircle size={15} /> Message
+              </button>
+            </div>
+          )}
 
           {/* Level progress bar */}
           {glowLevel.next && (
