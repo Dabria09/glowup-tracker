@@ -16,7 +16,7 @@
     },
     "content": {
       "type": "string",
-      "title": "Post Content"
+      "title": "Content"
     },
     "likes": {
       "type": "number",
@@ -25,11 +25,29 @@
     },
     "liked_by": {
       "type": "string",
-      "title": "Liked By (JSON array of emails)"
+      "title": "Liked By (JSON array)",
+      "default": "[]"
     },
-    "media_urls": {
+    "media_url": {
       "type": "string",
-      "title": "Media URLs (JSON array)"
+      "title": "Media URL"
+    },
+    "media_type": {
+      "type": "string",
+      "title": "Media Type",
+      "enum": [
+        "image",
+        "video"
+      ]
+    },
+    "post_type": {
+      "type": "string",
+      "title": "Post Type",
+      "enum": [
+        "feed",
+        "chat"
+      ],
+      "default": "feed"
     }
   },
   "required": [

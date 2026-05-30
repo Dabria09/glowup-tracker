@@ -300,23 +300,16 @@ input:focus, textarea:focus, select:focus {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* 3. PAGE SCROLL CONTAINERS
-      Any overflow-y-auto/scroll div automatically gets enough bottom padding
-      to clear both the BottomNav (64px) and the iPhone home bar. */
+/* 3. PAGE SCROLL CONTAINERS - only smooth scrolling, no auto padding (causes black screen) */
 .overflow-y-auto,
 .overflow-y-scroll,
 .overflow-auto,
 .overflow-scroll {
-  padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 1.5rem);
   -webkit-overflow-scrolling: touch;
 }
 
-/* 4. MAIN PAGE WRAPPERS
-      Every min-h-screen page wrapper gets automatic clearance.
-      Uses a lower specificity so explicit pb-* classes still win. */
-.min-h-screen {
-  padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 1rem);
-}
+/* 4. MAIN PAGE WRAPPERS - padding handled per-page via pb-* classes */
+/* .min-h-screen padding removed to fix black screen rendering bug */
 
 /* 5. OVERRIDE: if a page explicitly zeroes padding, respect that */
 .pb-0 {

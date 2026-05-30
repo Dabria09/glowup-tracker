@@ -16,6 +16,9 @@ export default function TeamDetail() {
   const [contestEntries, setContestEntries] = useState([]);
   const [isMember, setIsMember] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showDiscussModal, setShowDiscussModal] = useState(false);
+  const [discussForm, setDiscussForm] = useState({ title: '', content: '', category: 'general' });
+  const [postingDisc, setPostingDisc] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -66,6 +69,26 @@ export default function TeamDetail() {
       </div>
     );
   }
+
+  const handleCreateDiscussion = async () => {
+    if (!discussForm.title.trim() || !user) return;
+    setPostingDisc(true);
+    await base44.entities.TeamDiscussion.create({
+      team_id: id,
+      user_email: user.email,
+      username: user.full_name || user.email.split('@')[0],
+      title: discussForm.title,
+      content: discussForm.content,
+      category: discussForm.category,
+      likes: 0,
+      comments: 0,
+    });
+    setDiscussForm({ title: '', content: '', category: 'general' });
+    setShowDiscussModal(false);
+    setPostingDisc(false);
+    const updated = await base44.entities.TeamDiscussion.filter({ team_id: id });
+    setDiscussions(updated);
+  };
 
   const topContributors = members.sort((a, b) => b.contribution_points - a.contribution_points).slice(0, 5);
   const recentDiscussions = discussions.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 5);
@@ -265,7 +288,7 @@ export default function TeamDetail() {
           {activeTab === 'discussions' && (
             <div>
               <button
-                onClick={() => navigate(`/glow-teams/${id}/discuss`)}
+                onClick={() => setShowDiscussModal(true)}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl mb-4 font-semibold text-sm bg-pink-500 hover:bg-pink-600 transition"
               >
                 <Plus size={16} /> Start New Discussion
@@ -325,6 +348,44 @@ export default function TeamDetail() {
 
         </div>
       </div>
+
+      {showDiscussModal && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-end" onClick={() => setShowDiscussModal(false)}>
+          <div className="w-full rounded-t-3xl p-6" style={{ background: '#1a0a2e', border: '1px solid rgba(236,72,153,0.3)', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom,0px))' }} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-bold text-white text-lg">New Discussion</p>
+              <button onClick={() => setShowDiscussModal(false)} className="text-gray-400 text-2xl leading-none">&times;</button>
+            </div>
+            <div className="space-y-3">
+              <input value={discussForm.title} onChange={e => setDiscussForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="Discussion title *"
+                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
+              <select value={discussForm.category} onChange={e => setDiscussForm(f => ({ ...f, category: e.target.value }))}
+                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                style={{ background: 'rgba(30,10,50,0.95)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <option value="general">General</option>
+                <option value="tips">Tips and Advice</option>
+                <option value="celebration">Celebration</option>
+                <option value="challenge">Challenge</option>
+                <option value="question">Question</option>
+              </select>
+              <textarea value={discussForm.content} onChange={e => setDiscussForm(f => ({ ...f, content: e.target.value }))}
+                placeholder="Share your thoughts..."
+                rows={4}
+                className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
+              <button onClick={handleCreateDiscussion} disabled={!discussForm.title.trim() || postingDisc}
+                className="w-full py-3 rounded-2xl font-bold text-white disabled:opacity-40 flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                {postingDisc
+                  ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : 'Post Discussion'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav active="discover" />
     </div>

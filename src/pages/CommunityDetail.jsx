@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy, Flag, Check } from 'lucide-react';
+import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy, Flag, Check, Image, X as XIcon } from 'lucide-react';
 
 const COMMUNITY_TYPES = {
   school: { emoji: '🏫', color: '#ec4899' },
@@ -40,6 +40,11 @@ export default function CommunityDetail() {
   const [newMessage, setNewMessage] = useState('');
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaPreview, setMediaPreview] = useState(null);
+  const [mediaType, setMediaType] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef();
 
   useEffect(() => {
     loadData();
@@ -59,9 +64,9 @@ export default function CommunityDetail() {
       setIsMember(membership.length > 0);
       setIsAdmin(membership.length > 0 && membership[0].role === 'admin');
 
-      // Load posts
+      // Load posts (feed only - exclude chat messages)
       const communityPosts = await base44.entities.CommunityPost.filter({ community_id: id }, '-created_date');
-      setPosts(communityPosts);
+      setPosts(communityPosts.filter(p => p.post_type !== 'chat'));
 
       // Load members
       const communityMembers = await base44.entities.CommunityMember.filter({ community_id: id });
@@ -93,9 +98,8 @@ export default function CommunityDetail() {
         { type: 'growth', count: growthRate > 0 ? `+${growthRate}%` : `${growthRate}%`, label: 'Growth' },
       ]);
 
-      // Load chat messages (recent posts for chat view)
-      const recentChat = await base44.entities.CommunityPost.filter({ community_id: id }, '-created_date');
-      setChatMessages(recentChat.slice(0, 50)); // Limit to last 50 messages
+      // Load chat messages (separate from feed)
+      setChatMessages(communityPosts.filter(p => p.post_type === 'chat').slice(0, 50));
     } catch (error) {
       console.error('Error loading community:', error);
     }
@@ -128,7 +132,14 @@ export default function CommunityDetail() {
   }
 
   async function handleCreatePost() {
-    if (!newPost.trim() || !user) return;
+    if (!newPost.trim() && !mediaFile) return;
+    if (!user) return;
+    setUploading(true);
+    let media_url = null;
+    if (mediaFile) {
+      const res = await base44.integrations.Core.UploadFile({ file: mediaFile });
+      media_url = res.file_url;
+    }
     await base44.entities.CommunityPost.create({
       community_id: id,
       user_email: user.email,
@@ -136,9 +147,13 @@ export default function CommunityDetail() {
       content: newPost,
       likes: 0,
       liked_by: '[]',
+      post_type: 'feed',
+      ...(media_url && { media_url, media_type: mediaType }),
     });
     setNewPost('');
+    setMediaFile(null); setMediaPreview(null); setMediaType(null);
     setShowPostModal(false);
+    setUploading(false);
     loadData();
   }
 
@@ -219,6 +234,7 @@ export default function CommunityDetail() {
       content: newMessage,
       likes: 0,
       liked_by: '[]',
+      post_type: 'chat',
     });
     setNewMessage('');
     loadData();
@@ -455,6 +471,11 @@ export default function CommunityDetail() {
                           </div>
                         </div>
                         <p className="text-sm text-gray-200 mb-3">{post.content}</p>
+                        {post.media_url && (
+                          post.media_type === 'video'
+                            ? <video src={post.media_url} controls className="w-full rounded-xl max-h-56 object-cover mb-3" />
+                            : <img src={post.media_url} alt="" className="w-full rounded-xl max-h-56 object-cover mb-3" />
+                        )}
                         <div className="flex items-center gap-4">
                           <button onClick={() => handleLikePost(post.id, post.liked_by)}
                             className="flex items-center gap-1.5 text-xs transition"
@@ -599,7 +620,7 @@ export default function CommunityDetail() {
                 </div>
               )}
 
-              {isAdmin && (
+              {(isAdmin || community.created_by === user?.email || user?.role === 'admin') && (
                 <div className="space-y-3">
                   <button onClick={() => navigate(`/community-hub/${id}/settings`)}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white"
@@ -629,15 +650,33 @@ export default function CommunityDetail() {
               </div>
               <textarea value={newPost} onChange={e => setNewPost(e.target.value)}
                 placeholder="What's on your mind?"
-                rows={5}
+                rows={4}
                 className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none"
                 style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
-            </div>
-            <div className="border-t border-white/10 p-6 flex-shrink-0">
-              <button onClick={handleCreatePost} disabled={!newPost.trim()}
+              {mediaPreview && (
+                <div className="relative mt-2 rounded-xl overflow-hidden">
+                  {mediaType === 'video'
+                    ? <video src={mediaPreview} controls className="w-full max-h-40 object-cover rounded-xl" />
+                    : <img src={mediaPreview} alt="preview" className="w-full max-h-40 object-cover rounded-xl" />}
+                  <button onClick={() => { setMediaFile(null); setMediaPreview(null); setMediaType(null); }}
+                    className="absolute top-2 right-2 w-7 h-7 bg-black/70 rounded-full flex items-center justify-center">
+                    <XIcon size={13} className="text-white" />
+                  </button>
+                </div>
+              )}
+              <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={e => {
+                const f = e.target.files[0]; if (!f) return;
+                setMediaFile(f); setMediaType(f.type.startsWith('video/') ? 'video' : 'image');
+                setMediaPreview(URL.createObjectURL(f));
+              }} />
+              <button onClick={() => fileRef.current?.click()}
+                className="flex items-center gap-2 text-sm text-gray-400 hover:text-purple-400 transition mt-2">
+                <Image size={16} /> Add Photo/Video
+              </button>
+              <button onClick={handleCreatePost} disabled={(!newPost.trim() && !mediaFile) || uploading}
                 className="w-full py-4 rounded-2xl font-bold text-white disabled:opacity-40 flex items-center justify-center gap-2"
                 style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-                <Send size={18} /> Post
+                {uploading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Send size={18} /> Post</>}
               </button>
             </div>
           </div>
