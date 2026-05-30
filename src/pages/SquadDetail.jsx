@@ -36,8 +36,8 @@ export default function SquadDetail() {
 
   const loadChatMessages = async () => {
     try {
-      const res = await base44.functions.invoke('getChatMessages', { room_id: chatRoomId });
-      if (res.data?.messages) setChatMessages(res.data.messages);
+      const msgs = await base44.entities.ChatMessage.filter({ conversation_id: chatRoomId }, 'timestamp', 60);
+      setChatMessages(msgs);
     } catch (e) { console.error('Chat load error', e); }
   };
 
@@ -45,11 +45,14 @@ export default function SquadDetail() {
     if (!chatInput.trim() || sendingMsg) return;
     setSendingMsg(true);
     try {
-      await base44.functions.invoke('sendChatMessage', {
-        room_id: chatRoomId,
-        message: chatInput.trim(),
+      await base44.entities.ChatMessage.create({
+        conversation_id: chatRoomId,
         sender_email: user?.email,
         sender_name: user?.full_name || user?.email?.split('@')[0] || 'Member',
+        receiver_email: chatRoomId,
+        content: chatInput.trim(),
+        timestamp: new Date().toISOString(),
+        is_read: false,
       });
       setChatInput('');
       await loadChatMessages();
@@ -760,10 +763,13 @@ export default function SquadDetail() {
                   const isMe = msg.sender_email === user?.email;
                   return (
                     <div key={idx} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                      <button onClick={() => { const p = profiles[msg.sender_email]; if (p?.username) navigate(`/glowlink/${p.username}`); }}
+                        className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-xs font-bold"
                         style={{ background: isMe ? 'linear-gradient(135deg,#ec4899,#a855f7)' : 'rgba(255,255,255,0.1)' }}>
-                        {(msg.sender_name || msg.sender_email || 'M')[0].toUpperCase()}
-                      </div>
+                        {profiles[msg.sender_email]?.avatar_url
+                          ? <img src={profiles[msg.sender_email].avatar_url} alt="" className="w-full h-full object-cover" />
+                          : (msg.sender_name || msg.sender_email || 'M')[0].toUpperCase()}
+                      </button>
                       <div className={`max-w-[72%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
                         {!isMe && <p className="text-[10px] text-gray-500 px-1">{msg.sender_name || msg.sender_email?.split('@')[0]}</p>}
                         <div className="px-3 py-2 rounded-2xl text-sm"
