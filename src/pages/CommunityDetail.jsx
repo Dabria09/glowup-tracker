@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy, Flag, Check, Image, X as XIcon } from 'lucide-react';
+import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy, Flag, Check, Image, X as XIcon, Upload } from 'lucide-react';
 
 const COMMUNITY_TYPES = {
   school: { emoji: '🏫', color: '#ec4899' },
@@ -48,6 +48,8 @@ export default function CommunityDetail() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [settingsForm, setSettingsForm] = useState({ name: '', description: '' });
   const [savingSettings, setSavingSettings] = useState(false);
+  const [profiles, setProfiles] = useState({});
+  const [iconUploading, setIconUploading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -74,6 +76,11 @@ export default function CommunityDetail() {
       // Load members
       const communityMembers = await base44.entities.CommunityMember.filter({ community_id: id });
       setMembers(communityMembers);
+      // Load member profiles
+      const profilesList = await base44.entities.UserProfile.filter({});
+      const pm = {};
+      profilesList.forEach(p => { pm[p.user_email] = p; });
+      setProfiles(pm);
 
       // Load events
       const communityEvents = await base44.entities.CommunityEvent.filter({ community_id: id }, '-event_date');
@@ -300,9 +307,26 @@ export default function CommunityDetail() {
           {/* Community Info */}
           <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="flex items-start gap-3 mb-3">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
-                style={{ background: `rgba(${typeInfo.color}, 0.2)`, border: `2px solid ${typeInfo.color}` }}>
-                {typeInfo.emoji}
+              <div className="relative flex-shrink-0">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center text-2xl"
+                  style={{ background: 'rgba(168,85,247,0.2)', border: `2px solid ${typeInfo.color}` }}>
+                  {community.cover_image
+                    ? <img src={community.cover_image} alt="" className="w-full h-full object-cover" />
+                    : <span>{typeInfo.emoji}</span>}
+                </div>
+                {(isAdmin || community.created_by === user?.email || user?.role === 'admin') && (
+                  <label className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer" style={{ background: '#ec4899' }}>
+                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files[0]; if (!file) return;
+                      setIconUploading(true);
+                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                      await base44.entities.Community.update(id, { cover_image: file_url });
+                      setCommunity(prev => ({ ...prev, cover_image: file_url }));
+                      setIconUploading(false);
+                    }} />
+                    {iconUploading ? <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" /> : <Upload size={10} className="text-white" />}
+                  </label>
+                )}
               </div>
               <div className="flex-1">
                <h2 className="text-xl font-bold text-white mb-1">{community.name}</h2>
@@ -394,17 +418,19 @@ export default function CommunityDetail() {
                     const isMyMessage = user && msg.user_email === user.email;
                     return (
                       <div key={msg.id} className={`flex gap-2 ${isMyMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                        <button onClick={() => { const p = profiles[msg.user_email]; if (p?.username) navigate(`/glowlink/${p.username}`); }}
+                          className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden"
                           style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-                          <span className="text-xs font-bold text-white">
-                            {msg.username?.[0]?.toUpperCase() || 'U'}
-                          </span>
-                        </div>
+                          {profiles[msg.user_email]?.avatar_url
+                            ? <img src={profiles[msg.user_email].avatar_url} alt="" className="w-full h-full object-cover" />
+                            : <span className="text-xs font-bold text-white flex items-center justify-center h-full">{msg.username?.[0]?.toUpperCase() || 'U'}</span>}
+                        </button>
                         <div className={`max-w-[75%] rounded-2xl p-3 ${isMyMessage ? 'rounded-br-none' : 'rounded-bl-none'}`}
                           style={{ background: isMyMessage ? 'rgba(168,85,247,0.4)' : 'rgba(255,255,255,0.08)' }}>
-                          <p className="text-xs font-semibold mb-1" style={{ color: isMyMessage ? '#fff' : '#d8b4fe' }}>
+                          <button onClick={() => { const p = profiles[msg.user_email]; if (p?.username) navigate(`/glowlink/${p.username}`); }}
+                            className="text-xs font-semibold mb-1 hover:underline text-left block" style={{ color: isMyMessage ? '#fff' : '#d8b4fe' }}>
                             {msg.username}
-                          </p>
+                          </button>
                           <p className="text-sm text-white">{msg.content}</p>
                           <p className="text-xs text-gray-500 mt-1">
                             {new Date(msg.created_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -466,14 +492,16 @@ export default function CommunityDetail() {
                     return (
                       <div key={post.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                          <button onClick={() => { const p = profiles[post.user_email]; if (p?.username) navigate(`/glowlink/${p.username}`); }}
+                            className="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden"
                             style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-                            <span className="text-xs font-bold text-white">
-                              {post.username?.[0]?.toUpperCase() || 'U'}
-                            </span>
-                          </div>
+                            {profiles[post.user_email]?.avatar_url
+                              ? <img src={profiles[post.user_email].avatar_url} alt="" className="w-full h-full object-cover" />
+                              : <span className="text-xs font-bold text-white flex items-center justify-center h-full">{post.username?.[0]?.toUpperCase() || 'U'}</span>}
+                          </button>
                           <div className="flex-1">
-                            <p className="text-sm font-semibold text-white">{post.username}</p>
+                            <button onClick={() => { const p = profiles[post.user_email]; if (p?.username) navigate(`/glowlink/${p.username}`); }}
+                              className="text-sm font-semibold text-white hover:text-pink-400 transition text-left">{post.username}</button>
                             <p className="text-xs text-gray-500">{new Date(post.created_date).toLocaleDateString()}</p>
                           </div>
                           <div className="relative">
@@ -733,7 +761,7 @@ export default function CommunityDetail() {
               <p className="font-bold text-white text-lg">Manage Community</p>
               <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 text-2xl leading-none">&times;</button>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom,0px))' }}>
               <div>
                 <label className="text-xs font-bold text-gray-400 mb-1.5 block">Community Name</label>
                 <input value={settingsForm.name} onChange={e => setSettingsForm(f => ({ ...f, name: e.target.value }))}

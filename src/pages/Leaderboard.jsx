@@ -50,6 +50,7 @@ export default function Leaderboard() {
               weeklyPoints: pts.weekly_points || 0,
               check_in_streak: pts.check_in_streak || 0,
               challenges_completed: pts.challenges_completed || 0,
+              avatar_url: profileMap[pts.user_email]?.avatar_url || null,
             };
           });
         setGlobalLeaders(formatted);
@@ -99,9 +100,16 @@ export default function Leaderboard() {
         ) : (
           <div className="space-y-3">
             {filtered.map((leader, idx) => (
-              <div key={leader.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: leader.email === user?.email ? 'rgba(236,72,153,0.12)' : 'rgba(255,255,255,0.07)', border: leader.email === user?.email ? '1px solid rgba(236,72,153,0.4)' : '1px solid rgba(255,255,255,0.1)' }}>
+              <div key={leader.id} onClick={() => leader.username && leader.username !== 'user' && navigate(`/glowlink/${leader.username}`)}
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer hover:opacity-90 transition"
+                style={{ background: leader.email === user?.email ? 'rgba(236,72,153,0.12)' : 'rgba(255,255,255,0.07)', border: leader.email === user?.email ? '1px solid rgba(236,72,153,0.4)' : '1px solid rgba(255,255,255,0.1)' }}>
                 <span className="text-xl font-bold text-yellow-400 w-6">{idx + 1}</span>
                 {idx < 3 && <span className="text-lg">{['🥇', '🥈', '🥉'][idx]}</span>}
+                <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                  {leader.avatar_url
+                    ? <img src={leader.avatar_url} alt="" className="w-full h-full object-cover" />
+                    : <span className="text-sm font-bold text-white flex items-center justify-center h-full">{leader.name[0]}</span>}
+                </div>
                 <div className="flex-1">
                   <p className="font-semibold text-white text-sm">{leader.name}{leader.email === user?.email ? ' (You)' : ''}</p>
                   <p className="text-xs text-gray-400">@{leader.username}</p>
