@@ -91,6 +91,11 @@
       "type": "string",
       "title": "Glow Persona Images (JSON)"
     },
+    "gallery_images": {
+      "type": "string",
+      "title": "Gallery Images (JSON array of URLs)",
+      "default": "[]"
+    },
     "identity_type": {
       "type": "string",
       "title": "Identity Type",

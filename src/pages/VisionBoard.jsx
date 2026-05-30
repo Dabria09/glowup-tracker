@@ -433,10 +433,10 @@ export default function VisionBoard() {
 
         {/* Points */}
         <div className="flex justify-end mb-2">
-          <div className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1"
-            style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.border}` }}>
+          <button onClick={() => navigate('/glow-score')} className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1"
+            style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.border}`, cursor: 'pointer' }}>
             <span>🏅</span><span className="text-yellow-400">{points.toLocaleString()} pts</span>
-          </div>
+          </button>
         </div>
 
         {/* Header */}

@@ -224,13 +224,15 @@ export default function Me() {
   const [postText, setPostText] = useState('');
   const [postType, setPostType] = useState('Thought');
   const [posting, setPosting] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false); // kept for compat
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [glowLinkCopied, setGlowLinkCopied] = useState(false);
   const [postMediaUrls, setPostMediaUrls] = useState([]);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   const mediaFileRef = useRef();
+  const galleryFileRef = useRef();
   const [personaImages, setPersonaImages] = useState({});
+  const [galleryImages, setGalleryImages] = useState([]);
 
   useEffect(() => {
     const load = async () => {
@@ -248,6 +250,9 @@ export default function Me() {
           if (p.glow_persona_images) {
             try { setPersonaImages(JSON.parse(p.glow_persona_images)?.images || {}); } catch {}
           }
+          if (p.gallery_images) {
+            try { setGalleryImages(JSON.parse(p.gallery_images) || []); } catch {}
+          }
         }
         if (pts.length) setPoints(pts[0]);
         setPosts(userPosts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
@@ -259,7 +264,7 @@ export default function Me() {
     load();
   }, []);
 
-  // ── Media Upload ──────────────────────────────────────────────────────────
+  // ── Media Upload (Thread) ────────────────────────────────────────────────
   const handleMediaUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
@@ -269,6 +274,24 @@ export default function Me() {
       setPostMediaUrls(prev => [...prev, file_url]);
     }
     setUploadingMedia(false);
+    e.target.value = '';
+  };
+
+  // ── Gallery Upload ────────────────────────────────────────────────────────
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploadingGallery(true);
+    const newUrls = [];
+    for (const file of files) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      newUrls.push(file_url);
+    }
+    const updated = [...galleryImages, ...newUrls];
+    await base44.entities.UserProfile.update(profile.id, { gallery_images: JSON.stringify(updated) });
+    setGalleryImages(updated);
+    setUploadingGallery(false);
+    e.target.value = '';
   };
 
   // ── Delete Photo ──────────────────────────────────────────────────────────
@@ -282,6 +305,10 @@ export default function Me() {
       delete newImages[photo.key];
       await base44.entities.UserProfile.update(profile.id, { glow_persona_images: JSON.stringify({ images: newImages }) });
       setPersonaImages(newImages);
+    } else if (photo.type === 'gallery') {
+      const updated = galleryImages.filter(url => url !== photo.url);
+      await base44.entities.UserProfile.update(profile.id, { gallery_images: JSON.stringify(updated) });
+      setGalleryImages(updated);
     }
   };
 
@@ -358,6 +385,7 @@ export default function Me() {
   const allPhotos = [
     ...(profile?.avatar_url ? [{ url: profile.avatar_url, label: 'Profile Photo', type: 'avatar' }] : []),
     ...Object.entries(personaImages).map(([id, url]) => ({ url, label: id.replace(/_/g, ' '), type: 'persona', key: id })),
+    ...galleryImages.map(url => ({ url, label: 'Gallery Photo', type: 'gallery' })),
   ];
 
   if (loading) return (
@@ -503,6 +531,18 @@ export default function Me() {
                   placeholder="Share a thought, win, goal, or mood..."
                   style={{ width: '100%', background: 'transparent', border: 'none', color: WHITE, fontSize: 14, outline: 'none', resize: 'none', minHeight: 72, fontFamily: 'inherit', boxSizing: 'border-box' }}
                 />
+                {/* Media attach buttons */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  <button onClick={() => mediaFileRef.current?.click()}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 20, background: 'rgba(232,82,109,0.1)', border: `1px solid ${BORDER}`, color: PINK, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    📷 Photo
+                  </button>
+                  <button onClick={() => { mediaFileRef.current.accept = 'video/*'; mediaFileRef.current?.click(); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 20, background: 'rgba(232,82,109,0.1)', border: `1px solid ${BORDER}`, color: PINK, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    🎬 Video
+                  </button>
+                  {uploadingMedia && <span style={{ fontSize: 11, color: MUTED2, alignSelf: 'center' }}>Uploading...</span>}
+                </div>
                 {postMediaUrls.length > 0 && (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                     {postMediaUrls.map((url, i) => (
@@ -519,10 +559,6 @@ export default function Me() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 11, color: postText.length >= 450 ? '#f59e0b' : MUTED2 }}>{postText.length}/500</span>
-                    <button onClick={() => mediaFileRef.current?.click()} disabled={uploadingMedia}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4, color: MUTED2, fontSize: 11 }}>
-                      {uploadingMedia ? <div className="w-3 h-3 border-2 border-gray-500 border-t-pink-500 rounded-full animate-spin" /> : <Camera size={15} style={{ color: PINK }} />}
-                    </button>
                   </div>
                   <button onClick={handlePost} disabled={!postText.trim() || posting}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', border: 'none', cursor: 'pointer', opacity: (!postText.trim() || posting) ? 0.4 : 1 }}>
@@ -554,15 +590,23 @@ export default function Me() {
 
           {activeTab === 'photos' && (
             <div>
+              {/* Photo action buttons */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <button onClick={() => galleryFileRef.current?.click()} disabled={uploadingGallery}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 14, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer', opacity: uploadingGallery ? 0.6 : 1 }}>
+                  {uploadingGallery ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : '📸'}
+                  {uploadingGallery ? 'Uploading...' : 'Add Photos'}
+                </button>
+                <button onClick={() => navigate('/avatar')}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 14, background: 'rgba(255,255,255,0.05)', border: `1px solid ${BORDER}`, color: MUTED, fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                  <Camera size={14} /> Change Profile Pic
+                </button>
+              </div>
               {allPhotos.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                   <div style={{ fontSize: 48 }}>📸</div>
                   <p style={{ fontSize: 14, color: MUTED }}>No photos yet.</p>
-                  <p style={{ fontSize: 12, color: MUTED2, maxWidth: 240 }}>Upload a selfie or create a Glow Persona to populate your gallery.</p>
-                  <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-                    <button onClick={() => navigate('/avatar')} style={{ padding: '9px 20px', borderRadius: 20, fontSize: 13, fontWeight: 700, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', border: 'none', cursor: 'pointer' }}>📸 Add Selfie</button>
-                    <button onClick={() => navigate('/glow-persona')} style={{ padding: '9px 20px', borderRadius: 20, fontSize: 13, fontWeight: 700, background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.35)', color: '#d8b4fe', cursor: 'pointer' }}>✨ Glow Persona</button>
-                  </div>
+                  <p style={{ fontSize: 12, color: MUTED2, maxWidth: 240 }}>Tap "Add Photos" above to upload photos to your gallery.</p>
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
@@ -573,15 +617,11 @@ export default function Me() {
                         <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', margin: 0, textTransform: 'capitalize' }}>{photo.label}</p>
                       </div>
                       <button onClick={() => handleDeletePhoto(photo)}
-                        style={{ position: 'absolute', top: 6, right: 6, width: 22, height: 22, borderRadius: '50%', background: 'rgba(220,38,38,0.85)', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Trash2 size={11} />
+                        style={{ position: 'absolute', top: 6, right: 6, width: 26, height: 26, borderRadius: '50%', background: 'rgba(220,38,38,0.9)', border: '1.5px solid rgba(255,255,255,0.3)', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+                        <Trash2 size={12} />
                       </button>
                     </div>
                   ))}
-                  <button onClick={() => navigate('/avatar')} style={{ aspectRatio: '1', borderRadius: 14, border: `2px dashed ${BORDER}`, background: 'rgba(232,82,109,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', color: MUTED2, fontSize: 11 }}>
-                    <Camera size={20} style={{ color: PINK }} />
-                    <span>Add More</span>
-                  </button>
                 </div>
               )}
             </div>
@@ -691,7 +731,8 @@ export default function Me() {
 
       </div>
 
-      <input ref={mediaFileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleMediaUpload} />
+      <input ref={mediaFileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={(e) => { handleMediaUpload(e); if (mediaFileRef.current) mediaFileRef.current.accept = 'image/*,video/*'; }} />
+      <input ref={galleryFileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
 
       <BottomNav active="me" />
 
