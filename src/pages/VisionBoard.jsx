@@ -233,6 +233,7 @@ export default function VisionBoard() {
     if (activeLayout.id === 'polaroid') {
       return (
         <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
+          onContextMenu={e => e.preventDefault()}
           className="relative group flex flex-col items-center"
           style={{ background: 'white', padding: '8px 8px 32px 8px', borderRadius: '4px', boxShadow: activeTheme.shadow }}>
           {item.image_url ? (
@@ -261,6 +262,7 @@ export default function VisionBoard() {
       const isHero = items.indexOf(item) === 0;
       return (
         <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
+          onContextMenu={e => e.preventDefault()}
           className="relative group rounded-2xl overflow-hidden"
           style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow }}>
           {item.image_url ? (
@@ -288,6 +290,7 @@ export default function VisionBoard() {
     if (activeLayout.id === 'masonry') {
       return (
         <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
+          onContextMenu={e => e.preventDefault()}
           className="relative group rounded-2xl overflow-hidden mb-3"
           style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow }}>
           {item.image_url ? (
@@ -315,6 +318,7 @@ export default function VisionBoard() {
     // Default grid
     return (
       <div ref={provided?.innerRef} {...provided?.draggableProps} {...provided?.dragHandleProps}
+        onContextMenu={e => e.preventDefault()}
         className={`relative group rounded-2xl overflow-hidden ${colSpan}`}
         style={{ border: `1px solid ${activeTheme.border}`, boxShadow: activeTheme.shadow, background: activeTheme.cardBg }}>
         {item.image_url ? (
@@ -407,6 +411,7 @@ export default function VisionBoard() {
                     <Draggable key={item.id} draggableId={item.id} index={i}>
                       {(p) => (
                         <div ref={p.innerRef} {...p.draggableProps} {...p.dragHandleProps}
+                          onContextMenu={e => e.preventDefault()}
                           className="relative group flex flex-col items-center select-none cursor-grab active:cursor-grabbing"
                           style={{ transform: `rotate(${tilt}deg)`, transformOrigin: 'center top', marginTop: i % 2 === 1 ? 16 : 0, ...p.draggableProps.style }}>
                           <div style={{ width: 40, height: 14, background: 'rgba(255,255,255,0.55)', borderRadius: 3, marginBottom: -7, zIndex: 2, position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />

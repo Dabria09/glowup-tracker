@@ -363,6 +363,19 @@ form {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Drag & Drop mobile fixes: prevent iOS long-press context menu */
+[data-rbd-draggable-context-id] {
+  touch-action: none !important;
+  -webkit-touch-callout: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+[data-rbd-draggable-context-id] img {
+  -webkit-touch-callout: none !important;
+  pointer-events: none !important;
+  draggable: false;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
