@@ -44,6 +44,52 @@ const AFFIRMATIONS = [
   "The girl you are becoming will thank you for today. 💫",
 ];
 
+const ENCOURAGEMENTS = [
+  { from: "GGU Team", msg: "Today is a fresh page in your glow story. Write something beautiful. 💜", emoji: "💌" },
+  { from: "GGU Team", msg: "Every girl who started where you are now became who she always knew she could be. Keep going. ✨", emoji: "🌟" },
+  { from: "GGU Team", msg: "You don't have to be perfect to be powerful. Show up as you are — that's enough. 🔥", emoji: "👑" },
+  { from: "GGU Team", msg: "Your journey is yours alone. Don't compare your chapter 1 to someone else's chapter 10. 💫", emoji: "🌸" },
+  { from: "GGU Team", msg: "Soft girl era or boss era — either way, you are doing the work and it shows. 💎", emoji: "💎" },
+  { from: "GGU Team", msg: "The world needs what only you can bring. Step into today with confidence. 🌍", emoji: "🌍" },
+  { from: "GGU Team", msg: "Rest is not quitting. Breaks are part of the process. Take care of yourself. 🌙", emoji: "🌙" },
+];
+
+const MOODS = [
+  { emoji: '✨', label: 'Glowing', color: '#f4c542' },
+  { emoji: '😊', label: 'Good', color: '#a8d8a8' },
+  { emoji: '😐', label: 'Okay', color: '#9b9b9b' },
+  { emoji: '😔', label: 'Struggling', color: '#e07b54' },
+  { emoji: '💪', label: 'Motivated', color: '#e8a0bf' },
+];
+
+// Glow level system
+const GLOW_LEVELS = [
+  { level: 1, name: 'Glow Seedling', emoji: '🌱', min: 0, max: 100 },
+  { level: 2, name: 'Glow Bud', emoji: '🌷', min: 100, max: 250 },
+  { level: 3, name: 'Glow Bloom', emoji: '🌸', min: 250, max: 500 },
+  { level: 4, name: 'Glow Star', emoji: '⭐', min: 500, max: 800 },
+  { level: 5, name: 'Glow Queen', emoji: '👑', min: 800, max: 1200 },
+  { level: 6, name: 'Glow Legend', emoji: '✨', min: 1200, max: 2000 },
+  { level: 7, name: 'Glow Crown', emoji: '💎', min: 2000, max: Infinity },
+];
+
+const NEXT_REWARDS = [
+  { pts: 100, name: 'Pink Bloom Badge', emoji: '🌸', type: 'badge' },
+  { pts: 250, name: 'Golden Glow Frame', emoji: '🖼️', type: 'frame' },
+  { pts: 500, name: 'Star Queen Theme', emoji: '⭐', type: 'theme' },
+  { pts: 800, name: 'Diamond Profile Banner', emoji: '💎', type: 'banner' },
+  { pts: 1200, name: 'Crown Avatar Ring', emoji: '👑', type: 'avatar' },
+  { pts: 2000, name: 'Glow Legend Background', emoji: '✨', type: 'background' },
+];
+
+function getGlowLevel(pts) {
+  return GLOW_LEVELS.find(l => pts >= l.min && pts < l.max) || GLOW_LEVELS[GLOW_LEVELS.length - 1];
+}
+
+function getNextReward(pts) {
+  return NEXT_REWARDS.find(r => pts < r.pts) || null;
+}
+
 function ProgressBar({ value, max, color = PINK, height = 6 }) {
   const pct = Math.min(100, max > 0 ? Math.round((value / max) * 100) : 0);
   return (
@@ -67,23 +113,34 @@ export default function Glow() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [dailyQuote, setDailyQuote] = useState(null);
+  const [msGlowMsg, setMsGlowMsg] = useState(null);
   const [userPoints, setUserPoints] = useState(null);
   const [challenges, setChallenges] = useState([]);
   const [certificates, setCertificates] = useState([]);
+  const [mySquads, setMySquads] = useState([]);
+  const [squadMembers, setSquadMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mood, setMood] = useState(null);
+  const [moodSaved, setMoodSaved] = useState(false);
+  const [goalsChecked, setGoalsChecked] = useState({});
+  const [savedQuote, setSavedQuote] = useState(null);
 
   const todayAffirmation = AFFIRMATIONS[new Date().getDay() % AFFIRMATIONS.length];
+  const todayEncouragement = ENCOURAGEMENTS[new Date().getDate() % ENCOURAGEMENTS.length];
 
   useEffect(() => {
     const load = async () => {
       try {
         const u = await base44.auth.me();
         setUser(u);
-        const [pts, ch, certs, quotes] = await Promise.all([
+        const [pts, ch, certs, quotes, msgs, squadMem, savedQ] = await Promise.all([
           base44.entities.UserPoints.filter({ user_email: u.email }),
           base44.entities.GlowUpChallenge.filter({ user_email: u.email }),
           base44.entities.GlowUpCertificate.filter({ user_email: u.email }),
           base44.entities.AdminQuote.filter({ is_active: true }),
+          base44.entities.MsGlowMessage.filter({ is_active: true }),
+          base44.entities.SquadMember.filter({ user_email: u.email }),
+          base44.entities.SavedQuote.filter({ user_email: u.email }, '-created_date', 1),
         ]);
         if (pts.length) setUserPoints(pts[0]);
         setChallenges(ch);
@@ -92,6 +149,22 @@ export default function Glow() {
           const idx = new Date().getDate() % quotes.length;
           setDailyQuote(quotes[idx]);
         }
+        if (msgs.length) {
+          const idx = new Date().getDate() % msgs.length;
+          setMsGlowMsg(msgs[idx]);
+        }
+        setMySquads(squadMem);
+        if (savedQ.length) setSavedQuote(savedQ[0]);
+
+        // Check saved mood for today
+        const todayKey = `ggu_mood_${u.email}_${new Date().toDateString()}`;
+        const savedMood = localStorage.getItem(todayKey);
+        if (savedMood !== null) { setMood(parseInt(savedMood)); setMoodSaved(true); }
+
+        // Load checked goals
+        const goalsKey = `ggu_goals_${u.email}_${new Date().toDateString()}`;
+        const savedGoals = localStorage.getItem(goalsKey);
+        if (savedGoals) setGoalsChecked(JSON.parse(savedGoals));
       } catch {
         base44.auth.redirectToLogin();
       }
@@ -101,20 +174,52 @@ export default function Glow() {
   }, []);
 
   const getChallengeRecord = (id) => challenges.find(c => c.challenge_id === id);
-
   const completedChallenges = challenges.filter(c => c.status === 'completed').length;
   const activeChallenge = challenges.find(c => c.status === 'in_progress');
   const activeChallengeInfo = activeChallenge ? ALL_CHALLENGES.find(c => c.id === activeChallenge.challenge_id) : null;
   const activeDays = activeChallenge ? JSON.parse(activeChallenge.completed_days || '[]').length : 0;
-
   const totalPoints = userPoints?.total_points || 0;
   const streak = userPoints?.check_in_streak || 0;
   const longestStreak = userPoints?.best_streak || streak;
   const totalDays = userPoints ? Math.max(1, Math.floor((Date.now() - new Date(userPoints.created_date || Date.now())) / 86400000)) : 0;
   const badgesEarned = Math.floor(totalPoints / 100);
-
-  // Crown progress: 0–6 challenges
   const crownPct = Math.min(100, (completedChallenges / 6) * 100);
+  const glowLevel = getGlowLevel(totalPoints);
+  const nextReward = getNextReward(totalPoints);
+  const levelProgress = glowLevel.max === Infinity ? 100 : Math.round(((totalPoints - glowLevel.min) / (glowLevel.max - glowLevel.min)) * 100);
+  const ptsToNextLevel = glowLevel.max === Infinity ? 0 : glowLevel.max - totalPoints;
+
+  // Monthly stats (rough estimate)
+  const monthlyCheckins = userPoints?.check_in_streak ? Math.min(streak, 30) : 0;
+  const monthlyPts = Math.min(totalPoints, totalPoints > 500 ? Math.floor(totalPoints * 0.3) : totalPoints);
+
+  // Today's goals
+  const TODAYS_GOALS = [
+    { id: 'checkin', label: 'Daily Check-In', route: '/daily-checkin', emoji: '✨' },
+    { id: 'challenge', label: activeChallenge ? `${activeChallengeInfo?.name || 'Challenge'} · Day ${activeDays + 1}` : 'Start a Challenge', route: activeChallenge ? `/glow-up-challenges/${activeChallenge.challenge_id}` : '/glow-up-challenges', emoji: '🎯' },
+    { id: 'vision', label: 'Update Vision Board', route: '/vision-board', emoji: '🌟' },
+    { id: 'academy', label: 'Complete an Academy Lesson', route: '/ggu-academy', emoji: '📚' },
+    { id: 'community', label: 'Post in Community', route: '/glow-feed', emoji: '💬' },
+  ];
+
+  const toggleGoal = (id, route) => {
+    const newState = { ...goalsChecked, [id]: !goalsChecked[id] };
+    setGoalsChecked(newState);
+    const goalsKey = `ggu_goals_${user?.email}_${new Date().toDateString()}`;
+    localStorage.setItem(goalsKey, JSON.stringify(newState));
+    if (!goalsChecked[id]) {
+      setTimeout(() => navigate(route), 200);
+    }
+  };
+
+  const saveMood = (idx) => {
+    setMood(idx);
+    setMoodSaved(true);
+    const todayKey = `ggu_mood_${user?.email}_${new Date().toDateString()}`;
+    localStorage.setItem(todayKey, idx.toString());
+  };
+
+  const goalsCompleted = Object.values(goalsChecked).filter(Boolean).length;
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -136,23 +241,89 @@ export default function Glow() {
         {/* Header */}
         <div style={{ paddingTop: 16, paddingBottom: 16 }}>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '2.5px', textTransform: 'uppercase', color: GOLD_LT, margin: '0 0 4px' }}>Your Journey</p>
-          <h1 style={{ fontFamily: '"Playfair Display", serif', fontSize: 28, fontWeight: 900, margin: 0, lineHeight: 1.1 }}>
-            <span style={{ color: PINK_HOT }}>My</span>{' '}
-            <span style={{ background: 'linear-gradient(135deg, #f1b610, #ffe75c)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Glow</span>
-          </h1>
-          <p style={{ fontSize: 13, color: MUTED, margin: '4px 0 0' }}>Your personal empowerment dashboard.</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h1 style={{ fontFamily: '"Playfair Display", serif', fontSize: 28, fontWeight: 900, margin: 0, lineHeight: 1.1 }}>
+              <span style={{ color: PINK_HOT }}>My</span>{' '}
+              <span style={{ background: 'linear-gradient(135deg, #f1b610, #ffe75c)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Glow</span>
+            </h1>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 16 }}>{glowLevel.emoji}</span>
+                <span style={{ fontSize: 12, fontWeight: 800, color: GOLD_LT }}>{glowLevel.name}</span>
+              </div>
+              <p style={{ fontSize: 10, color: MUTED2, margin: 0 }}>Lv. {glowLevel.level} · {totalPoints.toLocaleString()} pts</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Today's Encouragement - from GGU/Ms. Glow */}
+        <div style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(232,82,109,0.1))', border: '1px solid rgba(168,85,247,0.3)', borderRadius: 20, padding: '14px 16px', marginBottom: 12, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #a855f7, #ec4899, #f1b610)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 18 }}>{todayEncouragement.emoji}</span>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', color: '#c084fc', margin: 0, textTransform: 'uppercase' }}>Today's Encouragement · {msGlowMsg ? 'Ms. Glow' : todayEncouragement.from}</p>
+          </div>
+          <p style={{ fontSize: 14, color: WHITE, margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
+            "{msGlowMsg ? msGlowMsg.content : todayEncouragement.msg}"
+          </p>
         </div>
 
         {/* Daily Affirmation */}
-        <div style={{ background: 'linear-gradient(135deg, rgba(232,82,109,0.12), rgba(241,182,16,0.08))', border: `1px solid ${BORDER}`, borderRadius: 18, padding: '14px 16px', marginBottom: 16, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: 'linear-gradient(135deg, rgba(232,82,109,0.12), rgba(241,182,16,0.08))', border: `1px solid ${BORDER}`, borderRadius: 18, padding: '14px 16px', marginBottom: 12, position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${PINK_DEEP}, ${PINK_HOT}, ${GOLD})` }} />
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', color: GOLD_LT, margin: '0 0 6px', textTransform: 'uppercase' }}>Today's Affirmation</p>
           <p style={{ fontSize: 15, fontWeight: 600, color: WHITE, margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>"{todayAffirmation}"</p>
         </div>
 
+        {/* Mood Check-In */}
+        <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, padding: '14px 16px', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: WHITE, margin: 0 }}>💖 How are you feeling today?</p>
+            {moodSaved && <span style={{ fontSize: 10, color: '#6abf6a', fontWeight: 700 }}>✓ Logged</span>}
+          </div>
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
+            {MOODS.map((m, i) => (
+              <button key={i} onClick={() => saveMood(i)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '8px 4px', borderRadius: 12, border: `2px solid ${mood === i ? m.color : 'rgba(255,255,255,0.08)'}`, background: mood === i ? `${m.color}18` : 'rgba(255,255,255,0.04)', cursor: 'pointer', transition: 'all 0.2s' }}>
+                <span style={{ fontSize: 20 }}>{m.emoji}</span>
+                <span style={{ fontSize: 9, color: mood === i ? m.color : MUTED2, fontWeight: 600 }}>{m.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Today's Glow Goals */}
+        <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 20, padding: '16px', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <p style={{ fontSize: 13, fontWeight: 800, color: WHITE, margin: 0 }}>🎯 Today's Glow Goals</p>
+            <span style={{ fontSize: 11, color: MUTED2 }}>{goalsCompleted}/{TODAYS_GOALS.length} done</span>
+          </div>
+          {/* Progress mini bar */}
+          <div style={{ marginBottom: 12 }}>
+            <ProgressBar value={goalsCompleted} max={TODAYS_GOALS.length} color={PINK} height={5} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {TODAYS_GOALS.map(goal => {
+              const done = goalsChecked[goal.id];
+              return (
+                <button key={goal.id} onClick={() => toggleGoal(goal.id, goal.route)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: done ? 'rgba(106,191,106,0.08)' : 'rgba(255,255,255,0.04)', border: `1px solid ${done ? 'rgba(106,191,106,0.3)' : 'rgba(255,255,255,0.06)'}`, cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s' }}>
+                  <span style={{ fontSize: 16, flexShrink: 0 }}>{done ? '✅' : '☐'}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: done ? '#6abf6a' : WHITE, flex: 1, textDecoration: done ? 'line-through' : 'none', opacity: done ? 0.7 : 1 }}>{goal.emoji} {goal.label}</span>
+                  {!done && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={MUTED2} strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>}
+                </button>
+              );
+            })}
+          </div>
+          {goalsCompleted === TODAYS_GOALS.length && (
+            <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 10, background: 'rgba(106,191,106,0.1)', border: '1px solid rgba(106,191,106,0.3)', textAlign: 'center' }}>
+              <span style={{ fontSize: 13, color: '#6abf6a', fontWeight: 700 }}>🎉 All goals complete! You're glowing today!</span>
+            </div>
+          )}
+        </div>
+
         {/* Active Challenge Banner */}
         {activeChallenge && activeChallengeInfo ? (
-          <div style={{ background: `linear-gradient(135deg, ${activeChallengeInfo.color}18, ${activeChallengeInfo.color}08)`, border: `1px solid ${activeChallengeInfo.color}40`, borderRadius: 20, padding: 16, marginBottom: 16 }}>
+          <div style={{ background: `linear-gradient(135deg, ${activeChallengeInfo.color}18, ${activeChallengeInfo.color}08)`, border: `1px solid ${activeChallengeInfo.color}40`, borderRadius: 20, padding: 16, marginBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', color: MUTED2, textTransform: 'uppercase', margin: '0 0 3px' }}>Active Challenge</p>
@@ -173,15 +344,74 @@ export default function Glow() {
             </button>
           </div>
         ) : (
-          <button onClick={() => navigate('/glow-up-challenges')} style={{ width: '100%', background: `linear-gradient(135deg, rgba(232,82,109,0.15), rgba(232,82,109,0.08))`, border: `1px solid ${BORDER}`, borderRadius: 20, padding: '18px 16px', marginBottom: 16, cursor: 'pointer', textAlign: 'center' }}>
+          <button onClick={() => navigate('/glow-up-challenges')} style={{ width: '100%', background: `linear-gradient(135deg, rgba(232,82,109,0.15), rgba(232,82,109,0.08))`, border: `1px solid ${BORDER}`, borderRadius: 20, padding: '18px 16px', marginBottom: 12, cursor: 'pointer', textAlign: 'center' }}>
             <p style={{ fontSize: 24, margin: '0 0 6px' }}>✨</p>
             <p style={{ fontWeight: 800, fontSize: 15, color: WHITE, margin: '0 0 3px' }}>Start Your First Challenge</p>
             <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>30-day journeys to unlock your best self</p>
           </button>
         )}
 
-        {/* Glow Crown + Streak + Points Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+        {/* YOUR GLOW JOURNEY — Level + Next Reward */}
+        <div style={{ background: 'linear-gradient(135deg, rgba(241,182,16,0.12), rgba(232,82,109,0.08))', border: `1px solid ${GOLD_BORDER}`, borderRadius: 20, padding: '18px 16px', marginBottom: 12, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${GOLD}, ${PINK_HOT})` }} />
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: GOLD_LT, margin: '0 0 12px' }}>🌟 Your Glow Journey</p>
+
+          {/* Level display */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 28 }}>{glowLevel.emoji}</span>
+              <div>
+                <p style={{ fontWeight: 800, fontSize: 16, color: WHITE, margin: 0 }}>Level {glowLevel.level} · {glowLevel.name}</p>
+                <p style={{ fontSize: 11, color: MUTED2, margin: 0 }}>{totalPoints.toLocaleString()} points total</p>
+              </div>
+            </div>
+            {glowLevel.max !== Infinity && (
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontWeight: 900, fontSize: 20, color: GOLD_LT, margin: 0 }}>{levelProgress}%</p>
+                <p style={{ fontSize: 10, color: MUTED2, margin: 0 }}>to next level</p>
+              </div>
+            )}
+          </div>
+
+          {/* Progress bar */}
+          {glowLevel.max !== Infinity && (
+            <>
+              <ProgressBar value={totalPoints - glowLevel.min} max={glowLevel.max - glowLevel.min} color={GOLD} height={8} />
+              <p style={{ fontSize: 11, color: MUTED2, margin: '6px 0 12px' }}>
+                {totalPoints - glowLevel.min} / {glowLevel.max - glowLevel.min} pts · <span style={{ color: GOLD_LT }}>{ptsToNextLevel} pts to Level {glowLevel.level + 1}</span>
+              </p>
+            </>
+          )}
+
+          {/* Next Reward */}
+          {nextReward && (
+            <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(241,182,16,0.15)', border: `1px solid ${GOLD_BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
+                {nextReward.emoji}
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: GOLD_LT, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 2px' }}>Next Unlock</p>
+                <p style={{ fontWeight: 700, fontSize: 14, color: WHITE, margin: '0 0 1px' }}>{nextReward.name}</p>
+                <p style={{ fontSize: 11, color: MUTED2, margin: 0 }}>{(nextReward.pts - totalPoints).toLocaleString()} more points needed</p>
+              </div>
+            </div>
+          )}
+
+          {/* Streak */}
+          <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+            <div style={{ flex: 1, textAlign: 'center', padding: '8px', borderRadius: 10, background: 'rgba(232,82,109,0.1)', border: `1px solid ${BORDER}` }}>
+              <p style={{ fontWeight: 900, fontSize: 18, color: PINK_HOT, margin: 0 }}>🔥 {streak}</p>
+              <p style={{ fontSize: 10, color: MUTED2, margin: 0 }}>Current Streak</p>
+            </div>
+            <div style={{ flex: 1, textAlign: 'center', padding: '8px', borderRadius: 10, background: 'rgba(241,182,16,0.1)', border: `1px solid ${GOLD_BORDER}` }}>
+              <p style={{ fontWeight: 900, fontSize: 18, color: GOLD_LT, margin: 0 }}>⭐ {longestStreak}</p>
+              <p style={{ fontSize: 10, color: MUTED2, margin: 0 }}>Best Streak</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Glow Crown + Quick Stats Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
           {/* Glow Crown */}
           <div style={{ background: CARD, border: `1px solid ${GOLD_BORDER}`, borderRadius: 18, padding: '14px 12px' }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1px', color: GOLD_LT, textTransform: 'uppercase', margin: '0 0 6px' }}>Glow Crown</p>
@@ -191,7 +421,7 @@ export default function Glow() {
               {completedChallenges === 6 ? '👑 Crown Earned!' : `${6 - completedChallenges} challenges to crown`}
             </p>
           </div>
-          {/* Streak + Points */}
+          {/* Points */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '10px 12px', flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 22 }}>🔥</span>
@@ -210,8 +440,30 @@ export default function Glow() {
           </div>
         </div>
 
+        {/* This Month Summary */}
+        <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 20, padding: '16px', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <p style={{ fontSize: 13, fontWeight: 800, color: WHITE, margin: 0 }}>📊 This Month</p>
+            <button onClick={() => navigate('/monthly-summary')} style={{ fontSize: 11, color: PINK, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>Full Summary →</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {[
+              { icon: '✅', val: monthlyCheckins, lab: 'Check-Ins' },
+              { icon: '🏆', val: completedChallenges, lab: 'Challenges Done' },
+              { icon: '🏅', val: monthlyPts.toLocaleString(), lab: 'Points Earned' },
+              { icon: '⭐', val: badgesEarned, lab: 'Badges Unlocked' },
+            ].map((item, i) => (
+              <div key={i} style={{ textAlign: 'center', padding: '10px 8px', borderRadius: 14, background: 'rgba(255,255,255,0.04)', border: `1px solid rgba(255,255,255,0.06)` }}>
+                <span style={{ fontSize: 18 }}>{item.icon}</span>
+                <p style={{ fontWeight: 800, fontSize: 18, color: WHITE, margin: '2px 0 0' }}>{item.val}</p>
+                <p style={{ fontSize: 10, color: MUTED2, margin: 0 }}>{item.lab}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Quick Actions */}
-        <div style={{ marginBottom: 20 }}>
+        <div style={{ marginBottom: 12 }}>
           <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUTED2, marginBottom: 10 }}>Quick Actions</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
             {[
@@ -230,7 +482,7 @@ export default function Glow() {
 
         {/* Where You Left Off */}
         {activeChallenge && (
-          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '12px 16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ fontSize: 20 }}>📍</span>
             <div style={{ flex: 1 }}>
               <p style={{ fontWeight: 700, fontSize: 13, color: WHITE, margin: 0 }}>Where you left off</p>
@@ -239,6 +491,42 @@ export default function Glow() {
             <button onClick={() => navigate(`/glow-up-challenges/${activeChallenge.challenge_id}`)} style={{ padding: '6px 12px', borderRadius: 10, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
               Go →
             </button>
+          </div>
+        )}
+
+        {/* My Squad Activity */}
+        {mySquads.length > 0 && (
+          <div style={{ background: CARD, border: `1px solid rgba(168,85,247,0.25)`, borderRadius: 20, padding: '16px', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: WHITE, margin: 0 }}>🤝 My Squad</p>
+              <button onClick={() => navigate('/glow-squads')} style={{ fontSize: 11, color: '#a855f7', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>View Squad →</button>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {mySquads.slice(0, 3).map((m, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 10, background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg,#a855f7,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', fontWeight: 800 }}>{(m.user_email?.[0] || 'G').toUpperCase()}</div>
+                  <span style={{ fontSize: 11, color: WHITE, fontWeight: 600 }}>{m.user_email?.split('@')[0] || 'Member'}</span>
+                  {m.personal_streak > 0 && <span style={{ fontSize: 10, color: PINK }}>🔥{m.personal_streak}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Saved Favorite Quote */}
+        {savedQuote ? (
+          <button onClick={() => navigate('/saved-quotes')} style={{ width: '100%', background: 'linear-gradient(135deg, rgba(168,85,247,0.1), rgba(168,85,247,0.05))', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 18, padding: '16px', marginBottom: 12, cursor: 'pointer', textAlign: 'left', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #a855f7, #ec4899)' }} />
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', color: '#c084fc', margin: '0 0 8px', textTransform: 'uppercase' }}>🌟 Favorite Glow Quote</p>
+            <p style={{ fontSize: 14, color: WHITE, margin: 0, lineHeight: 1.5, fontStyle: 'italic' }}>"{savedQuote.quote_text || 'Your saved quote lives here.'}"</p>
+            <p style={{ fontSize: 11, color: '#c084fc', margin: '8px 0 0', fontWeight: 600 }}>Tap to view all saved quotes →</p>
+          </button>
+        ) : dailyQuote && (
+          <div style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.1), rgba(168,85,247,0.05))', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 18, padding: '16px', marginBottom: 12, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #a855f7, #ec4899)' }} />
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', color: '#c084fc', margin: '0 0 8px', textTransform: 'uppercase' }}>Today's Quote</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: WHITE, margin: '0 0 8px', lineHeight: 1.5, fontStyle: 'italic' }}>{dailyQuote.quote_text}</p>
+            {dailyQuote.author && <p style={{ fontSize: 12, color: MUTED2, margin: 0, fontWeight: 600 }}>— {dailyQuote.author}</p>}
           </div>
         )}
 
@@ -298,7 +586,7 @@ export default function Glow() {
           </div>
         </div>
 
-        {/* Rewards and Badges */}
+        {/* Recent Achievements */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUTED2, margin: 0 }}>Rewards and Badges</p>
@@ -337,17 +625,6 @@ export default function Glow() {
           <ProgressBar value={completedChallenges} max={6} color={GOLD} height={8} />
           <p style={{ fontSize: 11, color: MUTED2, margin: '6px 0 0' }}>{Math.round(crownPct)}% of Glow Crown earned</p>
         </div>
-
-        {/* Daily Quote */}
-        {dailyQuote && (
-          <div style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.1), rgba(168,85,247,0.05))', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 18, padding: '16px', marginBottom: 16, position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #a855f7, #ec4899)' }} />
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', color: '#c084fc', margin: '0 0 8px', textTransform: 'uppercase' }}>Today's Quote</p>
-            <p style={{ fontSize: 28, color: 'rgba(192,132,252,0.4)', fontFamily: 'serif', lineHeight: 1, margin: '0 0 6px' }}>&ldquo;</p>
-            <p style={{ fontSize: 15, fontWeight: 600, color: WHITE, margin: '0 0 8px', lineHeight: 1.5, fontStyle: 'italic' }}>{dailyQuote.quote_text}</p>
-            {dailyQuote.author && <p style={{ fontSize: 12, color: MUTED2, margin: 0, fontWeight: 600 }}>— {dailyQuote.author}</p>}
-          </div>
-        )}
 
         {/* Glow Pass */}
         <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, padding: '14px 16px', marginBottom: 8 }}>
