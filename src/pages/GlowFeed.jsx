@@ -315,7 +315,12 @@ export default function GlowFeed() {
                   <p className="text-gray-400 text-sm text-center max-w-xs">Be the first to share your glow! Post from the Me tab.</p>
                 </div>
               ) : (
-                timelinePosts.map(post => renderPostCard(post))
+                timelinePosts
+                  .filter(p => !search.trim() ||
+                    p.content?.toLowerCase().includes(search.toLowerCase()) ||
+                    profilesMap[p.user_email]?.username?.toLowerCase().includes(search.toLowerCase()) ||
+                    p.user_email?.split('@')[0]?.toLowerCase().includes(search.toLowerCase()))
+                  .map(post => renderPostCard(post))
               )}
             </div>
           )}

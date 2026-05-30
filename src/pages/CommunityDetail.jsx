@@ -45,6 +45,9 @@ export default function CommunityDetail() {
   const [mediaType, setMediaType] = useState(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef();
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({ name: '', description: '' });
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -238,6 +241,18 @@ export default function CommunityDetail() {
     });
     setNewMessage('');
     loadData();
+  }
+
+  async function handleSaveSettings() {
+    if (!community) return;
+    setSavingSettings(true);
+    await base44.entities.Community.update(id, {
+      name: settingsForm.name || community.name,
+      description: settingsForm.description || community.description,
+    });
+    setCommunity(prev => ({ ...prev, name: settingsForm.name || prev.name, description: settingsForm.description || prev.description }));
+    setSavingSettings(false);
+    setShowSettingsModal(false);
   }
 
   async function handleRoleChange(memberId, newRole) {
@@ -622,7 +637,7 @@ export default function CommunityDetail() {
 
               {(isAdmin || community.created_by === user?.email || user?.role === 'admin') && (
                 <div className="space-y-3">
-                  <button onClick={() => navigate(`/community-hub/${id}/settings`)}
+                  <button onClick={() => { setSettingsForm({ name: community.name || '', description: community.description || '' }); setShowSettingsModal(true); }}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white"
                     style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>
                     <Settings size={16} /> Manage Community
@@ -704,6 +719,42 @@ export default function CommunityDetail() {
                 className="w-full py-4 rounded-2xl font-bold text-white disabled:opacity-40 flex items-center justify-center gap-2"
                 style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                 <Mail size={18} /> Send Invitation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Community Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-[100]" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowSettingsModal(false)}>
+          <div className="fixed bottom-0 left-0 right-0 rounded-t-3xl" style={{ background: '#1a0a30', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom,0px))' }} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <p className="font-bold text-white text-lg">Manage Community</p>
+              <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 text-2xl leading-none">&times;</button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 mb-1.5 block">Community Name</label>
+                <input value={settingsForm.name} onChange={e => setSettingsForm(f => ({ ...f, name: e.target.value }))}
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 mb-1.5 block">Description</label>
+                <textarea value={settingsForm.description} onChange={e => setSettingsForm(f => ({ ...f, description: e.target.value }))}
+                  rows={3} className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none resize-none"
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
+              </div>
+              <button onClick={handleSaveSettings} disabled={savingSettings}
+                className="w-full py-3 rounded-2xl font-bold text-white disabled:opacity-40 flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                {savingSettings ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Save Changes'}
+              </button>
+              <button onClick={handleDeleteCommunity}
+                className="w-full py-3 rounded-2xl font-semibold text-red-400"
+                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                Delete Community
               </button>
             </div>
           </div>

@@ -351,7 +351,7 @@ export default function TeamDetail() {
 
       {showDiscussModal && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-end" onClick={() => setShowDiscussModal(false)}>
-          <div className="w-full rounded-t-3xl p-6" style={{ background: '#1a0a2e', border: '1px solid rgba(236,72,153,0.3)', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom,0px))' }} onClick={e => e.stopPropagation()}>
+          <div className="w-full rounded-t-3xl p-6" style={{ background: '#1a0a2e', border: '1px solid rgba(236,72,153,0.3)', paddingBottom: 'calc(7rem + env(safe-area-inset-bottom,0px))' }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <p className="font-bold text-white text-lg">New Discussion</p>
               <button onClick={() => setShowDiscussModal(false)} className="text-gray-400 text-2xl leading-none">&times;</button>

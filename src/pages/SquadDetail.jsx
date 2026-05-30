@@ -490,7 +490,7 @@ export default function SquadDetail() {
                 </div>
                 <button onClick={() => setShowAnnounceModal(false)}><X size={20} /></button>
               </div>
-              <div className="p-6 space-y-4" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom,16px))' }}>
+              <div className="p-6 space-y-4" style={{ paddingBottom: 'calc(7rem + env(safe-area-inset-bottom,0px))' }}>
                        <div>
                         <label className="text-sm font-semibold text-gray-300 mb-2 block">Title *</label>
                   <input

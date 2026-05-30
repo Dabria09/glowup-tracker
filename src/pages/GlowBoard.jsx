@@ -291,7 +291,11 @@ export default function GlowBoard() {
                       <p className="text-gray-300 text-xs line-clamp-2">{post.description}</p>
                     )}
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-[10px] text-gray-400">@{post.username}</span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/glowlink/${post.username}`); }}
+                        className="text-[10px] text-pink-400 hover:underline">
+                        @{post.username}
+                      </button>
                       <div className="flex items-center gap-1">
                         {user && post.user_email === user.email && (
                           <button
