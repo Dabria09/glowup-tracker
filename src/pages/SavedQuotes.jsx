@@ -71,11 +71,11 @@ export default function SavedQuotes() {
                 <div className="flex items-start gap-3">
                   <span className="text-2xl flex-shrink-0">✨</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm leading-relaxed italic mb-2">"{q.quote_text || q.content || q.text}"</p>
-                    {q.author && <p className="text-xs text-gray-400">— {q.author}</p>}
-                    {q.category && (
+                    <p className="text-white text-sm leading-relaxed italic mb-2">"{q.quote_text}"</p>
+                    {q.quote_author && <p className="text-xs text-gray-400">— {q.quote_author}</p>}
+                    {q.saved_date && (
                       <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.3)', color: '#f9a8d4' }}>
-                        {q.category}
+                        📅 {q.saved_date}
                       </span>
                     )}
                   </div>

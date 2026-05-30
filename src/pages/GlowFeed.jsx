@@ -48,13 +48,29 @@ export default function GlowFeed() {
   const [answerText, setAnswerText] = useState('');
   const [loading, setLoading] = useState(true);
   const [myPosts, setMyPosts] = useState([]);
+  const [timelinePosts, setTimelinePosts] = useState([]);
+  const [reactedPostIds, setReactedPostIds] = useState(new Set());
+  const [myReactionPosts, setMyReactionPosts] = useState([]);
+  const [myCommentPosts, setMyCommentPosts] = useState([]);
 
   useEffect(() => {
     base44.auth.me().then(async u => {
       setUser(u);
+      const allPosts = await base44.entities.GlowUpPost.list('-created_date', 50);
+      setTimelinePosts(allPosts);
+      const reactions = await base44.entities.PostReaction.filter({ user_email: u.email });
+      const reactionIds = new Set(reactions.map(r => r.post_id));
+      setReactedPostIds(reactionIds);
       if (filterMode === 'my_posts') {
-        const posts = await base44.entities.GlowUpPost.filter({ user_email: u.email }, '-created_date', 50);
-        setMyPosts(posts);
+        setMyPosts(allPosts.filter(p => p.user_email === u.email));
+      }
+      if (filterMode === 'my_reactions') {
+        setMyReactionPosts(allPosts.filter(p => reactionIds.has(p.id)));
+      }
+      if (filterMode === 'my_comments') {
+        const comments = await base44.entities.PostComment.filter({ user_email: u.email });
+        const commentPostIds = new Set(comments.map(c => c.post_id));
+        setMyCommentPosts(allPosts.filter(p => commentPostIds.has(p.id)));
       }
     }).catch(() => {}).finally(() => setLoading(false));
   }, [filterMode]);
@@ -62,6 +78,46 @@ export default function GlowFeed() {
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#080810' }}>
       <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" />
+    </div>
+  );
+
+  const toggleReaction = async (post) => {
+    if (!user) return;
+    const isReacted = reactedPostIds.has(post.id);
+    if (isReacted) {
+      const existing = await base44.entities.PostReaction.filter({ user_email: user.email, post_id: post.id });
+      if (existing.length) await base44.entities.PostReaction.delete(existing[0].id);
+      setReactedPostIds(prev => { const n = new Set(prev); n.delete(post.id); return n; });
+      setMyReactionPosts(prev => prev.filter(p => p.id !== post.id));
+    } else {
+      await base44.entities.PostReaction.create({ user_email: user.email, post_id: post.id, reaction_type: 'heart' });
+      setReactedPostIds(prev => new Set([...prev, post.id]));
+      if (filterMode === 'my_reactions') setMyReactionPosts(prev => [post, ...prev]);
+    }
+  };
+
+  const renderPostCard = (post) => (
+    <div key={post.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>{(post.user_email?.[0] || '?').toUpperCase()}</div>
+          <span className="text-xs text-gray-400">{post.user_email?.split('@')[0]}</span>
+        </div>
+        <span className="text-xs text-gray-500">{new Date(post.created_date).toLocaleDateString()}</span>
+      </div>
+      <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full mb-2" style={{ background: 'rgba(236,72,153,0.2)', color: '#f9a8d4' }}>{post.post_type || 'Thought'}</span>
+      <p className="text-sm text-white mb-3">{post.content}</p>
+      {(() => { try { const urls = JSON.parse(post.media_urls || '[]'); return urls.length > 0 ? <div className="grid grid-cols-2 gap-2 mb-3">{urls.map((url, i) => url.match(/\.(mp4|webm|mov)/i) ? <video key={i} src={url} controls className="rounded-xl w-full" /> : <img key={i} src={url} alt="" className="rounded-xl object-cover" style={{ aspectRatio: '1/1' }} />)}</div> : null; } catch { return null; } })()}
+      <div className="flex items-center gap-4">
+        <button onClick={() => toggleReaction(post)} className="flex items-center gap-1.5 text-sm transition" style={{ color: reactedPostIds.has(post.id) ? '#f43f5e' : '#6b7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <Heart size={16} fill={reactedPostIds.has(post.id) ? '#f43f5e' : 'none'} />
+          <span className="text-xs">{post.likes || 0}</span>
+        </button>
+        <div className="flex items-center gap-1.5" style={{ color: '#6b7280' }}>
+          <MessageCircle size={16} />
+          <span className="text-xs">{post.comments || 0}</span>
+        </div>
+      </div>
     </div>
   );
 
@@ -169,18 +225,28 @@ export default function GlowFeed() {
                 )
               )}
               {filterMode === 'my_reactions' && (
-                <div className="flex flex-col items-center py-16 text-center">
-                  <span className="text-5xl mb-4">💜</span>
-                  <p className="font-bold text-lg text-white mb-2">My Reactions</p>
-                  <p className="text-gray-400 text-sm max-w-xs">Reaction tracking is coming soon! When you react to posts in the feed, they'll appear here.</p>
-                </div>
+                myReactionPosts.length === 0 ? (
+                  <div className="flex flex-col items-center py-16 text-center">
+                    <span className="text-5xl mb-4">💜</span>
+                    <p className="font-bold text-lg text-white mb-2">No Reactions Yet</p>
+                    <p className="text-gray-400 text-sm max-w-xs mb-4">Tap the ❤️ on any post in the feed to react. It'll show up here.</p>
+                    <button onClick={() => navigate('/glow-feed')} className="px-5 py-2 rounded-full text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>Browse Feed</button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">{myReactionPosts.map(post => renderPostCard(post))}</div>
+                )
               )}
               {filterMode === 'my_comments' && (
-                <div className="flex flex-col items-center py-16 text-center">
-                  <span className="text-5xl mb-4">💬</span>
-                  <p className="font-bold text-lg text-white mb-2">My Comments</p>
-                  <p className="text-gray-400 text-sm max-w-xs">Comment tracking is coming soon! Posts you've commented on will appear here.</p>
-                </div>
+                myCommentPosts.length === 0 ? (
+                  <div className="flex flex-col items-center py-16 text-center">
+                    <span className="text-5xl mb-4">💬</span>
+                    <p className="font-bold text-lg text-white mb-2">No Comments Yet</p>
+                    <p className="text-gray-400 text-sm max-w-xs mb-4">Posts you comment on in the feed will appear here.</p>
+                    <button onClick={() => navigate('/glow-feed')} className="px-5 py-2 rounded-full text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>Browse Feed</button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">{myCommentPosts.map(post => renderPostCard(post))}</div>
+                )
               )}
             </div>
           )}
@@ -208,12 +274,15 @@ export default function GlowFeed() {
                 </button>
               </div>
 
-              {/* Empty State */}
-              <div className="flex flex-col items-center justify-center py-12">
-                <span className="text-5xl mb-4">✨</span>
-                <p className="font-bold text-lg text-white mb-2">Your following feed is empty</p>
-                <p className="text-gray-400 text-sm text-center max-w-xs">Follow other glow girls to see their wins here in real time.</p>
-              </div>
+              {timelinePosts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <span className="text-5xl mb-4">✨</span>
+                  <p className="font-bold text-lg text-white mb-2">No posts yet</p>
+                  <p className="text-gray-400 text-sm text-center max-w-xs">Be the first to share your glow! Post from the Me tab.</p>
+                </div>
+              ) : (
+                timelinePosts.map(post => renderPostCard(post))
+              )}
             </div>
           )}
 

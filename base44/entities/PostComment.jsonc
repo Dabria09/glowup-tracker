@@ -1,0 +1,23 @@
+{
+  "name": "PostComment",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "post_id": {
+      "type": "string",
+      "title": "Post ID"
+    },
+    "content": {
+      "type": "string",
+      "title": "Comment Text"
+    }
+  },
+  "required": [
+    "user_email",
+    "post_id",
+    "content"
+  ]
+}

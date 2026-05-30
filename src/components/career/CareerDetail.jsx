@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, Bookmark } from 'lucide-react';
+import { ChevronRight, Bookmark, BookmarkCheck } from 'lucide-react';
 import { CATEGORY_COLORS, getCareerData } from './careerData';
 
 const START_NOW_COLORS = {
@@ -10,7 +10,7 @@ const START_NOW_COLORS = {
   competitions: '#ec4899',
 };
 
-export default function CareerDetail({ career, onClose, onSelectCareer }) {
+export default function CareerDetail({ career, onClose, onSelectCareer, isSaved = false, onToggleSave }) {
   const [tab, setTab] = useState('overview');
   const data = getCareerData(career);
   const color = CATEGORY_COLORS[career.category] || '#a855f7';
@@ -22,8 +22,8 @@ export default function CareerDetail({ career, onClose, onSelectCareer }) {
         <button onClick={onClose} className="flex items-center gap-1.5 text-gray-400 text-sm font-semibold">
           <ChevronRight size={16} className="rotate-180" /> Back
         </button>
-        <button className="flex items-center gap-1.5 text-gray-400 text-sm font-semibold">
-          <Bookmark size={15} /> Save
+        <button onClick={onToggleSave} className={`flex items-center gap-1.5 text-sm font-semibold ${isSaved ? 'text-purple-400' : 'text-gray-400'}`}>
+          {isSaved ? <BookmarkCheck size={15} /> : <Bookmark size={15} />} {isSaved ? 'Saved ✓' : 'Save'}
         </button>
       </div>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
@@ -40,7 +40,7 @@ const MY_CONTENT = [
   { label: 'My Diary',              icon: BookOpen,      route: '/diary' },
   { label: 'My Vision Board',       icon: Image,         route: '/vision-board' },
   { label: 'My Saved Quotes',       icon: Quote,         route: '/saved-quotes' },
-  { label: 'My Career Bookmarks',   icon: Briefcase,     route: '/careers' },
+  { label: 'My Career Bookmarks',   icon: Briefcase,     route: '/saved-careers' },
   { label: 'My Saved Scholarships', icon: GraduationCap, route: '/saved-scholarships' },
 ];
 
@@ -227,6 +227,9 @@ export default function Me() {
   const [showEditModal, setShowEditModal] = useState(false); // kept for compat
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [glowLinkCopied, setGlowLinkCopied] = useState(false);
+  const [postMediaUrls, setPostMediaUrls] = useState([]);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const mediaFileRef = useRef();
   const [personaImages, setPersonaImages] = useState({});
 
   useEffect(() => {
@@ -255,6 +258,32 @@ export default function Me() {
     };
     load();
   }, []);
+
+  // ── Media Upload ──────────────────────────────────────────────────────────
+  const handleMediaUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploadingMedia(true);
+    for (const file of files) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setPostMediaUrls(prev => [...prev, file_url]);
+    }
+    setUploadingMedia(false);
+  };
+
+  // ── Delete Photo ──────────────────────────────────────────────────────────
+  const handleDeletePhoto = async (photo) => {
+    if (!profile) return;
+    if (photo.type === 'avatar') {
+      await base44.entities.UserProfile.update(profile.id, { avatar_url: null });
+      setProfile(p => ({ ...p, avatar_url: null }));
+    } else if (photo.type === 'persona') {
+      const newImages = { ...personaImages };
+      delete newImages[photo.key];
+      await base44.entities.UserProfile.update(profile.id, { glow_persona_images: JSON.stringify({ images: newImages }) });
+      setPersonaImages(newImages);
+    }
+  };
 
   // ── Glow Stage age gate ──────────────────────────────────────────────────
   const handleStageChange = async (group) => {
@@ -298,7 +327,7 @@ export default function Me() {
     const post = await base44.entities.GlowUpPost.create({
       user_email: user.email,
       content: postText.trim(),
-      media_urls: '[]',
+      media_urls: JSON.stringify(postMediaUrls),
       visibility: 'followers',
       likes: 0,
       comments: 0,
@@ -306,6 +335,7 @@ export default function Me() {
     });
     setPosts(prev => [post, ...prev]);
     setPostText('');
+    setPostMediaUrls([]);
     setPosting(false);
   };
 
@@ -326,8 +356,8 @@ export default function Me() {
 
   // ── Photos for "My Photos" tab ────────────────────────────────────────────
   const allPhotos = [
-    ...(profile?.avatar_url ? [{ url: profile.avatar_url, label: 'Profile Photo' }] : []),
-    ...Object.entries(personaImages).map(([id, url]) => ({ url, label: id.replace(/_/g, ' ') })),
+    ...(profile?.avatar_url ? [{ url: profile.avatar_url, label: 'Profile Photo', type: 'avatar' }] : []),
+    ...Object.entries(personaImages).map(([id, url]) => ({ url, label: id.replace(/_/g, ' '), type: 'persona', key: id })),
   ];
 
   if (loading) return (
@@ -473,8 +503,27 @@ export default function Me() {
                   placeholder="Share a thought, win, goal, or mood..."
                   style={{ width: '100%', background: 'transparent', border: 'none', color: WHITE, fontSize: 14, outline: 'none', resize: 'none', minHeight: 72, fontFamily: 'inherit', boxSizing: 'border-box' }}
                 />
+                {postMediaUrls.length > 0 && (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                    {postMediaUrls.map((url, i) => (
+                      <div key={i} style={{ position: 'relative', width: 64, height: 64, borderRadius: 10, overflow: 'hidden', border: `1px solid ${BORDER}` }}>
+                        {url.match(/\.(mp4|webm|mov)/i)
+                          ? <video src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                        <button onClick={() => setPostMediaUrls(prev => prev.filter((_, j) => j !== i))}
+                          style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: 'rgba(0,0,0,0.7)', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-                  <span style={{ fontSize: 11, color: postText.length >= 450 ? '#f59e0b' : MUTED2 }}>{postText.length}/500</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 11, color: postText.length >= 450 ? '#f59e0b' : MUTED2 }}>{postText.length}/500</span>
+                    <button onClick={() => mediaFileRef.current?.click()} disabled={uploadingMedia}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4, color: MUTED2, fontSize: 11 }}>
+                      {uploadingMedia ? <div className="w-3 h-3 border-2 border-gray-500 border-t-pink-500 rounded-full animate-spin" /> : <Camera size={15} style={{ color: PINK }} />}
+                    </button>
+                  </div>
                   <button onClick={handlePost} disabled={!postText.trim() || posting}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', border: 'none', cursor: 'pointer', opacity: (!postText.trim() || posting) ? 0.4 : 1 }}>
                     {posting ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : '➤'} Post
@@ -523,6 +572,10 @@ export default function Me() {
                       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 6px', background: 'linear-gradient(to top,rgba(0,0,0,0.8),transparent)' }}>
                         <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', margin: 0, textTransform: 'capitalize' }}>{photo.label}</p>
                       </div>
+                      <button onClick={() => handleDeletePhoto(photo)}
+                        style={{ position: 'absolute', top: 6, right: 6, width: 22, height: 22, borderRadius: '50%', background: 'rgba(220,38,38,0.85)', border: 'none', color: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Trash2 size={11} />
+                      </button>
                     </div>
                   ))}
                   <button onClick={() => navigate('/avatar')} style={{ aspectRatio: '1', borderRadius: 14, border: `2px dashed ${BORDER}`, background: 'rgba(232,82,109,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', color: MUTED2, fontSize: 11 }}>
@@ -637,6 +690,8 @@ export default function Me() {
         </div>
 
       </div>
+
+      <input ref={mediaFileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={handleMediaUpload} />
 
       <BottomNav active="me" />
 

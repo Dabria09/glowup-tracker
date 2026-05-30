@@ -100,6 +100,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import SavedQuotes from './pages/SavedQuotes';
 import SavedScholarships from './pages/SavedScholarships';
+import SavedCareers from './pages/SavedCareers';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -218,6 +219,7 @@ const AuthenticatedApp = () => {
       <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route path="/saved-quotes" element={<SavedQuotes />} />
       <Route path="/saved-scholarships" element={<SavedScholarships />} />
+      <Route path="/saved-careers" element={<SavedCareers />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </BanGate>

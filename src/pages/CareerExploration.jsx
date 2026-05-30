@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, Target, Sparkles, ChevronRight, X, Search, Bookmark } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { Briefcase, Target, Sparkles, ChevronRight, X, Search, Bookmark, BookmarkCheck } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import CareerQuiz from '@/components/career/CareerQuiz';
@@ -25,6 +26,25 @@ export default function CareerExploration() {
   const [selected, setSelected] = useState(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [showRealWomen, setShowRealWomen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [savedCareerIds, setSavedCareerIds] = useState([]);
+
+  useEffect(() => {
+    base44.auth.me().then(u => {
+      setUser(u);
+      const saved = JSON.parse(localStorage.getItem(`ggu_careers_saved_${u.email}`) || '[]');
+      setSavedCareerIds(saved);
+    }).catch(() => {});
+  }, []);
+
+  const toggleSave = (career, e) => {
+    if (e) e.stopPropagation();
+    if (!user) return;
+    const isSaved = savedCareerIds.includes(career.id);
+    const updated = isSaved ? savedCareerIds.filter(id => id !== career.id) : [...savedCareerIds, career.id];
+    setSavedCareerIds(updated);
+    localStorage.setItem(`ggu_careers_saved_${user.email}`, JSON.stringify(updated));
+  };
 
   const filtered = CAREERS.filter(c => {
     const matchesCat = activeCategory === 'All' || c.category === activeCategory;
@@ -40,6 +60,8 @@ export default function CareerExploration() {
         career={selected}
         onClose={() => setSelected(null)}
         onSelectCareer={(career) => setSelected(career)}
+        isSaved={savedCareerIds.includes(selected?.id)}
+        onToggleSave={() => toggleSave(selected)}
       />
     );
   }
@@ -162,7 +184,11 @@ export default function CareerExploration() {
                         <p className="text-xs text-white/50 leading-relaxed">{career.desc}</p>
                       </div>
                       <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                        <Bookmark size={15} className="text-gray-600" />
+                        <button onClick={e => toggleSave(career, e)}>
+                          {savedCareerIds.includes(career.id)
+                            ? <BookmarkCheck size={15} className="text-purple-400" />
+                            : <Bookmark size={15} className="text-gray-600" />}
+                        </button>
                         <ChevronRight size={15} className="text-gray-500" />
                       </div>
                     </div>

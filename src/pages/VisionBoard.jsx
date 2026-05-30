@@ -84,6 +84,7 @@ export default function VisionBoard() {
   const [showWordInput, setShowWordInput] = useState(false);
   const [wordText, setWordText] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [points, setPoints] = useState(0);
   const fileRef = useRef();
   const boardRef = useRef();
 
@@ -100,6 +101,8 @@ export default function VisionBoard() {
       setActiveLayout(LAYOUTS.find(l => l.id === b.layout) || LAYOUTS[0]);
       const boardItems = await base44.entities.VisionBoardItem.filter({ board_id: b.id });
       setItems(boardItems.sort((a, b) => (a.position || 0) - (b.position || 0)));
+      const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
+      if (pts.length) setPoints(pts[0].total_points || 0);
       setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
@@ -432,7 +435,7 @@ export default function VisionBoard() {
         <div className="flex justify-end mb-2">
           <div className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1"
             style={{ background: activeTheme.cardBg, border: `1px solid ${activeTheme.border}` }}>
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{points.toLocaleString()} pts</span>
           </div>
         </div>
 

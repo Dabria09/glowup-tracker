@@ -1,0 +1,23 @@
+{
+  "name": "PostReaction",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "post_id": {
+      "type": "string",
+      "title": "Post ID"
+    },
+    "reaction_type": {
+      "type": "string",
+      "title": "Reaction Type",
+      "default": "heart"
+    }
+  },
+  "required": [
+    "user_email",
+    "post_id"
+  ]
+}
