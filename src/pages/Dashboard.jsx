@@ -400,16 +400,15 @@ export default function Dashboard() {
       else { setCheckedInToday(false); }
     };
 
-    const onCheckinComplete = () => { if (email) { checkCheckin(email); refreshPoints(email); } };
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    window.addEventListener('ggu_checkin_complete', onCheckinComplete);
-
     const refreshPoints = async (userEmail) => {
       const pts = await base44.entities.UserPoints.filter({ user_email: userEmail });
       setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
     };
 
     const onVisibilityChange = () => { if (email && document.visibilityState === 'visible') { checkCheckin(email); refreshPoints(email); } };
+    const onCheckinComplete = () => { if (email) { checkCheckin(email); refreshPoints(email); } };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('ggu_checkin_complete', onCheckinComplete);
 
     base44.auth.me().then(async (u) => {
       email = u.email;
