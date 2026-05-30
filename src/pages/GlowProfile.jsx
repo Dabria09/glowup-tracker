@@ -51,6 +51,7 @@ export default function GlowProfile() {
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [followLoading, setFollowLoading] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -251,7 +252,7 @@ export default function GlowProfile() {
             <div className="relative">
               <div className="absolute inset-0 rounded-full animate-pulse"
                 style={{ margin: -8, background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`, filter: 'blur(8px)' }} />
-              <div style={{ ...frameStyle, borderRadius: '50%', position: 'relative' }}>
+              <div style={{ ...frameStyle, borderRadius: '50%', position: 'relative' }} onClick={() => setShowAvatarModal(true)} className="cursor-pointer">
                 <UserAvatarDisplay profile={profile} size={120} fallback={(profile.username?.[0] || '✨').toUpperCase()} showRing={false} />
               </div>
               {frame.id !== 'default' && (
@@ -539,6 +540,33 @@ export default function GlowProfile() {
           </>
         )}
       </div>
+
+      {/* Avatar Lightbox */}
+      {showAvatarModal && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center"
+          style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}
+          onClick={() => setShowAvatarModal(false)}
+        >
+          <div className="relative max-w-sm w-full mx-6" onClick={e => e.stopPropagation()}>
+            <div className="rounded-3xl overflow-hidden" style={{ border: '3px solid rgba(255,255,255,0.2)' }}>
+              {profile.avatar_url
+                ? <img src={profile.avatar_url} alt={profile.username} className="w-full object-cover" style={{ aspectRatio: '1/1' }} />
+                : <div className="w-full flex items-center justify-center text-8xl font-black text-white" style={{ aspectRatio: '1/1', background: theme.gradient }}>
+                    {(profile.username?.[0] || '✨').toUpperCase()}
+                  </div>
+              }
+            </div>
+            <p className="text-center text-white font-bold mt-3 text-lg">@{profile.username}</p>
+            <p className="text-center text-xs mt-1" style={{ color: theme.accent }}>{glowLevel.emoji} {glowLevel.name}</p>
+            <button
+              onClick={() => setShowAvatarModal(false)}
+              className="absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
+              style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}
+            >×</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
