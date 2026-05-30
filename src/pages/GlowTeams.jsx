@@ -167,7 +167,7 @@ export default function GlowTeams() {
           </button>
           <div className="flex-1">
             <h1 className="text-2xl font-bold">✨ Glow Teams</h1>
-            <p className="text-xs text-gray-400">Find your people. Build your community. Rise together.</p>
+            <p className="text-xs text-gray-400">Join a team, complete challenges, earn points, and compete in friendly contests with other girls.</p>
           </div>
           <button onClick={() => setShowCreateModal(true)} className="px-4 py-2 rounded-full font-bold text-white text-sm bg-pink-500 hover:bg-pink-600 transition flex items-center gap-2">
             <Plus size={16} /> Create

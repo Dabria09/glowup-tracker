@@ -146,7 +146,7 @@ export default function GlowSquads() {
           </button>
           <div className="flex-1">
             <h1 className="text-2xl font-bold">👑 Glow Squads</h1>
-            <p className="text-xs text-gray-400">Your intimate circle. Rise together daily.</p>
+            <p className="text-xs text-gray-400">Create or join a smaller group for support, accountability, encouragement, and shared glow-up goals.</p>
           </div>
           <button onClick={() => setShowCreateModal(true)} className="px-4 py-2 rounded-full font-bold text-white text-sm bg-pink-500 hover:bg-pink-600 transition flex items-center gap-2">
             <Plus size={16} /> Create

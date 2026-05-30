@@ -11,6 +11,8 @@ export default function TeamContests() {
   const [activeContest, setActiveContest] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [userTeams, setUserTeams] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loggedProgress, setLoggedProgress] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -18,6 +20,7 @@ export default function TeamContests() {
         const isAuth = await base44.auth.isAuthenticated();
         if (isAuth) {
           const user = await base44.auth.me();
+          setCurrentUser(user);
           
           const [contests, entries, teams] = await Promise.all([
             base44.entities.TeamContest.filter({ status: 'active' }),
@@ -53,6 +56,27 @@ export default function TeamContests() {
     </div>
   );
 
+  const handleLogProgress = async () => {
+    if (!currentUser || !activeContest || userTeams.length === 0) return;
+    const teamId = userTeams[0].team_id;
+    const existing = leaderboard.find(e => e.team_id === teamId);
+    if (existing) {
+      await base44.entities.TeamContestEntry.update(existing.id, {
+        current_progress: (existing.current_progress || 0) + 1,
+      });
+      setLeaderboard(prev => prev.map(e => e.team_id === teamId ? { ...e, current_progress: (e.current_progress || 0) + 1 } : e).sort((a, b) => b.current_progress - a.current_progress));
+    } else {
+      const newEntry = await base44.entities.TeamContestEntry.create({
+        contest_id: activeContest.id,
+        team_id: teamId,
+        current_progress: 1,
+      });
+      setLeaderboard(prev => [...prev, newEntry].sort((a, b) => b.current_progress - a.current_progress));
+    }
+    setLoggedProgress(true);
+    setTimeout(() => setLoggedProgress(false), 2000);
+  };
+
   if (!activeContest) {
     return (
       <div className="min-h-screen text-white pb-24 relative overflow-y-auto" style={{ backgroundColor: '#080810' }}>
@@ -64,10 +88,13 @@ export default function TeamContests() {
             </button>
             <h1 className="text-2xl font-bold">🏆 Team Contests</h1>
           </div>
-          <div className="text-center py-20">
+          <div className="text-center py-16">
             <span className="text-5xl mb-4 block">🎉</span>
-            <p className="font-bold text-lg text-white mb-2">No active contests</p>
-            <p className="text-gray-400 text-sm">Check back soon for the next team challenge!</p>
+            <p className="font-bold text-lg text-white mb-2">No active contests right now</p>
+            <p className="text-gray-400 text-sm mb-6">Check back soon for the next team challenge!</p>
+            {currentUser?.role === 'admin' && (
+              <p className="text-xs text-pink-400">Admin: create a TeamContest record with status &quot;active&quot; in the Admin panel to start a contest.</p>
+            )}
           </div>
         </div>
         <BottomNav active="discover" />
@@ -192,11 +219,15 @@ export default function TeamContests() {
           <div>
             <h2 className="text-sm font-bold tracking-widest text-gray-400 mb-3">YOUR TEAM</h2>
             <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <p className="text-xs text-gray-400 mb-2">Keep grinding! Every contribution counts 💜</p>
-              <div className="flex items-center gap-2 text-sm">
-                <Users className="text-pink-400" size={16} />
-                <span className="text-gray-300">Active participation earns points for your team</span>
-              </div>
+              <p className="text-xs text-gray-400 mb-3">Every action earns points for your team 💜</p>
+              <button
+                onClick={handleLogProgress}
+                disabled={loggedProgress}
+                className="w-full py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-60 transition"
+                style={{ background: loggedProgress ? 'rgba(52,211,153,0.3)' : 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+              >
+                {loggedProgress ? '✓ Progress Logged!' : '🔥 Log My Contribution (+1 point for team)'}
+              </button>
             </div>
           </div>
         )}

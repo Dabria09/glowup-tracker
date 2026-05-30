@@ -52,12 +52,18 @@ export default function GlowFeed() {
   const [reactedPostIds, setReactedPostIds] = useState(new Set());
   const [myReactionPosts, setMyReactionPosts] = useState([]);
   const [myCommentPosts, setMyCommentPosts] = useState([]);
+  const [communityQuestions, setCommunityQuestions] = useState([]);
 
   useEffect(() => {
     base44.auth.me().then(async u => {
       setUser(u);
-      const allPosts = await base44.entities.GlowUpPost.list('-created_date', 50);
-      setTimelinePosts(allPosts);
+      const allPosts = await base44.entities.GlowUpPost.list('-created_date', 100);
+      const feedPosts = allPosts.filter(p =>
+        (p.visibility === 'public' || p.visibility === 'followers') &&
+        p.post_type !== 'Community Question'
+      );
+      setTimelinePosts(feedPosts);
+      setCommunityQuestions(allPosts.filter(p => p.post_type === 'Community Question'));
       const reactions = await base44.entities.PostReaction.filter({ user_email: u.email });
       const reactionIds = new Set(reactions.map(r => r.post_id));
       setReactedPostIds(reactionIds);
@@ -99,10 +105,10 @@ export default function GlowFeed() {
   const renderPostCard = (post) => (
     <div key={post.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
+        <button onClick={() => navigate(`/glowlink/${post.user_email?.split('@')[0]}`)} className="flex items-center gap-2 hover:opacity-80 transition">
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>{(post.user_email?.[0] || '?').toUpperCase()}</div>
           <span className="text-xs text-gray-400">{post.user_email?.split('@')[0]}</span>
-        </div>
+        </button>
         <span className="text-xs text-gray-500">{new Date(post.created_date).toLocaleDateString()}</span>
       </div>
       <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full mb-2" style={{ background: 'rgba(236,72,153,0.2)', color: '#f9a8d4' }}>{post.post_type || 'Thought'}</span>
@@ -122,8 +128,16 @@ export default function GlowFeed() {
   );
 
   const handleAskQuestion = async () => {
-    if (!newQuestion.trim()) return;
-    // TODO: Save to backend
+    if (!newQuestion.trim() || !user) return;
+    const question = await base44.entities.GlowUpPost.create({
+      user_email: user.email,
+      content: newQuestion.trim(),
+      post_type: 'Community Question',
+      visibility: 'public',
+      likes: 0,
+      comments: 0,
+    });
+    setCommunityQuestions(prev => [question, ...prev]);
     setNewQuestion('');
     setShowAskModal(false);
   };
@@ -255,7 +269,7 @@ export default function GlowFeed() {
           {!filterMode && activeTab === 'timeline' && (
             <div className="space-y-4">
               {/* Post Button */}
-              <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.2), rgba(168,85,247,0.2))', border: '1px solid rgba(236,72,153,0.3)' }}>
+              <button onClick={() => navigate('/me')} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.2), rgba(168,85,247,0.2))', border: '1px solid rgba(236,72,153,0.3)' }}>
                 <Plus size={18} className="text-pink-400" />
                 <span className="text-sm font-semibold text-pink-400">Create a post</span>
               </button>
@@ -310,7 +324,9 @@ export default function GlowFeed() {
 
               {/* Questions List */}
               <div className="space-y-3">
-                {COMMUNITY_QUESTIONS.map(q => (
+                {communityQuestions
+                  .filter(q => !search || q.content?.toLowerCase().includes(search.toLowerCase()))
+                  .map(q => (
                   <div
                     key={q.id}
                     onClick={() => setSelectedQuestion(q)}
@@ -318,18 +334,24 @@ export default function GlowFeed() {
                     style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
                   >
                     <div className="flex items-start gap-3">
-                      <span className="text-2xl">{q.emoji}</span>
+                      <span className="text-2xl">💬</span>
                       <div className="flex-1">
-                        <p className="text-sm text-white font-semibold">{q.question}</p>
+                        <p className="text-sm text-white font-semibold">{q.content}</p>
                         <div className="flex items-center gap-4 mt-2">
-                          <span className="text-xs text-gray-400">💬 {q.answers} answers</span>
-                          {q.isPinned && <span className="text-xs px-2 py-1 rounded-full bg-pink-500/20 text-pink-400">📌 Pinned</span>}
+                          <span className="text-xs text-gray-400">by @{q.user_email?.split('@')[0]}</span>
+                          <span className="text-xs text-gray-500">{new Date(q.created_date).toLocaleDateString()}</span>
                         </div>
                       </div>
                       <button className="text-gray-500 hover:text-pink-400 transition">→</button>
                     </div>
                   </div>
                 ))}
+                {communityQuestions.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-4xl mb-3">💬</p>
+                    <p className="text-gray-400 text-sm">No questions yet. Be the first to ask!</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -404,10 +426,10 @@ export default function GlowFeed() {
             <div className="overflow-y-auto p-6 space-y-4 flex-1">
               <div className="rounded-2xl p-4 mb-6" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <div className="flex items-start gap-3">
-                  <span className="text-3xl">{selectedQuestion.emoji}</span>
+                  <span className="text-3xl">{selectedQuestion.emoji || '💬'}</span>
                   <div>
-                    <p className="text-sm text-white font-semibold">{selectedQuestion.question}</p>
-                    <p className="text-xs text-gray-400 mt-2">💬 {selectedQuestion.answers} community answers</p>
+                    <p className="text-sm text-white font-semibold">{selectedQuestion.content || selectedQuestion.question}</p>
+                    <p className="text-xs text-gray-400 mt-2">by @{selectedQuestion.user_email?.split('@')[0] || 'Community'}  {selectedQuestion.answers ? `· ${selectedQuestion.answers} answers` : ''}</p>
                   </div>
                 </div>
               </div>

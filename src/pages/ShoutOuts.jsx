@@ -26,12 +26,17 @@ export default function ShoutOuts() {
   const [posts, setPosts] = useState([]);
   const [draft, setDraft] = useState('');
   const [posting, setPosting] = useState(false);
+  const [realPoints, setRealPoints] = useState(0);
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
-      const data = await base44.entities.ShoutOut.list('-created_date', 100);
+      const [data, pts] = await Promise.all([
+        base44.entities.ShoutOut.list('-created_date', 100),
+        base44.entities.UserPoints.filter({ user_email: u.email }),
+      ]);
       setPosts(filterForWorld(data));
+      if (pts.length) setRealPoints(pts[0].total_points || 0);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
 
@@ -82,7 +87,7 @@ export default function ShoutOuts() {
         <div className="flex justify-end mb-2">
           <div className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1"
             style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{realPoints.toLocaleString()} pts</span>
           </div>
         </div>
 
@@ -167,11 +172,24 @@ export default function ShoutOuts() {
                   <span className="text-gray-500 text-xs">· {timeAgo(post.created_date)}</span>
                 </div>
                 <p className="text-sm text-gray-200 leading-relaxed mb-3">{post.content}</p>
-                <button onClick={() => handleLike(post)}
-                  className={`flex items-center gap-1.5 text-sm transition ${liked ? 'text-pink-400' : 'text-gray-500 hover:text-pink-400'}`}>
-                  <Heart size={16} fill={liked ? 'currentColor' : 'none'} />
-                  <span>{post.likes || 0}</span>
-                </button>
+                <div className="flex items-center justify-between">
+                  <button onClick={() => handleLike(post)}
+                    className={`flex items-center gap-1.5 text-sm transition ${liked ? 'text-pink-400' : 'text-gray-500 hover:text-pink-400'}`}>
+                    <Heart size={16} fill={liked ? 'currentColor' : 'none'} />
+                    <span>{post.likes || 0}</span>
+                  </button>
+                  {(post.user_email === user.email || user.role === 'admin') && (
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm('Delete this shout out?')) return;
+                        await base44.entities.ShoutOut.delete(post.id);
+                        setPosts(prev => prev.filter(p => p.id !== post.id));
+                      }}
+                      className="text-gray-600 hover:text-red-400 transition text-xs">
+                      Delete
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}

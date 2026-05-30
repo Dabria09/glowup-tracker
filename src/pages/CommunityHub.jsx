@@ -46,6 +46,13 @@ export default function CommunityHub() {
     }).catch(() => {});
   }, []);
 
+  async function handleDeleteCommunity(community) {
+    if (!window.confirm(`Delete "${community.name}"? This cannot be undone.`)) return;
+    await base44.entities.Community.delete(community.id);
+    setMyCommunities(prev => prev.filter(c => c.id !== community.id));
+    setAllCommunities(prev => prev.filter(c => c.id !== community.id));
+  }
+
   async function handleCreateCommunity() {
     if (!newCommunity.name || !user) return;
     const community = await base44.entities.Community.create({
@@ -58,6 +65,7 @@ export default function CommunityHub() {
       age_group: ageGroup || undefined,
     });
     setMyCommunities(prev => [...prev, community]);
+    setAllCommunities(prev => [...prev, community]);
     setNewCommunity({ name: '', type: 'school', description: '' });
     setShowCreateModal(false);
   }
@@ -133,9 +141,16 @@ export default function CommunityHub() {
                       <p className="font-bold text-white text-sm">{c.name}</p>
                       <p className="text-xs text-gray-500">{c.member_count || 1} members</p>
                     </div>
-                    <button onClick={() => navigate(`/community-hub/${c.id}`)} className="text-xs font-semibold text-pink-400 px-3 py-1.5 rounded-full" style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.3)' }}>
-                      Open
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => navigate(`/community-hub/${c.id}`)} className="text-xs font-semibold text-pink-400 px-3 py-1.5 rounded-full" style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.3)' }}>
+                        Open
+                      </button>
+                      {(c.created_by === user?.email || user?.role === 'admin') && (
+                        <button onClick={() => handleDeleteCommunity(c)} className="text-xs font-semibold text-red-400 px-2 py-1 rounded-full hover:bg-red-400/10 transition">
+                          Delete
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

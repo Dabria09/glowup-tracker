@@ -27,120 +27,40 @@ export default function Leaderboard() {
   const [teams, setTeams] = useState([]);
   const [circle, setCircle] = useState([]);
   
-  // Airtable configuration - update these with your actual values
-  const AIRTABLE_BASE_ID = 'appYOUR_BASE_ID'; // Replace with your Airtable base ID
-  const AIRTABLE_TABLE_NAME = 'Leaderboard'; // Replace with your table name
-
-  // Calculate points from user activities
-  const calculateUserPoints = async (userEmail) => {
-    try {
-      const [
-        gratitudeEntries,
-        spiritualHabits,
-        shoutouts,
-        diaryEntries,
-        userProfile
-      ] = await Promise.all([
-        base44.entities.GratitudeEntry.filter({ user_email: userEmail }),
-        base44.entities.SpiritualHabit.filter({ user_email: userEmail }),
-        base44.entities.ShoutOut.filter({ user_email: userEmail }),
-        base44.entities.DiaryEntry.filter({ user_email: userEmail }),
-        base44.entities.UserProfile.filter({ user_email: userEmail }).then(r => r[0] || null),
-      ]);
-
-      // Points calculation
-      const checkInPoints = gratitudeEntries.length * 10;
-      const habitPoints = spiritualHabits.filter(h => h.checked_date).length * 5;
-      const shoutoutPointsReceived = shoutouts.reduce((sum, s) => sum + (s.likes || 0), 0) * 3;
-      const shoutoutPointsGiven = shoutouts.length * 2;
-      const journalPoints = diaryEntries.length * 5;
-
-      const totalPoints = checkInPoints + habitPoints + shoutoutPointsReceived + shoutoutPointsGiven + journalPoints;
-      
-      // Weekly points (simplified - would need date filtering in production)
-      const weeklyPoints = Math.floor(totalPoints * 0.4);
-
-      return {
-        total_points: totalPoints,
-        weekly_points: weeklyPoints,
-        check_in_streak: gratitudeEntries.length,
-        journal_entries: diaryEntries.length,
-        shoutouts_received: shoutoutPointsReceived / 3,
-      };
-    } catch (error) {
-      console.error('Error calculating points:', error);
-      return {
-        total_points: 0,
-        weekly_points: 0,
-        check_in_streak: 0,
-        journal_entries: 0,
-        shoutouts_received: 0,
-      };
-    }
-  };
-
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
       try {
-        // Fetch leaderboard data from Airtable
-        const response = await base44.functions.invoke('airtableFetch', {
-          action: 'fetchRecords',
-          baseId: AIRTABLE_BASE_ID,
-          tableId: AIRTABLE_TABLE_NAME,
-        });
-
-        if (response.records && response.records.length > 0) {
-          // Parse Airtable data into leaderboard format
-          const airtableData = response.records.map(record => ({
-            id: record.id,
-            name: record.fields.Name || record.fields.Username || 'User',
-            username: record.fields.Username || record.fields.Name || 'user',
-            email: record.fields.Email || '',
-            points: record.fields.Total_Points || record.fields.Points || 0,
-            weeklyPoints: record.fields.Weekly_Points || 0,
-            teamPoints: record.fields.Team_Points || 0,
-            teamName: record.fields.Team || '',
-            avatar_url: record.fields.Avatar_URL || null,
-            check_in_streak: record.fields.Check_In_Streak || 0,
-            journal_entries: record.fields.Journal_Entries || 0,
-          }));
-
-          // Sort by total points for global leaderboard
-          const sorted = airtableData.sort((a, b) => b.points - a.points);
-
-          setGlobalLeaders(sorted);
-          
-          // Weekly leaders (top 10 by weekly points)
-          const weeklySorted = [...airtableData].sort((a, b) => b.weeklyPoints - a.weeklyPoints);
-          setWeeklyLeaders(weeklySorted.slice(0, 10));
-
-          // Group by teams
-          const teamMap = {};
-          airtableData.forEach(member => {
-            if (member.teamName) {
-              if (!teamMap[member.teamName]) {
-                teamMap[member.teamName] = { id: member.teamName, name: member.teamName, members: [], teamPoints: 0 };
-              }
-              teamMap[member.teamName].members.push(member);
-              teamMap[member.teamName].teamPoints += member.points;
-            }
+        const [allPoints, profiles] = await Promise.all([
+          base44.entities.UserPoints.list('-total_points', 50),
+          base44.entities.UserProfile.list('-created_date', 200),
+        ]);
+        const profileMap = {};
+        profiles.forEach(p => { profileMap[p.user_email] = p; });
+        const formatted = allPoints
+          .filter(pts => (pts.total_points || 0) > 0)
+          .map(pts => {
+            const profile = profileMap[pts.user_email] || {};
+            return {
+              id: pts.id,
+              name: profile.display_name || profile.username || pts.user_email?.split('@')[0] || 'Glow Girl',
+              username: profile.username || pts.user_email?.split('@')[0] || 'user',
+              email: pts.user_email,
+              points: pts.total_points || 0,
+              weeklyPoints: pts.weekly_points || 0,
+              check_in_streak: pts.check_in_streak || 0,
+              challenges_completed: pts.challenges_completed || 0,
+            };
           });
-          setTeams(Object.values(teamMap).sort((a, b) => b.teamPoints - a.teamPoints));
-
-          // Circle - top 5 from global
-          setCircle(sorted.slice(0, 5).map((l, idx) => ({
-            ...l,
-            circlePoints: l.points,
-            rank: ['Glow Queen', 'Shine Leader', 'Rising Star', 'Spark', 'Beam'][idx] || 'Member',
-          })));
-        }
-
-        setLoading(false);
+        setGlobalLeaders(formatted);
+        setWeeklyLeaders([...formatted]
+          .sort((a, b) => (b.check_in_streak || 0) - (a.check_in_streak || 0))
+          .slice(0, 10)
+        );
       } catch (error) {
-        console.error('Error loading leaderboard from Airtable:', error);
-        setLoading(false);
+        console.error('Error loading leaderboard:', error);
       }
+      setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
 
@@ -168,27 +88,41 @@ export default function Leaderboard() {
     );
   };
 
-  const renderGlobalTab = () => (
-    <div>
-      {globalLeaders.length === 0 ? (
-        renderEmptyState()
-      ) : (
-        <div className="space-y-3">
-          {globalLeaders.map((leader, idx) => (
-            <div key={leader.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <span className="text-xl font-bold text-yellow-400 w-6">{idx + 1}</span>
-              {idx < 3 && <span className="text-lg">{['🥇', '🥈', '🥉'][idx]}</span>}
-              <div className="flex-1">
-                <p className="font-semibold text-white text-sm">{leader.name}</p>
-                <p className="text-xs text-gray-400">@{leader.username}</p>
+  const renderGlobalTab = () => {
+    const myRank = globalLeaders.findIndex(l => l.email === user?.email) + 1;
+    const myEntry = globalLeaders.find(l => l.email === user?.email);
+    const filtered = search ? globalLeaders.filter(l => l.name.toLowerCase().includes(search.toLowerCase()) || l.username.toLowerCase().includes(search.toLowerCase())) : globalLeaders;
+    return (
+      <div>
+        {filtered.length === 0 ? (
+          renderEmptyState()
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((leader, idx) => (
+              <div key={leader.id} className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: leader.email === user?.email ? 'rgba(236,72,153,0.12)' : 'rgba(255,255,255,0.07)', border: leader.email === user?.email ? '1px solid rgba(236,72,153,0.4)' : '1px solid rgba(255,255,255,0.1)' }}>
+                <span className="text-xl font-bold text-yellow-400 w-6">{idx + 1}</span>
+                {idx < 3 && <span className="text-lg">{['🥇', '🥈', '🥉'][idx]}</span>}
+                <div className="flex-1">
+                  <p className="font-semibold text-white text-sm">{leader.name}{leader.email === user?.email ? ' (You)' : ''}</p>
+                  <p className="text-xs text-gray-400">@{leader.username}</p>
+                </div>
+                <span className="font-bold text-yellow-400 text-sm">{leader.points.toLocaleString()} pts</span>
               </div>
-              <span className="font-bold text-yellow-400 text-sm">{leader.points} pts</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+            ))}
+            {myRank > 0 && myEntry && !filtered.slice(0, filtered.length).find(l => l.email === user?.email) && (
+              <div className="mt-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.3)' }}>
+                <p className="text-xs text-pink-400 font-bold mb-0.5">YOUR RANK</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-white">#{myRank} · {myEntry.name}</p>
+                  <span className="font-bold text-yellow-400 text-sm">{myEntry.points.toLocaleString()} pts</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderWeeklyTab = () => (
     <div>
@@ -289,7 +223,7 @@ export default function Leaderboard() {
         {/* Points badge */}
         <div className="flex justify-end mb-3">
           <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{(globalLeaders.find(l => l.email === user?.email)?.points || 0).toLocaleString()} pts</span>
           </div>
         </div>
 
