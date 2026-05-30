@@ -356,41 +356,47 @@ export default function VisionBoard() {
       </div>
     );
 
-    // Collage: free-form scattered overlapping tiles
+    // Collage: draggable scattered tiles using grid + transforms
     if (activeLayout.id === 'collage') {
       return (
-        <div style={{ position: 'relative', minHeight: Math.max(400, items.length * 60) }}>
-          {items.map((item, i) => {
-            const isWord = !item.image_url && item.caption;
-            const rotations = [-4, 3, -2, 5, -3, 2, -5, 4, -1, 3];
-            const rot = rotations[i % rotations.length];
-            const sizes = [120, 150, 110, 160, 130, 100, 145];
-            const sz = sizes[i % sizes.length];
-            // Scatter positions in a grid-like pattern with offsets
-            const col = i % 3;
-            const row = Math.floor(i / 3);
-            const left = col * 32 + (i % 2 === 0 ? 2 : 8);
-            const top = row * 40 + (i % 3 === 1 ? 5 : 0);
-            return (
-              <div key={item.id}
-                style={{ position: 'absolute', left: `${left}%`, top: `${top}%`, width: sz, transform: `rotate(${rot}deg)`, zIndex: i, transition: 'transform 0.2s', cursor: 'grab' }}
-                className="group">
-                <div style={{ background: isWord ? activeTheme.cardBg : 'transparent', border: `1px solid ${activeTheme.border}`, borderRadius: 12, overflow: 'hidden', boxShadow: activeTheme.shadow }}>
-                  {item.image_url
-                    ? <img src={item.image_url} alt="" style={{ width: sz, height: sz, objectFit: 'cover', display: 'block' }} />
-                    : isWord
-                      ? <div style={{ width: sz, height: sz * 0.7, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8 }}>
-                          <p style={{ color: activeTheme.accent, fontFamily: "'Dancing Script', cursive", fontSize: 'clamp(12px,4vw,20px)', textAlign: 'center', fontWeight: 700, wordBreak: 'break-word', textShadow: `0 0 16px ${activeTheme.accent}60` }}>{item.caption}</p>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="collage" direction="horizontal">
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-3 gap-2 p-1">
+                {items.map((item, i) => {
+                  const isWord = !item.image_url && item.caption;
+                  const rotations = [-4, 3, -2, 5, -3, 2, -5, 4, -1, 3];
+                  const rot = rotations[i % rotations.length];
+                  const sz = 100;
+                  return (
+                    <Draggable key={item.id} draggableId={item.id} index={i}>
+                      {(p) => (
+                        <div ref={p.innerRef} {...p.draggableProps} {...p.dragHandleProps}
+                          onContextMenu={e => e.preventDefault()}
+                          className="group relative"
+                          style={{ touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', ...p.draggableProps.style }}>
+                          <div style={{ transform: `rotate(${rot}deg)`, background: isWord ? activeTheme.cardBg : 'transparent', border: `1px solid ${activeTheme.border}`, borderRadius: 12, overflow: 'hidden', boxShadow: activeTheme.shadow }}>
+                            {item.image_url
+                              ? <img src={item.image_url} alt="" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block', WebkitTouchCallout: 'none', pointerEvents: 'none' }} draggable={false} />
+                              : isWord
+                                ? <div style={{ aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8 }}>
+                                    <p style={{ color: activeTheme.accent, fontFamily: "'Dancing Script', cursive", fontSize: 'clamp(12px,4vw,20px)', textAlign: 'center', fontWeight: 700, wordBreak: 'break-word', textShadow: `0 0 16px ${activeTheme.accent}60` }}>{item.caption}</p>
+                                  </div>
+                                : <div style={{ aspectRatio: '1/1', background: activeTheme.cardBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="text-3xl opacity-20">🖼️</span></div>}
+                          </div>
+                          <button onClick={() => deleteItem(item)}
+                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full text-white items-center justify-center hidden group-hover:flex"
+                            style={{ fontSize: 10 }}>×</button>
                         </div>
-                      : <div style={{ width: sz, height: sz, background: activeTheme.cardBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="text-3xl opacity-20">🖼️</span></div>}
-                </div>
-                <button onClick={() => deleteItem(item)}
-                  className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full text-white items-center justify-center hidden group-hover:flex"
-                  style={{ fontSize: 10 }}>×</button>
+                      )}
+                    </Draggable>
+                  );
+                })}
+                {provided.placeholder}
               </div>
-            );
-          })}
-        </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       );
     }
 
