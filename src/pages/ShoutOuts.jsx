@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Heart, Send } from 'lucide-react';
+import { ChevronLeft, Heart, Send, Image, X as XIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import useAgeGroup from '@/lib/useAgeGroup';
 
@@ -27,6 +27,10 @@ export default function ShoutOuts() {
   const [draft, setDraft] = useState('');
   const [posting, setPosting] = useState(false);
   const [realPoints, setRealPoints] = useState(0);
+  const [mediaPreview, setMediaPreview] = useState(null);
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaType, setMediaType] = useState(null);
+  const fileRef = useRef();
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -40,9 +44,27 @@ export default function ShoutOuts() {
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
 
+  const handleMediaChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setMediaFile(file);
+    setMediaType(file.type.startsWith('video/') ? 'video' : 'image');
+    setMediaPreview(URL.createObjectURL(file));
+  };
+
+  const clearMedia = () => {
+    setMediaFile(null); setMediaPreview(null); setMediaType(null);
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
   const handlePost = async () => {
-    if (!draft.trim()) return;
+    if (!draft.trim() && !mediaFile) return;
     setPosting(true);
+    let media_url = null;
+    if (mediaFile) {
+      const res = await base44.integrations.Core.UploadFile({ file: mediaFile });
+      media_url = res.file_url;
+    }
     const displayName = user.full_name?.split(' ')[0] || 'Glow Girl';
     const post = await base44.entities.ShoutOut.create({
       user_email: user.email,
@@ -51,9 +73,11 @@ export default function ShoutOuts() {
       likes: 0,
       liked_by: '[]',
       age_group: ageGroup || undefined,
+      ...(media_url && { media_url, media_type: mediaType }),
     });
     setPosts(prev => [post, ...prev]);
     setDraft('');
+    clearMedia();
     setPosting(false);
     toast.success('Shout out posted! 👑✨');
   };
@@ -124,27 +148,45 @@ export default function ShoutOuts() {
           </p>
         </div>
 
-        {/* Post input */}
-        <div className="rounded-2xl px-4 py-3 mb-5 flex items-center gap-3"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <div className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-            <span className="text-base">✦</span>
-          </div>
-          <input
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handlePost()}
-            placeholder="Share a win or affirmation..."
-            className="flex-1 bg-transparent text-sm text-white outline-none placeholder-gray-500"
-          />
-          {draft.trim().length > 0 && (
-            <button onClick={handlePost} disabled={posting}
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-              <Send size={14} />
+        {/* Media preview */}
+        {mediaPreview && (
+          <div className="relative mb-3 rounded-2xl overflow-hidden">
+            {mediaType === 'video'
+              ? <video src={mediaPreview} controls className="w-full rounded-2xl max-h-48 object-cover" />
+              : <img src={mediaPreview} alt="preview" className="w-full rounded-2xl max-h-48 object-cover" />}
+            <button onClick={clearMedia} className="absolute top-2 right-2 w-7 h-7 bg-black/70 rounded-full flex items-center justify-center">
+              <XIcon size={13} className="text-white" />
             </button>
-          )}
+          </div>
+        )}
+
+        {/* Post input */}
+        <div className="rounded-2xl px-4 py-3 mb-5"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+              <span className="text-base">❆</span>
+            </div>
+            <input
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handlePost()}
+              placeholder="Share a win or affirmation..."
+              className="flex-1 bg-transparent text-sm text-white outline-none placeholder-gray-500"
+            />
+            <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={handleMediaChange} />
+            <button onClick={() => fileRef.current?.click()} className="text-gray-500 hover:text-pink-400 transition">
+              <Image size={17} />
+            </button>
+            {(draft.trim().length > 0 || mediaFile) && (
+              <button onClick={handlePost} disabled={posting}
+                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                {posting ? <div className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Send size={14} />}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Posts */}
@@ -172,6 +214,11 @@ export default function ShoutOuts() {
                   <span className="text-gray-500 text-xs">· {timeAgo(post.created_date)}</span>
                 </div>
                 <p className="text-sm text-gray-200 leading-relaxed mb-3">{post.content}</p>
+                {post.media_url && (
+                  post.media_type === 'video'
+                    ? <video src={post.media_url} controls className="w-full rounded-xl max-h-56 object-cover mb-3" />
+                    : <img src={post.media_url} alt="" className="w-full rounded-xl max-h-56 object-cover mb-3" />
+                )}
                 <div className="flex items-center justify-between">
                   <button onClick={() => handleLike(post)}
                     className={`flex items-center gap-1.5 text-sm transition ${liked ? 'text-pink-400' : 'text-gray-500 hover:text-pink-400'}`}>

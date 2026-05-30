@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Bell, BellOff } from 'lucide-react';
+import { ChevronLeft, Bell, BellOff, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TYPE_META = {
@@ -31,6 +31,40 @@ export default function Notifications() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [actorProfiles, setActorProfiles] = useState({});
+  const [showSettings, setShowSettings] = useState(false);
+
+  const DEFAULT_PREFS = {
+    follow: true, reaction: true, profile_view: true, shoutout: true,
+    comment: true, challenge: true, mentorship: true, community: true,
+    team: true, squad: true, announcement: true, system: true,
+  };
+  const [prefs, setPrefs] = useState(() => {
+    try { return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem('ggu_notif_prefs') || '{}') }; }
+    catch { return DEFAULT_PREFS; }
+  });
+
+  const PREF_LABELS = [
+    { key: 'follow',       label: 'New followers',           emoji: '💜' },
+    { key: 'reaction',     label: 'Reactions on your posts', emoji: '✨' },
+    { key: 'comment',      label: 'Comments on your posts',  emoji: '💬' },
+    { key: 'profile_view', label: 'Profile views',           emoji: '👀' },
+    { key: 'shoutout',     label: 'Shout outs',              emoji: '📣' },
+    { key: 'team',         label: 'Team activity',           emoji: '🏆' },
+    { key: 'squad',        label: 'Squad activity',          emoji: '👑' },
+    { key: 'challenge',    label: 'Challenge reminders',     emoji: '🔥' },
+    { key: 'mentorship',   label: 'Mentorship updates',      emoji: '🎓' },
+    { key: 'community',    label: 'Community Hub activity',  emoji: '🌸' },
+    { key: 'announcement', label: 'Announcements',           emoji: '📢' },
+    { key: 'system',       label: 'System updates',          emoji: '⚙️' },
+  ];
+
+  const togglePref = (key) => {
+    const updated = { ...prefs, [key]: !prefs[key] };
+    setPrefs(updated);
+    localStorage.setItem('ggu_notif_prefs', JSON.stringify(updated));
+  };
+
+  const filteredNotifications = notifications.filter(n => prefs[n.type] !== false);
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -92,7 +126,33 @@ export default function Notifications() {
           </h1>
           <p className="text-[11px] text-gray-500">Follows &amp; Glow Link activity</p>
         </div>
+        <button onClick={() => setShowSettings(s => !s)}
+          className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0"
+          style={{ background: showSettings ? 'rgba(236,72,153,0.2)' : 'rgba(255,255,255,0.08)' }}>
+          <Settings size={16} className={showSettings ? 'text-pink-400' : 'text-gray-400'} />
+        </button>
       </div>
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="relative z-20 mx-4 mt-2 mb-1 rounded-2xl p-4" style={{ background: 'rgba(30,10,40,0.95)', border: '1px solid rgba(236,72,153,0.2)' }}>
+          <p className="text-xs font-bold tracking-widest text-gray-400 mb-3">NOTIFICATION PREFERENCES</p>
+          <div className="space-y-2">
+            {PREF_LABELS.map(({ key, label, emoji }) => (
+              <div key={key} className="flex items-center justify-between py-1">
+                <span className="text-sm text-gray-200">{emoji} {label}</span>
+                <button onClick={() => togglePref(key)}
+                  className="w-11 h-6 rounded-full transition-all flex-shrink-0"
+                  style={{ background: prefs[key] ? 'linear-gradient(135deg,#ec4899,#a855f7)' : 'rgba(255,255,255,0.1)' }}>
+                  <div className="w-5 h-5 rounded-full bg-white shadow transition-transform mx-0.5"
+                    style={{ transform: prefs[key] ? 'translateX(20px)' : 'translateX(0)' }} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-gray-600 mt-3">Preferences saved automatically</p>
+        </div>
+      )}
 
       <div className="relative z-10 px-4 pt-4">
         {loading ? (
@@ -123,7 +183,7 @@ export default function Notifications() {
         ) : (
           <div className="space-y-2">
             <AnimatePresence>
-              {notifications.map((notif, i) => {
+              {filteredNotifications.map((notif, i) => {
                 const meta = TYPE_META[notif.type] || TYPE_META.follow;
                 const actorProfile = actorProfiles[notif.actor_email];
                 const isUnread = !notif.is_read;

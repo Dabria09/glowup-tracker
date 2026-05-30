@@ -8,20 +8,41 @@
     },
     "username": {
       "type": "string",
-      "title": "Display Name"
+      "title": "Username"
     },
     "content": {
       "type": "string",
-      "title": "Post Content"
+      "title": "Content"
     },
     "likes": {
       "type": "number",
-      "title": "Likes"
+      "title": "Likes",
+      "default": 0
     },
     "liked_by": {
       "type": "string",
-      "title": "Liked By (JSON array of emails)"
+      "title": "Liked By (JSON array)",
+      "default": "[]"
+    },
+    "age_group": {
+      "type": "string",
+      "title": "Age Group"
+    },
+    "media_url": {
+      "type": "string",
+      "title": "Media URL (photo/video)"
+    },
+    "media_type": {
+      "type": "string",
+      "title": "Media Type",
+      "enum": [
+        "image",
+        "video"
+      ]
     }
   },
-  "required": []
+  "required": [
+    "user_email",
+    "content"
+  ]
 }
