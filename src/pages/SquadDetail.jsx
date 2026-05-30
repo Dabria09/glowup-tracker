@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Users, Flame, Star, Heart, Trophy, MessageCircle, Plus, X, Crown, Medal, Send, Shield, Megaphone, UserMinus, ChevronDown } from 'lucide-react';
+import { ChevronLeft, Users, Flame, Star, Heart, Trophy, MessageCircle, Plus, X, Crown, Medal, Send, Shield, Megaphone, UserMinus, ChevronDown, Upload } from 'lucide-react';
 
 export default function SquadDetail() {
   const { id } = useParams();
@@ -29,6 +29,9 @@ export default function SquadDetail() {
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [sendingMsg, setSendingMsg] = useState(false);
+  const [profiles, setProfiles] = useState({});
+  const [checkIns, setCheckIns] = useState([]);
+  const [iconUploading, setIconUploading] = useState(false);
   const chatRoomId = `squad_${id}`;
 
   const loadChatMessages = async () => {
@@ -92,6 +95,14 @@ export default function SquadDetail() {
             setIsMember(squadMembers.some(m => m.user_email === u.email));
             setIsCaptain(squadMembers.some(m => m.user_email === u.email && m.role === 'captain'));
             setSquadChallenges(challenges);
+            // Fetch member profiles
+            const profilesList = await base44.entities.UserProfile.filter({});
+            const pm = {};
+            profilesList.forEach(p => { pm[p.user_email] = p; });
+            setProfiles(pm);
+            // Fetch squad check-ins
+            const allAnns = await base44.entities.Announcement.filter({ group_id: id });
+            setCheckIns(allAnns.filter(a => a.status === 'checkin').sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
           }
         }
       } catch (err) {
@@ -214,8 +225,25 @@ export default function SquadDetail() {
           {/* Squad Stats Card */}
           <div className="rounded-2xl p-5 bg-gradient-to-br from-pink-900/30 to-purple-900/30 border border-pink-500/20">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-2xl">
-                {squad.emoji || '💜'}
+              <div className="relative flex-shrink-0">
+                <div className="w-14 h-14 rounded-xl overflow-hidden" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                  {squad.cover_image
+                    ? <img src={squad.cover_image} alt="" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-2xl">{squad.emoji || '💜'}</div>}
+                </div>
+                {isCaptain && (
+                  <label className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer" style={{ background: '#ec4899' }}>
+                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files[0]; if (!file) return;
+                      setIconUploading(true);
+                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                      await base44.entities.GlowSquad.update(squad.id, { cover_image: file_url });
+                      setSquad(prev => ({ ...prev, cover_image: file_url }));
+                      setIconUploading(false);
+                    }} />
+                    {iconUploading ? <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" /> : <Upload size={10} className="text-white" />}
+                  </label>
+                )}
               </div>
               <div className="flex-1">
                 <h2 className="font-bold text-white text-lg">{squad.name}</h2>
@@ -270,14 +298,19 @@ export default function SquadDetail() {
                      idx === 2 ? <Medal className="text-amber-600" size={20} /> :
                      <span className="text-sm font-bold text-gray-400">#{idx + 1}</span>}
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-sm font-bold">
-                    {member.user_email?.[0]?.toUpperCase() || 'M'}
-                  </div>
+                  <button onClick={() => { const p = profiles[member.user_email]; if (p?.username) navigate(`/glowlink/${p.username}`); }}
+                    className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden"
+                    style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                    {profiles[member.user_email]?.avatar_url
+                      ? <img src={profiles[member.user_email].avatar_url} alt="" className="w-full h-full object-cover" />
+                      : <span className="text-sm font-bold text-white flex items-center justify-center h-full">{member.user_email?.[0]?.toUpperCase() || 'M'}</span>}
+                  </button>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-white">
-                      {member.user_email?.split('@')[0] || 'Member'}
+                    <button onClick={() => { const p = profiles[member.user_email]; if (p?.username) navigate(`/glowlink/${p.username}`); }}
+                      className="text-sm font-semibold text-white hover:text-pink-400 transition text-left">
+                      {profiles[member.user_email]?.username || member.user_email?.split('@')[0] || 'Member'}
                       {member.role === 'captain' && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400">Captain</span>}
-                    </p>
+                    </button>
                     <div className="flex items-center gap-2 text-xs text-gray-400">
                       <span className="flex items-center gap-1"><Flame size={10} /> {member.personal_streak} day streak</span>
                     </div>
@@ -290,6 +323,39 @@ export default function SquadDetail() {
               ))}
             </div>
           </div>
+
+          {/* Squad Check-In Feed */}
+          {isMember && checkIns.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold tracking-widest text-gray-400 mb-3 flex items-center gap-2">
+                <Heart size={16} className="text-pink-400" /> SQUAD CHECK-INS
+              </h3>
+              <div className="space-y-2">
+                {checkIns.map(ci => {
+                  const profile = profiles[ci.sent_by];
+                  return (
+                    <div key={ci.id} className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                      <button onClick={() => profile?.username && navigate(`/glowlink/${profile.username}`)}
+                        className="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden"
+                        style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                        {profile?.avatar_url
+                          ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                          : <span className="text-xs font-bold text-white flex items-center justify-center h-full">{(ci.sent_by || 'M')[0].toUpperCase()}</span>}
+                      </button>
+                      <div className="flex-1">
+                        <button onClick={() => profile?.username && navigate(`/glowlink/${profile.username}`)}
+                          className="text-xs font-bold text-pink-400 hover:underline">
+                          {profile?.username || ci.sent_by?.split('@')[0] || 'Member'}
+                        </button>
+                        <p className="text-sm text-gray-200 mt-0.5">{ci.body}</p>
+                        <p className="text-[10px] text-gray-500 mt-1">{new Date(ci.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Captain Panel */}
           {isCaptain && (
@@ -462,9 +528,20 @@ export default function SquadDetail() {
                 </div>
                 <button
                   onClick={async () => {
-                    setShowCheckIn(false);
+                    if (!checkInText.trim()) return;
+                    await base44.entities.Announcement.create({
+                      title: checkInText.trim(),
+                      body: checkInText.trim(),
+                      send_to: 'specific_group',
+                      group_id: squad.id,
+                      sent_by: user.email,
+                      sent_date: new Date().toISOString(),
+                      status: 'checkin',
+                    });
+                    const updated = await base44.entities.Announcement.filter({ group_id: id });
+                    setCheckIns(updated.filter(a => a.status === 'checkin').sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
                     setCheckInText('');
-                    alert('Check-in saved! Your squad is proud of you 💜');
+                    setShowCheckIn(false);
                   }}
                   className="w-full py-3 rounded-2xl font-bold text-white text-sm bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition"
                 >
@@ -704,7 +781,7 @@ export default function SquadDetail() {
             </div>
 
             {/* Input */}
-            <div className="px-4 py-3 border-t border-white/10 flex-shrink-0">
+            <div className="px-4 py-3 border-t border-white/10 flex-shrink-0" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom,0px))' }}>
               <div className="flex items-center gap-2 rounded-2xl px-4 py-2" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(168,85,247,0.3)' }}>
                 <input
                   value={chatInput}

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Users, Trophy, Flame, MessageCircle, Star, Crown, Medal, TrendingUp, Calendar, Plus } from 'lucide-react';
+import { ChevronLeft, Users, Trophy, Flame, MessageCircle, Star, Crown, Medal, TrendingUp, Calendar, Plus, Upload } from 'lucide-react';
 
 export default function TeamDetail() {
   const { id } = useParams();
@@ -19,6 +19,8 @@ export default function TeamDetail() {
   const [showDiscussModal, setShowDiscussModal] = useState(false);
   const [discussForm, setDiscussForm] = useState({ title: '', content: '', category: 'general' });
   const [postingDisc, setPostingDisc] = useState(false);
+  const [profiles, setProfiles] = useState({});
+  const [iconUploading, setIconUploading] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -41,6 +43,11 @@ export default function TeamDetail() {
             setDiscussions(teamDiscussions);
             setContestEntries(entries);
             setIsMember(teamMembers.some(m => m.user_email === u.email));
+            // Fetch member profiles
+            const profilesList = await base44.entities.UserProfile.filter({});
+            const pm = {};
+            profilesList.forEach(p => { pm[p.user_email] = p; });
+            setProfiles(pm);
           }
         }
       } catch (err) {
@@ -152,8 +159,25 @@ export default function TeamDetail() {
           {/* Team Stats */}
           <div className="rounded-2xl p-5 bg-gradient-to-br from-pink-900/30 to-purple-900/30 border border-pink-500/20">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-2xl">
-                {team.emoji || '🌟'}
+              <div className="relative flex-shrink-0">
+                <div className="w-14 h-14 rounded-xl overflow-hidden" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                  {team.cover_image
+                    ? <img src={team.cover_image} alt="" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-2xl">{team.emoji || '🌟'}</div>}
+                </div>
+                {(user?.role === 'admin' || team.created_by === user?.email) && (
+                  <label className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer" style={{ background: '#ec4899' }}>
+                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files[0]; if (!file) return;
+                      setIconUploading(true);
+                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                      await base44.entities.GlowTeam.update(team.id, { cover_image: file_url });
+                      setTeam(prev => ({ ...prev, cover_image: file_url }));
+                      setIconUploading(false);
+                    }} />
+                    {iconUploading ? <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" /> : <Upload size={10} className="text-white" />}
+                  </label>
+                )}
               </div>
               <div>
                 <h2 className="font-bold text-white text-lg">{team.name}</h2>
@@ -211,11 +235,18 @@ export default function TeamDetail() {
                          idx === 2 ? <Medal className="text-amber-600" size={20} /> :
                          <span className="text-sm font-bold text-gray-400">#{idx + 1}</span>}
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-sm font-bold">
-                        {member.user_email?.[0]?.toUpperCase() || 'M'}
-                      </div>
+                      <button onClick={() => { const p = profiles[member.user_email]; if (p?.username) navigate(`/glowlink/${p.username}`); }}
+                        className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden"
+                        style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                        {profiles[member.user_email]?.avatar_url
+                          ? <img src={profiles[member.user_email].avatar_url} alt="" className="w-full h-full object-cover" />
+                          : <span className="text-sm font-bold text-white flex items-center justify-center h-full">{member.user_email?.[0]?.toUpperCase() || 'M'}</span>}
+                      </button>
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-white">{member.user_email?.split('@')[0] || 'Member'}</p>
+                        <button onClick={() => { const p = profiles[member.user_email]; if (p?.username) navigate(`/glowlink/${p.username}`); }}
+                          className="text-sm font-semibold text-white hover:text-pink-400 transition text-left">
+                          {profiles[member.user_email]?.username || member.user_email?.split('@')[0] || 'Member'}
+                        </button>
                         <p className="text-xs text-gray-400 capitalize">{member.role}</p>
                       </div>
                       <div className="text-right">

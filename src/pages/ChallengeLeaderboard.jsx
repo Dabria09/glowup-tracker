@@ -26,6 +26,7 @@ export default function ChallengeLeaderboard() {
   const [circle, setCircle] = useState([]);
   const [squads, setSquads] = useState([]);
   const [mySquadId, setMySquadId] = useState(null);
+  const [myPoints, setMyPoints] = useState(0);
   
   // Airtable configuration - update these with your actual values
   const AIRTABLE_BASE_ID = 'appYOUR_BASE_ID'; // Replace with your Airtable base ID
@@ -82,6 +83,9 @@ export default function ChallengeLeaderboard() {
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
+      base44.entities.UserPoints.filter({ user_email: u.email }).then(pts => {
+        if (pts.length) setMyPoints(pts[0].total_points || 0);
+      });
       try {
         // Fetch leaderboard data from Airtable
         const response = await base44.functions.invoke('airtableFetch', {
@@ -397,7 +401,7 @@ export default function ChallengeLeaderboard() {
         {/* Points badge */}
         <div className="flex justify-end mb-3">
           <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{myPoints.toLocaleString()} pts</span>
           </div>
         </div>
 
@@ -408,7 +412,7 @@ export default function ChallengeLeaderboard() {
           </button>
           <div>
             <h1 className="text-2xl font-bold">🏆 Challenge Leaderboard</h1>
-            <p className="text-xs text-gray-400">Track your challenge progress & compete! 🔥</p>
+            <p className="text-xs text-gray-400">Track your challenge progress &amp; compete! 🔥</p>
           </div>
         </div>
 
