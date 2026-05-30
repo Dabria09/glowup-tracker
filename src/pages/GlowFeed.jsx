@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Heart, MessageCircle, Share2, Plus, X } from 'lucide-react';
+import UserAvatarDisplay from '@/components/UserAvatarDisplay';
 import useAgeGroup from '@/lib/useAgeGroup';
 
 const COMMUNITY_QUESTIONS = [
@@ -53,6 +54,7 @@ export default function GlowFeed() {
   const [myReactionPosts, setMyReactionPosts] = useState([]);
   const [myCommentPosts, setMyCommentPosts] = useState([]);
   const [communityQuestions, setCommunityQuestions] = useState([]);
+  const [profilesMap, setProfilesMap] = useState({});
 
   useEffect(() => {
     base44.auth.me().then(async u => {
@@ -64,6 +66,13 @@ export default function GlowFeed() {
       );
       setTimelinePosts(feedPosts);
       setCommunityQuestions(allPosts.filter(p => p.post_type === 'Community Question'));
+      const uniqueEmails = [...new Set(allPosts.map(p => p.user_email).filter(Boolean))];
+      const profileResults = await Promise.all(
+        uniqueEmails.map(email => base44.entities.UserProfile.filter({ user_email: email }).then(r => r[0]).catch(() => null))
+      );
+      const pMap = {};
+      profileResults.forEach((p, i) => { if (p) pMap[uniqueEmails[i]] = p; });
+      setProfilesMap(pMap);
       const reactions = await base44.entities.PostReaction.filter({ user_email: u.email });
       const reactionIds = new Set(reactions.map(r => r.post_id));
       setReactedPostIds(reactionIds);
@@ -102,30 +111,41 @@ export default function GlowFeed() {
     }
   };
 
-  const renderPostCard = (post) => (
-    <div key={post.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-      <div className="flex items-center justify-between mb-2">
-        <button onClick={() => navigate(`/glowlink/${post.user_email?.split('@')[0]}`)} className="flex items-center gap-2 hover:opacity-80 transition">
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>{(post.user_email?.[0] || '?').toUpperCase()}</div>
-          <span className="text-xs text-gray-400">{post.user_email?.split('@')[0]}</span>
-        </button>
-        <span className="text-xs text-gray-500">{new Date(post.created_date).toLocaleDateString()}</span>
-      </div>
-      <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full mb-2" style={{ background: 'rgba(236,72,153,0.2)', color: '#f9a8d4' }}>{post.post_type || 'Thought'}</span>
-      <p className="text-sm text-white mb-3">{post.content}</p>
-      {(() => { try { const urls = JSON.parse(post.media_urls || '[]'); return urls.length > 0 ? <div className="grid grid-cols-2 gap-2 mb-3">{urls.map((url, i) => url.match(/\.(mp4|webm|mov)/i) ? <video key={i} src={url} controls className="rounded-xl w-full" /> : <img key={i} src={url} alt="" className="rounded-xl object-cover" style={{ aspectRatio: '1/1' }} />)}</div> : null; } catch { return null; } })()}
-      <div className="flex items-center gap-4">
-        <button onClick={() => toggleReaction(post)} className="flex items-center gap-1.5 text-sm transition" style={{ color: reactedPostIds.has(post.id) ? '#f43f5e' : '#6b7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-          <Heart size={16} fill={reactedPostIds.has(post.id) ? '#f43f5e' : 'none'} />
-          <span className="text-xs">{post.likes || 0}</span>
-        </button>
-        <div className="flex items-center gap-1.5" style={{ color: '#6b7280' }}>
-          <MessageCircle size={16} />
-          <span className="text-xs">{post.comments || 0}</span>
+  const renderPostCard = (post) => {
+    const postProfile = profilesMap[post.user_email];
+    const displayName = postProfile?.username || post.user_email?.split('@')[0] || '?';
+    const glowUsername = postProfile?.username || post.user_email?.split('@')[0];
+    const isPublic = (() => { try { return JSON.parse(postProfile?.privacy_settings || '{"public_profile":true}')?.public_profile !== false; } catch { return true; } })();
+    return (
+      <div key={post.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="flex items-center justify-between mb-2">
+          <button
+            onClick={() => isPublic && navigate(`/glowlink/${glowUsername}`)}
+            className={`flex items-center gap-2 transition ${isPublic ? 'hover:opacity-80 cursor-pointer' : 'cursor-default'}`}>
+            <UserAvatarDisplay profile={postProfile} size={34} fallback={(post.user_email?.[0] || '?').toUpperCase()} showRing={false} />
+            <div>
+              <p className="text-xs font-semibold text-white leading-tight">@{displayName}</p>
+              {isPublic && <p className="text-[10px] text-pink-400 leading-tight">View profile ›</p>}
+            </div>
+          </button>
+          <span className="text-xs text-gray-500">{new Date(post.created_date).toLocaleDateString()}</span>
+        </div>
+        <span className="inline-block text-xs font-bold px-2 py-0.5 rounded-full mb-2" style={{ background: 'rgba(236,72,153,0.2)', color: '#f9a8d4' }}>{post.post_type || 'Thought'}</span>
+        <p className="text-sm text-white mb-3">{post.content}</p>
+        {(() => { try { const urls = JSON.parse(post.media_urls || '[]'); return urls.length > 0 ? <div className="grid grid-cols-2 gap-2 mb-3">{urls.map((url, i) => url.match(/\.(mp4|webm|mov)/i) ? <video key={i} src={url} controls className="rounded-xl w-full" /> : <img key={i} src={url} alt="" className="rounded-xl object-cover" style={{ aspectRatio: '1/1' }} />)}</div> : null; } catch { return null; } })()}
+        <div className="flex items-center gap-4">
+          <button onClick={() => toggleReaction(post)} className="flex items-center gap-1.5 text-sm transition" style={{ color: reactedPostIds.has(post.id) ? '#f43f5e' : '#6b7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            <Heart size={16} fill={reactedPostIds.has(post.id) ? '#f43f5e' : 'none'} />
+            <span className="text-xs">{post.likes || 0}</span>
+          </button>
+          <div className="flex items-center gap-1.5" style={{ color: '#6b7280' }}>
+            <MessageCircle size={16} />
+            <span className="text-xs">{post.comments || 0}</span>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const handleAskQuestion = async () => {
     if (!newQuestion.trim() || !user) return;

@@ -237,7 +237,7 @@ export default function GlowProfile() {
               <div className="absolute inset-0 rounded-full animate-pulse"
                 style={{ margin: -8, background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`, filter: 'blur(8px)' }} />
               <div style={{ ...frameStyle, borderRadius: '50%', position: 'relative' }}>
-                <UserAvatarDisplay profile={profile} size={88} fallback={(profile.username?.[0] || '✨').toUpperCase()} showRing={false} />
+                <UserAvatarDisplay profile={profile} size={120} fallback={(profile.username?.[0] || '✨').toUpperCase()} showRing={false} />
               </div>
               {frame.id !== 'default' && (
                 <div className="absolute -bottom-1 -right-1 text-base leading-none">{frame.emoji}</div>
@@ -458,7 +458,7 @@ export default function GlowProfile() {
                     <div className="p-4">
                       <div className="flex items-center gap-2.5 mb-3">
                         <div style={{ ...frameStyle, borderRadius: '50%' }}>
-                          <UserAvatarDisplay profile={profile} size={34} fallback={(profile.username?.[0] || '✨').toUpperCase()} showRing={false} />
+                          <UserAvatarDisplay profile={profile} size={42} fallback={(profile.username?.[0] || '✨').toUpperCase()} showRing={false} />
                         </div>
                         <div>
                           <p className="text-xs font-bold text-white">@{profile.username}</p>
