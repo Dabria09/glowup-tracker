@@ -25,15 +25,15 @@ export default function TeamDetail() {
           const u = await base44.auth.me();
           setUser(u);
           
-          const [teams, teamMembers, teamDiscussions, entries] = await Promise.all([
-            base44.entities.GlowTeam.filter({ id }),
+          const [teamData, teamMembers, teamDiscussions, entries] = await Promise.all([
+            base44.entities.GlowTeam.get(id),
             base44.entities.TeamMember.filter({ team_id: id }),
             base44.entities.TeamDiscussion.filter({ team_id: id }),
             base44.entities.TeamContestEntry.filter({ team_id: id })
           ]);
           
-          if (teams.length > 0) {
-            setTeam(teams[0]);
+          if (teamData) {
+            setTeam(teamData);
             setMembers(teamMembers);
             setDiscussions(teamDiscussions);
             setContestEntries(entries);
@@ -85,6 +85,20 @@ export default function TeamDetail() {
               <h1 className="text-lg font-bold">{team.name}</h1>
               <p className="text-xs text-gray-400">{team.category}</p>
             </div>
+            {(user?.role === 'admin' || team.created_by === user?.email) && (
+              <button
+                onClick={async () => {
+                  if (!window.confirm(`Delete "${team.name}"? This cannot be undone.`)) return;
+                  const allMembers = await base44.entities.TeamMember.filter({ team_id: team.id });
+                  for (const m of allMembers) await base44.entities.TeamMember.delete(m.id);
+                  await base44.entities.GlowTeam.delete(team.id);
+                  navigate('/glow-teams');
+                }}
+                className="px-3 py-1.5 rounded-full font-bold text-red-400 text-xs border border-red-400/40 hover:bg-red-400/10 transition"
+              >
+                Delete
+              </button>
+            )}
             {!isMember ? (
               <button
                 onClick={async () => {
