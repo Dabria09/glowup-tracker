@@ -173,6 +173,14 @@
     "featured_quote": {
       "type": "string",
       "title": "Featured Quote"
+    },
+    "custom_banner_url": {
+      "type": "string",
+      "title": "Custom Banner Image URL"
+    },
+    "custom_bg_url": {
+      "type": "string",
+      "title": "Custom Profile Background URL"
     }
   },
   "required": []

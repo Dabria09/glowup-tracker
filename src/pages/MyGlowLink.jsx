@@ -35,7 +35,7 @@ const INTEREST_OPTIONS = [
 const DEFAULT_PRIVACY = {
   public_profile: true, allow_followers: true, show_achievements: true,
   show_streak: true, show_goals: true, show_links: true,
-  show_timeline: true, show_photos: true,
+  show_timeline: true, show_photos: true, show_interests: true, show_vibe: true,
 };
 
 /* ── Sub-components ─────────────────────────────── */
@@ -123,6 +123,11 @@ export default function MyGlowLink() {
   const [pointsRecord, setPointsRecord] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [bannerUrl, setBannerUrl] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showPasswordInfo, setShowPasswordInfo] = useState(false);
+  const bannerInputRef = useRef();
 
   // Identity fields
   const [username, setUsername] = useState('');
@@ -180,6 +185,7 @@ export default function MyGlowLink() {
         setVibe(p.vibe || '');
         setProfileTheme(p.profile_theme || 'default');
         setProfileFrame(p.profile_frame || 'default');
+        setBannerUrl(p.custom_banner_url || '');
         setFeaturedQuote(p.featured_quote || '');
         try { setLinks(p.links ? JSON.parse(p.links) : []); } catch {}
         try { setInterests(p.interests ? JSON.parse(p.interests) : []); } catch {}
@@ -193,6 +199,7 @@ export default function MyGlowLink() {
       }
       if (pts.length) { setTotalPoints(pts[0].total_points || 0); setPointsRecord(pts[0]); }
       setPosts(userPosts);
+      setIsAdmin(u.role === 'admin');
       setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
@@ -213,6 +220,19 @@ export default function MyGlowLink() {
         setUsernameSuggestions([]);
       }
     }, 600);
+  };
+
+  const handleBannerUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingBanner(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setBannerUrl(file_url);
+    if (profile) {
+      await base44.entities.UserProfile.update(profile.id, { custom_banner_url: file_url });
+      setProfile(p => ({ ...p, custom_banner_url: file_url }));
+    }
+    setUploadingBanner(false);
   };
 
   const handlePhotoUpload = async (e) => {
@@ -238,7 +258,7 @@ export default function MyGlowLink() {
     const data = {
       bio: bio.trim(), motto: motto.trim(), display_name: displayName.trim(),
       pronouns: pronouns.trim(), glow_era: glowEra, username: username.trim(),
-      vibe, interests: JSON.stringify(interests),
+      vibe, interests: JSON.stringify(interests), custom_banner_url: bannerUrl,
       links: JSON.stringify(links),
       privacy_settings: JSON.stringify(privacy),
       profile_theme: profileTheme, profile_frame: profileFrame,
@@ -512,7 +532,7 @@ export default function MyGlowLink() {
             </div>
             <div className="grid grid-cols-2 gap-2.5">
               {GLOW_THEMES.map(t => {
-                const isUnlocked = totalPoints >= t.requiredPoints;
+                const isUnlocked = isAdmin || totalPoints >= t.requiredPoints;
                 const isActive = profileTheme === t.id;
                 return (
                   <button key={t.id} onClick={() => isUnlocked && setProfileTheme(t.id)}
@@ -533,7 +553,7 @@ export default function MyGlowLink() {
             <FieldLabel>Profile Frame</FieldLabel>
             <div className="grid grid-cols-4 gap-2">
               {PROFILE_FRAMES.map(f => {
-                const isUnlocked = totalPoints >= f.requiredPoints;
+                const isUnlocked = isAdmin || totalPoints >= f.requiredPoints;
                 const isActive = profileFrame === f.id;
                 const fStyle = f.style(theme.accent);
                 return (
@@ -551,12 +571,47 @@ export default function MyGlowLink() {
             </div>
           </div>
 
+          {/* Custom Banner Upload */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <FieldLabel>Profile Banner</FieldLabel>
+              {isAdmin
+                ? <span className="text-[10px] text-green-400">Admin — all unlocked</span>
+                : <span className="text-[10px] text-gray-600">Unlocks at 100 pts</span>
+              }
+            </div>
+            {bannerUrl ? (
+              <div className="relative rounded-2xl overflow-hidden mb-2" style={{ height: 80 }}>
+                <img src={bannerUrl} alt="banner" className="w-full h-full object-cover" />
+                <button onClick={() => setBannerUrl('')}
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center bg-black/70 text-white text-xs">
+                  x
+                </button>
+              </div>
+            ) : (
+              <div className="h-16 rounded-2xl flex items-center justify-center mb-2"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.15)' }}>
+                <p className="text-xs text-gray-500">No banner set — uses theme gradient</p>
+              </div>
+            )}
+            <button onClick={() => (isAdmin || totalPoints >= 100) ? bannerInputRef.current?.click() : null}
+              disabled={uploadingBanner || (!isAdmin && totalPoints < 100)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-semibold disabled:opacity-40"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af' }}>
+              {uploadingBanner
+                ? <div className="w-4 h-4 border-2 border-gray-400 border-t-pink-400 rounded-full animate-spin" />
+                : <Upload size={14} />}
+              {uploadingBanner ? 'Uploading...' : bannerUrl ? 'Change Banner' : 'Upload Banner'}
+            </button>
+            <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
+          </div>
+
           {/* Future premium placeholder */}
           <div className="rounded-2xl p-3 flex items-center gap-3" style={{ background: 'rgba(251,191,36,0.05)', border: '1px dashed rgba(251,191,36,0.2)' }}>
             <span className="text-xl">🔮</span>
             <div>
               <p className="text-xs font-bold text-yellow-400">Coming Soon: Premium Effects</p>
-              <p className="text-[11px] text-gray-500">Profile music, animations & seasonal styles</p>
+              <p className="text-[11px] text-gray-500">Profile music, animations &amp; seasonal styles</p>
             </div>
           </div>
         </SectionCard>
@@ -648,6 +703,9 @@ export default function MyGlowLink() {
               { key: 'show_links',        label: 'Show Links',         desc: 'Show your custom links', emoji: '🔗' },
               { key: 'show_timeline',     label: 'Show Timeline',      desc: 'Show your posts', emoji: '📝' },
               { key: 'show_photos',       label: 'Show Photos',        desc: 'Show your photos tab', emoji: '📸' },
+              { key: 'show_interests',    label: 'Show Interests',     desc: 'Display your interest tags', emoji: '🏷️' },
+              { key: 'show_vibe',         label: 'Show Vibe',          desc: 'Show your personality vibe', emoji: '✨' },
+              { key: 'show_goals',        label: 'Show Goals',         desc: 'Show your current goal', emoji: '🎯' },
             ].map(item => (
               <div key={item.key} className="flex items-center justify-between px-4 py-3.5" style={{ background: 'rgba(255,255,255,0.03)' }}>
                 <div className="flex items-center gap-3">
@@ -675,7 +733,7 @@ export default function MyGlowLink() {
             <span className="text-[10px] text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">Verified</span>
           </div>
 
-          <button onClick={() => navigate('/support')}
+          <button onClick={() => setShowPasswordInfo(true)}
             className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition hover:opacity-80"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <span className="text-base">🔑</span>
@@ -687,7 +745,7 @@ export default function MyGlowLink() {
             className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition hover:opacity-80"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <Bell size={16} className="text-gray-400" />
-            <span className="text-sm font-semibold text-white flex-1 text-left">Notification Settings</span>
+            <span className="text-sm font-semibold text-white flex-1 text-left">Help &amp; Support</span>
             <ChevronRight size={15} className="text-gray-500" />
           </button>
 
@@ -721,11 +779,33 @@ export default function MyGlowLink() {
       {/* ── Bottom Nav ─────────────────────────────────── */}
       <BottomNav active="me" />
 
-      {/* ── Preview Modal ───────────────────────────────── */}
+      {/* Password Reset Info Modal */}
+      {showPasswordInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}>
+          <div className="w-full max-w-sm rounded-3xl p-6" style={{ background: '#140a10', border: '1px solid rgba(232,82,109,0.25)' }}>
+            <div className="text-center mb-4">
+              <p className="text-3xl mb-2">🔑</p>
+              <h3 className="text-lg font-bold text-white">Password Reset</h3>
+            </div>
+            <div className="rounded-2xl p-4 mb-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-sm text-gray-300 leading-relaxed">
+                To reset your password, sign out then tap <strong className="text-pink-400">Forgot Password</strong> on the login screen. A reset link will be sent to your email.
+              </p>
+            </div>
+            <button onClick={() => setShowPasswordInfo(false)}
+              className="w-full py-3.5 rounded-2xl font-bold text-white text-sm"
+              style={{ background: 'linear-gradient(135deg,#c44a55,#ec4899)' }}>
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
       {showPreview && (
         <GlowProfilePreview
           profile={profile}
-          overrides={{ bio, motto, glowEra, profileTheme, profileFrame, links, featuredMood, featuredAffirmation, featuredGoal }}
+          overrides={{ bio, motto, glowEra, profileTheme, profileFrame, links, featuredMood, featuredAffirmation, featuredGoal, featuredQuote, vibe, interests, privacy, bannerUrl }}
           posts={posts}
           pointsRecord={pointsRecord}
           username={username}

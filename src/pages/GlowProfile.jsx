@@ -8,13 +8,27 @@ import { getGlowLevel, getTheme, getFrame, computeBadges } from '@/components/gl
 
 const DEFAULT_PRIVACY = {
   public_profile: true,
+  allow_followers: true,
   show_achievements: true,
   show_streak: true,
   show_goals: true,
   show_links: true,
   show_timeline: true,
   show_photos: true,
+  show_interests: true,
+  show_vibe: true,
 };
+
+const VIBE_OPTIONS = [
+  { id: 'soft_girl', label: 'Soft Girl', emoji: '🌸' },
+  { id: 'boss_era', label: 'Boss Era', emoji: '👑' },
+  { id: 'fitness', label: 'Fitness Glow', emoji: '💪' },
+  { id: 'creative', label: 'Creative', emoji: '🎨' },
+  { id: 'wellness', label: 'Wellness', emoji: '🧘' },
+  { id: 'academic', label: 'Academic', emoji: '📚' },
+  { id: 'spiritual', label: 'Spiritual', emoji: '✨' },
+  { id: 'adventure', label: 'Adventure', emoji: '🌍' },
+];
 
 const REACTIONS = ['✨', '🔥', '💎', '🌸', '👑', '💜'];
 
@@ -156,6 +170,8 @@ export default function GlowProfile() {
   const badges = computeBadges(totalPoints, points?.check_in_streak, points?.challenges_completed, posts.length);
   const personaImages = profile.glow_persona_images ? (() => { try { return JSON.parse(profile.glow_persona_images)?.images || {}; } catch { return {}; } })() : {};
   const galleryImages = profile.gallery_images ? (() => { try { return JSON.parse(profile.gallery_images) || []; } catch { return []; } })() : [];
+  const interests = profile.interests ? (() => { try { return JSON.parse(profile.interests) || []; } catch { return []; } })() : [];
+  const vibeData = VIBE_OPTIONS.find(v => v.id === profile.vibe);
   const allPhotos = [
     ...(profile.avatar_url ? [{ url: profile.avatar_url, label: 'Profile' }] : []),
     ...Object.entries(personaImages).map(([id, url]) => ({ url, label: id.replace(/_/g, ' ') })),
@@ -197,9 +213,11 @@ export default function GlowProfile() {
       </div>
 
       {/* Cover Banner */}
-      <div className="relative h-16" style={{ background: theme.gradient }}>
-        <div className="absolute inset-0 opacity-20"
-          style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)' }} />
+      <div className="relative h-24" style={{ background: profile.custom_banner_url ? 'transparent' : theme.gradient }}>
+        {profile.custom_banner_url
+          ? <img src={profile.custom_banner_url} alt="banner" className="w-full h-full object-cover" />
+          : <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)' }} />
+        }
         {profile.glow_era && (
           <div className="absolute bottom-2 right-4">
             <span className="text-xs font-bold px-3 py-1 rounded-full"
@@ -280,6 +298,36 @@ export default function GlowProfile() {
               style={{ background: `${theme.accent}10`, borderLeft: `2px solid ${theme.accent}60`, color: theme.textAccent }}>
               "{profile.motto}"
             </p>
+          )}
+
+          {/* Vibe */}
+          {privacy.show_vibe && vibeData && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-xs px-3 py-1.5 rounded-full font-semibold"
+                style={{ background: `${theme.accent}20`, border: `1px solid ${theme.accent}40`, color: theme.textAccent }}>
+                {vibeData.emoji} {vibeData.label} Vibe
+              </span>
+            </div>
+          )}
+
+          {/* Interests */}
+          {privacy.show_interests && interests.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {interests.map(tag => (
+                <span key={tag} className="text-xs px-2.5 py-1 rounded-full font-medium"
+                  style={{ background: 'rgba(255,255,255,0.07)', border: `1px solid ${theme.cardBorder}`, color: '#9ca3af' }}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Featured Quote */}
+          {profile.featured_quote && (
+            <div className="mt-3 px-3 py-3 rounded-2xl" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
+              <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: theme.accent }}>✨ Featured Quote</p>
+              <p className="text-sm italic text-white leading-relaxed">"{profile.featured_quote}"</p>
+            </div>
           )}
 
           {/* Featured Sections */}
