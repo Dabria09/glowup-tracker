@@ -18,10 +18,12 @@ const THEMES = [
 ];
 
 const LAYOUTS = [
-  { id: 'grid',     name: 'Grid',     emoji: '⬜', desc: 'Clean equal squares' },
-  { id: 'polaroid', name: 'Polaroid', emoji: '📷', desc: 'White border frames' },
-  { id: 'masonry',  name: 'Masonry',  emoji: '🧱', desc: 'Varied heights' },
-  { id: 'magazine', name: 'Magazine', emoji: '📰', desc: 'Bold editorial' },
+  { id: 'grid',      name: 'Grid',      emoji: '⬜', desc: 'Clean equal squares' },
+  { id: 'polaroid',  name: 'Polaroid',  emoji: '📷', desc: 'White border frames' },
+  { id: 'masonry',   name: 'Masonry',   emoji: '🧱', desc: 'Varied heights' },
+  { id: 'magazine',  name: 'Magazine',  emoji: '📰', desc: 'Bold editorial' },
+  { id: 'collage',   name: 'Collage',   emoji: '🎨', desc: 'Free-form scattered' },
+  { id: 'scrapbook', name: 'Scrapbook', emoji: '✂️', desc: 'Tilted & layered' },
 ];
 
 const SIZES = ['small', 'medium', 'large'];
@@ -349,6 +351,79 @@ export default function VisionBoard() {
         </button>
       </div>
     );
+
+    // Collage: free-form scattered overlapping tiles
+    if (activeLayout.id === 'collage') {
+      return (
+        <div style={{ position: 'relative', minHeight: Math.max(400, items.length * 60) }}>
+          {items.map((item, i) => {
+            const isWord = !item.image_url && item.caption;
+            const rotations = [-4, 3, -2, 5, -3, 2, -5, 4, -1, 3];
+            const rot = rotations[i % rotations.length];
+            const sizes = [120, 150, 110, 160, 130, 100, 145];
+            const sz = sizes[i % sizes.length];
+            // Scatter positions in a grid-like pattern with offsets
+            const col = i % 3;
+            const row = Math.floor(i / 3);
+            const left = col * 32 + (i % 2 === 0 ? 2 : 8);
+            const top = row * 40 + (i % 3 === 1 ? 5 : 0);
+            return (
+              <div key={item.id}
+                style={{ position: 'absolute', left: `${left}%`, top: `${top}%`, width: sz, transform: `rotate(${rot}deg)`, zIndex: i, transition: 'transform 0.2s', cursor: 'grab' }}
+                className="group">
+                <div style={{ background: isWord ? activeTheme.cardBg : 'transparent', border: `1px solid ${activeTheme.border}`, borderRadius: 12, overflow: 'hidden', boxShadow: activeTheme.shadow }}>
+                  {item.image_url
+                    ? <img src={item.image_url} alt="" style={{ width: sz, height: sz, objectFit: 'cover', display: 'block' }} />
+                    : isWord
+                      ? <div style={{ width: sz, height: sz * 0.7, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8 }}>
+                          <p style={{ color: activeTheme.accent, fontFamily: "'Dancing Script', cursive", fontSize: 'clamp(12px,4vw,20px)', textAlign: 'center', fontWeight: 700, wordBreak: 'break-word', textShadow: `0 0 16px ${activeTheme.accent}60` }}>{item.caption}</p>
+                        </div>
+                      : <div style={{ width: sz, height: sz, background: activeTheme.cardBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="text-3xl opacity-20">🖼️</span></div>}
+                </div>
+                <button onClick={() => deleteItem(item)}
+                  className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full text-white items-center justify-center hidden group-hover:flex"
+                  style={{ fontSize: 10 }}>×</button>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // Scrapbook: tilted cards with tape effect
+    if (activeLayout.id === 'scrapbook') {
+      return (
+        <div className="grid grid-cols-2 gap-4 p-2">
+          {items.map((item, i) => {
+            const isWord = !item.image_url && item.caption;
+            const tilts = [-3, 2, -1.5, 3.5, -2.5, 1, -4, 2.5];
+            const tilt = tilts[i % tilts.length];
+            const bgColors = ['#fff9e6', '#ffe4f0', '#e8f4ff', '#f0ffe8', '#f5e6ff'];
+            const bg = bgColors[i % bgColors.length];
+            return (
+              <div key={item.id} className="relative group flex flex-col items-center"
+                style={{ transform: `rotate(${tilt}deg)`, transformOrigin: 'center top', marginTop: i % 2 === 1 ? 16 : 0 }}>
+                {/* Tape strip */}
+                <div style={{ width: 40, height: 14, background: 'rgba(255,255,255,0.55)', borderRadius: 3, marginBottom: -7, zIndex: 2, position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
+                <div style={{ background: bg, padding: '6px 6px 24px 6px', borderRadius: 4, boxShadow: '0 4px 16px rgba(0,0,0,0.35)', width: '100%' }}>
+                  {item.image_url
+                    ? <img src={item.image_url} alt="" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 2, display: 'block' }} />
+                    : isWord
+                      ? <div style={{ aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#f3e8ff,#fce7f3)', borderRadius: 2 }}>
+                          <p style={{ color: '#7c3aed', fontFamily: "'Dancing Script', cursive", fontSize: 'clamp(13px,4vw,20px)', fontWeight: 700, textAlign: 'center', padding: 8, wordBreak: 'break-word' }}>{item.caption}</p>
+                        </div>
+                      : <div style={{ aspectRatio: '1/1', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 2 }}><span className="text-3xl opacity-30">🖼️</span></div>}
+                  {!isWord && <p style={{ textAlign: 'center', fontSize: 10, color: '#666', marginTop: 4, fontFamily: "'Dancing Script', cursive" }}>{item.caption || 'caption...'}</p>}
+                </div>
+                <button onClick={() => deleteItem(item)}
+                  className="absolute top-2 right-2 w-5 h-5 bg-red-500 rounded-full text-white items-center justify-center hidden group-hover:flex"
+                  style={{ fontSize: 10, zIndex: 10 }}>×</button>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
 
     // Masonry: two droppable columns
     if (activeLayout.id === 'masonry') {

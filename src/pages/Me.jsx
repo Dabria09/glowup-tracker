@@ -622,6 +622,18 @@ export default function Me() {
                       </button>
                     </div>
                   ))}
+                  {/* Add More tile */}
+                  <button
+                    onClick={() => galleryFileRef.current?.click()}
+                    disabled={uploadingGallery}
+                    style={{ aspectRatio: '1', borderRadius: 14, background: 'rgba(232,82,109,0.05)', border: `2px dashed ${BORDER}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, cursor: 'pointer', color: MUTED2 }}>
+                    {uploadingGallery
+                      ? <div className="w-5 h-5 border-2 border-pink-400 border-t-transparent rounded-full animate-spin" />
+                      : <>
+                          <Camera size={20} style={{ color: PINK }} />
+                          <span style={{ fontSize: 10, fontWeight: 600, color: PINK }}>Add More</span>
+                        </>}
+                  </button>
                 </div>
               )}
             </div>
