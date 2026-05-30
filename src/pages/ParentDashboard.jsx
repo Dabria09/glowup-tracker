@@ -12,7 +12,7 @@ export default function ParentDashboard() {
   const [teenSessions, setTeenSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showConsentForm, setShowConsentForm] = useState(false);
-  const [form, setForm] = useState({ teen_email: '', consent_type: 'all' });
+  const [form, setForm] = useState({ teen_email: '', consent_type: 'all', parent_name: '', relationship: 'Mother' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { loadData(); }, []);
@@ -40,12 +40,14 @@ export default function ParentDashboard() {
   };
 
   const giveConsent = async () => {
-    if (!form.teen_email) return;
+    if (!form.teen_email || !form.parent_name) return;
     setSaving(true);
     await base44.entities.ParentConsent.create({
       parent_email: user.email,
       teen_email: form.teen_email,
       consent_type: form.consent_type,
+      parent_name: form.parent_name,
+      relationship: form.relationship,
       is_consent_given: true,
       consent_date: new Date().toISOString(),
     });
@@ -190,21 +192,32 @@ export default function ParentDashboard() {
       {/* Consent Form Modal */}
       {showConsentForm && (
         <div className="fixed inset-0 z-[100] flex items-end" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowConsentForm(false)}>
-          <div className="w-full rounded-t-3xl p-6" style={{ background: '#1a0a30' }} onClick={e => e.stopPropagation()}>
+          <div className="w-full rounded-t-3xl p-6" style={{ background: '#1a0a30', paddingBottom: 'calc(1.5rem + var(--bottom-nav-h, 64px) + env(safe-area-inset-bottom, 0px))' }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-white text-lg">Give Consent</h3>
               <button onClick={() => setShowConsentForm(false)}><X size={20} className="text-gray-400" /></button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-gray-400 mb-1 block">Teen's Email *</label>
-                <input value={form.teen_email} onChange={e => setForm({...form, teen_email: e.target.value})}
-                  placeholder="teen@example.com"
+                <label className="text-xs font-bold text-gray-400 mb-1 block">Parent/Guardian Full Name *</label>
+                <input value={form.parent_name} onChange={e => setForm({...form, parent_name: e.target.value})}
+                  placeholder="Your full name"
                   className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} />
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-400 mb-1 block">Consent Type</label>
+                <label className="text-xs font-bold text-gray-400 mb-1 block">Relationship to Child</label>
+                <select value={form.relationship} onChange={e => setForm({...form, relationship: e.target.value})}
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <option value="Mother">Mother</option>
+                  <option value="Father">Father</option>
+                  <option value="Guardian">Guardian</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 mb-1 block">Teen's Email *</label>
                 <select value={form.consent_type} onChange={e => setForm({...form, consent_type: e.target.value})}
                   className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -217,7 +230,7 @@ export default function ParentDashboard() {
               <div className="rounded-xl p-4" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' }}>
                 <p className="text-xs text-gray-300">By giving consent, you authorize GGU Mentorship Hub to facilitate mentorship sessions for the teen listed above, subject to all platform safety guidelines.</p>
               </div>
-              <button onClick={giveConsent} disabled={saving || !form.teen_email}
+              <button onClick={giveConsent} disabled={saving || !form.teen_email || !form.parent_name}
                 className="w-full py-4 rounded-2xl font-bold text-white disabled:opacity-40"
                 style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
                 {saving ? 'Saving...' : '✓ Give Consent'}

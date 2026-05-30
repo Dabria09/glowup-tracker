@@ -39,15 +39,15 @@ const POST_TYPES = [
 const MY_CONTENT = [
   { label: 'My Diary',              icon: BookOpen,      route: '/diary' },
   { label: 'My Vision Board',       icon: Image,         route: '/vision-board' },
-  { label: 'My Saved Quotes',       icon: Quote,         route: '/daily-quotes' },
+  { label: 'My Saved Quotes',       icon: Quote,         route: '/saved-quotes' },
   { label: 'My Career Bookmarks',   icon: Briefcase,     route: '/careers' },
-  { label: 'My Saved Scholarships', icon: GraduationCap, route: '/scholarships' },
+  { label: 'My Saved Scholarships', icon: GraduationCap, route: '/saved-scholarships' },
 ];
 
 const MY_ACTIVITY = [
-  { label: 'My Posts',     icon: MessageSquare, route: '/glow-feed' },
-  { label: 'My Reactions', icon: Heart,         route: '/glow-feed' },
-  { label: 'My Comments',  icon: MessageCircle, route: '/glow-feed' },
+  { label: 'My Posts',     icon: MessageSquare, route: '/glow-feed?filter=my_posts' },
+  { label: 'My Reactions', icon: Heart,         route: '/glow-feed?filter=my_reactions' },
+  { label: 'My Comments',  icon: MessageCircle, route: '/glow-feed?filter=my_comments' },
 ];
 
 const SOCIAL_LINKS = [
@@ -592,7 +592,7 @@ export default function Me() {
         <div style={{ marginBottom: 16 }}>
           <SectionLabel text="Help and Support" />
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, overflow: 'hidden' }}>
-            <button onClick={() => navigate('/support')} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', borderBottom: `1px solid ${BORDER}`, cursor: 'pointer', textAlign: 'left' }}>
+            <button onClick={() => navigate('/support')} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', borderBottom: 'none', cursor: 'pointer', textAlign: 'left' }}>
               <MessageCircle size={16} style={{ color: MUTED, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: 14, color: WHITE, margin: 0 }}>Contact Support</p>
@@ -600,14 +600,6 @@ export default function Me() {
               </div>
               <ChevronRight size={14} style={{ color: MUTED2 }} />
             </button>
-            <a href="mailto:support@girlsglowingup.com" style={{ textDecoration: 'none', width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: 'none', cursor: 'pointer' }}>
-              <MessageSquare size={16} style={{ color: MUTED, flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 14, color: WHITE, margin: 0 }}>Email Us</p>
-                <p style={{ fontSize: 11, color: MUTED2, margin: 0 }}>support@girlsglowingup.com</p>
-              </div>
-              <ExternalLink size={14} style={{ color: MUTED2 }} />
-            </a>
           </div>
         </div>
 
@@ -616,8 +608,8 @@ export default function Me() {
           <SectionLabel text="Legal and Privacy" />
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18, overflow: 'hidden' }}>
             {[
-              { label: 'Privacy Policy',            icon: Shield,   route: '/about' },
-              { label: 'Terms of Service',           icon: FileText, route: '/guidelines' },
+              { label: 'Privacy Policy',            icon: Shield,   route: '/privacy-policy' },
+              { label: 'Terms of Service',           icon: FileText, route: '/terms-of-service' },
               { label: 'Parental Consent (COPPA)',   icon: Users,    route: '/parent-dashboard' },
             ].map((item, i, arr) => {
               const Icon = item.icon;

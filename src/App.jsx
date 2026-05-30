@@ -96,6 +96,10 @@ import BanGate from './components/BanGate';
 import GlowPersona from './pages/GlowPersona';
 import Notifications from './pages/Notifications';
 import Search from './pages/Search';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import SavedQuotes from './pages/SavedQuotes';
+import SavedScholarships from './pages/SavedScholarships';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -210,6 +214,10 @@ const AuthenticatedApp = () => {
       <Route path="/notifications" element={<Notifications />} />
       <Route path="/search" element={<Search />} />
       <Route path="/glow" element={<Glow />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-service" element={<TermsOfService />} />
+      <Route path="/saved-quotes" element={<SavedQuotes />} />
+      <Route path="/saved-scholarships" element={<SavedScholarships />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </BanGate>

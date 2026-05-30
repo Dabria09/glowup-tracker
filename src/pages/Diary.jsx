@@ -19,12 +19,17 @@ export default function Diary() {
   const [entries, setEntries] = useState([]);
   const [search, setSearch] = useState('');
   const [moodFilter, setMoodFilter] = useState(null);
+  const [points, setPoints] = useState(0);
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
-      const data = await base44.entities.DiaryEntry.filter({ user_email: u.email });
+      const [data, pts] = await Promise.all([
+        base44.entities.DiaryEntry.filter({ user_email: u.email }),
+        base44.entities.UserPoints.filter({ user_email: u.email }),
+      ]);
       setEntries(data.sort((a, b) => b.entry_date?.localeCompare(a.entry_date)));
+      if (pts.length) setPoints(pts[0].total_points || 0);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
 
@@ -47,16 +52,16 @@ export default function Diary() {
         {/* Header */}
         <div className="flex items-start justify-between px-4 pt-6 pb-4">
           <div>
-            <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-400 hover:text-white text-sm mb-1 transition">
+            <button onClick={() => navigate('/me')} className="flex items-center gap-1 text-gray-400 hover:text-white text-sm mb-1 transition">
               <ChevronLeft size={18} /> Back
             </button>
             <h1 className="text-3xl font-bold text-white">My Diary</h1>
             <p className="text-sm text-gray-400 mt-0.5">{entries.length} entries · Your private space 🔒</p>
           </div>
           <div className="flex items-center gap-2 mt-1">
-            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-              <span>🏅</span><span className="text-yellow-400">15 pts</span>
-            </div>
+            <button onClick={() => navigate('/glow-score')} className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
+              <span>🏅</span><span className="text-yellow-400">{points.toLocaleString()} pts</span>
+            </button>
             <button className="w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center">
               <Download size={16} className="text-gray-300" />
             </button>

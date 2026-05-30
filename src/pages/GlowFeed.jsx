@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
@@ -35,6 +35,8 @@ const COMMUNITY_QUESTIONS = [
 
 export default function GlowFeed() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const filterMode = searchParams.get('filter'); // my_posts | my_reactions | my_comments
   const { worldInfo, ageGroup } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('timeline');
@@ -45,12 +47,17 @@ export default function GlowFeed() {
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [answerText, setAnswerText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [myPosts, setMyPosts] = useState([]);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    base44.auth.me().then(async u => {
       setUser(u);
+      if (filterMode === 'my_posts') {
+        const posts = await base44.entities.GlowUpPost.filter({ user_email: u.email }, '-created_date', 50);
+        setMyPosts(posts);
+      }
     }).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  }, [filterMode]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#080810' }}>
@@ -80,11 +87,13 @@ export default function GlowFeed() {
         {/* Header */}
         <div className="sticky top-0 z-20 backdrop-blur-md bg-black/30 border-b border-white/10 px-4 py-4">
           <div className="flex items-center gap-3 mb-3">
-            <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10">
+            <button onClick={() => filterMode ? navigate('/me') : navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10">
               <ChevronLeft size={20} />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold">Glow Up Feed 🔥</h1>
+              <h1 className="text-xl font-bold">
+                {filterMode === 'my_posts' ? 'My Posts' : filterMode === 'my_reactions' ? 'My Reactions' : filterMode === 'my_comments' ? 'My Comments' : 'Glow Up Feed 🔥'}
+              </h1>
               {worldInfo ? (
                 <p className="text-xs font-semibold" style={{ color: worldInfo.color }}>{worldInfo.emoji} {worldInfo.label}</p>
               ) : (
@@ -93,8 +102,8 @@ export default function GlowFeed() {
             </div>
           </div>
 
-          {/* Filter Buttons */}
-          <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide">
+          {/* Filter Buttons — hide in filter mode */}
+          {!filterMode && <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide">
             {['Everyone', 'Following'].map(filter => (
               <button
                 key={filter}
@@ -104,7 +113,7 @@ export default function GlowFeed() {
                 {filter === 'Following' ? '⭐ Following' : '👥 Everyone'}
               </button>
             ))}
-          </div>
+          </div>}
 
           {/* Search */}
           <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 border border-white/10">
@@ -136,8 +145,48 @@ export default function GlowFeed() {
             </button>
           </div>
 
+          {/* Filtered Mode — My Posts / Reactions / Comments */}
+          {filterMode && (
+            <div className="space-y-4">
+              {filterMode === 'my_posts' && (
+                myPosts.length === 0 ? (
+                  <div className="flex flex-col items-center py-16 text-center">
+                    <span className="text-5xl mb-4">✨</span>
+                    <p className="font-bold text-lg text-white mb-2">You haven't posted yet</p>
+                    <p className="text-gray-400 text-sm mb-6">Share your first win!</p>
+                    <button onClick={() => navigate('/me')} className="px-6 py-3 rounded-full font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>Create a Post</button>
+                  </div>
+                ) : (
+                  myPosts.map(post => (
+                    <div key={post.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(236,72,153,0.2)', color: '#f9a8d4' }}>{post.post_type || 'Thought'}</span>
+                        <span className="text-xs text-gray-500">{new Date(post.created_date).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-sm text-white">{post.content}</p>
+                    </div>
+                  ))
+                )
+              )}
+              {filterMode === 'my_reactions' && (
+                <div className="flex flex-col items-center py-16 text-center">
+                  <span className="text-5xl mb-4">💜</span>
+                  <p className="font-bold text-lg text-white mb-2">My Reactions</p>
+                  <p className="text-gray-400 text-sm max-w-xs">Reaction tracking is coming soon! When you react to posts in the feed, they'll appear here.</p>
+                </div>
+              )}
+              {filterMode === 'my_comments' && (
+                <div className="flex flex-col items-center py-16 text-center">
+                  <span className="text-5xl mb-4">💬</span>
+                  <p className="font-bold text-lg text-white mb-2">My Comments</p>
+                  <p className="text-gray-400 text-sm max-w-xs">Comment tracking is coming soon! Posts you've commented on will appear here.</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Timeline Tab */}
-          {activeTab === 'timeline' && (
+          {!filterMode && activeTab === 'timeline' && (
             <div className="space-y-4">
               {/* Post Button */}
               <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.2), rgba(168,85,247,0.2))', border: '1px solid rgba(236,72,153,0.3)' }}>
@@ -169,7 +218,7 @@ export default function GlowFeed() {
           )}
 
           {/* Ask Community Tab */}
-          {activeTab === 'askCommunity' && (
+          {!filterMode && activeTab === 'askCommunity' && (
             <div className="space-y-4">
               {/* Ask Button */}
               <button
