@@ -671,8 +671,16 @@ export default function Glow() {
               <p style={{ fontWeight: 700, fontSize: 14, color: WHITE, margin: 0 }}>Glow Pass Rewards</p>
               <p style={{ fontSize: 12, color: MUTED2, margin: '2px 0 0' }}>Invite friends and unlock exclusive rewards</p>
             </div>
-            <button onClick={() => navigate('/my-glow-link')} style={{ padding: '6px 12px', borderRadius: 10, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
-              Share
+            <button onClick={() => {
+              const inviteUrl = `${window.location.origin}/join`;
+              if (navigator.share) {
+                navigator.share({ title: 'Join Girls Glowing Up!', text: 'Come join me on Girls Glowing Up — your glow journey starts here! 🌟', url: inviteUrl }).catch(() => {});
+              } else {
+                navigator.clipboard?.writeText(inviteUrl);
+                alert('Invite link copied! Share it with your friends.');
+              }
+            }} style={{ padding: '6px 12px', borderRadius: 10, background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, color: '#fff', fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+              Invite
             </button>
           </div>
         </div>

@@ -41,9 +41,14 @@ export default function DailyPollSection({ userEmail, onPointsAwarded }) {
   const loadPoll = async () => {
     setLoading(true);
     try {
-      // Try to get today's scheduled poll first, else get latest active
-      let polls = await base44.entities.DailyPoll.filter({ scheduled_date: todayStr, is_active: true });
-      if (!polls.length) polls = await base44.entities.DailyPoll.filter({ is_active: true }, '-created_date', 1);
+      // Try today's scheduled poll first, then latest active, then any poll at all
+      let polls = await base44.entities.DailyPoll.filter({ scheduled_date: todayStr, is_active: true }).catch(() => []);
+      if (!polls.length) polls = await base44.entities.DailyPoll.filter({ is_active: true }, '-created_date', 1).catch(() => []);
+      if (!polls.length) {
+        // Last resort: list all and filter client-side
+        const all = await base44.entities.DailyPoll.list('-created_date', 10).catch(() => []);
+        polls = all.filter(p => p.is_active !== false).slice(0, 1);
+      }
       if (!polls.length) { setLoading(false); return; }
 
       const p = polls[0];
