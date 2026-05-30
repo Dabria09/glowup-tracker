@@ -342,7 +342,22 @@ export default function GlowFeed() {
                           <span className="text-xs text-gray-500">{new Date(q.created_date).toLocaleDateString()}</span>
                         </div>
                       </div>
-                      <button className="text-gray-500 hover:text-pink-400 transition">→</button>
+                      <div className="flex flex-col items-end gap-1">
+                        <button className="text-gray-500 hover:text-pink-400 transition">→</button>
+                        {(q.user_email === user?.email || user?.role === 'admin') && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (!window.confirm('Delete this question?')) return;
+                              await base44.entities.GlowUpPost.delete(q.id);
+                              setCommunityQuestions(prev => prev.filter(x => x.id !== q.id));
+                            }}
+                            className="text-[10px] text-red-400 hover:text-red-300 transition"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
