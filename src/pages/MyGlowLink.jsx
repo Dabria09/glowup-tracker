@@ -10,7 +10,7 @@ import {
   Settings, LogOut, Shield, Bell, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GLOW_THEMES, PROFILE_FRAMES, getGlowLevel, getTheme, computeBadges } from '@/components/glowlink/GlowThemes';
+import { GLOW_THEMES, PROFILE_FRAMES, getGlowLevel, getTheme, getFrame, computeBadges } from '@/components/glowlink/GlowThemes';
 
 /* ── Constants ─────────────────────────────────── */
 const GLOW_ERAS = [
@@ -340,13 +340,11 @@ export default function MyGlowLink() {
       {/* ── Hero Avatar Block ──────────────────────────── */}
       <div className="relative flex flex-col items-center py-8"
         style={{ background: 'linear-gradient(180deg, rgba(236,72,153,0.08) 0%, transparent 100%)' }}>
-        {/* Level glow ring */}
+        {/* Live frame preview */}
         <div className="relative mb-3">
           <div className="absolute inset-0 rounded-full" style={{ margin: -12, background: `radial-gradient(circle, ${glowLevel.color}40, transparent 70%)`, filter: 'blur(12px)' }} />
-          <div className="relative" style={{ background: glowLevel.gradient, padding: 3, borderRadius: '50%' }}>
-            <div style={{ background: '#0d0608', borderRadius: '50%', padding: 3 }}>
-              <UserAvatarDisplay profile={profile} size={90} fallback={user?.full_name?.[0] || '✨'} showRing={false} />
-            </div>
+          <div className="relative" style={{ ...getFrame(profileFrame).style(theme.accent), borderRadius: '50%', display: 'inline-block' }}>
+            <UserAvatarDisplay profile={profile} size={90} fallback={user?.full_name?.[0] || '✨'} showRing={false} />
           </div>
           <button onClick={() => fileInputRef.current?.click()}
             className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg"
