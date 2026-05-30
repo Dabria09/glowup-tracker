@@ -77,7 +77,7 @@ export default function GlowFeed() {
       const reactionIds = new Set(reactions.map(r => r.post_id));
       setReactedPostIds(reactionIds);
       if (filterMode === 'my_posts') {
-        setMyPosts(allPosts.filter(p => p.user_email === u.email));
+        setMyPosts(allPosts.filter(p => p.user_email === u.email && p.post_type !== 'Community Question'));
       }
       if (filterMode === 'my_reactions') {
         setMyReactionPosts(allPosts.filter(p => reactionIds.has(p.id)));
