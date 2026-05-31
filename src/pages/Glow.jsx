@@ -129,6 +129,19 @@ export default function Glow() {
   const todayAffirmation = AFFIRMATIONS[new Date().getDay() % AFFIRMATIONS.length];
   const todayEncouragement = ENCOURAGEMENTS[new Date().getDate() % ENCOURAGEMENTS.length];
 
+  // Re-fetch points whenever the tab regains focus (e.g. returning from DailyCheckIn)
+  useEffect(() => {
+    if (!user?.email) return;
+    const onVisible = async () => {
+      if (document.visibilityState === 'visible') {
+        const pts = await base44.entities.UserPoints.filter({ user_email: user.email });
+        if (pts.length) setUserPoints(pts[0]);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [user?.email]);
+
   useEffect(() => {
     const load = async () => {
       try {
