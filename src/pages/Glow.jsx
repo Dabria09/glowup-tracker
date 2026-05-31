@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
@@ -126,21 +126,32 @@ export default function Glow() {
   const [goalsChecked, setGoalsChecked] = useState({});
   const [savedQuote, setSavedQuote] = useState(null);
 
+  const userEmailRef = useRef(null);
   const todayAffirmation = AFFIRMATIONS[new Date().getDay() % AFFIRMATIONS.length];
   const todayEncouragement = ENCOURAGEMENTS[new Date().getDate() % ENCOURAGEMENTS.length];
 
-  // Re-fetch points whenever the tab regains focus (e.g. returning from DailyCheckIn)
+  // Keep ref in sync so event listeners always have the latest email
+  useEffect(() => { userEmailRef.current = user?.email || null; }, [user?.email]);
+
+  // Re-fetch points on visibility change, pageshow (bfcache), or check-in complete event
   useEffect(() => {
-    if (!user?.email) return;
-    const onVisible = async () => {
-      if (document.visibilityState === 'visible') {
-        const pts = await base44.entities.UserPoints.filter({ user_email: user.email });
-        if (pts.length) setUserPoints(pts[0]);
-      }
+    const refresh = async () => {
+      const email = userEmailRef.current;
+      if (!email) return;
+      const pts = await base44.entities.UserPoints.filter({ user_email: email });
+      if (pts.length) setUserPoints(pts[0]);
     };
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh(); };
+    const onPageShow = (e) => { if (e.persisted) refresh(); };
     document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [user?.email]);
+    window.addEventListener('pageshow', onPageShow);
+    window.addEventListener('ggu_checkin_complete', refresh);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pageshow', onPageShow);
+      window.removeEventListener('ggu_checkin_complete', refresh);
+    };
+  }, []);
 
   useEffect(() => {
     const load = async () => {
