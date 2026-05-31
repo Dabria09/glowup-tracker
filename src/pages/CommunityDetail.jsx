@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy, Flag, Check, Image, X as XIcon, Upload } from 'lucide-react';
+import { ChevronLeft, Users, MessageCircle, Calendar, Star, Settings, Plus, Send, Heart, MoreVertical, Mail, Copy, Flag, Check, Image, X as XIcon, Upload, BarChart2, Trash2 } from 'lucide-react';
 
 const COMMUNITY_TYPES = {
   school: { emoji: '🏫', color: '#ec4899' },
@@ -14,6 +14,7 @@ const COMMUNITY_TYPES = {
 
 const TABS = [
   { id: 'feed', label: 'Feed', icon: MessageCircle },
+  { id: 'polls', label: 'Polls', icon: BarChart2 },
   { id: 'chat', label: 'Chat', icon: MessageCircle },
   { id: 'members', label: 'Members', icon: Users },
   { id: 'events', label: 'Events', icon: Calendar },
@@ -50,6 +51,11 @@ export default function CommunityDetail() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [profiles, setProfiles] = useState({});
   const [iconUploading, setIconUploading] = useState(false);
+  const [polls, setPolls] = useState([]);
+  const [showPollModal, setShowPollModal] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
+  const [submittingPoll, setSubmittingPoll] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -108,8 +114,11 @@ export default function CommunityDetail() {
         { type: 'growth', count: growthRate > 0 ? `+${growthRate}%` : `${growthRate}%`, label: 'Growth' },
       ]);
 
+      // Load polls
+      const communityPolls = await base44.entities.CommunityPoll.filter({ community_id: id }, '-created_date').catch(() => []);
+      setPolls(communityPolls);
+
       // Load chat messages (separate from feed)
-      setChatMessages(communityPosts.filter(p => p.post_type === 'chat').slice(0, 50));
     } catch (error) {
       console.error('Error loading community:', error);
     }
@@ -267,6 +276,44 @@ export default function CommunityDetail() {
     loadData();
     setShowRoleModal(false);
     setSelectedMember(null);
+  }
+
+  async function handleVotePoll(poll, optionIndex) {
+    if (!user) return;
+    const votes = JSON.parse(poll.votes || '{}');
+    // Check if already voted
+    const alreadyVoted = Object.values(votes).some(arr => arr.includes(user.email));
+    if (alreadyVoted) return;
+    const key = String(optionIndex);
+    votes[key] = [...(votes[key] || []), user.email];
+    await base44.entities.CommunityPoll.update(poll.id, { votes: JSON.stringify(votes) });
+    setPolls(prev => prev.map(p => p.id === poll.id ? { ...p, votes: JSON.stringify(votes) } : p));
+  }
+
+  async function handleCreatePoll() {
+    const validOptions = pollOptions.filter(o => o.trim());
+    if (!pollQuestion.trim() || validOptions.length < 2 || !user) return;
+    setSubmittingPoll(true);
+    await base44.entities.CommunityPoll.create({
+      community_id: id,
+      user_email: user.email,
+      username: user.full_name || user.email.split('@')[0],
+      question: pollQuestion,
+      options: JSON.stringify(validOptions),
+      votes: '{}',
+      is_active: true,
+    });
+    setPollQuestion('');
+    setPollOptions(['', '']);
+    setShowPollModal(false);
+    setSubmittingPoll(false);
+    loadData();
+  }
+
+  async function handleDeletePoll(pollId) {
+    if (!confirm('Delete this poll?')) return;
+    await base44.entities.CommunityPoll.delete(pollId);
+    setPolls(prev => prev.filter(p => p.id !== pollId));
   }
 
   async function handleReportPost(post) {
@@ -459,6 +506,74 @@ export default function CommunityDetail() {
                 </button>
               </div>
             </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'polls' && (
+            <div className="space-y-4">
+              {isMember && (
+                <button onClick={() => setShowPollModal(true)} className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                    <Plus size={16} className="text-white" />
+                  </div>
+                  <p className="text-sm text-gray-400 text-left">Create a poll for the community...</p>
+                </button>
+              )}
+              {polls.length === 0 ? (
+                <div className="text-center py-10">
+                  <div className="text-4xl mb-3">🗳️</div>
+                  <p className="text-gray-400 text-sm">No polls yet. {isMember ? 'Create one!' : 'Join to create polls!'}</p>
+                </div>
+              ) : (
+                polls.map(poll => {
+                  const options = JSON.parse(poll.options || '[]');
+                  const votes = JSON.parse(poll.votes || '{}');
+                  const totalVotes = Object.values(votes).reduce((sum, arr) => sum + arr.length, 0);
+                  const myVoteIdx = Object.keys(votes).find(k => votes[k].includes(user?.email));
+                  const hasVoted = myVoteIdx !== undefined;
+                  return (
+                    <div key={poll.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div>
+                          <p className="text-xs text-purple-400 font-semibold mb-1">{poll.username} · {new Date(poll.created_date).toLocaleDateString()}</p>
+                          <p className="text-sm font-bold text-white">{poll.question}</p>
+                        </div>
+                        {(poll.user_email === user?.email || isAdmin) && (
+                          <button onClick={() => handleDeletePoll(poll.id)} className="text-gray-500 hover:text-red-400 flex-shrink-0">
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        {options.map((opt, i) => {
+                          const count = (votes[String(i)] || []).length;
+                          const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                          const isMyVote = String(i) === myVoteIdx;
+                          return (
+                            <button key={i} onClick={() => !hasVoted && handleVotePoll(poll, i)}
+                              disabled={hasVoted}
+                              className="w-full rounded-xl overflow-hidden text-left"
+                              style={{ border: `1.5px solid ${isMyVote ? '#a855f7' : 'rgba(255,255,255,0.1)'}`, background: isMyVote ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.04)', cursor: hasVoted ? 'default' : 'pointer', position: 'relative' }}>
+                              {hasVoted && (
+                                <div style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: `${pct}%`, background: isMyVote ? 'rgba(168,85,247,0.25)' : 'rgba(255,255,255,0.06)', transition: 'width 0.4s ease', borderRadius: 10 }} />
+                              )}
+                              <div className="relative flex items-center justify-between px-3 py-2.5">
+                                <span className="text-sm text-white">{opt}</span>
+                                {hasVoted && (
+                                  <span className="text-xs font-bold" style={{ color: isMyVote ? '#d8b4fe' : '#9ca3af' }}>{pct}%</span>
+                                )}
+                                {isMyVote && <Check size={13} className="text-purple-400 ml-1 flex-shrink-0" />}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2 text-right">{totalVotes} vote{totalVotes !== 1 ? 's' : ''}</p>
+                    </div>
+                  );
+                })
               )}
             </div>
           )}
@@ -681,6 +796,53 @@ export default function CommunityDetail() {
           )}
         </div>
       </div>
+
+      {/* Create Poll Modal */}
+      {showPollModal && (
+        <div className="fixed inset-0 z-[100]" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowPollModal(false)}>
+          <div className="fixed bottom-0 left-0 right-0 rounded-t-3xl" style={{ background: '#1a0a30', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom,0px))' }} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <p className="font-bold text-white text-lg">Create Poll</p>
+              <button onClick={() => setShowPollModal(false)} className="text-gray-400 text-2xl leading-none">&times;</button>
+            </div>
+            <div className="p-5 space-y-4" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              <div>
+                <label className="text-xs font-bold text-gray-400 mb-1.5 block">Question</label>
+                <input value={pollQuestion} onChange={e => setPollQuestion(e.target.value)}
+                  placeholder="Ask the community something..."
+                  className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none"
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 mb-2 block">Options (min 2)</label>
+                <div className="space-y-2">
+                  {pollOptions.map((opt, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input value={opt} onChange={e => { const next = [...pollOptions]; next[i] = e.target.value; setPollOptions(next); }}
+                        placeholder={`Option ${i + 1}`}
+                        className="flex-1 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
+                        style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }} />
+                      {pollOptions.length > 2 && (
+                        <button onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))} className="text-gray-500 hover:text-red-400">
+                          <XIcon size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {pollOptions.length < 6 && (
+                    <button onClick={() => setPollOptions([...pollOptions, ''])} className="text-sm text-purple-400 hover:text-purple-300 font-semibold">+ Add option</button>
+                  )}
+                </div>
+              </div>
+              <button onClick={handleCreatePoll} disabled={!pollQuestion.trim() || pollOptions.filter(o => o.trim()).length < 2 || submittingPoll}
+                className="w-full py-3 rounded-2xl font-bold text-white disabled:opacity-40 flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                {submittingPoll ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><BarChart2 size={16} /> Post Poll</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Post Modal */}
       {showPostModal && (
