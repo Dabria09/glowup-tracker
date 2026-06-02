@@ -76,13 +76,20 @@ const QUOTES = [
 ];
 
 function getTodayKey() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function getYesterdayKey() {
   const d = new Date();
   d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function getQuoteForDate(dateStr) {
@@ -192,25 +199,26 @@ export default function DailyQuotes() {
               <p className="text-xs text-gray-500 mt-3">Save this quote before midnight or it's gone! ✨</p>
             </div>
 
-            {/* Yesterday's quote — only if saved */}
-            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <p className="text-xs font-bold text-gray-500 mb-3">YESTERDAY · {formatDate(yesterdayKey)}</p>
-              {yesterdaySaved ? (
-                <div>
-                  <p className="text-base text-white leading-relaxed mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-                    "{yesterdayQuote.text}"
-                  </p>
-                  <p className="text-xs text-pink-300">— {yesterdayQuote.author}</p>
-                  <div className="flex items-center gap-1 mt-2">
-                    <BookmarkCheck size={12} className="text-purple-400" />
-                    <span className="text-xs text-purple-400">Saved</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center py-4 gap-2">
-                  <span className="text-3xl">🔒</span>
-                  <p className="text-sm text-gray-400 text-center">Yesterday's quote is gone.</p>
-                  <p className="text-xs text-gray-600 text-center">Save today's quote before midnight so you never miss it!</p>
+            {/* Yesterday's quote */}
+            <div className="rounded-2xl p-4 relative" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold text-gray-500">YESTERDAY · {formatDate(yesterdayKey)}</p>
+                <button onClick={() => toggleSave(yesterdayQuote, yesterdayKey)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition"
+                  style={{ background: yesterdaySaved ? 'rgba(168,85,247,0.5)' : 'rgba(255,255,255,0.08)' }}>
+                  {yesterdaySaved
+                    ? <BookmarkCheck size={14} className="text-purple-300" />
+                    : <Bookmark size={14} className="text-gray-400" />}
+                </button>
+              </div>
+              <p className="text-base text-white leading-relaxed mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                "{yesterdayQuote.text}"
+              </p>
+              <p className="text-xs text-pink-300">— {yesterdayQuote.author}</p>
+              {yesterdaySaved && (
+                <div className="flex items-center gap-1 mt-2">
+                  <BookmarkCheck size={12} className="text-purple-400" />
+                  <span className="text-xs text-purple-400">Saved</span>
                 </div>
               )}
             </div>
