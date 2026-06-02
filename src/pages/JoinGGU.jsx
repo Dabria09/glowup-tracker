@@ -5,10 +5,10 @@ import { base44 } from '@/api/base44Client';
 const VALID_PASSES = ['5H3CC4ER55', 'HPZJ686XK5', 'GLOWUP2025', 'PIONEER001', 'SISTERHOOD'];
 
 const AGE_GROUPS = [
-  { id: 'glow-girl', emoji: '🌸', name: 'Glow Girl', ages: 'Ages 10–13', color: '#e8526d', desc: 'Build confidence, discover your gifts, and learn to love who you\'re becoming.', feats: ['Daily Challenges', 'Confidence', 'Wellness Basics'], consent: true },
-  { id: 'glow-up', emoji: '⚡', name: 'Glow Up', ages: 'Ages 14–19', color: '#f1b610', desc: 'Navigate high school and beyond — build real skills, career clarity, and own your story.', feats: ['Career Explorer', 'Money Moves', '1-on-1 Mentors'], consent: false },
-  { id: 'glow-sis', emoji: '🌟', name: 'Glow Sis', ages: 'Ages 20+', color: '#ff6a75', desc: 'A young woman who\'s been there — share your wisdom and lift the girls behind you.', feats: ['Community', 'Peer Mentoring', 'Leadership'], consent: false },
-  { id: 'glow-mom', emoji: '💛', name: 'Glow Mom', ages: 'Parent / Guardian', color: '#fdcd2d', desc: 'Stay connected to your daughter\'s journey and access parent resources and updates.', feats: ['Account Oversight', 'Progress Updates'], consent: false },
+  { id: 'glow-girl', emoji: '🌸', name: 'Tween World', ages: 'Ages 10–13', color: '#e8526d', desc: 'Build confidence, discover your gifts, and learn to love who you\'re becoming. Age-appropriate content with full safety protections.', feats: ['Daily Challenges', 'Confidence', 'Wellness Basics'], consent: true },
+  { id: 'glow-up', emoji: '⚡', name: 'Teen World', ages: 'Ages 14–17', color: '#f1b610', desc: 'Navigate high school and your future — build real skills, career clarity, find mentors, and own your story.', feats: ['Career Explorer', 'Money Moves', 'Mentorship'], consent: false },
+  { id: 'glow-sis', emoji: '🌟', name: "Women's World", ages: 'Ages 18+', color: '#ff6a75', desc: 'Your world, no limits. Network, grow your career, lead, and lift others. Women\'s World has no upper age limit.', feats: ['Networking', 'Leadership', 'Mentoring Others'], consent: false },
+  { id: 'glow-mom', emoji: '💛', name: 'Parent / Guardian', ages: 'Parent / Guardian', color: '#fdcd2d', desc: 'Stay connected to your child\'s journey and access parent resources, oversight tools, and progress updates.', feats: ['Account Oversight', 'Progress Updates'], consent: false },
 ];
 
 const MSG = {

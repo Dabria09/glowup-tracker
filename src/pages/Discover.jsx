@@ -16,10 +16,8 @@ const SECTIONS = [
     items: [
       { id: 'about_ggu', label: 'About GGU', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', route: '/about', emoji: '👑' },
       { id: 'how_it_works', label: 'How It Works', gradient: 'from-purple-900 via-indigo-900 to-blue-900', route: '/how-it-works', emoji: '✨' },
-      { id: 'join_ggu', label: 'Join GGU', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/join', emoji: '🌟' },
-      { id: 'curriculum', label: 'Curriculum', gradient: 'from-indigo-900 via-blue-900 to-purple-900', route: '/curriculum', emoji: '📚' },
-      { id: 'pioneer_network', label: 'Pioneer Network™', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', route: '/curriculum', emoji: '👑' },
-      { id: 'glow_pass', label: 'Glow Pass™', gradient: 'from-fuchsia-900 via-pink-900 to-rose-900', route: '/join', emoji: '🎟️' },
+      { id: 'pioneer_network', label: 'Pioneer Network™', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', route: '/mentorship', emoji: '👑' },
+      { id: 'glow_pass', label: 'Glow Pass™', gradient: 'from-fuchsia-900 via-pink-900 to-rose-900', route: '/dashboard', emoji: '🎟️' },
       { id: 'community_guidelines', label: 'Guidelines', gradient: 'from-blue-900 via-cyan-900 to-teal-900', route: '/guidelines', emoji: '📋' },
       { id: 'help_support', label: 'Help & Support', gradient: 'from-rose-900 via-pink-900 to-red-900', route: '/support', emoji: '💜' },
       { id: 'privacy_policy', label: 'Privacy Policy', gradient: 'from-gray-800 via-slate-900 to-gray-900', route: '/privacy-policy', emoji: '🛡️' },

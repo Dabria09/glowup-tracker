@@ -13,15 +13,26 @@ export default function TermsOfService() {
 By accessing or using the App, you confirm that you are at least 10 years old, or that a parent or legal guardian has reviewed and accepted these Terms on your behalf. If you do not agree to these Terms, do not use the App.`
     },
     {
-      title: '2. Who Can Use the App',
-      content: `The GGU App is designed for girls ages 10–18. Use of the App is subject to the following eligibility requirements:
+      title: '2. Who Can Use the App — Age-Based Worlds',
+      content: `The GGU App is open to users ages 10 and older. Users are placed into one of three age-based worlds based on their age at registration. Each world has different content, features, permissions, and safety protections:
 
-• Users must be between the ages of 10 and 18
+Tween World (Ages 10–13)
+• Designed for younger users with age-appropriate content and strict safety settings
 • Users ages 10–12 must have a parent or legal guardian provide verifiable parental consent before creating an account
-• Users ages 13–17 must have a parent or guardian review and agree to these Terms
-• Users 18 and older may use the app as mentors or in designated adult roles only
+• Community interaction is moderated; no one-on-one messaging with adults
+• Parent Dashboard is available for caregiver oversight
 
-GGU reserves the right to verify age and terminate accounts that do not meet eligibility requirements.`
+Teen World (Ages 14–17)
+• Designed for teen users with expanded community features, mentorship, and career tools
+• Users under 18 must have a parent or guardian review and agree to these Terms
+• One-on-one mentorship with verified adult mentors requires documented parental consent for users under 18
+
+Women's World (Ages 18+)
+• Designed for adult women with full access to networking, career development, wellness, mentorship, and leadership features
+• There is no upper age limit; Women's World is open to all adult users
+• Adult Community Guidelines and Terms of Service apply
+
+GGU reserves the right to verify age and move users to the appropriate world or terminate accounts that do not meet eligibility requirements.`
     },
     {
       title: '3. Account Registration',
@@ -55,21 +66,44 @@ GGU does not claim ownership of your personal content. You may delete your conte
 • Sharing personal information of others without consent
 • Any illegal activity
 
-Violations may result in content removal, account suspension, or permanent ban.`
+Violations may result in content removal, account suspension, or permanent ban. Standards are enforced across all worlds, with additional protections for Tween and Teen World users.`
     },
     {
-      title: '6. Mentorship Program',
-      content: `GGU's Mentorship Hub connects teens with verified adult mentors. Participation is subject to additional requirements:
+      title: '6. Safety Protections by World',
+      content: `GGU maintains world-specific safety protections to ensure every user has an age-appropriate, safe experience:
 
-• Teens ages 10–12 require active parental consent on file before accessing mentorship
-• All mentors complete a verification process before being approved
-• Session activity is logged and accessible to parents via the Parent Dashboard
+Tween World Safety Protections:
+• All content is age-reviewed and moderated
+• No direct one-on-one messaging with adults
+• Parental consent required before account creation
+• Parents receive notifications and have account oversight via the Parent Dashboard
+• No video features involving adult interactions
+
+Teen World Safety Protections:
+• Community features include moderation and reporting tools
+• Mentorship with adults requires verified mentor credentials and, for users under 18, documented parental consent
+• Peer mentorship is supervised and monitored
+• Users can block, report, and flag content at any time
+
+Women's World Safety Protections:
+• All users are 18+ and subject to standard Community Guidelines
+• Mentors and community members are subject to verification and conduct standards
+• GGU reserves the right to remove any user who violates safety policies`
+    },
+    {
+      title: '7. Mentorship Program',
+      content: `GGU's Mentorship Hub connects users with verified mentors. Participation is subject to:
+
+• Tween World users (10–13) require active parental consent on file before accessing any mentorship features
+• Teen World users under 18 require parental or guardian consent for one-on-one sessions with adult mentors
+• All adult mentors complete a verification process before being approved
+• Session activity is logged and, for minors, accessible to parents via the Parent Dashboard
 • GGU reserves the right to remove mentors or terminate sessions that violate safety policies
 
 GGU does not guarantee the accuracy of mentor profiles and is not responsible for advice given during sessions.`
     },
     {
-      title: '7. Glow Points & Rewards',
+      title: '8. Glow Points & Rewards',
       content: `GGU may award Glow Points for completing challenges, daily check-ins, and other activities. Glow Points:
 
 • Have no monetary value and cannot be exchanged for cash
@@ -78,38 +112,39 @@ GGU does not guarantee the accuracy of mentor profiles and is not responsible fo
 • Will be forfeited if an account is terminated for violations`
     },
     {
-      title: '8. Privacy',
+      title: '9. Privacy',
       content: `Your use of the GGU App is also governed by our Privacy Policy, which is incorporated into these Terms by reference. Please review our Privacy Policy to understand our practices regarding your personal information.
 
-For users under 13, GGU complies fully with the Children's Online Privacy Protection Act (COPPA). Parents may review or request deletion of their child's data at any time.`
+For Tween World users under 13, GGU complies fully with the Children's Online Privacy Protection Act (COPPA). Parents may review, correct, or request deletion of their child's data at any time by contacting privacy@girlsglowingup.com.`
     },
     {
-      title: '9. Prohibited Activities',
+      title: '10. Prohibited Activities',
       content: `You agree NOT to:
 
 • Attempt to hack, scrape, or reverse-engineer any part of the App
 • Use the App for commercial purposes without written authorization from GGU
 • Upload malware, viruses, or any harmful code
-• Circumvent any access controls or security features
+• Circumvent any access controls or safety features, including age-gating
 • Use the App to collect information about other users without consent
+• Attempt to contact or interact with minors in a manner that violates GGU's safety policies
 • Violate any applicable local, state, national, or international law`
     },
     {
-      title: '10. Disclaimer of Warranties',
+      title: '11. Disclaimer of Warranties',
       content: `THE GGU APP IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. GGU DOES NOT WARRANT THAT THE APP WILL BE UNINTERRUPTED, ERROR-FREE, OR FREE OF HARMFUL COMPONENTS. USE OF THE APP IS AT YOUR OWN RISK.
 
 GGU's wellness content, tips, and resources are for informational purposes only and do not constitute medical, legal, or professional advice.`
     },
     {
-      title: '11. Limitation of Liability',
+      title: '12. Limitation of Liability',
       content: `TO THE FULLEST EXTENT PERMITTED BY LAW, GGU SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING FROM YOUR USE OF THE APP. GGU's total liability shall not exceed the amount you paid (if any) for use of the App in the 12 months preceding the claim.`
     },
     {
-      title: '12. Changes to Terms',
-      content: `GGU may update these Terms at any time. We will notify users of material changes via in-app notice or email at least 14 days before changes take effect. Continued use of the App after changes constitutes acceptance of the updated Terms.`
+      title: '13. Changes to Terms',
+      content: `GGU may update these Terms at any time. We will notify users of material changes via in-app notice or email at least 14 days before changes take effect. For Tween and Teen World users under 18, we will also notify the parent or guardian on file. Continued use of the App after changes constitutes acceptance of the updated Terms.`
     },
     {
-      title: '13. Contact',
+      title: '14. Contact',
       content: `Girls Glowing Up™ LLC
 Email: support@girlsglowingup.com
 Website: gguapp.com
@@ -136,7 +171,7 @@ For questions about these Terms, contact us at the email above. We respond withi
         {/* Header card */}
         <div className="rounded-2xl p-5 mb-6" style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(168,85,247,0.15))', border: '1px solid rgba(236,72,153,0.3)' }}>
           <p className="text-sm font-bold text-white mb-1">Girls Glowing Up™ (GGU)</p>
-          <p className="text-sm text-gray-300 leading-relaxed">Please read these Terms carefully before using the GGU App. By creating an account or using the app, you (and, for users under 18, a parent or legal guardian) agree to be bound by these terms.</p>
+          <p className="text-sm text-gray-300 leading-relaxed">Please read these Terms carefully before using the GGU App. GGU serves users ages 10 and older through three age-based worlds: Tween World (10–13), Teen World (14–17), and Women's World (18+). By creating an account or using the app, you (and, for users under 18, a parent or legal guardian) agree to be bound by these terms.</p>
           <p className="text-xs text-gray-400 mt-3">Effective Date: June 1, 2026 · Last Updated: June 1, 2026</p>
         </div>
 
