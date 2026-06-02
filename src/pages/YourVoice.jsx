@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, ChevronRight, CheckCircle2, Mic, BookOpen, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, Mic, BookOpen, Users, Library } from 'lucide-react';
+import { CIVIC_TOPICS } from '@/lib/libraryResources';
 
 // ── AGE GROUPS ────────────────────────────────────────────────────────────────
 const AGE_GROUPS = [
@@ -16,7 +17,140 @@ const SECTIONS = [
   { id: 'your_voice', label: 'Your Voice', emoji: '🗣️', icon: Mic, color: '#ec4899', desc: 'Speaking up, opinions, respectful communication' },
   { id: 'civics', label: 'Civics', emoji: '🏛️', icon: BookOpen, color: '#3b82f6', desc: 'Community, laws, voting basics, leadership' },
   { id: 'leadership', label: 'Leadership', emoji: '👑', icon: Users, color: '#a855f7', desc: 'Advocacy, service, problem-solving' },
+  { id: 'civic_library', label: 'Civic Library', emoji: '📚', icon: Library, color: '#f59e0b', desc: 'Deep-dive civic education — voting, laws, rights & more' },
 ];
+
+// ── ADDITIONAL CIVIC LIBRARY TOPICS ──────────────────────────────────────────
+const EXTRA_CIVIC_TOPICS = [
+  {
+    id: 'three_branches',
+    category: 'Government',
+    emoji: '🏛️',
+    title: 'The Three Branches of Government',
+    desc: 'Who does what — and why it matters that power is split.',
+    why_it_matters: 'Understanding the three branches explains why the government works the way it does, and why no single person can control everything.',
+    key_facts: [
+      'Legislative Branch (Congress): makes laws.',
+      'Executive Branch (President + Cabinet): enforces laws.',
+      'Judicial Branch (Supreme Court + lower courts): interprets laws.',
+      'Each branch can check and limit the other two.',
+    ],
+    sections: [
+      { title: 'The Legislative Branch', content: 'Congress is made up of two chambers: the Senate (100 senators, 2 per state) and the House of Representatives (435 members based on state population). Congress writes and passes federal laws, approves the federal budget, and can declare war.' },
+      { title: 'The Executive Branch', content: 'The president leads the executive branch and is responsible for enforcing the laws Congress passes. The president also commands the military, conducts foreign policy, and appoints cabinet members, ambassadors, and federal judges (with Senate approval).' },
+      { title: 'The Judicial Branch', content: 'The Supreme Court and lower federal courts interpret what laws mean and whether they are constitutional. Supreme Court justices are appointed by the president and confirmed by the Senate — they serve for life. Their decisions can overturn laws passed by Congress.' },
+      { title: 'Why Separation of Powers Matters', content: 'The founders divided power so no single person or group could control the government entirely. Each branch has specific powers, and each can limit the others. This system of checks and balances protects against tyranny.' },
+    ],
+    activities: [
+      'Name one action each branch has taken in the news recently.',
+      'Find one Supreme Court decision that changed a major law. Write what happened.',
+      'Draw the three branches as a diagram and list one power of each.',
+    ],
+  },
+  {
+    id: 'constitution_rights',
+    category: 'Laws & Rights',
+    emoji: '📜',
+    title: 'How the Constitution Protects Your Rights',
+    desc: 'The document that says what the government can and cannot do to you.',
+    why_it_matters: 'The Constitution is the supreme law of the land. Knowing your constitutional rights helps you understand what protections you have — and when they apply.',
+    key_facts: [
+      'The Constitution was ratified in 1788. The Bill of Rights (first 10 amendments) was added in 1791.',
+      'The 1st Amendment protects free speech, religion, press, assembly, and petition.',
+      'The 4th Amendment protects against unreasonable searches and seizures.',
+      'The 14th Amendment guarantees equal protection under the law for all citizens.',
+    ],
+    sections: [
+      { title: 'What Is the Constitution?', content: 'The Constitution is the founding document of the United States. It establishes the structure of the federal government, defines the powers of each branch, and sets the rules that all other laws must follow. No law can violate the Constitution — if it does, courts can strike it down.' },
+      { title: 'The Bill of Rights', content: 'The first 10 amendments to the Constitution are called the Bill of Rights. They protect individual freedoms including freedom of speech, religion, and the press (1st); the right to bear arms (2nd); protection from unreasonable searches (4th); the right to remain silent (5th); and the right to a fair trial (6th).' },
+      { title: 'Amendments That Expanded Rights', content: 'The Constitution has been amended 27 times. Key expansions of rights include: 13th Amendment (abolished slavery, 1865), 14th Amendment (equal protection and citizenship, 1868), 15th Amendment (voting rights for Black men, 1870), 19th Amendment (women\'s right to vote, 1920), and 26th Amendment (voting age lowered to 18, 1971).' },
+      { title: 'Your Rights in Everyday Life', content: 'Constitutional rights protect you in real situations: you have the right to remain silent if questioned by police (5th Amendment), the right to practice any religion or none at all (1st Amendment), and the right to be treated equally regardless of race (14th Amendment).' },
+    ],
+    activities: [
+      'Look up the text of the 1st Amendment. List the 5 freedoms it protects.',
+      'Find one Supreme Court case where a student\'s constitutional rights were at issue.',
+      'Write one paragraph about which constitutional right you think is most important and why.',
+    ],
+  },
+  {
+    id: 'civil_rights_history',
+    category: 'History & Rights',
+    emoji: '✊',
+    title: 'The Civil Rights Movement: What Changed & How',
+    desc: 'How ordinary people changed the law — and what it cost them.',
+    why_it_matters: 'The Civil Rights Movement is proof that organized, nonviolent action can change law and society. Understanding it gives you a blueprint for creating change.',
+    key_facts: [
+      'The Civil Rights Act of 1964 outlawed discrimination based on race, color, religion, sex, or national origin.',
+      'The Voting Rights Act of 1965 banned discriminatory voting practices.',
+      'Rosa Parks, Martin Luther King Jr., John Lewis, and many others were key leaders.',
+      'The movement used nonviolent tactics: sit-ins, marches, boycotts, and legal challenges.',
+    ],
+    sections: [
+      { title: 'Why the Movement Was Necessary', content: 'After the Civil War, laws called Jim Crow laws enforced racial segregation across the South. Black Americans faced legal discrimination in voting, education, housing, employment, and public spaces. Constitutional rights existed on paper but were systematically denied.' },
+      { title: 'Key Tactics of the Movement', content: 'The movement used nonviolent direct action: the Montgomery Bus Boycott (1955-56) lasted 381 days and desegregated city buses. Lunch counter sit-ins pressured businesses to integrate. The Freedom Rides challenged segregated interstate travel. The March on Washington (1963) brought 250,000 people to demand civil rights legislation.' },
+      { title: 'Key Legislation', content: 'The Civil Rights Act of 1964 banned discrimination in public places and employment. The Voting Rights Act of 1965 eliminated barriers that prevented Black Americans from voting, like literacy tests. The Fair Housing Act of 1968 banned discrimination in housing sales and rentals.' },
+      { title: 'The Movement\'s Legacy', content: 'The Civil Rights Movement transformed American law and society. It also inspired other movements — women\'s rights, disability rights, LGBTQ rights, and more. The tools it used — organizing, storytelling, coalition-building, and persistent nonviolent action — remain the most effective tools for social change.' },
+    ],
+    activities: [
+      'Research one young person who was active in the Civil Rights Movement. Write a paragraph about their role.',
+      'Watch a 5-minute clip of MLK\'s "I Have a Dream" speech. Write down two lines that stand out to you.',
+      'Choose one civil rights tactic (sit-in, march, boycott). Write a paragraph explaining how it worked and why it was effective.',
+    ],
+  },
+  {
+    id: 'know_your_rights_police',
+    category: 'Laws & Rights',
+    emoji: '⚖️',
+    title: 'Know Your Rights: Interactions with Police',
+    desc: 'Your constitutional rights during police encounters — clearly explained.',
+    why_it_matters: 'Knowing your legal rights can protect you in stressful situations. This information is especially important for young people of color, who are disproportionately stopped by police.',
+    key_facts: [
+      'You have the right to remain silent (5th Amendment).',
+      'You have the right to refuse consent to a search (4th Amendment).',
+      'You have the right to an attorney (6th Amendment).',
+      'Asserting your rights calmly and clearly is legal — resisting physically is not.',
+    ],
+    sections: [
+      { title: 'If You Are Stopped on the Street', content: 'You can ask: "Am I being detained or am I free to go?" If free to go, calmly leave. If being detained, you must identify yourself in most states, but you have the right to remain silent beyond that. Say clearly: "I am invoking my right to remain silent."' },
+      { title: 'If You Are Stopped in a Car', content: 'Pull over safely and quickly. Keep your hands visible. You must provide your license, registration, and proof of insurance. You do not have to consent to a search of your vehicle. Say: "I do not consent to a search." This protects you legally even if the officer searches anyway.' },
+      { title: 'If You Are Arrested', content: 'You have the right to remain silent. Say: "I am invoking my right to remain silent and my right to an attorney." Do not answer questions without a lawyer present. Do not physically resist even if you believe the arrest is unlawful — challenge it in court, not in the street.' },
+      { title: 'After an Encounter', content: 'Write down everything you remember as soon as possible: officer names/badge numbers, what was said, what happened, any witnesses. If your rights were violated, you can file a complaint with the police department or contact a civil rights organization like the ACLU.' },
+    ],
+    activities: [
+      'Practice saying out loud: "I am invoking my right to remain silent." Practice until it feels natural.',
+      'Look up the ACLU "Know Your Rights" guide for your state at aclu.org.',
+      'Write down what you would do step by step if you were stopped by police tomorrow.',
+    ],
+  },
+  {
+    id: 'budget_taxes_public',
+    category: 'Government',
+    emoji: '💰',
+    title: 'Where Does Tax Money Go?',
+    desc: 'Government budgets, public spending, and how your tax dollars work.',
+    why_it_matters: 'Every school, road, library, and emergency service you use is funded by taxes. Understanding where the money comes from and where it goes makes you an informed citizen.',
+    key_facts: [
+      'The federal government spends over $6 trillion per year.',
+      'The largest categories: Social Security, Medicare/Medicaid, defense, and interest on debt.',
+      'State and local governments fund most schools, roads, and local services.',
+      'Citizens can attend budget hearings and comment on how money is spent.',
+    ],
+    sections: [
+      { title: 'What Are Taxes?', content: 'Taxes are money collected by governments to fund public services. The federal government collects income taxes, payroll taxes (Social Security and Medicare), and corporate taxes. State governments collect income taxes and sales taxes. Local governments collect property taxes.' },
+      { title: 'The Federal Budget', content: 'Congress passes a federal budget each year that determines how tax dollars are spent. Major categories include: Social Security and Medicare (about 50%), national defense (about 15%), interest on the national debt (about 10%), and other programs including education, infrastructure, and science research.' },
+      { title: 'State and Local Budgets', content: 'State and local governments fund K-12 education (the largest expense for most states), roads and bridges, police and fire services, public parks, libraries, and local courts. Property taxes are the main funding source for public schools — which is why school quality often varies by neighborhood wealth.' },
+      { title: 'How You Can Participate', content: 'Government budget hearings are open to the public. You can attend, speak, and submit written comments. You can contact your representatives about budget priorities. You can vote for candidates who align with your views on spending. Staying informed about how public money is spent is a basic civic responsibility.' },
+    ],
+    activities: [
+      'Look up your school district\'s annual budget online. What is the largest expense?',
+      'Research one thing in your community that is funded by taxes (park, library, road). Find out how much it costs per year.',
+      'Write a short paragraph: if you could redirect $1 million in your city\'s budget, where would you put it and why?',
+    ],
+  },
+];
+
+// Combine imported CIVIC_TOPICS with our extras
+const ALL_CIVIC_TOPICS = [...(CIVIC_TOPICS || []), ...EXTRA_CIVIC_TOPICS];
 
 // ── ALL TOPICS BY AGE GROUP ───────────────────────────────────────────────────
 const ALL_TOPICS = {
@@ -282,6 +416,78 @@ const ALL_TOPICS = {
   },
 };
 
+// ── CIVIC LIBRARY DETAIL ─────────────────────────────────────────────────────
+function CivicTopicDetail({ topic, onBack }) {
+  return (
+    <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
+      <AppBackground />
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 px-4 pt-4 pb-3 sticky top-0 z-10" style={{ backgroundColor: '#0d0010' }}>
+          <button onClick={onBack} className="flex items-center gap-1 text-gray-400 text-sm">
+            <ChevronLeft size={18} /> Back
+          </button>
+        </div>
+        <div className="px-4 pb-8 space-y-5">
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.4), rgba(180,83,9,0.3))', border: '1px solid rgba(245,158,11,0.4)' }}>
+              {topic.emoji}
+            </div>
+            <div>
+              <p className="text-xs font-bold mb-1" style={{ color: '#fbbf24' }}>{topic.category}</p>
+              <h1 className="text-xl font-bold text-white leading-tight">{topic.title}</h1>
+              <p className="text-sm text-gray-400 mt-1">{topic.desc}</p>
+            </div>
+          </div>
+
+          {topic.why_it_matters && (
+            <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}>
+              <p className="text-xs font-bold text-yellow-300 mb-1">⭐ Why It Matters</p>
+              <p className="text-sm text-gray-200">{topic.why_it_matters}</p>
+            </div>
+          )}
+
+          {topic.key_facts?.length > 0 && (
+            <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-xs font-bold text-blue-300 mb-2">📌 Key Facts</p>
+              <ul className="space-y-1">
+                {topic.key_facts.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-200">
+                    <span className="text-yellow-400 mt-0.5">•</span>{f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {topic.sections?.map((sec, i) => (
+              <div key={i} className="rounded-2xl px-4 py-4" style={{ background: 'rgba(30,10,50,0.7)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <p className="font-bold text-sm mb-2" style={{ color: '#fbbf24' }}>{sec.title}</p>
+                <p className="text-sm text-gray-200 leading-relaxed">{sec.content}</p>
+              </div>
+            ))}
+          </div>
+
+          {topic.activities?.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3"><span className="text-orange-400 text-lg">✏️</span><p className="font-bold text-white">Activities</p></div>
+              <div className="space-y-2">
+                {topic.activities.map((a, i) => (
+                  <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(15,60,35,0.5)', border: '1px solid rgba(74,222,128,0.15)' }}>
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white" style={{ background: 'rgba(34,197,94,0.5)', minWidth: 24 }}>{i + 1}</div>
+                    <p className="text-sm text-gray-200 leading-relaxed">{a}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function QuizSection({ quiz }) {
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -435,6 +641,7 @@ export default function YourVoice() {
   const [ageGroup, setAgeGroup] = useState(() => localStorage.getItem('ggu_voice_age') || 'middle');
   const [activeSection, setActiveSection] = useState('your_voice');
   const [selectedTopic, setSelectedTopic] = useState(null);
+  const [selectedCivicTopic, setSelectedCivicTopic] = useState(null);
 
   const [completed, setCompleted] = useState(() => {
     try { return JSON.parse(localStorage.getItem('ggu_voice_completed') || '[]'); } catch { return []; }
@@ -442,10 +649,22 @@ export default function YourVoice() {
 
   useEffect(() => { localStorage.setItem('ggu_voice_age', ageGroup); }, [ageGroup]);
 
+  const isCivicLibrary = activeSection === 'civic_library';
   const topics = ALL_TOPICS[activeSection]?.[ageGroup] || [];
   const completedCount = topics.filter(t => completed.includes(t.id)).length;
   const currentGroup = AGE_GROUPS.find(a => a.id === ageGroup);
   const currentSection = SECTIONS.find(s => s.id === activeSection);
+
+  // Group civic topics by category
+  const civicByCategory = ALL_CIVIC_TOPICS.reduce((acc, t) => {
+    if (!acc[t.category]) acc[t.category] = [];
+    acc[t.category].push(t);
+    return acc;
+  }, {});
+
+  if (selectedCivicTopic) {
+    return <CivicTopicDetail topic={selectedCivicTopic} onBack={() => setSelectedCivicTopic(null)} />;
+  }
 
   if (selectedTopic) {
     return <TopicDetail topic={selectedTopic} onBack={() => {
@@ -474,26 +693,28 @@ export default function YourVoice() {
         </div>
 
         <div className="px-4 space-y-4">
-          {/* Age Group Selector */}
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <p className="text-xs text-gray-400 mb-3 font-semibold">Select your age group:</p>
-            <div className="grid grid-cols-3 gap-2">
-              {AGE_GROUPS.map(a => (
-                <button key={a.id} onClick={() => setAgeGroup(a.id)}
-                  className="rounded-2xl p-3 text-center transition"
-                  style={ageGroup === a.id
-                    ? { background: 'rgba(236,72,153,0.25)', border: '2px solid #ec4899' }
-                    : { background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.1)' }}>
-                  <div className="text-2xl mb-1">{a.emoji}</div>
-                  <p className="text-xs font-bold text-white leading-tight">{a.label}</p>
-                  <p className="text-[10px] text-gray-400">{a.ages}</p>
-                </button>
-              ))}
+          {/* Age Group Selector — hidden for Civic Library */}
+          {!isCivicLibrary && (
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-xs text-gray-400 mb-3 font-semibold">Select your age group:</p>
+              <div className="grid grid-cols-3 gap-2">
+                {AGE_GROUPS.map(a => (
+                  <button key={a.id} onClick={() => setAgeGroup(a.id)}
+                    className="rounded-2xl p-3 text-center transition"
+                    style={ageGroup === a.id
+                      ? { background: 'rgba(236,72,153,0.25)', border: '2px solid #ec4899' }
+                      : { background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.1)' }}>
+                    <div className="text-2xl mb-1">{a.emoji}</div>
+                    <p className="text-xs font-bold text-white leading-tight">{a.label}</p>
+                    <p className="text-[10px] text-gray-400">{a.ages}</p>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Section Tabs */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {SECTIONS.map(s => {
               const isActive = activeSection === s.id;
               return (
@@ -509,23 +730,57 @@ export default function YourVoice() {
             })}
           </div>
 
-          {/* Progress */}
-          <div className="rounded-2xl p-3 flex items-center gap-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <span className="text-lg">{currentSection?.emoji}</span>
-            <div className="flex-1">
-              <p className="text-xs font-semibold text-white">{currentSection?.label} · {currentGroup?.label}</p>
-              <p className="text-xs text-gray-400">{currentSection?.desc}</p>
+          {/* Progress bar — hidden for Civic Library */}
+          {!isCivicLibrary && (
+            <div className="rounded-2xl p-3 flex items-center gap-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <span className="text-lg">{currentSection?.emoji}</span>
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-white">{currentSection?.label} · {currentGroup?.label}</p>
+                <p className="text-xs text-gray-400">{currentSection?.desc}</p>
+              </div>
+              <span className="text-xs text-gray-400 font-semibold">{completedCount}/{topics.length} done</span>
             </div>
-            <span className="text-xs text-gray-400 font-semibold">{completedCount}/{topics.length} done</span>
-          </div>
+          )}
 
-          {/* Topic Cards */}
-          {topics.length === 0 ? (
+          {/* Civic Library — grouped by category */}
+          {isCivicLibrary && (
+            <div className="space-y-5 pb-6">
+              <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)' }}>
+                <p className="text-xs font-bold text-yellow-300 mb-1">📚 Civic Education Library</p>
+                <p className="text-xs text-gray-300">Deep-dive guides on voting, government, rights, laws, community, and media literacy. 100% nonpartisan.</p>
+              </div>
+              {Object.entries(civicByCategory).map(([cat, catTopics]) => (
+                <div key={cat}>
+                  <p className="text-xs font-bold tracking-widest uppercase mb-2 px-1" style={{ color: '#fbbf24' }}>{cat}</p>
+                  <div className="space-y-2">
+                    {catTopics.map(topic => (
+                      <button key={topic.id} onClick={() => setSelectedCivicTopic(topic)}
+                        className="w-full text-left rounded-2xl overflow-hidden transition hover:opacity-90"
+                        style={{ background: 'rgba(20,10,35,0.8)', border: '1px solid rgba(255,255,255,0.08)', borderLeft: '4px solid #f59e0b' }}>
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-base">{topic.emoji}</span>
+                            <ChevronRight size={16} className="text-gray-500" />
+                          </div>
+                          <h3 className="font-bold text-sm text-white leading-snug mb-1">{topic.title}</h3>
+                          <p className="text-xs text-gray-400 leading-relaxed">{topic.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Age-grouped Topic Cards — hidden for Civic Library */}
+          {!isCivicLibrary && topics.length === 0 && (
             <div className="text-center py-12">
               <p className="text-4xl mb-2">🚧</p>
               <p className="text-sm text-gray-400">Content for this section is coming soon!</p>
             </div>
-          ) : (
+          )}
+          {!isCivicLibrary && topics.length > 0 && (
             <div className="space-y-3 pb-4">
               {topics.map(topic => {
                 const isDone = completed.includes(topic.id);
