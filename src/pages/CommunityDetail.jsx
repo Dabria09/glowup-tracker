@@ -805,7 +805,7 @@ export default function CommunityDetail() {
               <p className="font-bold text-white text-lg">Create Poll</p>
               <button onClick={() => setShowPollModal(false)} className="text-gray-400 text-2xl leading-none">&times;</button>
             </div>
-            <div className="p-5 space-y-4" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+            <div className="p-6 space-y-5" style={{ maxHeight: '70vh', overflowY: 'auto', paddingBottom: 'calc(2.5rem + env(safe-area-inset-bottom,0px))' }}>
               <div>
                 <label className="text-xs font-bold text-gray-400 mb-1.5 block">Question</label>
                 <input value={pollQuestion} onChange={e => setPollQuestion(e.target.value)}
