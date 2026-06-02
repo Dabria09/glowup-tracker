@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, ChevronRight, CheckCircle2, Mic, BookOpen, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, Mic, BookOpen, Users, Library } from 'lucide-react';
+import { CIVIC_TOPICS } from '@/lib/libraryResources';
 
 // ── AGE GROUPS ────────────────────────────────────────────────────────────────
 const AGE_GROUPS = [
@@ -16,6 +17,7 @@ const SECTIONS = [
   { id: 'your_voice', label: 'Your Voice', emoji: '🗣️', icon: Mic, color: '#ec4899', desc: 'Speaking up, opinions, respectful communication' },
   { id: 'civics', label: 'Civics', emoji: '🏛️', icon: BookOpen, color: '#3b82f6', desc: 'Community, laws, voting basics, leadership' },
   { id: 'leadership', label: 'Leadership', emoji: '👑', icon: Users, color: '#a855f7', desc: 'Advocacy, service, problem-solving' },
+  { id: 'civic_library', label: 'Civic Library', emoji: '📚', icon: Library, color: '#f59e0b', desc: 'Full civic education topics (all ages)' },
 ];
 
 // ── ALL TOPICS BY AGE GROUP ───────────────────────────────────────────────────
@@ -282,6 +284,78 @@ const ALL_TOPICS = {
   },
 };
 
+// ── Civic Library Detail (old CIVIC_TOPICS format) ───────────────────────────
+function CivicTopicDetail({ topic, onBack }) {
+  return (
+    <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#0d0010' }}>
+      <AppBackground />
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 px-4 pt-4 pb-3 sticky top-0 z-10" style={{ backgroundColor: '#0d0010' }}>
+          <button onClick={onBack} className="flex items-center gap-1 text-gray-400 text-sm">
+            <ChevronLeft size={18} /> Back
+          </button>
+        </div>
+        <div className="px-4 pb-8 space-y-5">
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.4), rgba(180,83,9,0.3))', border: '1px solid rgba(245,158,11,0.4)' }}>
+              {topic.emoji}
+            </div>
+            <div>
+              <p className="text-xs font-bold mb-1" style={{ color: '#fbbf24' }}>{topic.category}</p>
+              <h1 className="text-xl font-bold text-white leading-tight">{topic.title}</h1>
+              <p className="text-sm text-gray-400 mt-1">{topic.desc}</p>
+            </div>
+          </div>
+
+          {topic.why_it_matters && (
+            <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}>
+              <p className="text-xs font-bold text-yellow-300 mb-1">⭐ Why It Matters</p>
+              <p className="text-sm text-gray-200">{topic.why_it_matters}</p>
+            </div>
+          )}
+
+          {topic.key_facts?.length > 0 && (
+            <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-xs font-bold text-blue-300 mb-2">📌 Key Facts</p>
+              <ul className="space-y-1">
+                {topic.key_facts.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-200">
+                    <span className="text-yellow-400 mt-0.5">•</span>{f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {topic.sections?.map((sec, i) => (
+              <div key={i} className="rounded-2xl px-4 py-4" style={{ background: 'rgba(30,10,50,0.7)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <p className="font-bold text-sm mb-2" style={{ color: '#fbbf24' }}>{sec.title}</p>
+                <p className="text-sm text-gray-200 leading-relaxed">{sec.content}</p>
+              </div>
+            ))}
+          </div>
+
+          {topic.activities?.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3"><span className="text-orange-400 text-lg">✏️</span><p className="font-bold text-white">Activities</p></div>
+              <div className="space-y-2">
+                {topic.activities.map((a, i) => (
+                  <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(15,60,35,0.5)', border: '1px solid rgba(74,222,128,0.15)' }}>
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white" style={{ background: 'rgba(34,197,94,0.5)', minWidth: 24 }}>{i + 1}</div>
+                    <p className="text-sm text-gray-200 leading-relaxed">{a}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function QuizSection({ quiz }) {
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -435,6 +509,7 @@ export default function YourVoice() {
   const [ageGroup, setAgeGroup] = useState(() => localStorage.getItem('ggu_voice_age') || 'middle');
   const [activeSection, setActiveSection] = useState('your_voice');
   const [selectedTopic, setSelectedTopic] = useState(null);
+  const [selectedCivicTopic, setSelectedCivicTopic] = useState(null);
   const [completed, setCompleted] = useState(() => {
     try { return JSON.parse(localStorage.getItem('ggu_voice_completed') || '[]'); } catch { return []; }
   });
@@ -445,6 +520,19 @@ export default function YourVoice() {
   const completedCount = topics.filter(t => completed.includes(t.id)).length;
   const currentGroup = AGE_GROUPS.find(a => a.id === ageGroup);
   const currentSection = SECTIONS.find(s => s.id === activeSection);
+  const isCivicLibrary = activeSection === 'civic_library';
+
+  // Group civic topics by category
+  const civicByCategory = (CIVIC_TOPICS || []).reduce((acc, t) => {
+    const cat = t.category || 'General';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(t);
+    return acc;
+  }, {});
+
+  if (selectedCivicTopic) {
+    return <CivicTopicDetail topic={selectedCivicTopic} onBack={() => setSelectedCivicTopic(null)} />;
+  }
 
   if (selectedTopic) {
     return <TopicDetail topic={selectedTopic} onBack={() => {
@@ -474,7 +562,7 @@ export default function YourVoice() {
 
         <div className="px-4 space-y-4">
           {/* Age Group Selector */}
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          {!isCivicLibrary && <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <p className="text-xs text-gray-400 mb-3 font-semibold">Select your age group:</p>
             <div className="grid grid-cols-3 gap-2">
               {AGE_GROUPS.map(a => (
@@ -489,10 +577,10 @@ export default function YourVoice() {
                 </button>
               ))}
             </div>
-          </div>
+          </div>}
 
           {/* Section Tabs */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {SECTIONS.map(s => {
               const isActive = activeSection === s.id;
               return (
@@ -512,14 +600,39 @@ export default function YourVoice() {
           <div className="rounded-2xl p-3 flex items-center gap-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <span className="text-lg">{currentSection?.emoji}</span>
             <div className="flex-1">
-              <p className="text-xs font-semibold text-white">{currentSection?.label} · {currentGroup?.label}</p>
+              <p className="text-xs font-semibold text-white">{currentSection?.label}{!isCivicLibrary && ` · ${currentGroup?.label}`}</p>
               <p className="text-xs text-gray-400">{currentSection?.desc}</p>
             </div>
-            <span className="text-xs text-gray-400 font-semibold">{completedCount}/{topics.length} done</span>
+            {!isCivicLibrary && <span className="text-xs text-gray-400 font-semibold">{completedCount}/{topics.length} done</span>}
+            {isCivicLibrary && <span className="text-xs text-yellow-400 font-semibold">{(CIVIC_TOPICS || []).length} topics</span>}
           </div>
 
           {/* Topic Cards */}
-          {topics.length === 0 ? (
+          {isCivicLibrary ? (
+            <div className="space-y-5 pb-4">
+              {Object.entries(civicByCategory).map(([cat, catTopics]) => (
+                <div key={cat}>
+                  <p className="text-xs font-bold tracking-widest uppercase mb-2" style={{ color: '#fbbf24' }}>{cat}</p>
+                  <div className="space-y-2">
+                    {catTopics.map(topic => (
+                      <button key={topic.id} onClick={() => setSelectedCivicTopic(topic)}
+                        className="w-full text-left rounded-2xl overflow-hidden transition hover:opacity-90"
+                        style={{ background: 'rgba(20,10,35,0.8)', border: '1px solid rgba(255,255,255,0.08)', borderLeft: '4px solid #f59e0b' }}>
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-base">{topic.emoji}</span>
+                            <ChevronRight size={16} className="text-gray-500" />
+                          </div>
+                          <h3 className="font-bold text-sm text-white leading-snug mb-1">{topic.title}</h3>
+                          <p className="text-xs text-gray-400 leading-relaxed">{topic.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : topics.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-4xl mb-2">🚧</p>
               <p className="text-sm text-gray-400">Content for this section is coming soon!</p>
