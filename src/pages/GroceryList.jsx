@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Plus, X, ShoppingCart } from 'lucide-react';
+import useGlowPoints from '@/hooks/useGlowPoints';
 
 const CATEGORIES = [
   { id: 'Produce', emoji: '🥦' },
@@ -26,6 +27,7 @@ export default function GroceryList() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [showCatPicker, setShowCatPicker] = useState(false);
+  const totalPoints = useGlowPoints(user?.email);
   const [newName, setNewName] = useState('');
   const [newQty, setNewQty] = useState(1);
   const [newCat, setNewCat] = useState('Other');
@@ -102,7 +104,7 @@ export default function GroceryList() {
         {/* Points */}
         <div className="flex justify-end mb-2">
           <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
           </div>
         </div>
 

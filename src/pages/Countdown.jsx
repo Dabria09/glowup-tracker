@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
 import { X, Trash2 } from 'lucide-react';
+import useGlowPoints from '@/hooks/useGlowPoints';
 import { toast } from 'sonner';
 
 const COUNTDOWN_IDEAS = [
@@ -31,6 +32,7 @@ export default function Countdown() {
   const [user, setUser] = useState(null);
   const [countdowns, setCountdowns] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const totalPoints = useGlowPoints(user?.email);
   const [selectedCategory, setSelectedCategory] = useState('Graduation');
   const [customTitle, setCustomTitle] = useState('');
   const [targetDate, setTargetDate] = useState('');
@@ -122,19 +124,21 @@ export default function Countdown() {
           </div>
         </div>
         <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-          <span>🏅</span><span className="text-yellow-400">15 pts</span>
+          <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
         </div>
       </div>
 
       {/* Add Button - Always Visible */}
+      <div className="px-4 mb-4">
       <button
         onClick={() => setShowModal(true)}
-        className="mx-4 w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-base hover:opacity-90 transition mb-4"
+        className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-base hover:opacity-90 transition"
       >
         + Add Countdown
       </button>
+      </div>
 
-      <div className="px-4 space-y-4">
+      <div className="px-4 space-y-4 overflow-x-hidden">
         {/* Empty State or Countdowns List */}
         {countdowns.length === 0 ? (
           <div className="space-y-4">
@@ -189,7 +193,7 @@ export default function Countdown() {
               return (
                 <div
                   key={cd.id}
-                  className={`bg-gradient-to-br ${categoryObj?.color || 'from-gray-800 to-gray-600'} rounded-2xl p-4 border border-white/10 relative overflow-hidden`}
+                  className={`bg-gradient-to-br ${categoryObj?.color || 'from-gray-800 to-gray-600'} rounded-2xl p-4 border border-white/10 relative overflow-hidden w-full`}
                 >
                   {/* Background Pattern */}
                   <div className="absolute inset-0 opacity-10">

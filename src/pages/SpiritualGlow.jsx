@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Trash2, Plus, Edit3, Check, X, Heart } from 'lucide-react';
+import useGlowPoints from '@/hooks/useGlowPoints';
 import { toast } from 'sonner';
 
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -130,6 +131,7 @@ export default function SpiritualGlow() {
   const [habits, setHabits] = useState([]);
   const [prayers, setPrayers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const totalPoints = useGlowPoints(user?.email);
 
   // My Plan state
   const [newGoal, setNewGoal] = useState('');
@@ -269,7 +271,7 @@ export default function SpiritualGlow() {
         <div className="flex justify-end mb-2">
           <div className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1"
             style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
           </div>
         </div>
 
@@ -291,7 +293,7 @@ export default function SpiritualGlow() {
                   ? 'text-white'
                   : 'text-gray-400'
               }`}
-              style={activeTab === tab ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : { background: 'rgba(255,255,2555,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              style={activeTab === tab ? { background: 'linear-gradient(135deg, #ec4899, #a855f7)' } : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
               {tab}
             </button>
           ))}

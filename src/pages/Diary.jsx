@@ -52,7 +52,7 @@ export default function Diary() {
         {/* Header */}
         <div className="flex items-start justify-between px-4 pt-6 pb-4">
           <div>
-            <button onClick={() => navigate('/me')} className="flex items-center gap-1 text-gray-400 hover:text-white text-sm mb-1 transition">
+            <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-400 hover:text-white text-sm mb-1 transition">
               <ChevronLeft size={18} /> Back
             </button>
             <h1 className="text-3xl font-bold text-white">My Diary</h1>

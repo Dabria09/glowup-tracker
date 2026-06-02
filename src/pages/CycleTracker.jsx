@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, ChevronRight, Settings, Plus, Shield, Share2 } from 'lucide-react';
+import useGlowPoints from '@/hooks/useGlowPoints';
 import { toast } from 'sonner';
 
 const SYMPTOMS = [
@@ -207,6 +208,7 @@ export default function CycleTracker() {
   const [logDate, setLogDate] = useState(new Date().toISOString().split('T')[0]);
   const [saving, setSaving] = useState(false);
 
+  const totalPoints = useGlowPoints(user?.email);
   const [expandedCard, setExpandedCard] = useState(null);
   const [expandedSchool, setExpandedSchool] = useState(false);
 
@@ -290,7 +292,7 @@ export default function CycleTracker() {
 
         <div className="flex justify-end mb-2">
           <div className="glass rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1">
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
           </div>
         </div>
 

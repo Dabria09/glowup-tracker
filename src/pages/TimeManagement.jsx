@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Plus, X, Trash2, RotateCcw, Play, Pause } from 'lucide-react';
+import useGlowPoints from '@/hooks/useGlowPoints';
 import { toast } from 'sonner';
 
 const CATEGORIES = [
@@ -53,6 +54,8 @@ export default function TimeManagement() {
   const [taskPriority, setTaskPriority] = useState('Medium');
   const [taskDate, setTaskDate] = useState('');
   const [taskMins, setTaskMins] = useState('30');
+
+  const totalPoints = useGlowPoints(user?.email);
 
   // Pomodoro
   const [isBreak, setIsBreak] = useState(false);
@@ -150,7 +153,7 @@ export default function TimeManagement() {
         {/* Points */}
         <div className="flex justify-end mb-2">
           <div className="glass rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1">
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
           </div>
         </div>
 
@@ -363,7 +366,7 @@ export default function TimeManagement() {
         </div>
       )}
 
-      <BottomNav active="home" />
+      <BottomNav active="discover" />
     </div>
   );
 }

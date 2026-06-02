@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import useGlowPoints from '@/hooks/useGlowPoints';
 import BottomNav from '@/components/BottomNav';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
@@ -162,6 +163,7 @@ export default function FitnessTracker() {
     }
   };
 
+  const totalPoints = useGlowPoints(user?.email);
   const [editingGoals, setEditingGoals] = useState(false);
 
   return (
@@ -178,7 +180,7 @@ export default function FitnessTracker() {
           </div>
         </div>
         <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-          <span>🏅</span><span className="text-yellow-400">0 pts</span>
+          <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
         </div>
       </div>
 

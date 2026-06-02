@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomNav from '@/components/BottomNav';
-import { Plus, X, Check } from 'lucide-react';
+import { Plus, X, Check, ChevronLeft } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
+import useGlowPoints from '@/hooks/useGlowPoints';
 
 const COLORS = [
   { id: 'pink',   bg: '#7c1f4e', dot: '#e91e8c' },
@@ -15,10 +17,12 @@ const COLORS = [
 ];
 
 export default function StickyNotes() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [notes, setNotes] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [newText, setNewText] = useState('');
+  const totalPoints = useGlowPoints(user?.email);
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
 
   useEffect(() => {
@@ -59,9 +63,12 @@ export default function StickyNotes() {
       <AppBackground />
       <div className="relative z-10">
         {/* Header */}
-        <div className="flex items-end justify-between px-4 pt-4 pb-2">
-          <div className="flex items-center gap-1 ml-auto bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <button onClick={() => navigate('/discover')} className="flex items-center gap-1 text-gray-400 hover:text-white transition">
+            <ChevronLeft size={20} /> Back
+          </button>
+          <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
+            <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
           </div>
         </div>
 
@@ -150,7 +157,7 @@ export default function StickyNotes() {
           </div>
         )}
       </div>
-      <BottomNav active="home" />
+      <BottomNav active="discover" />
     </div>
   );
 }

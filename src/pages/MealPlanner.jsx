@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
+import useGlowPoints from '@/hooks/useGlowPoints';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Plus, X, ShoppingCart, ChevronLeft as PrevIcon, ChevronRight, Download, Printer } from 'lucide-react';
 
@@ -36,6 +37,7 @@ export default function MealPlanner() {
   const [meals, setMeals] = useState([]);
   const [groceryItems, setGroceryItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const totalPoints = useGlowPoints(user?.email);
   const [showAdd, setShowAdd] = useState(false);
   const [addDay, setAddDay] = useState('Monday');
   const [addType, setAddType] = useState('Dinner');
@@ -192,7 +194,7 @@ export default function MealPlanner() {
         {/* Points */}
         <div className="flex justify-end mb-2">
           <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
           </div>
         </div>
 

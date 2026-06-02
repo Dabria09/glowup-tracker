@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Plus, X, Trash2, BookOpen } from 'lucide-react';
+import useGlowPoints from '@/hooks/useGlowPoints';
 import { toast } from 'sonner';
 
 const SUBJECTS = [
@@ -59,6 +60,7 @@ export default function HomeworkTracker() {
   const [fDue, setFDue] = useState('');
   const [fNotes, setFNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const totalPoints = useGlowPoints(user?.email);
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -122,7 +124,7 @@ export default function HomeworkTracker() {
         {/* Points */}
         <div className="flex justify-end mb-2">
           <div className="glass rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1">
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
           </div>
         </div>
 
