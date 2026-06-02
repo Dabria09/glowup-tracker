@@ -463,7 +463,7 @@ export default function JobTracker() {
               <h2 className="text-base font-bold text-white">{selected ? 'Edit Application' : '➕ New Application'}</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400"><X size={20} /></button>
             </div>
-            <div className="overflow-y-auto flex-1 px-5 pb-2 space-y-3">
+            <div className="overflow-y-auto flex-1 px-5 pb-6 space-y-3">
               {[
                 { label: 'Company Name *', key: 'company', placeholder: 'e.g., Google' },
                 { label: 'Job Title / Role *', key: 'role', placeholder: 'e.g., Software Engineer Intern' },
@@ -504,7 +504,7 @@ export default function JobTracker() {
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none resize-none min-h-20" />
               </div>
             </div>
-            <div className="px-4 pt-3 border-t border-white/10 flex-shrink-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}>
+            <div className="px-4 pt-3 pb-8 border-t border-white/10 flex-shrink-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 2rem)' }}>
               <button onClick={save} disabled={!form.company.trim() || !form.role.trim() || saving}
                 className="w-full py-4 rounded-2xl font-bold text-white text-sm disabled:opacity-40"
                 style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
