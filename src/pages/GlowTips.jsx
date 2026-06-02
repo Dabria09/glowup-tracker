@@ -445,8 +445,8 @@ export default function GlowTips() {
               </div>
             </div>
 
-            {/* Sticky button always visible above home indicator */}
-            <div className="px-6 pt-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 1.25rem)' }}>
+            {/* Sticky button always visible above bottom nav + home indicator */}
+            <div className="px-6 pt-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 5rem)' }}>
               <button
                 onClick={() => setShowModeModal(false)}
                 className="w-full py-4 rounded-2xl font-bold text-white text-sm"
