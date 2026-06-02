@@ -727,7 +727,7 @@ export default function SquadDetail() {
 
       {/* Squad Chat Modal */}
       {showChat && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-end">
+        <div className="fixed inset-0 flex items-end" style={{ background: 'rgba(0,0,0,0.7)', zIndex: 10000 }}>
           <div
             className="w-full flex flex-col"
             style={{ height: '85vh', background: '#0f0a1e', borderTop: '1px solid rgba(168,85,247,0.3)', borderRadius: '24px 24px 0 0' }}
