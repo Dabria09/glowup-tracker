@@ -12,12 +12,18 @@ const GENERATED = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e3
 const SECTIONS = [
   {
     id: 'foundation',
-    title: '🌟 Foundation / Info',
+    title: '🚀 Getting Started',
     items: [
       { id: 'about_ggu', label: 'About GGU', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', route: '/about', emoji: '👑' },
       { id: 'how_it_works', label: 'How It Works', gradient: 'from-purple-900 via-indigo-900 to-blue-900', route: '/how-it-works', emoji: '✨' },
+      { id: 'join_ggu', label: 'Join GGU', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/join', emoji: '🌟' },
+      { id: 'curriculum', label: 'Curriculum', gradient: 'from-indigo-900 via-blue-900 to-purple-900', route: '/curriculum', emoji: '📚' },
+      { id: 'pioneer_network', label: 'Pioneer Network™', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', route: '/curriculum', emoji: '👑' },
+      { id: 'glow_pass', label: 'Glow Pass™', gradient: 'from-fuchsia-900 via-pink-900 to-rose-900', route: '/join', emoji: '🎟️' },
       { id: 'community_guidelines', label: 'Guidelines', gradient: 'from-blue-900 via-cyan-900 to-teal-900', route: '/guidelines', emoji: '📋' },
       { id: 'help_support', label: 'Help & Support', gradient: 'from-rose-900 via-pink-900 to-red-900', route: '/support', emoji: '💜' },
+      { id: 'privacy_policy', label: 'Privacy Policy', gradient: 'from-gray-800 via-slate-900 to-gray-900', route: '/privacy-policy', emoji: '🛡️' },
+      { id: 'terms_of_service', label: 'Terms of Service', gradient: 'from-gray-800 via-slate-900 to-gray-900', route: '/terms-of-service', emoji: '📜' },
     ],
   },
   {
@@ -59,7 +65,7 @@ const SECTIONS = [
   },
   {
     id: 'challenges',
-    title: '🔥 Foundation',
+    title: '🔥 Challenges & Goals',
     items: [
       { id: 'glow_score', label: 'Glow Score', gradient: 'from-yellow-800 via-amber-900 to-yellow-900', route: '/glow-score', image: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/93e848a21_IMG_4972.jpg' },
       { id: 'daily_challenges', label: 'Daily Challenges', gradient: 'from-pink-900 via-rose-900 to-red-900', route: '/daily-challenges', image: CDN + 'icon-daily-challenges-5aR9HwiMcVmjJVeR6dG8u8.webp' },
