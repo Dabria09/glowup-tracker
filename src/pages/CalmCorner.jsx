@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import useGlowPoints from '@/hooks/useGlowPoints';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, ChevronRight, AlertTriangle, X, Plus, Phone, MessageCircle, RotateCcw } from 'lucide-react';
@@ -158,6 +159,7 @@ export default function CalmCorner() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('breathe');
   const [showCrisis, setShowCrisis] = useState(false);
+  const totalPoints = useGlowPoints(user?.email);
   const [activeExercise, setActiveExercise] = useState(null);
 
   // Affirm state
@@ -238,7 +240,7 @@ export default function CalmCorner() {
         <div className="flex justify-end mb-2">
           <div className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1"
             style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
           </div>
         </div>
 
@@ -438,10 +440,10 @@ export default function CalmCorner() {
             <div className="flex justify-end mb-4">
               <div className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1"
                 style={{ background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)' }}>
-                <span>🏅</span><span className="text-yellow-400">15 pts</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between mb-2">
+                <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
+                </div>
+                </div>
+                <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <AlertTriangle size={20} className="text-pink-400" />
                 <h2 className="text-xl font-bold text-white">You Are Not Alone</h2>

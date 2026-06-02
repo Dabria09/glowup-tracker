@@ -129,6 +129,8 @@ export const CAREER_CATEGORIES = [
       { name: 'Speech Pathologist', salary: 90000, edu: "Bachelor's in Communication Sciences + Master's" },
       { name: 'Nutritionist / Dietitian', salary: 69000, edu: "Bachelor's in Nutrition/Dietetics + RD exam" },
       { name: 'Medical Assistant', salary: 40000, edu: 'Medical assistant program (1 year) + CMA cert' },
+      { name: 'Traveling Nurse', salary: 100000, edu: 'BSN or ADN + RN license + 1-2 yrs experience' },
+      { name: 'Phlebotomist', salary: 38000, edu: 'Phlebotomy certification program (4-8 weeks)' },
     ],
   },
   {

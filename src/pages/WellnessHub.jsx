@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import useGlowPoints from '@/hooks/useGlowPoints';
 
 const CATEGORIES = [
   {
@@ -137,7 +139,7 @@ const SPECIAL = [
   { id: 'spiritual', emoji: '✨', title: 'Spiritual Glow', subtitle: 'Faith, reflection & spiritual habits', route: '/spiritual-glow', accent: '#a78bfa', border: 'rgba(167,139,250,0.3)', bg: 'rgba(167,139,250,0.1)' },
 ];
 
-function DetailView({ cat, onBack }) {
+function DetailView({ cat, onBack, totalPoints }) {
   const navigate = useNavigate();
   const [goal, setGoal] = useState(cat.goal);
   const [editingGoal, setEditingGoal] = useState(false);
@@ -158,7 +160,7 @@ function DetailView({ cat, onBack }) {
         {/* Points */}
         <div className="flex justify-end mb-2">
           <div className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints?.toLocaleString() : '...'} pts</span>
           </div>
         </div>
 
@@ -232,7 +234,7 @@ function DetailView({ cat, onBack }) {
           <span className="text-2xl">🌸</span>
           <div className="flex-1">
             <p className="text-sm font-bold text-white">Need to decompress?</p>
-            <p className="text-xs text-gray-300">Visit Calm Corner for breathing & affirmations</p>
+            <p className="text-xs text-gray-300">Visit Calm Corner for breathing &amp; affirmations</p>
           </div>
           <ChevronRight size={16} className="text-gray-400" />
         </button>
@@ -245,8 +247,14 @@ function DetailView({ cat, onBack }) {
 export default function WellnessHub() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
+  const totalPoints = useGlowPoints(userEmail);
 
-  if (selected) return <DetailView cat={selected} onBack={() => setSelected(null)} />;
+  useEffect(() => {
+    base44.auth.me().then(u => setUserEmail(u.email)).catch(() => {});
+  }, []);
+
+  if (selected) return <DetailView cat={selected} onBack={() => setSelected(null)} totalPoints={totalPoints} />;
 
   return (
     <div className="min-h-screen pb-24 text-white relative" style={{ backgroundColor: '#080810' }}>
@@ -256,7 +264,7 @@ export default function WellnessHub() {
         {/* Points */}
         <div className="flex justify-end mb-2">
           <div className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
-            <span>🏅</span><span className="text-yellow-400">15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">{totalPoints !== null ? totalPoints.toLocaleString() : '...'} pts</span>
           </div>
         </div>
 

@@ -162,7 +162,7 @@ export default function GlowTeams() {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate('/connect')} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10">
+          <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10">
             <ChevronLeft size={20} />
           </button>
           <div className="flex-1">
