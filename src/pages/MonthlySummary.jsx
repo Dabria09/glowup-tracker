@@ -245,7 +245,7 @@ export default function MonthlySummary() {
         )}
       </div>
 
-      <BottomNav active="me" />
+      <BottomNav active="glow" />
     </div>
   );
 }

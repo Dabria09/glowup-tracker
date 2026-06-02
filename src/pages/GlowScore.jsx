@@ -280,7 +280,7 @@ export default function GlowScore() {
         <div className="mb-8">
           <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">HOW TO EARN GLOW POINTS</p>
           <div className="grid grid-cols-2 gap-3">
-            {[['✨','Daily Check-In','+10-15 pts'],['🔥','Glow Challenges','+20-45 pts'],['📚','Complete Lessons','+20 pts'],['💬','Diary Entry','+5 pts'],['🎯','Goal Progress','+10 pts'],['💭','Save a Quote','+2 pts']].map(([icon,label,pts]) => (
+            {[['✨','Daily Check-In','+10 pts'],['🔥','Challenge Day','+30 pts'],['📚','Complete a Lesson','+30 pts'],['📔','Diary Entry','+15 pts'],['💪','Fitness Log','+20 pts'],['📣','Shout Out','+10 pts']].map(([icon,label,pts]) => (
               <div key={label} className="rounded-2xl p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <p className="text-sm font-semibold text-white mb-1">{icon} {label}</p>
                 <p className="text-xs text-gray-400">{pts}</p>
@@ -334,7 +334,7 @@ export default function GlowScore() {
         </div>
       </div>
 
-      <BottomNav active="me" />
+      <BottomNav active="glow" />
     </div>
   );
 }

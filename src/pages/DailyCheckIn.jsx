@@ -158,7 +158,7 @@ export default function DailyCheckIn() {
         {/* Points */}
         <div className="flex justify-end mb-3">
           <div className="rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
-            <span>🏅</span><span className="text-yellow-400">+15 pts</span>
+            <span>🏅</span><span className="text-yellow-400">+10 pts</span>
           </div>
         </div>
 
