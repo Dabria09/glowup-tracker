@@ -25,6 +25,8 @@ import CodesTab from '@/components/admin/CodesTab';
 import FlaggedReportTab from '@/components/admin/FlaggedReportTab';
 import PollsAdminTab from '@/components/admin/PollsAdminTab';
 import LevelsAdminTab from '@/components/admin/LevelsAdminTab';
+import PioneerNetworkTab from '@/components/admin/PioneerNetworkTab';
+import GlowPassAdminTab from '@/components/admin/GlowPassAdminTab';
 
 const TABS = [
   { id: 'overview',    label: 'Overview',         icon: BarChart2 },
@@ -48,6 +50,8 @@ const TABS = [
   { id: 'flagreport',  label: 'Flag Report',        icon: AlertTriangle },
   { id: 'polls',       label: 'Daily Polls',        icon: MessageSquare },
   { id: 'levels',      label: 'Glow Levels',        icon: Crown },
+  { id: 'pioneer',     label: 'Pioneer Network',    icon: Crown },
+  { id: 'glowpasses',  label: 'Glow Passes',        icon: Tag },
 ];
 
 export default function AdminPanel() {
@@ -93,6 +97,8 @@ export default function AdminPanel() {
       case 'flagreport':  return <FlaggedReportTab />;
       case 'polls':      return <PollsAdminTab />;
       case 'levels':     return <LevelsAdminTab />;
+      case 'pioneer':    return <PioneerNetworkTab />;
+      case 'glowpasses': return <GlowPassAdminTab />;
       default:           return <OverviewTab />;
     }
   };

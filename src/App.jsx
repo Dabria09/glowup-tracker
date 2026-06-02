@@ -108,6 +108,8 @@ import SavedScholarships from './pages/SavedScholarships';
 import SavedCareers from './pages/SavedCareers';
 import AdminQAChecklist from './pages/AdminQAChecklist';
 import DirectMessages from './pages/DirectMessages';
+import GlowPass from './pages/GlowPass';
+import PioneerNetwork from './pages/PioneerNetwork';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -234,6 +236,8 @@ const AuthenticatedApp = () => {
       <Route path="/saved-careers" element={<SavedCareers />} />
       <Route path="/admin-qa" element={<AdminQAChecklist />} />
       <Route path="/messages" element={<DirectMessages />} />
+      <Route path="/glow-pass" element={<GlowPass />} />
+      <Route path="/pioneer-network" element={<PioneerNetwork />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
