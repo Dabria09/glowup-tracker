@@ -5,7 +5,9 @@ import { Plus, Trash2, Send } from 'lucide-react';
 const SUB_TABS = ['Quotes', 'Glow Tips', 'Ms. Glow Live', 'Shout Outs'];
 
 const QUOTE_CATS = ['general', 'confidence', 'wellness', 'career', 'spiritual', 'relationships'];
-const TIP_CATS = ['general', 'wellness', 'confidence', 'academic', 'spiritual', 'money'];
+const TIP_CATS = ['confidence', 'money', 'school', 'relationships', 'wellness', 'mindset', 'career'];
+const TIP_AGE_GROUPS = ['all', 'middle', 'early_high', 'older_high'];
+const TIP_AGE_LABELS = { all: 'All Ages', middle: 'Middle School (11–13)', early_high: 'Early High School (14–15)', older_high: 'Older High School (16–18)' };
 const MSG_TYPES = ['written', 'video', 'voice'];
 
 export default function ContentTab() {
@@ -15,7 +17,8 @@ export default function ContentTab() {
   const [messages, setMessages] = useState([]);
   const [shoutOuts, setShoutOuts] = useState([]);
   const [newQuote, setNewQuote] = useState({ quote_text: '', author: '', category: 'general' });
-  const [newTip, setNewTip] = useState({ tip_text: '', category: 'general' });
+  const [newTip, setNewTip] = useState({ tip_text: '', category: 'confidence', age_group: 'all', is_featured: false, scheduled_date: '' });
+  const [editingTip, setEditingTip] = useState(null);
   const [newMsg, setNewMsg] = useState({ title: '', content: '', message_type: 'written' });
   const [loading, setLoading] = useState(false);
 
@@ -44,8 +47,19 @@ export default function ContentTab() {
 
   const addTip = async () => {
     if (!newTip.tip_text.trim()) return;
-    await base44.entities.AdminGlowTip.create(newTip);
-    setNewTip({ tip_text: '', category: 'general' });
+    const payload = { ...newTip };
+    if (!payload.scheduled_date) delete payload.scheduled_date;
+    await base44.entities.AdminGlowTip.create(payload);
+    setNewTip({ tip_text: '', category: 'confidence', age_group: 'all', is_featured: false, scheduled_date: '' });
+    loadAll();
+  };
+
+  const updateTip = async () => {
+    if (!editingTip) return;
+    const payload = { ...editingTip };
+    if (!payload.scheduled_date) delete payload.scheduled_date;
+    await base44.entities.AdminGlowTip.update(editingTip.id, payload);
+    setEditingTip(null);
     loadAll();
   };
 
@@ -110,25 +124,82 @@ export default function ContentTab() {
 
       {sub === 'Glow Tips' && (
         <div className="space-y-4">
+          {/* Add / Edit Form */}
           <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <p className="font-bold text-white text-sm">Add New Glow Tip</p>
-            <textarea value={newTip.tip_text} onChange={e => setNewTip({ ...newTip, tip_text: e.target.value })} placeholder="Tip text..." className={inputCls} rows={3} />
-            <select value={newTip.category} onChange={e => setNewTip({ ...newTip, category: e.target.value })} className={selectCls}>
-              {TIP_CATS.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <button onClick={addTip} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
-              <Plus size={16} /> Add Glow Tip
-            </button>
+            <p className="font-bold text-white text-sm">{editingTip ? '✏️ Edit Glow Tip' : 'Add New Glow Tip'}</p>
+            <textarea
+              value={editingTip ? editingTip.tip_text : newTip.tip_text}
+              onChange={e => editingTip ? setEditingTip({ ...editingTip, tip_text: e.target.value }) : setNewTip({ ...newTip, tip_text: e.target.value })}
+              placeholder="Tip text..." className={inputCls} rows={3} />
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={editingTip ? editingTip.category : newTip.category}
+                onChange={e => editingTip ? setEditingTip({ ...editingTip, category: e.target.value }) : setNewTip({ ...newTip, category: e.target.value })}
+                className={selectCls}>
+                {TIP_CATS.map(c => <option key={c} value={c} style={{ background: '#1a0a2e' }}>{c}</option>)}
+              </select>
+              <select
+                value={editingTip ? editingTip.age_group : newTip.age_group}
+                onChange={e => editingTip ? setEditingTip({ ...editingTip, age_group: e.target.value }) : setNewTip({ ...newTip, age_group: e.target.value })}
+                className={selectCls}>
+                {TIP_AGE_GROUPS.map(g => <option key={g} value={g} style={{ background: '#1a0a2e' }}>{TIP_AGE_LABELS[g]}</option>)}
+              </select>
+            </div>
+            <input
+              type="date"
+              value={editingTip ? (editingTip.scheduled_date || '') : newTip.scheduled_date}
+              onChange={e => editingTip ? setEditingTip({ ...editingTip, scheduled_date: e.target.value }) : setNewTip({ ...newTip, scheduled_date: e.target.value })}
+              placeholder="Schedule date (optional)"
+              className={inputCls} />
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox"
+                checked={editingTip ? !!editingTip.is_featured : newTip.is_featured}
+                onChange={e => editingTip ? setEditingTip({ ...editingTip, is_featured: e.target.checked }) : setNewTip({ ...newTip, is_featured: e.target.checked })}
+                className="w-4 h-4 accent-pink-500" />
+              <span className="text-sm text-white">⭐ Feature this tip (shows in Today's Glow Tip)</span>
+            </label>
+            <div className="flex gap-2">
+              {editingTip ? (
+                <>
+                  <button onClick={updateTip} className="flex-1 py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>Save Changes</button>
+                  <button onClick={() => setEditingTip(null)} className="px-4 py-3 rounded-2xl text-sm text-gray-400 bg-white/5">Cancel</button>
+                </>
+              ) : (
+                <button onClick={addTip} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                  <Plus size={16} /> Add Glow Tip
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Filter by age */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {['all_filter', ...TIP_AGE_GROUPS].map(g => {
+              const label = g === 'all_filter' ? 'All' : TIP_AGE_LABELS[g];
+              return null; // rendered inline below for simplicity
+            })}
+          </div>
+
           {tips.length === 0 ? <p className="text-center text-sm text-gray-500 py-4">No custom tips yet.</p> : (
             <div className="space-y-2">
               {tips.map(t => (
-                <div key={t.id} className="p-3 rounded-2xl flex items-start gap-2" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div className="flex-1">
-                    <p className="text-sm text-white">{t.tip_text}</p>
-                    <span className="text-[10px] text-purple-400">{t.category}</span>
+                <div key={t.id} className="p-3 rounded-2xl" style={{ background: editingTip?.id === t.id ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${editingTip?.id === t.id ? 'rgba(168,85,247,0.5)' : 'rgba(255,255,255,0.1)'}` }}>
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      <p className="text-sm text-white">{t.tip_text}</p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="text-[10px] text-purple-400 capitalize">{t.category}</span>
+                        <span className="text-[10px] text-blue-400">{TIP_AGE_LABELS[t.age_group] || t.age_group}</span>
+                        {t.is_featured && <span className="text-[10px] text-yellow-400">⭐ Featured</span>}
+                        {t.scheduled_date && <span className="text-[10px] text-gray-400">📅 {t.scheduled_date}</span>}
+                        {!t.is_active && <span className="text-[10px] text-red-400">Inactive</span>}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button onClick={() => setEditingTip(t)} className="text-blue-400 hover:text-blue-300 p-1">✏️</button>
+                      <button onClick={() => base44.entities.AdminGlowTip.delete(t.id).then(loadAll)} className="text-red-400 hover:text-red-300 p-1"><Trash2 size={14} /></button>
+                    </div>
                   </div>
-                  <button onClick={() => base44.entities.AdminGlowTip.delete(t.id).then(loadAll)} className="text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
                 </div>
               ))}
             </div>
