@@ -409,46 +409,51 @@ export default function GlowTips() {
         <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.75)' }}
           onClick={() => setShowModeModal(false)}>
           <div
-            className="w-full rounded-t-3xl"
+            className="w-full rounded-t-3xl flex flex-col"
             style={{
               background: '#1a0a2e',
               border: '1px solid rgba(255,255,255,0.12)',
-              paddingTop: '1.5rem',
-              paddingLeft: '1.5rem',
-              paddingRight: '1.5rem',
-              paddingBottom: 'calc(env(safe-area-inset-bottom, 20px) + 2.5rem)',
+              maxHeight: '90vh',
             }}
             onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-bold text-white">Choose Your Age</h2>
-              <button onClick={() => setShowModeModal(false)} className="text-gray-400 w-8 h-8 flex items-center justify-center"><X size={20} /></button>
+
+            {/* Scrollable content area */}
+            <div className="overflow-y-auto flex-1 px-6 pt-6 pb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-bold text-white">Choose Your Age</h2>
+                <button onClick={() => setShowModeModal(false)} className="text-gray-400 w-8 h-8 flex items-center justify-center"><X size={20} /></button>
+              </div>
+              <p className="text-sm text-gray-400 mb-6">Tips are tailored to your life stage so the advice actually fits where you are.</p>
+              <div className="space-y-3">
+                {AGE_MODES.map(mode => {
+                  const isSelected = ageMode === mode.id;
+                  return (
+                    <button key={mode.id} onClick={() => selectMode(mode.id)}
+                      className="w-full flex items-center gap-4 p-4 rounded-2xl transition"
+                      style={isSelected
+                        ? { background: 'rgba(123,47,190,0.35)', border: '1px solid rgba(168,85,247,0.5)' }
+                        : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <span className="text-2xl">{mode.emoji}</span>
+                      <div className="flex-1 text-left">
+                        <p className="font-bold text-white text-sm">{mode.label}</p>
+                        <p className="text-xs text-gray-400">{mode.sub}</p>
+                      </div>
+                      {isSelected && <Check size={16} className="text-purple-400" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <p className="text-sm text-gray-400 mb-6">Tips are tailored to your life stage so the advice actually fits where you are.</p>
-            <div className="space-y-3">
-              {AGE_MODES.map(mode => {
-                const isSelected = ageMode === mode.id;
-                return (
-                  <button key={mode.id} onClick={() => selectMode(mode.id)}
-                    className="w-full flex items-center gap-4 p-4 rounded-2xl transition"
-                    style={isSelected
-                      ? { background: 'rgba(123,47,190,0.35)', border: '1px solid rgba(168,85,247,0.5)' }
-                      : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <span className="text-2xl">{mode.emoji}</span>
-                    <div className="flex-1 text-left">
-                      <p className="font-bold text-white text-sm">{mode.label}</p>
-                      <p className="text-xs text-gray-400">{mode.sub}</p>
-                    </div>
-                    {isSelected && <Check size={16} className="text-purple-400" />}
-                  </button>
-                );
-              })}
+
+            {/* Sticky button always visible above home indicator */}
+            <div className="px-6 pt-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 1.25rem)' }}>
+              <button
+                onClick={() => setShowModeModal(false)}
+                className="w-full py-4 rounded-2xl font-bold text-white text-sm"
+                style={{ background: 'linear-gradient(135deg, #7c3aed, #ec4899)' }}>
+                Save & Continue
+              </button>
             </div>
-            <button
-              onClick={() => setShowModeModal(false)}
-              className="w-full mt-5 py-4 rounded-2xl font-bold text-white text-sm"
-              style={{ background: 'linear-gradient(135deg, #7c3aed, #ec4899)' }}>
-              Save & Continue
-            </button>
           </div>
         </div>
       )}
