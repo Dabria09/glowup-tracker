@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Brain, RefreshCcw, HelpCircle, BookOpen, Lightbulb, XCircle, CheckCircle, Sparkles, NotebookPen, ChevronDown, ChevronUp } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { getUserPoints } from '@/lib/pointsHelper';
 
 const SITUATIONS = [
   {
@@ -194,6 +196,11 @@ function JournalPrompt({ item }) {
 export default function GrowthMindset() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('learn');
+  const [userPoints, setUserPoints] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => getUserPoints(u.email).then(setUserPoints)).catch(() => {});
+  }, []);
   const [quizIndex, setQuizIndex] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState([]);
   const [quizDone, setQuizDone] = useState(false);
@@ -244,7 +251,7 @@ export default function GrowthMindset() {
             <p className="text-xs text-gray-400">vs Fixed Mindset</p>
           </div>
           <div className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-white" style={{ background: 'rgba(255,200,0,0.15)', border: '1px solid rgba(255,200,0,0.3)' }}>
-            🏆 15 pts
+            🏅 {userPoints !== null ? userPoints.toLocaleString() : '—'} pts
           </div>
         </div>
 

@@ -12,7 +12,6 @@ import { BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 const SECTION_TABS = [
   { id: 'resources', label: 'Resources', emoji: '📚' },
   { id: 'book_club', label: 'Book Club', emoji: '📖' },
-  { id: 'your_voice', label: 'Your Voice', emoji: '🗳️' },
 ];
 
 export default function GirlsLibrary() {
@@ -127,22 +126,21 @@ export default function GirlsLibrary() {
           </div>
         )}
 
-        {/* Your Voice Section */}
-        {activeSection === 'your_voice' && (
-          <div className="px-4 pb-6 pt-2">
-            <div className="rounded-2xl p-4 mb-4 flex items-center gap-3"
-              style={{ background: 'linear-gradient(135deg, rgba(109,40,217,0.5), rgba(139,10,120,0.4))', border: '1px solid rgba(168,85,247,0.4)' }}>
-              <span className="text-3xl">🗳️</span>
-              <div>
-                <p className="font-bold text-white text-base">Your Voice</p>
-                <p className="text-xs text-gray-300">Civic education for future leaders — voting, government, laws &amp; rights, and more.</p>
+        {/* Your Voice quick-link — shown in Resources grouped view */}
+
+        {/* Your Voice — pinned resource card */}
+        {activeSection === 'resources' && activeCategory === 'all' && !search.trim() && (
+          <div className="px-4 pt-2 pb-1">
+            <p className="text-xs font-bold tracking-wide mb-2" style={{ color: '#c084fc' }}>🗳️ CIVIC EDUCATION</p>
+            <button onClick={() => navigate('/your-voice')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition active:opacity-80 mb-1"
+              style={{ background: 'linear-gradient(135deg, rgba(109,40,217,0.35), rgba(139,10,120,0.25))', border: '1px solid rgba(168,85,247,0.35)' }}>
+              <span className="text-xl flex-shrink-0">🗳️</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-white leading-snug">Your Voice · Civics · Leadership</p>
+                <p className="text-xs text-gray-400 mt-0.5">Speaking up, civics, voting, laws, advocacy — by age group</p>
               </div>
-            </div>
-            <button
-              onClick={() => navigate('/your-voice')}
-              className="w-full py-3.5 rounded-2xl text-sm font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #a855f7, #ec4899)' }}>
-              Open Your Voice 🗳️
+              <ChevronRight size={15} className="text-gray-500 flex-shrink-0" />
             </button>
           </div>
         )}

@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronDown, BookOpen, Award, Clock, GraduationCap, CheckC
 import BottomNav from '@/components/BottomNav';
 import QuizModal from '@/components/ggu-academy/QuizModal';
 import { QUIZ_DATA } from '@/components/ggu-academy/quizData';
+import { awardPoints } from '@/lib/pointsHelper';
 
 // Lesson content keyed by lesson id
 const LESSON_CONTENT = {
@@ -590,7 +591,7 @@ function AddOnCard({ addon, expanded, onExpand, onTakeQuiz }) {
   );
 }
 
-function PillarCard({ pillar, expanded, onExpand, onTakeQuiz }) {
+function PillarCard({ pillar, expanded, onExpand, onTakeQuiz, onLessonRead }) {
   const [lessonRead, setLessonRead] = useState({});
   const totalLessons = Object.values(pillar.lessons).reduce((sum, lessons) => sum + lessons.length, 0);
   const completedLessons = 0;
@@ -641,7 +642,7 @@ function PillarCard({ pillar, expanded, onExpand, onTakeQuiz }) {
                           <p className="text-xs font-bold text-yellow-400 uppercase mb-2">📖 Lesson</p>
                           <p className="text-xs text-gray-300 leading-relaxed mb-2">{LESSON_CONTENT[lesson.id]}</p>
                           {!lessonRead[lesson.id] ? (
-                            <button onClick={(e) => { e.stopPropagation(); setLessonRead(prev => ({ ...prev, [lesson.id]: true })); }}
+                            <button onClick={(e) => { e.stopPropagation(); setLessonRead(prev => ({ ...prev, [lesson.id]: true })); if (onLessonRead) onLessonRead(lesson.id); }}
                               className="w-full py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5"
                               style={{ background: 'rgba(255,215,0,0.15)', color: '#fcd34d' }}>
                               <CheckCircle2 size={12} /> I've Read This Lesson
@@ -695,6 +696,15 @@ export default function GguAcademy() {
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
+
+  const handleLessonRead = (lessonId) => {
+    if (user?.email) awardPoints(user.email, 'lesson_completed');
+  };
+
+  const handleQuizComplete = (score) => {
+    if (user?.email) awardPoints(user.email, 'lesson_completed');
+    setQuizLesson(null);
+  };
 
   const totalPillars = ACADEMY_DATA.pillars.length;
   const totalLessons = ACADEMY_DATA.pillars.reduce((sum, pillar) => {
@@ -752,6 +762,7 @@ export default function GguAcademy() {
                 expanded={expanded === pillar.id}
                 onExpand={(id) => setExpanded(expanded === id ? null : id)}
                 onTakeQuiz={setQuizLesson}
+                onLessonRead={handleLessonRead}
               />
             ))}
           </div>
@@ -783,10 +794,7 @@ export default function GguAcademy() {
           lesson={quizLesson}
           questions={QUIZ_DATA[quizLesson.id] || []}
           onClose={() => setQuizLesson(null)}
-          onComplete={(score) => {
-            console.log('Quiz completed with score:', score);
-            setQuizLesson(null);
-          }}
+          onComplete={handleQuizComplete}
         />
       )}
     </div>
