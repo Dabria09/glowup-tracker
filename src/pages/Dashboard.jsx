@@ -73,6 +73,8 @@ const ALL_PAGES = [
 ];
 
 const DEFAULT_HOME_IDS = ['daily-checkin', 'fitness-tracker', 'diary', 'vision-board', 'glow-up-challenges', 'my-goals', 'scholarships', 'wellness-hub', 'daily-challenges', 'glow-tips', 'my-calendar', 'money-tracker'];
+// IDs that should never appear on the home grid (removed features)
+const BANNED_HOME_IDS = new Set(['glow', 'glow-feed']);
 const DEFAULT_QUICK_IDS = ['daily-checkin', 'diary', 'money-tracker', 'my-goals'];
 
 const SOCIAL = [
@@ -115,7 +117,7 @@ function loadSaved(key, defaults) {
       const parsed = JSON.parse(s);
       // Validate: filter out IDs that no longer exist in ALL_PAGES (e.g. old 'glow', 'glow-feed' if removed)
       if (key === 'ggu_home_apps' && Array.isArray(parsed)) {
-        const cleaned = parsed.filter(id => id && (id.startsWith('folder_') || ALL_PAGES.some(p => p.id === id)));
+        const cleaned = parsed.filter(id => id && !BANNED_HOME_IDS.has(id) && (id.startsWith('folder_') || ALL_PAGES.some(p => p.id === id)));
         return cleaned.length > 0 ? cleaned : defaults;
       }
       return parsed;
@@ -396,7 +398,14 @@ export default function Dashboard() {
   const [bgImage, setBgImage] = useState(null);
   const [bgImagePos, setBgImagePos] = useState({ x: 50, y: 50 });
   const [totalPoints, setTotalPoints] = useState(0);
-  const [homeAppIds, setHomeAppIds] = useState(() => loadSaved('ggu_home_apps', DEFAULT_HOME_IDS));
+  const [homeAppIds, setHomeAppIds] = useState(() => {
+    // One-time migration: force-clear any banned IDs from localStorage right now
+    const saved = loadSaved('ggu_home_apps', DEFAULT_HOME_IDS);
+    const cleaned = saved.filter(id => !BANNED_HOME_IDS.has(id));
+    const result = cleaned.length > 0 ? cleaned : DEFAULT_HOME_IDS;
+    localStorage.setItem('ggu_home_apps', JSON.stringify(result));
+    return result;
+  });
   const [quickIds, setQuickIds] = useState(() => loadSaved('ggu_quick_access', DEFAULT_QUICK_IDS));
   const [showQuickPicker, setShowQuickPicker] = useState(false);
   const [showHomePicker, setShowHomePicker] = useState(false);
@@ -495,8 +504,8 @@ export default function Dashboard() {
             try {
               const saved = JSON.parse(profile.featured_sections);
               if (saved.homeAppIds) {
-                // Strip removed/invalid app IDs
-                const cleaned = saved.homeAppIds.filter(id => id && (id.startsWith('folder_') || ALL_PAGES.some(p => p.id === id)));
+                // Strip removed/invalid/banned app IDs
+                const cleaned = saved.homeAppIds.filter(id => id && !BANNED_HOME_IDS.has(id) && (id.startsWith('folder_') || ALL_PAGES.some(p => p.id === id)));
                 setHomeAppIds(cleaned.length > 0 ? cleaned : DEFAULT_HOME_IDS);
                 localStorage.setItem('ggu_home_apps', JSON.stringify(cleaned.length > 0 ? cleaned : DEFAULT_HOME_IDS));
               }
@@ -731,7 +740,7 @@ export default function Dashboard() {
           </div>
 
           <DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
-            <Droppable droppableId="home-apps" direction="horizontal">
+            <Droppable droppableId="home-apps">
               {(provided) => (
                 <div ref={provided.innerRef} {...provided.droppableProps}
                   className="grid grid-cols-4 gap-x-2 gap-y-5">
