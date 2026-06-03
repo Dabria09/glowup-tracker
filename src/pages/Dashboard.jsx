@@ -330,7 +330,7 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
               const isOn = selected.includes(page.id);
               return (
                 <button key={page.id} onClick={() => toggle(page.id)} className="flex items-center gap-2 p-3 rounded-2xl text-left transition"
-                  style={{ background: isOn ? 'rgba(236,72,153,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${isOn ? 'rgba(236,72,153,0.4)' : 'rgba(255,255,255,0.08)'}` }}>
+                  style={{ background: isOn ? 'rgba(236,72,153,0.12)' : 'transparent', border: `1px solid ${isOn ? 'rgba(236,72,153,0.35)' : 'transparent'}` }}>
                   <AppIcon app={page} size={32} />
                   <span className="text-xs font-semibold text-white flex-1 leading-tight">{page.label}</span>
                   {isOn && <Check size={12} className="text-pink-400 flex-shrink-0" />}
@@ -402,7 +402,7 @@ function QuickChip({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
       className="flex flex-col items-center gap-1 flex-shrink-0 py-2 px-1 transition active:scale-90"
-      style={{ minWidth: 56 }}>
+      style={{ minWidth: 56, background: 'transparent', border: 'none' }}>
       <AppIcon app={app} size={44} />
       <span className="text-[9px] text-gray-400 text-center leading-tight" style={{ maxWidth: 58 }}>{app.label}</span>
     </button>
@@ -427,7 +427,7 @@ function SizePickerModal({ app, currentSize, onSelect, onClose }) {
           {sizes.map(s => (
             <button key={s.id} onClick={() => { onSelect(s.id); onClose(); }}
               className="flex flex-col items-center gap-2 p-4 rounded-2xl transition"
-              style={{ background: currentSize === s.id ? 'rgba(236,72,153,0.2)' : 'rgba(255,255,255,0.05)', border: `1px solid ${currentSize === s.id ? 'rgba(236,72,153,0.5)' : 'rgba(255,255,255,0.08)'}` }}>
+              style={{ background: currentSize === s.id ? 'rgba(236,72,153,0.15)' : 'transparent', border: `1px solid ${currentSize === s.id ? 'rgba(236,72,153,0.45)' : 'rgba(255,255,255,0.08)'}` }}>
               <span className="text-2xl">{s.icon}</span>
               <p className="text-sm font-bold text-white">{s.label}</p>
               <p className="text-[10px] text-gray-500">{s.desc}</p>
@@ -821,9 +821,11 @@ export default function Dashboard() {
               <QuickChip key={app.id} app={app} onNavigate={navigate} />
             )}
             <button onClick={() => setShowQuickPicker(true)}
-              className="flex flex-col items-center justify-center gap-1 flex-shrink-0 py-2.5 px-3 rounded-2xl border border-dashed border-white/15 hover:border-pink-500/40 transition"
-              style={{ minWidth: 60 }}>
-              <Plus size={14} className="text-gray-600" />
+              className="flex flex-col items-center justify-center gap-1 flex-shrink-0 py-2.5 px-2 transition active:scale-90"
+              style={{ minWidth: 56, background: 'transparent', border: 'none' }}>
+              <div className="w-11 h-11 rounded-[12px] flex items-center justify-center border border-dashed border-white/15">
+                <Plus size={14} className="text-gray-600" />
+              </div>
               <span className="text-[9px] text-gray-600">Add</span>
             </button>
           </div>
