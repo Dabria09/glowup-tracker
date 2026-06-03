@@ -184,18 +184,15 @@ function getPageById(id) { return ALL_PAGES.find(p => p.id === id); }
 function AppIcon({ app, size = 64 }) {
   return (
     <div
-      className="overflow-hidden flex items-center justify-center flex-shrink-0"
+      className={`overflow-hidden flex items-center justify-center flex-shrink-0 ${!app.image ? 'bg-gradient-to-br ' + app.gradient : ''}`}
       style={{
         width: size, height: size, borderRadius: size * 0.225,
-        background: app.image ? 'rgba(255,255,255,0.08)' : undefined,
-        boxShadow: '0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12)',
+        boxShadow: '0 4px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)',
       }}
     >
       {app.image
-        ? <img src={app.image} alt={app.label} className="w-full h-full object-contain p-0.5" style={{ borderRadius: size * 0.225 }} />
-        : <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${app.gradient}`}>
-            <span style={{ fontSize: size * 0.42 }}>{app.emoji}</span>
-          </div>
+        ? <img src={app.image} alt={app.label} className="w-full h-full object-cover" />
+        : <span style={{ fontSize: size * 0.42 }}>{app.emoji}</span>
       }
     </div>
   );
