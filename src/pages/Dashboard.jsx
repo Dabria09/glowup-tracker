@@ -353,8 +353,8 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
 function FeaturedWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-      className={`relative rounded-[24px] overflow-hidden active:scale-98 transition-all select-none text-left ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
-      style={{ height: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
+      className={`relative w-full rounded-[24px] overflow-hidden active:scale-98 transition-all select-none text-left ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
+      style={{ height: 160, display: 'block', boxShadow: '0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
       {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover" />}
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.05) 100%)' }} />
       <div className="absolute inset-x-0 bottom-0 p-4">
@@ -372,14 +372,14 @@ function FeaturedWidget({ app, onNavigate }) {
 function MediumWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-      className={`relative rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left w-full ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
-      style={{ height: 110, boxShadow: '0 6px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
+      className={`relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
+      style={{ height: 110, display: 'block', boxShadow: '0 6px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
       {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover" />}
       <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.65) 100%)' }} />
       <div className="absolute inset-0 p-4 flex flex-col justify-between">
-        <div className="w-9 h-9 rounded-[10px] overflow-hidden flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)' }}>
-          {app.image ? <img src={app.image} alt="" className="w-full h-full object-cover" /> : <span className="text-base">{app.emoji}</span>}
+        <div className="w-9 h-9 rounded-[10px] overflow-hidden flex-shrink-0"
+          style={{ background: 'rgba(0,0,0,0)' }}>
+          {app.image ? <img src={app.image} alt="" className="w-full h-full object-cover rounded-[10px]" /> : <span className="text-base">{app.emoji}</span>}
         </div>
         <p className="text-sm font-bold text-white leading-tight">{app.label}</p>
       </div>
@@ -390,9 +390,9 @@ function MediumWidget({ app, onNavigate }) {
 // ─── Small App Icon (4-col grid) ─────────────────────────────────────────────
 function SmallAppIcon({ app, onNavigate }) {
   return (
-    <button onClick={() => onNavigate(app.route)} className="flex flex-col items-center gap-1.5 select-none active:scale-90 transition-transform w-full">
-      <AppIcon app={app} size={64} />
-      <span className="text-[10px] text-center text-gray-300 leading-tight" style={{ maxWidth: 68 }}>{app.label}</span>
+    <button onClick={() => onNavigate(app.route)} className="flex flex-col items-center gap-1.5 select-none active:scale-90 transition-transform w-full" style={{ background: 'transparent', border: 'none' }}>
+      <AppIcon app={app} size={58} />
+      <span className="text-[10px] text-center text-gray-300 leading-tight" style={{ maxWidth: 64 }}>{app.label}</span>
     </button>
   );
 }
@@ -587,18 +587,23 @@ export default function Dashboard() {
 
   // ── Drag state ───────────────────────────────────────────────────────────────
   const gridRef = useRef(null);
-  const dragState = useRef(null); // { id, srcIndex, ghostEl, startX, startY }
+  const dragState = useRef(null);
+  const longPressTimer = useRef(null);
   const [draggingId, setDraggingId] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [ghostPos, setGhostPos] = useState({ x: 0, y: 0 });
 
-  // Helper to update layout and sync to profile
+  // Use a ref so drag callbacks always read latest homeAppIds without stale closure
+  const homeAppIdsRef = useRef(homeAppIds);
+  useEffect(() => { homeAppIdsRef.current = homeAppIds; }, [homeAppIds]);
+
   const setHomeAppIdsAndSave = useCallback((updater) => {
     setHomeAppIds(prev => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
-      saveLayoutToProfile(profileId, { homeAppIds: next, quickIds, folders, communityIds, widgetSizes });
+      saveLayoutToProfile(profileId, { homeAppIds: next, quickIds: layoutRef.current.quickIds, folders: layoutRef.current.folders, communityIds: layoutRef.current.communityIds, widgetSizes: layoutRef.current.widgetSizes });
       return next;
     });
-  }, [profileId, quickIds, folders, communityIds, widgetSizes]);
+  }, [profileId]);
 
   const setQuickIdsAndSave = (next) => {
     setQuickIds(next);
@@ -610,53 +615,52 @@ export default function Dashboard() {
     saveLayoutToProfile(profileId, { homeAppIds, quickIds, folders, communityIds: next, widgetSizes });
   };
 
-  // Find which grid item the pointer is over
   const getIndexAtPoint = (x, y) => {
     if (!gridRef.current) return null;
     const children = Array.from(gridRef.current.querySelectorAll('[data-item-id]'));
     for (let i = 0; i < children.length; i++) {
       const rect = children[i].getBoundingClientRect();
-      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-        return i;
-      }
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) return i;
     }
     return null;
   };
 
-  const onItemPointerDown = (e, itemId, index) => {
+  const startDrag = useCallback((itemId, index, x, y) => {
+    setDraggingId(itemId);
+    setGhostPos({ x, y });
+    dragState.current = { id: itemId, srcIndex: index };
+    if (navigator.vibrate) navigator.vibrate(40);
+  }, []);
+
+  const onItemPointerDown = useCallback((e, itemId, index) => {
     if (!editMode) return;
-    // Only start drag on long press (400ms)
-    const el = e.currentTarget;
-    const startX = e.clientX ?? e.touches?.[0]?.clientX;
-    const startY = e.clientY ?? e.touches?.[0]?.clientY;
+    // Don't start drag if clicking the delete/resize action buttons
+    if (e.target.closest('[data-action]')) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const x = e.clientX;
+    const y = e.clientY;
+    longPressTimer.current = setTimeout(() => startDrag(itemId, index, x, y), 380);
+  }, [editMode, startDrag]);
 
-    const longPressTimer = setTimeout(() => {
-      setDraggingId(itemId);
-      dragState.current = { id: itemId, srcIndex: index, startX, startY };
-      if (navigator.vibrate) navigator.vibrate(30);
-    }, 350);
-
-    const cancel = () => {
-      clearTimeout(longPressTimer);
-      el.removeEventListener('pointerup', cancel);
-      el.removeEventListener('pointermove', cancel);
-    };
-    el.addEventListener('pointerup', cancel, { once: true });
-    el.addEventListener('pointermove', cancel, { once: true });
-  };
-
-  const onGridPointerMove = (e) => {
-    if (!dragState.current) return;
-    const x = e.clientX ?? e.touches?.[0]?.clientX;
-    const y = e.clientY ?? e.touches?.[0]?.clientY;
+  const onItemPointerMove = useCallback((e) => {
+    if (!dragState.current) {
+      // Cancel long press if moved significantly before timer fires
+      clearTimeout(longPressTimer.current);
+      return;
+    }
+    const x = e.clientX;
+    const y = e.clientY;
+    setGhostPos({ x, y });
     const idx = getIndexAtPoint(x, y);
-    setDragOverIndex(idx);
-  };
+    setDragOverIndex(idx !== null && homeAppIdsRef.current[idx] !== dragState.current.id ? idx : null);
+  }, []);
 
-  const onGridPointerUp = (e) => {
+  const onItemPointerUp = useCallback((e) => {
+    clearTimeout(longPressTimer.current);
     if (!dragState.current) return;
-    const x = e.clientX ?? e.touches?.[0]?.clientX;
-    const y = e.clientY ?? e.touches?.[0]?.clientY;
+
+    const x = e.clientX;
+    const y = e.clientY;
     const destIndex = getIndexAtPoint(x, y);
     const { srcIndex, id: draggedItemId } = dragState.current;
 
@@ -666,24 +670,23 @@ export default function Dashboard() {
 
     if (destIndex === null || destIndex === srcIndex) return;
 
-    const targetItemId = homeAppIds[destIndex];
+    const ids = homeAppIdsRef.current;
+    const targetItemId = ids[destIndex];
     const isFolder = (id) => id && id.startsWith('folder_');
 
-    // Merge into folder on drop
     if (!isFolder(draggedItemId) && isFolder(targetItemId)) {
       const newFolders = { ...folders, [targetItemId]: { ...folders[targetItemId], appIds: [...(folders[targetItemId]?.appIds || []), draggedItemId] } };
-      const newIds = homeAppIds.filter(id => id !== draggedItemId);
+      const newIds = ids.filter(id => id !== draggedItemId);
       setFolders(newFolders);
       setHomeAppIdsAndSave(() => newIds);
       return;
     }
 
-    // Simple reorder
-    const items = [...homeAppIds];
+    const items = [...ids];
     const [moved] = items.splice(srcIndex, 1);
     items.splice(destIndex, 0, moved);
     setHomeAppIdsAndSave(() => items);
-  };
+  }, [folders, setHomeAppIdsAndSave]);
 
   const firstName = user?.full_name?.split(' ')[0] || 'Gorgeous';
   const username = user?.email?.split('@')[0] || 'user';
@@ -838,10 +841,7 @@ export default function Dashboard() {
 
           <div
             ref={gridRef}
-            style={{ display: 'flex', flexWrap: 'wrap', columnGap: '8px', rowGap: '20px', alignItems: 'flex-start', touchAction: draggingId ? 'none' : 'auto' }}
-            onPointerMove={onGridPointerMove}
-            onPointerUp={onGridPointerUp}
-            onPointerLeave={onGridPointerUp}
+            style={{ display: 'flex', flexWrap: 'wrap', columnGap: '8px', rowGap: '20px', alignItems: 'flex-start' }}
           >
             {homeAppIds.map((itemId, index) => {
               const isFolder = itemId && itemId.startsWith('folder_');
@@ -853,32 +853,44 @@ export default function Dashboard() {
               const isBig = !isFolder && (wSize === 'medium' || wSize === 'large');
               const itemW = isBig ? 'calc(50% - 4px)' : 'calc(25% - 6px)';
               const isDragging = draggingId === itemId;
-              const isOver = dragOverIndex === index && draggingId && draggingId !== itemId;
+              const isOver = dragOverIndex === index;
               return (
                 <div
                   key={itemId}
                   data-item-id={itemId}
-                  style={{ width: itemW, flexShrink: 0, opacity: isDragging ? 0.4 : 1, transition: 'opacity 0.15s, transform 0.15s' }}
-                  className={`select-none ${isOver ? 'scale-105' : ''}`}
+                  style={{
+                    width: itemW,
+                    flexShrink: 0,
+                    opacity: isDragging ? 0.35 : 1,
+                    transform: isOver ? 'scale(1.06)' : 'scale(1)',
+                    transition: 'opacity 0.15s, transform 0.15s',
+                    touchAction: 'none',
+                  }}
+                  className="select-none"
                   onPointerDown={editMode ? (e) => onItemPointerDown(e, itemId, index) : undefined}
+                  onPointerMove={editMode ? onItemPointerMove : undefined}
+                  onPointerUp={editMode ? onItemPointerUp : undefined}
+                  onPointerCancel={editMode ? onItemPointerUp : undefined}
                 >
-                  <div className={`relative ${isOver ? 'ring-2 ring-pink-400 ring-offset-1 ring-offset-transparent rounded-[18px]' : ''}`}>
+                  <div className={`relative w-full ${isOver && draggingId ? 'ring-2 ring-pink-400 ring-offset-1 ring-offset-transparent rounded-[18px]' : ''}`}>
                     {isFolder ? (
                       <FolderIcon folder={folder} onOpen={() => !isDragging && setOpenFolder(itemId)} onLongPress={() => setOpenFolder(itemId)} />
                     ) : wSize === 'large' ? (
-                      <FeaturedWidget app={app} onNavigate={navigate} />
+                      <FeaturedWidget app={app} onNavigate={!isDragging ? navigate : () => {}} />
                     ) : wSize === 'medium' ? (
-                      <MediumWidget app={app} onNavigate={navigate} />
+                      <MediumWidget app={app} onNavigate={!isDragging ? navigate : () => {}} />
                     ) : (
-                      <SmallAppIcon app={app} onNavigate={navigate} />
+                      <SmallAppIcon app={app} onNavigate={!isDragging ? navigate : () => {}} />
                     )}
                     {editMode && (
                       <>
-                        <button onPointerDown={e => { e.stopPropagation(); setHomeAppIdsAndSave(prev => prev.filter(id => id !== itemId)); }}
+                        <button data-action="delete"
+                          onPointerDown={e => { e.stopPropagation(); clearTimeout(longPressTimer.current); setHomeAppIdsAndSave(prev => prev.filter(id => id !== itemId)); }}
                           className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-red-900 border border-red-700 flex items-center justify-center z-20 shadow"
                           style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1 }}>×</button>
                         {!isFolder && (
-                          <button onPointerDown={e => { e.stopPropagation(); setSizingId(itemId); }}
+                          <button data-action="resize"
+                            onPointerDown={e => { e.stopPropagation(); clearTimeout(longPressTimer.current); setSizingId(itemId); }}
                             className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center z-20 shadow"
                             style={{ fontSize: 9, color: '#c084fc', lineHeight: 1 }}>⬛</button>
                         )}
@@ -899,6 +911,36 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
+
+          {/* Ghost widget during drag */}
+          {draggingId && (() => {
+            const ghostApp = getPageById(draggingId);
+            if (!ghostApp) return null;
+            const gSize = widgetSizes[draggingId] || 'small';
+            return (
+              <div style={{
+                position: 'fixed',
+                left: ghostPos.x - 32,
+                top: ghostPos.y - 32,
+                width: gSize === 'small' ? 64 : 120,
+                height: gSize === 'small' ? 64 : 90,
+                borderRadius: 16,
+                overflow: 'hidden',
+                pointerEvents: 'none',
+                zIndex: 9999,
+                opacity: 0.85,
+                transform: 'scale(1.12)',
+                boxShadow: '0 12px 40px rgba(0,0,0,0.7)',
+              }}>
+                {ghostApp.image
+                  ? <img src={ghostApp.image} alt="" className="w-full h-full object-cover" />
+                  : <div className={`w-full h-full bg-gradient-to-br ${ghostApp.gradient} flex items-center justify-center`}>
+                      <span style={{ fontSize: 28 }}>{ghostApp.emoji}</span>
+                    </div>
+                }
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── COMMUNITY ────────────────────────────────────────── */}
