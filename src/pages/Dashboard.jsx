@@ -72,7 +72,7 @@ const ALL_PAGES = [
   { id: 'support', label: 'Help & Support', route: '/support', gradient: 'from-rose-900 via-pink-900 to-red-900', emoji: '💜', keywords: ['help', 'support', 'contact'] },
 ];
 
-const DEFAULT_HOME_IDS = ['daily-checkin', 'fitness-tracker', 'diary', 'vision-board', 'glow-up-challenges', 'my-goals', 'scholarships', 'wellness-hub'];
+const DEFAULT_HOME_IDS = ['daily-checkin', 'fitness-tracker', 'diary', 'vision-board', 'glow-up-challenges', 'my-goals', 'scholarships', 'wellness-hub', 'daily-challenges', 'glow-tips', 'my-calendar', 'money-tracker'];
 const DEFAULT_QUICK_IDS = ['daily-checkin', 'diary', 'money-tracker', 'my-goals'];
 
 const SOCIAL = [
@@ -109,7 +109,18 @@ function getGreeting() {
 }
 
 function loadSaved(key, defaults) {
-  try { const s = localStorage.getItem(key); if (s) return JSON.parse(s); } catch {}
+  try {
+    const s = localStorage.getItem(key);
+    if (s) {
+      const parsed = JSON.parse(s);
+      // Validate: filter out IDs that no longer exist in ALL_PAGES (e.g. old 'glow', 'glow-feed' if removed)
+      if (key === 'ggu_home_apps' && Array.isArray(parsed)) {
+        const cleaned = parsed.filter(id => id && (id.startsWith('folder_') || ALL_PAGES.some(p => p.id === id)));
+        return cleaned.length > 0 ? cleaned : defaults;
+      }
+      return parsed;
+    }
+  } catch {}
   return defaults;
 }
 
@@ -388,6 +399,7 @@ export default function Dashboard() {
   const [homeAppIds, setHomeAppIds] = useState(() => loadSaved('ggu_home_apps', DEFAULT_HOME_IDS));
   const [quickIds, setQuickIds] = useState(() => loadSaved('ggu_quick_access', DEFAULT_QUICK_IDS));
   const [showQuickPicker, setShowQuickPicker] = useState(false);
+  const [showHomePicker, setShowHomePicker] = useState(false);
   const [folders, setFolders] = useState(() => loadSaved('ggu_folders', {}));
   const [openFolder, setOpenFolder] = useState(null);
   const [checkedInToday, setCheckedInToday] = useState(false);
@@ -482,7 +494,12 @@ export default function Dashboard() {
           if (profile.featured_sections) {
             try {
               const saved = JSON.parse(profile.featured_sections);
-              if (saved.homeAppIds) { setHomeAppIds(saved.homeAppIds); localStorage.setItem('ggu_home_apps', JSON.stringify(saved.homeAppIds)); }
+              if (saved.homeAppIds) {
+                // Strip removed/invalid app IDs
+                const cleaned = saved.homeAppIds.filter(id => id && (id.startsWith('folder_') || ALL_PAGES.some(p => p.id === id)));
+                setHomeAppIds(cleaned.length > 0 ? cleaned : DEFAULT_HOME_IDS);
+                localStorage.setItem('ggu_home_apps', JSON.stringify(cleaned.length > 0 ? cleaned : DEFAULT_HOME_IDS));
+              }
               if (saved.quickIds) { setQuickIds(saved.quickIds); localStorage.setItem('ggu_quick_access', JSON.stringify(saved.quickIds)); }
               if (saved.folders) { setFolders(saved.folders); localStorage.setItem('ggu_folders', JSON.stringify(saved.folders)); }
               if (saved.communityIds) { setCommunityIds(saved.communityIds); localStorage.setItem('ggu_community_apps', JSON.stringify(saved.communityIds)); }
@@ -505,6 +522,7 @@ export default function Dashboard() {
     const destId = homeAppIds[update.destination.index];
     setDragOverId(destId && destId !== draggedId.current ? destId : null);
   };
+
   // Helper to update layout and sync to profile
   const setHomeAppIdsAndSave = (updater) => {
     setHomeAppIds(prev => {
@@ -533,6 +551,8 @@ export default function Dashboard() {
     if (srcIndex === destIndex) return;
     const draggedItemId = homeAppIds[srcIndex];
     const targetItemId = homeAppIds[destIndex];
+    // Only merge into folders when hovering (dragOverId set), not on simple drop
+
     const isFolder = (id) => id && id.startsWith('folder_');
     const shouldMerge = dragOverId !== null && dragOverId === targetItemId;
     if (shouldMerge && !isFolder(draggedItemId)) {
@@ -569,14 +589,6 @@ export default function Dashboard() {
     : [];
 
   const currentFolder = openFolder ? folders[openFolder] : null;
-
-  // Featured widget = first homeAppId that has an image or emoji
-  const featuredId = homeAppIds[0];
-  const featuredApp = featuredId && !featuredId.startsWith('folder_') ? getPageById(featuredId) : null;
-  // Medium widgets = next 2
-  const mediumIds = homeAppIds.slice(1, 3);
-  // Grid = rest
-  const gridIds = homeAppIds.slice(3);
 
   return (
     <div className="min-h-screen text-white pb-28 overflow-x-hidden relative" style={{ backgroundColor: '#08060e' }}>
@@ -713,69 +725,35 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-3">
             <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase">Your World</p>
             <button onClick={() => setEditMode(e => !e)}
-              className={`text-[11px] font-semibold px-3 py-1 rounded-full transition ${editMode ? 'bg-pink-500 text-white' : 'bg-white/8 text-gray-400 border border-white/10'}`}>
-              {editMode ? 'Done' : 'Edit'}
+              className={`text-[11px] font-semibold px-3 py-1 rounded-full transition ${editMode ? 'bg-pink-500 text-white' : 'bg-white/5 text-gray-400 border border-white/10'}`}>
+              {editMode ? 'Done ✓' : 'Edit'}
             </button>
           </div>
 
-          {/* Featured widget (first item) */}
-          {featuredApp && (
-            <div className="mb-3">
-              <FeaturedWidget app={featuredApp} onNavigate={navigate} />
-            </div>
-          )}
-
-          {/* Medium widgets (items 2–3) */}
-          {mediumIds.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              {mediumIds.map(id => {
-                if (!id) return null;
-                const isFolder = id.startsWith('folder_');
-                const folder = isFolder ? folders[id] : null;
-                const app = !isFolder ? getPageById(id) : null;
-                if (isFolder && folder) {
-                  return (
-                    <button key={id} onClick={() => setOpenFolder(id)}
-                      className="relative rounded-[22px] overflow-hidden flex items-center justify-center"
-                      style={{ height: 110, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)' }}>
-                      <div className="grid grid-cols-2 gap-1 p-3">
-                        {folder.appIds.slice(0,4).map(aid => getPageById(aid)).filter(Boolean).map((a,i) => (
-                          <AppIcon key={i} app={a} size={28} />
-                        ))}
-                      </div>
-                      <p className="absolute bottom-2 inset-x-0 text-center text-[11px] font-semibold text-gray-300">{folder.name}</p>
-                    </button>
-                  );
-                }
-                if (app) return <MediumWidget key={id} app={app} onNavigate={navigate} />;
-                return null;
-              })}
-            </div>
-          )}
-
-          {/* Icon grid (rest of items) */}
           <DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
             <Droppable droppableId="home-apps" direction="horizontal">
               {(provided) => (
                 <div ref={provided.innerRef} {...provided.droppableProps}
-                  className="grid grid-cols-4 gap-x-2 gap-y-4">
-                  {gridIds.map((itemId, index) => {
-                    const isFolder = itemId.startsWith('folder_');
+                  className="grid grid-cols-4 gap-x-2 gap-y-5">
+                  {homeAppIds.map((itemId, index) => {
+                    const isFolder = itemId && itemId.startsWith('folder_');
                     const folder = isFolder ? folders[itemId] : null;
                     const app = !isFolder ? getPageById(itemId) : null;
                     const isHoverTarget = dragOverId === itemId;
                     const wSize = (!isFolder && widgetSizes[itemId]) || 'small';
                     if (isFolder && !folder) return null;
                     if (!isFolder && !app) return null;
-                    // medium/large widgets span 2 cols
                     const spanClass = !isFolder && (wSize === 'medium' || wSize === 'large') ? 'col-span-2' : '';
                     return (
-                      <Draggable key={itemId} draggableId={itemId} index={index + 3}>
+                      <Draggable key={itemId} draggableId={itemId} index={index}>
                         {(provided, snapshot) => (
-                          <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
                             style={provided.draggableProps.style}
-                            className={`transition-all duration-150 select-none cursor-grab active:cursor-grabbing ${isHoverTarget ? 'scale-105' : ''} ${spanClass}`}>
-                            <div className={`relative rounded-[18px] transition-all ${isHoverTarget ? 'ring-2 ring-pink-400 ring-offset-1 ring-offset-transparent' : ''}`}>
+                            className={`select-none ${isHoverTarget && !snapshot.isDragging ? 'scale-105' : ''} ${spanClass}`}>
+                            <div className={`relative transition-all ${isHoverTarget && !snapshot.isDragging ? 'ring-2 ring-pink-400 ring-offset-1 ring-offset-transparent rounded-[18px]' : ''}`}>
                               {isFolder ? (
                                 <FolderIcon folder={folder} onOpen={() => !snapshot.isDragging && setOpenFolder(itemId)} onLongPress={() => setOpenFolder(itemId)} />
                               ) : wSize === 'large' ? (
@@ -788,8 +766,8 @@ export default function Dashboard() {
                               {editMode && (
                                 <>
                                   <button onPointerDown={e => { e.stopPropagation(); setHomeAppIdsAndSave(prev => prev.filter(id => id !== itemId)); }}
-                                    className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center z-20 shadow"
-                                    style={{ fontSize: 13, color: '#f87171', lineHeight: 1 }}>×</button>
+                                    className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-red-900 border border-red-700 flex items-center justify-center z-20 shadow"
+                                    style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1 }}>×</button>
                                   {!isFolder && (
                                     <button onPointerDown={e => { e.stopPropagation(); setSizingId(itemId); }}
                                       className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center z-20 shadow"
@@ -805,10 +783,9 @@ export default function Dashboard() {
                   })}
                   {provided.placeholder}
                   {/* Add more button */}
-                  <button onClick={() => { setShowQuickPicker(true); }}
-                    className="flex flex-col items-center gap-1.5 select-none"
-                    style={{ width: '100%' }}>
-                    <div className="w-16 h-16 rounded-[18px] flex items-center justify-center border-2 border-dashed border-white/15 hover:border-pink-500/40 transition">
+                  <button onClick={() => setShowHomePicker(true)}
+                    className="flex flex-col items-center gap-1.5 select-none">
+                    <div className="w-16 h-16 rounded-[18px] flex items-center justify-center border-2 border-dashed border-white/10 hover:border-pink-500/40 transition">
                       <Plus size={20} className="text-gray-600" />
                     </div>
                     <span className="text-[10px] text-gray-600">Add</span>
@@ -874,6 +851,9 @@ export default function Dashboard() {
       )}
       {showQuickPicker && (
         <PagePickerModal title="Customize Quick Access" currentIds={quickIds} onSave={setQuickIdsAndSave} onClose={() => setShowQuickPicker(false)} />
+      )}
+      {showHomePicker && (
+        <PagePickerModal title="Your World — Add Apps" currentIds={homeAppIds} onSave={(ids) => { setHomeAppIdsAndSave(() => ids); }} onClose={() => setShowHomePicker(false)} />
       )}
       {currentFolder && (
         <FolderModal folder={currentFolder} folders={folders} setFolders={setFolders}
