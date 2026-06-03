@@ -13,30 +13,32 @@ const CARD = '#1e0d12';
 const BORDER = 'rgba(232,82,109,0.2)';
 const GOLD_GRAD = 'linear-gradient(135deg, #f1b610, #ffe75c)';
 
+const MEDIA = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/';
+
 const SECTIONS = [
   {
     label: 'Share & Discover',
     items: [
-      { icon: '✨', label: 'Glow Feed', desc: 'See what everyone is posting', route: '/glow-feed', accent: PINK },
-      { icon: '📸', label: 'Glow Board', desc: 'Share photos and inspiration', route: '/glow-board', accent: '#a855f7' },
-      { icon: '💬', label: 'Glow Talk', desc: 'Chat rooms and conversations', route: '/glow-talk', accent: '#3b82f6' },
-      { icon: '📣', label: 'Shout Outs', desc: 'Give props to your girls', route: '/shout-outs', accent: '#f59e0b' },
+      { image: MEDIA + '6df1ddfdd_generated_image.png', label: 'Glow Feed', desc: 'See what everyone is posting', route: '/glow-feed', accent: PINK },
+      { image: MEDIA + 'a76e19c27_generated_image.png', label: 'Glow Board', desc: 'Share photos and inspiration', route: '/glow-board', accent: '#a855f7' },
+      { image: MEDIA + 'b718f5c26_generated_image.png', label: 'Glow Talk', desc: 'Chat rooms and conversations', route: '/glow-talk', accent: '#3b82f6' },
+      { image: MEDIA + '841f8b508_generated_image.png', label: 'Shout Outs', desc: 'Give props to your girls', route: '/shout-outs', accent: '#f59e0b' },
     ],
   },
   {
     label: 'Teams and Squads',
     items: [
-      { icon: '🏆', label: 'Glow Teams', desc: 'Join a team and compete together', route: '/glow-teams', accent: PINK },
-      { icon: '💜', label: 'Glow Squads', desc: 'Your close-knit squad', route: '/glow-squads', accent: '#a855f7' },
+      { image: MEDIA + '23b34cbd3_generated_image.png', label: 'Glow Teams', desc: 'Join a team and compete together', route: '/glow-teams', accent: PINK },
+      { image: MEDIA + 'b990d5ccf_generated_image.png', label: 'Glow Squads', desc: 'Your close-knit squad', route: '/glow-squads', accent: '#a855f7' },
       { icon: '🎯', label: 'Team Contests', desc: 'Enter contests and win', route: '/team-contests', accent: GOLD },
     ],
   },
   {
     label: 'Community',
     items: [
-      { icon: '🌸', label: 'Community Hub', desc: 'Find your people and join groups', route: '/community-hub', accent: '#10b981' },
-      { icon: '🎓', label: 'Mentorship', desc: 'Connect with mentors who get it', route: '/mentorship', accent: GOLD },
-      { icon: '🌐', label: 'My Glow Link', desc: 'Your shareable profile page', route: '/my-glow-link', accent: PINK },
+      { image: MEDIA + 'f3d41f651_generated_image.png', label: 'Community Hub', desc: 'Find your people and join groups', route: '/community-hub', accent: '#10b981' },
+      { image: MEDIA + '51e16eabf_generated_image.png', label: 'Mentorship', desc: 'Connect with mentors who get it', route: '/mentorship', accent: GOLD },
+      { image: MEDIA + '993a4bab1_generated_image.png', label: 'My Glow Link', desc: 'Your shareable profile page', route: '/my-glow-link', accent: PINK },
       { icon: '🔔', label: 'Notifications', desc: 'Follows and Glow Link activity', route: '/notifications', accent: '#a855f7' },
       { icon: '💌', label: 'Messages', desc: 'Private DMs · 14+ only', route: '/messages', accent: PINK },
     ],
@@ -44,8 +46,8 @@ const SECTIONS = [
   {
     label: 'Rankings',
     items: [
-      { icon: '🏅', label: 'Leaderboard', desc: 'See who is glowing the most', route: '/leaderboard', accent: GOLD },
-      { icon: '⭐', label: 'Challenge Leaderboard', desc: 'Challenge rankings and scores', route: '/challenge-leaderboard', accent: PINK_HOT },
+      { image: MEDIA + '62de76922_generated_image.png', label: 'Leaderboard', desc: 'See who is glowing the most', route: '/leaderboard', accent: GOLD },
+      { image: MEDIA + '62de76922_generated_image.png', label: 'Challenge Leaderboard', desc: 'Challenge rankings and scores', route: '/challenge-leaderboard', accent: PINK_HOT },
       { icon: '📋', label: 'Weekly Summary', desc: 'Top girls of the week', route: '/weekly-leaderboard', accent: '#a855f7' },
     ],
   },
@@ -90,8 +92,8 @@ export default function Connect() {
                   onClick={() => navigate(item.route)}
                   style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', background: 'none', border: 'none', borderBottom: i < section.items.length - 1 ? `1px solid ${BORDER}` : 'none', cursor: 'pointer', textAlign: 'left' }}
                 >
-                  <div style={{ width: 42, height: 42, borderRadius: 12, background: `${item.accent}18`, border: `1px solid ${item.accent}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
-                    {item.icon}
+                  <div style={{ width: 42, height: 42, borderRadius: 12, background: `${item.accent}18`, border: `1px solid ${item.accent}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0, overflow: 'hidden' }}>
+                    {item.image ? <img src={item.image} alt={item.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : item.icon}
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontWeight: 700, fontSize: 14, color: WHITE, margin: 0 }}>{item.label}</p>
