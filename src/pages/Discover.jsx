@@ -78,9 +78,9 @@ const SECTIONS = [
     id: 'community',
     title: '💜 Community & Connect',
     items: [
-      { id: 'community_hub', label: 'Community Hub', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/community-hub', image: G + 'b903c9fb6_generated_image.png' },
-      { id: 'glow_feed', label: 'Glow Feed', gradient: 'from-yellow-800 via-amber-900 to-pink-900', route: '/glow-feed', image: G + 'b54c35ab5_generated_image.png' },
-      { id: 'mentorship', label: 'Mentorship', gradient: 'from-purple-900 via-pink-900 to-rose-900', route: '/mentorship', image: G + '747986b99_generated_image.png' },
+      { id: 'community_hub', label: 'Community Hub', gradient: 'from-pink-900 via-rose-900 to-fuchsia-900', route: '/community-hub', image: G + 'b903c9fb6_generated_image.png?v=2' },
+      { id: 'glow_feed', label: 'Glow Feed', gradient: 'from-yellow-800 via-amber-900 to-pink-900', route: '/glow-feed', image: G + 'b54c35ab5_generated_image.png?v=2' },
+      { id: 'mentorship', label: 'Mentorship', gradient: 'from-purple-900 via-pink-900 to-rose-900', route: '/mentorship', image: G + '747986b99_generated_image.png?v=2' },
       { id: 'glow_talk', label: 'Glow Talk', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', route: '/glow-talk', badge: 'Live', image: G + 'b718f5c26_generated_image.png' },
       { id: 'glow_squads', label: 'Glow Squads', gradient: 'from-fuchsia-900 via-pink-900 to-purple-900', route: '/glow-squads', image: G + 'b990d5ccf_generated_image.png' },
       { id: 'glow_teams', label: 'Glow Teams', gradient: 'from-purple-900 via-indigo-900 to-pink-900', route: '/glow-teams', image: G + '23b34cbd3_generated_image.png' },
