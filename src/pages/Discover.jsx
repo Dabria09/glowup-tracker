@@ -71,7 +71,7 @@ const SECTIONS = [
       { id: 'weekly_theme', label: 'Weekly Theme', gradient: 'from-pink-900 via-fuchsia-900 to-purple-900', route: '/weekly-theme', image: G + '035672bd8_generated_image.png' },
       { id: 'challenge_leaderboard', label: 'Challenge Leaderboard', gradient: 'from-yellow-800 via-pink-900 to-fuchsia-900', route: '/challenge-leaderboard', image: G + '62de76922_generated_image.png' },
       { id: 'my_certificates', label: 'My Certificates', gradient: 'from-yellow-700 via-amber-800 to-yellow-900', route: '/my-certificates', image: G + 'd3ecec9a9_generated_image.png' },
-      { id: 'my_goals', label: 'My Goals', gradient: 'from-purple-900 via-pink-900 to-fuchsia-900', route: '/my-goals', image: G + 'd9d71212b_generated_image.png' },
+      { id: 'my_goals', label: 'My Goals', gradient: 'from-purple-900 via-pink-900 to-fuchsia-900', route: '/my-goals', image: G + '516e41b53_generated_image.png' },
     ],
   },
   {
@@ -112,7 +112,7 @@ const SECTIONS = [
       { id: 'grocery_list_life', label: 'Grocery List', gradient: 'from-yellow-700 via-amber-800 to-orange-800', route: '/grocery-list', image: G + 'd3a3fe1f2_generated_image.png' },
       { id: 'meal_planner_life', label: 'Meal Planner', gradient: 'from-green-900 via-teal-900 to-emerald-900', route: '/meal-planner', image: G + '3a9192283_generated_image.png' },
       { id: 'glow_playlist_life', label: 'Glow Up Playlist', gradient: 'from-pink-900 via-purple-900 to-fuchsia-900', route: '/glow-playlist', image: G + '6445f243c_generated_image.png' },
-      { id: 'my_goals_life', label: 'My Goals', gradient: 'from-indigo-900 via-purple-900 to-pink-900', route: '/my-goals', image: G + 'd9d71212b_generated_image.png' },
+      { id: 'my_goals_life', label: 'My Goals', gradient: 'from-indigo-900 via-purple-900 to-pink-900', route: '/my-goals', image: G + '516e41b53_generated_image.png' },
     ],
   },
   {
