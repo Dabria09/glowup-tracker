@@ -14,8 +14,11 @@ const G = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/';
 
 // Inject a scoped style to kill all browser-default button backgrounds/borders on this page
 const DASH_STYLE = `
-  .ggu-dashboard button { -webkit-appearance: none; appearance: none; }
-  .ggu-dashboard button:not([class*="bg-"]):not([style*="background"]) { background: transparent !important; }
+  .ggu-dashboard button {
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: transparent;
+  }
 `;
 
 // Icons — prefer the same URLs used in the Discover page for consistency
