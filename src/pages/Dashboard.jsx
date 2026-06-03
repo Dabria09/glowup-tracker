@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import useAgeGroup from '@/lib/useAgeGroup';
 import useTranslation from '@/lib/useTranslation';
 import { base44 } from '@/api/base44Client';
@@ -476,10 +475,8 @@ export default function Dashboard() {
   const [profileId, setProfileId] = useState(null);
   const saveLayoutTimeout = useRef(null);
   const [editMode, setEditMode] = useState(false);
-  const [dragOverId, setDragOverId] = useState(null);
   const [widgetSizes, setWidgetSizes] = useState(() => loadSaved('ggu_widget_sizes', {}));
   const [sizingId, setSizingId] = useState(null);
-  const draggedId = useRef(null);
 
   useEffect(() => { localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds)); }, [homeAppIds]);
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
@@ -496,11 +493,16 @@ export default function Dashboard() {
     }, 1200);
   };
 
+  // Keep a ref to current layout so callbacks always see latest values
+  const layoutRef = useRef({ homeAppIds, quickIds, folders, communityIds, widgetSizes });
+  useEffect(() => { layoutRef.current = { homeAppIds, quickIds, folders, communityIds, widgetSizes }; }, [homeAppIds, quickIds, folders, communityIds, widgetSizes]);
+
   const setWidgetSizesAndSave = (updater) => {
     setWidgetSizes(prev => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
       localStorage.setItem('ggu_widget_sizes', JSON.stringify(next));
-      saveLayoutToProfile(profileId, { homeAppIds, quickIds, folders, communityIds, widgetSizes: next });
+      const l = layoutRef.current;
+      saveLayoutToProfile(profileId, { homeAppIds: l.homeAppIds, quickIds: l.quickIds, folders: l.folders, communityIds: l.communityIds, widgetSizes: next });
       return next;
     });
   };
@@ -583,22 +585,20 @@ export default function Dashboard() {
     };
   }, []);
 
-  // ── Drag handlers ────────────────────────────────────────────────────────────
-  const onDragStart = (start) => { draggedId.current = start.draggableId; };
-  const onDragUpdate = (update) => {
-    if (!update.destination) { setDragOverId(null); return; }
-    const destId = homeAppIds[update.destination.index];
-    setDragOverId(destId && destId !== draggedId.current ? destId : null);
-  };
+  // ── Drag state ───────────────────────────────────────────────────────────────
+  const gridRef = useRef(null);
+  const dragState = useRef(null); // { id, srcIndex, ghostEl, startX, startY }
+  const [draggingId, setDraggingId] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   // Helper to update layout and sync to profile
-  const setHomeAppIdsAndSave = (updater) => {
+  const setHomeAppIdsAndSave = useCallback((updater) => {
     setHomeAppIds(prev => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
       saveLayoutToProfile(profileId, { homeAppIds: next, quickIds, folders, communityIds, widgetSizes });
       return next;
     });
-  };
+  }, [profileId, quickIds, folders, communityIds, widgetSizes]);
 
   const setQuickIdsAndSave = (next) => {
     setQuickIds(next);
@@ -610,41 +610,79 @@ export default function Dashboard() {
     saveLayoutToProfile(profileId, { homeAppIds, quickIds, folders, communityIds: next, widgetSizes });
   };
 
-  const onDragEnd = (result) => {
-    setDragOverId(null);
-    draggedId.current = null;
-    if (!result.destination) return;
-    const srcIndex = result.source.index;
-    const destIndex = result.destination.index;
-    if (srcIndex === destIndex) return;
-    const draggedItemId = homeAppIds[srcIndex];
-    const targetItemId = homeAppIds[destIndex];
-    // Only merge into folders when hovering (dragOverId set), not on simple drop
-
-    const isFolder = (id) => id && id.startsWith('folder_');
-    const shouldMerge = dragOverId !== null && dragOverId === targetItemId;
-    if (shouldMerge && !isFolder(draggedItemId)) {
-      if (isFolder(targetItemId)) {
-        const newFolders = { ...folders, [targetItemId]: { ...folders[targetItemId], appIds: [...(folders[targetItemId]?.appIds || []), draggedItemId] } };
-        const newIds = homeAppIds.filter(id => id !== draggedItemId);
-        setFolders(newFolders);
-        setHomeAppIds(newIds);
-        saveLayoutToProfile(profileId, { homeAppIds: newIds, quickIds, folders: newFolders, communityIds, widgetSizes });
-      } else {
-        const folderId = 'folder_' + Date.now();
-        const newFolders = { ...folders, [folderId]: { id: folderId, name: 'Folder', appIds: [targetItemId, draggedItemId] } };
-        const newIds = homeAppIds.filter(id => id !== draggedItemId).map(id => id === targetItemId ? folderId : id);
-        setFolders(newFolders);
-        setHomeAppIds(newIds);
-        saveLayoutToProfile(profileId, { homeAppIds: newIds, quickIds, folders: newFolders, communityIds, widgetSizes });
+  // Find which grid item the pointer is over
+  const getIndexAtPoint = (x, y) => {
+    if (!gridRef.current) return null;
+    const children = Array.from(gridRef.current.querySelectorAll('[data-item-id]'));
+    for (let i = 0; i < children.length; i++) {
+      const rect = children[i].getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        return i;
       }
+    }
+    return null;
+  };
+
+  const onItemPointerDown = (e, itemId, index) => {
+    if (!editMode) return;
+    // Only start drag on long press (400ms)
+    const el = e.currentTarget;
+    const startX = e.clientX ?? e.touches?.[0]?.clientX;
+    const startY = e.clientY ?? e.touches?.[0]?.clientY;
+
+    const longPressTimer = setTimeout(() => {
+      setDraggingId(itemId);
+      dragState.current = { id: itemId, srcIndex: index, startX, startY };
+      if (navigator.vibrate) navigator.vibrate(30);
+    }, 350);
+
+    const cancel = () => {
+      clearTimeout(longPressTimer);
+      el.removeEventListener('pointerup', cancel);
+      el.removeEventListener('pointermove', cancel);
+    };
+    el.addEventListener('pointerup', cancel, { once: true });
+    el.addEventListener('pointermove', cancel, { once: true });
+  };
+
+  const onGridPointerMove = (e) => {
+    if (!dragState.current) return;
+    const x = e.clientX ?? e.touches?.[0]?.clientX;
+    const y = e.clientY ?? e.touches?.[0]?.clientY;
+    const idx = getIndexAtPoint(x, y);
+    setDragOverIndex(idx);
+  };
+
+  const onGridPointerUp = (e) => {
+    if (!dragState.current) return;
+    const x = e.clientX ?? e.touches?.[0]?.clientX;
+    const y = e.clientY ?? e.touches?.[0]?.clientY;
+    const destIndex = getIndexAtPoint(x, y);
+    const { srcIndex, id: draggedItemId } = dragState.current;
+
+    dragState.current = null;
+    setDraggingId(null);
+    setDragOverIndex(null);
+
+    if (destIndex === null || destIndex === srcIndex) return;
+
+    const targetItemId = homeAppIds[destIndex];
+    const isFolder = (id) => id && id.startsWith('folder_');
+
+    // Merge into folder on drop
+    if (!isFolder(draggedItemId) && isFolder(targetItemId)) {
+      const newFolders = { ...folders, [targetItemId]: { ...folders[targetItemId], appIds: [...(folders[targetItemId]?.appIds || []), draggedItemId] } };
+      const newIds = homeAppIds.filter(id => id !== draggedItemId);
+      setFolders(newFolders);
+      setHomeAppIdsAndSave(() => newIds);
       return;
     }
+
+    // Simple reorder
     const items = [...homeAppIds];
     const [moved] = items.splice(srcIndex, 1);
     items.splice(destIndex, 0, moved);
-    setHomeAppIds(items);
-    saveLayoutToProfile(profileId, { homeAppIds: items, quickIds, folders, communityIds, widgetSizes });
+    setHomeAppIdsAndSave(() => items);
   };
 
   const firstName = user?.full_name?.split(' ')[0] || 'Gorgeous';
@@ -798,82 +836,69 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
-            <Droppable droppableId="home-apps" direction="horizontal">
-              {(provided) => (
+          <div
+            ref={gridRef}
+            style={{ display: 'flex', flexWrap: 'wrap', columnGap: '8px', rowGap: '20px', alignItems: 'flex-start', touchAction: draggingId ? 'none' : 'auto' }}
+            onPointerMove={onGridPointerMove}
+            onPointerUp={onGridPointerUp}
+            onPointerLeave={onGridPointerUp}
+          >
+            {homeAppIds.map((itemId, index) => {
+              const isFolder = itemId && itemId.startsWith('folder_');
+              const folder = isFolder ? folders[itemId] : null;
+              const app = !isFolder ? getPageById(itemId) : null;
+              const wSize = (!isFolder && widgetSizes[itemId]) || 'small';
+              if (isFolder && !folder) return null;
+              if (!isFolder && !app) return null;
+              const isBig = !isFolder && (wSize === 'medium' || wSize === 'large');
+              const itemW = isBig ? 'calc(50% - 4px)' : 'calc(25% - 6px)';
+              const isDragging = draggingId === itemId;
+              const isOver = dragOverIndex === index && draggingId && draggingId !== itemId;
+              return (
                 <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  style={{ display: 'flex', flexWrap: 'wrap', columnGap: '8px', rowGap: '20px', alignItems: 'flex-start' }}
+                  key={itemId}
+                  data-item-id={itemId}
+                  style={{ width: itemW, flexShrink: 0, opacity: isDragging ? 0.4 : 1, transition: 'opacity 0.15s, transform 0.15s' }}
+                  className={`select-none ${isOver ? 'scale-105' : ''}`}
+                  onPointerDown={editMode ? (e) => onItemPointerDown(e, itemId, index) : undefined}
                 >
-                  {homeAppIds.map((itemId, index) => {
-                    const isFolder = itemId && itemId.startsWith('folder_');
-                    const folder = isFolder ? folders[itemId] : null;
-                    const app = !isFolder ? getPageById(itemId) : null;
-                    const isHoverTarget = dragOverId === itemId;
-                    const wSize = (!isFolder && widgetSizes[itemId]) || 'small';
-                    if (isFolder && !folder) return null;
-                    if (!isFolder && !app) return null;
-                    // Width: large/medium = ~half width (2 cols), small = ~quarter (1 col)
-                    const isBig = !isFolder && (wSize === 'medium' || wSize === 'large');
-                    const itemW = isBig ? 'calc(50% - 4px)' : 'calc(25% - 6px)';
-                    return (
-                      <Draggable key={itemId} draggableId={itemId} index={index}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            style={{
-                              ...provided.draggableProps.style,
-                              width: snapshot.isDragging ? undefined : itemW,
-                              flexShrink: 0,
-                            }}
-                            className={`select-none ${isHoverTarget && !snapshot.isDragging ? 'scale-105' : ''}`}
-                          >
-                            <div className={`relative transition-all ${isHoverTarget && !snapshot.isDragging ? 'ring-2 ring-pink-400 ring-offset-1 ring-offset-transparent rounded-[18px]' : ''}`}>
-                              {isFolder ? (
-                                <FolderIcon folder={folder} onOpen={() => !snapshot.isDragging && setOpenFolder(itemId)} onLongPress={() => setOpenFolder(itemId)} />
-                              ) : wSize === 'large' ? (
-                                <FeaturedWidget app={app} onNavigate={snapshot.isDragging ? () => {} : navigate} />
-                              ) : wSize === 'medium' ? (
-                                <MediumWidget app={app} onNavigate={snapshot.isDragging ? () => {} : navigate} />
-                              ) : (
-                                <SmallAppIcon app={app} onNavigate={snapshot.isDragging ? () => {} : navigate} />
-                              )}
-                              {editMode && (
-                                <>
-                                  <button onPointerDown={e => { e.stopPropagation(); setHomeAppIdsAndSave(prev => prev.filter(id => id !== itemId)); }}
-                                    className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-red-900 border border-red-700 flex items-center justify-center z-20 shadow"
-                                    style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1 }}>×</button>
-                                  {!isFolder && (
-                                    <button onPointerDown={e => { e.stopPropagation(); setSizingId(itemId); }}
-                                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center z-20 shadow"
-                                      style={{ fontSize: 9, color: '#c084fc', lineHeight: 1 }}>⬛</button>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </div>
+                  <div className={`relative ${isOver ? 'ring-2 ring-pink-400 ring-offset-1 ring-offset-transparent rounded-[18px]' : ''}`}>
+                    {isFolder ? (
+                      <FolderIcon folder={folder} onOpen={() => !isDragging && setOpenFolder(itemId)} onLongPress={() => setOpenFolder(itemId)} />
+                    ) : wSize === 'large' ? (
+                      <FeaturedWidget app={app} onNavigate={navigate} />
+                    ) : wSize === 'medium' ? (
+                      <MediumWidget app={app} onNavigate={navigate} />
+                    ) : (
+                      <SmallAppIcon app={app} onNavigate={navigate} />
+                    )}
+                    {editMode && (
+                      <>
+                        <button onPointerDown={e => { e.stopPropagation(); setHomeAppIdsAndSave(prev => prev.filter(id => id !== itemId)); }}
+                          className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-red-900 border border-red-700 flex items-center justify-center z-20 shadow"
+                          style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1 }}>×</button>
+                        {!isFolder && (
+                          <button onPointerDown={e => { e.stopPropagation(); setSizingId(itemId); }}
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center z-20 shadow"
+                            style={{ fontSize: 9, color: '#c084fc', lineHeight: 1 }}>⬛</button>
                         )}
-                      </Draggable>
-                    );
-                  })}
-                  {provided.placeholder}
-                  {/* Add more button */}
-                  <div style={{ width: 'calc(25% - 6px)', flexShrink: 0 }}>
-                    <button onClick={() => setShowHomePicker(true)}
-                      className="flex flex-col items-center gap-1.5 select-none w-full">
-                      <div className="w-16 h-16 rounded-[18px] flex items-center justify-center border-2 border-dashed border-white/10 hover:border-pink-500/40 transition">
-                        <Plus size={20} className="text-gray-600" />
-                      </div>
-                      <span className="text-[10px] text-gray-600">Add</span>
-                    </button>
+                      </>
+                    )}
                   </div>
                 </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+              );
+            })}
+            {/* Add more button */}
+            <div style={{ width: 'calc(25% - 6px)', flexShrink: 0 }}>
+              <button onClick={() => setShowHomePicker(true)}
+                className="flex flex-col items-center gap-1.5 select-none w-full">
+                <div className="w-16 h-16 rounded-[18px] flex items-center justify-center border-2 border-dashed border-white/10 hover:border-pink-500/40 transition">
+                  <Plus size={20} className="text-gray-600" />
+                </div>
+                <span className="text-[10px] text-gray-600">Add</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* ── COMMUNITY ────────────────────────────────────────── */}
