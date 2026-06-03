@@ -11,66 +11,69 @@ import AvatarPreview from '@/components/avatar/AvatarPreview';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
 
 const MANUS = 'https://gguapp-wdww94kr.manus.space/manus-storage/';
-const C = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/';
-// Soft 3D clay icon set
+const G = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/';
+
+// Icons — prefer the same URLs used in the Discover page for consistency
 const CLAY = {
-  checkin:       C + '245d0138f_generated_image.png',
-  diary:         C + '710b89326_generated_image.png',
-  fitness:       C + 'f975b1e4b_generated_image.png',
-  visionBoard:   C + 'aaad1b01e_generated_image.png',
-  transformation:C + '8f2344ae7_generated_image.png',
-  certificates:  C + '57a7e88b7_generated_image.png',
-  scholarship:   C + '12d71f0f1_generated_image.png',
-  money:         C + '4a763ff09_generated_image.png',
-  wellness:      C + '85b38d6a9_generated_image.png',
-  challenges:    C + 'b0b33d775_generated_image.png',
-  calendar:      C + '11648e894_generated_image.png',
-  tips:          C + 'fbd977c45_generated_image.png',
-  goals:         C + '94af4a0ba_generated_image.png',
-  growth:        C + 'cbd24c83b_generated_image.png',
-  library:       C + 'daeb53cc1_generated_image.png',
-  grocery:       C + '0fbe7a0a4_generated_image.png',
-  kitchen:       C + 'ba4fc478d_generated_image.png',
-  mealPlanner:   C + 'ab3f47502_generated_image.png',
-  spiritual:     C + '69ee98dfc_generated_image.png',
-  glowTalk:      C + 'd61778bd6_generated_image.png',
-  quotes:        C + '38feb1126_generated_image.png',
-  playlist:      C + 'dba92b2cb_generated_image.png',
-  birthday:      C + '21797110a_generated_image.png',
-  trip:          C + '2bbc9d42c_generated_image.png',
-  cleaning:      C + 'c79db4bc9_generated_image.png',
-  stickyNotes:   C + 'c413f8544_generated_image.png',
-  time:          C + 'f6042c9fc_generated_image.png',
-  contacts:      C + '99bedca16_generated_image.png',
-  vault:         C + 'dba6c4bea_generated_image.png',
-  store:         C + 'adad75167_generated_image.png',
-  voice:         C + '97e249a5d_generated_image.png',
-  countdown:     C + 'd036cdd3a_generated_image.png',
-  mentorship:    C + '18adc7335_generated_image.png',
-  glowLink:      C + '624a1b367_generated_image.png',
-  support:       C + 'e76720752_generated_image.png',
-  community:     C + '34424e578_generated_image.png',
-  shoutOuts:     C + '2d4856861_generated_image.png',
-  leaderboard:   C + 'b2a67faac_generated_image.png',
-  teams:         C + 'c08b75aad_generated_image.png',
-  squads:        C + '4335e4713_generated_image.png',
-  dreamCalc:     C + '3948a5164_generated_image.png',
-  savings:       C + '2750f407d_generated_image.png',
-  homework:      C + '51f8b4968_generated_image.png',
-  cycle:         C + '32e0f6a88_generated_image.png',
-  calm:          C + '62fdbda70_generated_image.png',
-  glowScore:     C + '57a7e88b7_generated_image.png',
-  academy:       C + 'daeb53cc1_generated_image.png',
-  careers:       C + '12d71f0f1_generated_image.png',
-  glowBoard:     C + 'aaad1b01e_generated_image.png',
-  meVsMe:        C + 'f975b1e4b_generated_image.png',
-  weeklyTheme:   C + '245d0138f_generated_image.png',
+  checkin:       G + '2ad052c1f_generated_image.png',
+  diary:         G + 'b9cbbd278_generated_image.png',
+  fitness:       G + '21e8efe1c_generated_image.png',
+  visionBoard:   G + 'f62dbe5d2_generated_image.png',
+  transformation:G + '11e16a6c5_generated_image.png',
+  certificates:  G + 'd3ecec9a9_generated_image.png',
+  scholarship:   G + 'e63ad859e_generated_image.png',
+  money:         G + '318604697_generated_image.png',
+  wellness:      G + 'e78417482_generated_image.png',
+  challenges:    G + '5d8c38a62_generated_image.png',
+  calendar:      G + '8c01385ea_generated_image.png',
+  tips:          G + '9dc18d7d9_generated_image.png',
+  goals:         G + '516e41b53_generated_image.png',
+  growth:        G + '5f450c758_generated_image.png',
+  library:       G + '6045b9468_generated_image.png',
+  grocery:       G + 'd3a3fe1f2_generated_image.png',
+  kitchen:       G + 'ad580c299_generated_image.png',
+  mealPlanner:   G + '3a9192283_generated_image.png',
+  spiritual:     G + '36c281277_generated_image.png',
+  glowTalk:      G + 'b718f5c26_generated_image.png',
+  quotes:        G + '4cf447c7f_generated_image.png',
+  playlist:      G + '6445f243c_generated_image.png',
+  birthday:      G + 'f61e7abcd_generated_image.png',
+  trip:          G + 'a44ab1c91_generated_image.png',
+  cleaning:      G + '7699c2395_generated_image.png',
+  stickyNotes:   G + '74fa7886f_generated_image.png',
+  time:          G + 'f79912847_generated_image.png',
+  contacts:      G + 'e6db4fb7e_generated_image.png',
+  vault:         G + '5dad0afdd_generated_image.png',
+  store:         G + 'adad75167_generated_image.png',
+  voice:         G + '275b4ec38_generated_image.png',
+  countdown:     G + 'f112832da_generated_image.png',
+  mentorship:    G + '747986b99_generated_image.png',
+  glowLink:      G + '993a4bab1_generated_image.png',
+  support:       G + 'a4fc1cf5d_generated_image.png',
+  community:     G + 'b903c9fb6_generated_image.png',
+  shoutOuts:     G + '841f8b508_generated_image.png',
+  leaderboard:   G + '62de76922_generated_image.png',
+  teams:         G + '23b34cbd3_generated_image.png',
+  squads:        G + 'b990d5ccf_generated_image.png',
+  dreamCalc:     G + '970fc7984_generated_image.png',
+  savings:       G + '2750f407d_generated_image.png',
+  homework:      G + 'c390f66c0_generated_image.png',
+  cycle:         G + 'ee7ef7b01_generated_image.png',
+  calm:          G + '946ac07ee_generated_image.png',
+  glowScore:     G + '054ca0204_generated_image.png',
+  academy:       G + 'ed750f49f_generated_image.png',
+  careers:       G + '690d53027_generated_image.png',
+  glowBoard:     G + 'a76e19c27_generated_image.png',
+  meVsMe:        G + '3b5a1157d_generated_image.png',
+  weeklyTheme:   G + '035672bd8_generated_image.png',
+  glowFeed:      G + 'b54c35ab5_generated_image.png',
+  dailyChallenges: G + '5d8c38a62_generated_image.png',
 };
 
 const ALL_PAGES = [
   { id: 'daily-checkin',       label: 'Glow Check-In',    route: '/daily-checkin',       image: CLAY.checkin,        gradient: 'from-pink-900 via-rose-900 to-fuchsia-900',     keywords: ['check in', 'mood', 'daily', 'points'] },
   { id: 'glow',                label: 'My Glow',          route: '/glow',                image: CLAY.checkin,        gradient: 'from-pink-900 via-purple-900 to-fuchsia-900',   keywords: ['challenges', 'streak', 'crown', 'badges', 'progress'] },
-  { id: 'glow-feed',           label: 'Glow Feed',        route: '/glow-feed',           image: CLAY.community,      gradient: 'from-yellow-800 via-amber-900 to-pink-900',     keywords: ['feed', 'posts', 'community', 'social'] },
+  { id: 'glow-feed',           label: 'Glow Feed',        route: '/glow-feed',           image: CLAY.glowFeed,       gradient: 'from-yellow-800 via-amber-900 to-pink-900',     keywords: ['feed', 'posts', 'community', 'social'] },
   { id: 'glow-board',          label: 'Glow Board',       route: '/glow-board',          image: CLAY.glowBoard,      gradient: 'from-pink-900 via-rose-900 to-fuchsia-900',     keywords: ['photos', 'vision', 'inspiration'] },
   { id: 'glow-talk',           label: 'Glow Talk',        route: '/glow-talk',           image: CLAY.glowTalk,       gradient: 'from-pink-900 via-fuchsia-900 to-purple-900',   keywords: ['chat', 'messages', 'talk'] },
   { id: 'shout-outs',          label: 'Shout Outs',       route: '/shout-outs',          image: CLAY.shoutOuts,      gradient: 'from-orange-900 via-red-900 to-pink-900',       keywords: ['praise', 'recognition'] },
@@ -180,19 +183,19 @@ function loadSaved(key, defaults) {
 
 function getPageById(id) { return ALL_PAGES.find(p => p.id === id); }
 
-// ─── Widget Icon (iOS-style rounded square) ─────────────────────────────────
+// ─── Widget Icon (iOS-style rounded square) — matches Discover page style ───
 function AppIcon({ app, size = 64 }) {
   return (
     <div
       className={`overflow-hidden flex items-center justify-center flex-shrink-0 ${!app.image ? 'bg-gradient-to-br ' + app.gradient : ''}`}
       style={{
         width: size, height: size, borderRadius: size * 0.225,
-        boxShadow: '0 4px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)',
       }}
     >
       {app.image
         ? <img src={app.image} alt={app.label} className="w-full h-full object-cover" />
-        : <span style={{ fontSize: size * 0.42 }}>{app.emoji}</span>
+        : <span className="text-4xl drop-shadow-lg" style={{ fontSize: size * 0.42 }}>{app.emoji}</span>
       }
     </div>
   );
@@ -399,9 +402,9 @@ function SmallAppIcon({ app, onNavigate }) {
 function QuickChip({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-      className="flex flex-col items-center gap-1 flex-shrink-0 py-2.5 px-2 rounded-2xl transition"
-      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', minWidth: 60 }}>
-      <AppIcon app={app} size={36} />
+      className="flex flex-col items-center gap-1 flex-shrink-0 py-2 px-1 transition active:scale-90"
+      style={{ minWidth: 56 }}>
+      <AppIcon app={app} size={44} />
       <span className="text-[9px] text-gray-400 text-center leading-tight" style={{ maxWidth: 58 }}>{app.label}</span>
     </button>
   );
@@ -885,9 +888,9 @@ export default function Dashboard() {
               if (!app) return null;
               return (
                 <button key={id} onClick={() => navigate(app.route)}
-                  className="relative rounded-[18px] overflow-hidden flex flex-col items-start justify-end p-3 active:scale-95 transition-all"
-                  style={{ height: 90, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  {app.image && <img src={app.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />}
+                  className={`relative rounded-[18px] overflow-hidden flex flex-col items-start justify-end p-3 active:scale-95 transition-all ${!app.image ? 'bg-gradient-to-br ' + app.gradient : ''}`}
+                  style={{ height: 90 }}>
+                  {app.image && <img src={app.image} alt="" className="absolute inset-0 w-full h-full object-cover" />}
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 50%, transparent)' }} />
                   <span className="relative text-[11px] font-bold text-white z-10">{app.label}</span>
                 </button>
