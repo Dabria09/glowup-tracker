@@ -740,10 +740,13 @@ export default function Dashboard() {
           </div>
 
           <DragDropContext onDragStart={onDragStart} onDragUpdate={onDragUpdate} onDragEnd={onDragEnd}>
-            <Droppable droppableId="home-apps">
+            <Droppable droppableId="home-apps" direction="horizontal">
               {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps}
-                  className="grid grid-cols-4 gap-x-2 gap-y-5">
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  style={{ display: 'flex', flexWrap: 'wrap', columnGap: '8px', rowGap: '20px', alignItems: 'flex-start' }}
+                >
                   {homeAppIds.map((itemId, index) => {
                     const isFolder = itemId && itemId.startsWith('folder_');
                     const folder = isFolder ? folders[itemId] : null;
@@ -752,7 +755,9 @@ export default function Dashboard() {
                     const wSize = (!isFolder && widgetSizes[itemId]) || 'small';
                     if (isFolder && !folder) return null;
                     if (!isFolder && !app) return null;
-                    const spanClass = !isFolder && (wSize === 'medium' || wSize === 'large') ? 'col-span-2' : '';
+                    // Width: large/medium = ~half width (2 cols), small = ~quarter (1 col)
+                    const isBig = !isFolder && (wSize === 'medium' || wSize === 'large');
+                    const itemW = isBig ? 'calc(50% - 4px)' : 'calc(25% - 6px)';
                     return (
                       <Draggable key={itemId} draggableId={itemId} index={index}>
                         {(provided, snapshot) => (
@@ -760,8 +765,13 @@ export default function Dashboard() {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            style={provided.draggableProps.style}
-                            className={`select-none ${isHoverTarget && !snapshot.isDragging ? 'scale-105' : ''} ${spanClass}`}>
+                            style={{
+                              ...provided.draggableProps.style,
+                              width: snapshot.isDragging ? undefined : itemW,
+                              flexShrink: 0,
+                            }}
+                            className={`select-none ${isHoverTarget && !snapshot.isDragging ? 'scale-105' : ''}`}
+                          >
                             <div className={`relative transition-all ${isHoverTarget && !snapshot.isDragging ? 'ring-2 ring-pink-400 ring-offset-1 ring-offset-transparent rounded-[18px]' : ''}`}>
                               {isFolder ? (
                                 <FolderIcon folder={folder} onOpen={() => !snapshot.isDragging && setOpenFolder(itemId)} onLongPress={() => setOpenFolder(itemId)} />
@@ -792,13 +802,15 @@ export default function Dashboard() {
                   })}
                   {provided.placeholder}
                   {/* Add more button */}
-                  <button onClick={() => setShowHomePicker(true)}
-                    className="flex flex-col items-center gap-1.5 select-none">
-                    <div className="w-16 h-16 rounded-[18px] flex items-center justify-center border-2 border-dashed border-white/10 hover:border-pink-500/40 transition">
-                      <Plus size={20} className="text-gray-600" />
-                    </div>
-                    <span className="text-[10px] text-gray-600">Add</span>
-                  </button>
+                  <div style={{ width: 'calc(25% - 6px)', flexShrink: 0 }}>
+                    <button onClick={() => setShowHomePicker(true)}
+                      className="flex flex-col items-center gap-1.5 select-none w-full">
+                      <div className="w-16 h-16 rounded-[18px] flex items-center justify-center border-2 border-dashed border-white/10 hover:border-pink-500/40 transition">
+                        <Plus size={20} className="text-gray-600" />
+                      </div>
+                      <span className="text-[10px] text-gray-600">Add</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </Droppable>
