@@ -58,14 +58,19 @@ const APP_PAGES = [
   { id: 'notifications', label: 'Notifications', route: '/notifications', keywords: 'notifications alerts follows' },
 ];
 
-const SECTION_ORDER = ['pages', 'profiles', 'posts', 'challenges', 'quotes'];
+const SECTION_ORDER = ['pages', 'profiles', 'communities', 'posts', 'challenges', 'scholarships', 'quotes', 'tips', 'kitchen', 'wellness'];
 
 const SECTION_META = {
-  pages:      { label: '📱 Features', color: '#ec4899' },
-  profiles:   { label: '👤 Girls', color: '#a855f7' },
-  posts:      { label: '📝 Posts', color: '#3b82f6' },
-  challenges: { label: '🔥 Challenges', color: '#f59e0b' },
-  quotes:     { label: '💬 Quotes', color: '#34d399' },
+  pages:        { label: '📱 Features & Tools', color: '#ec4899' },
+  profiles:     { label: '👤 Girls', color: '#a855f7' },
+  communities:  { label: '🌸 Communities', color: '#10b981' },
+  posts:        { label: '📝 Posts', color: '#3b82f6' },
+  challenges:   { label: '🔥 Challenges', color: '#f59e0b' },
+  scholarships: { label: '🎓 Scholarships', color: '#fbbf24' },
+  quotes:       { label: '💬 Quotes', color: '#34d399' },
+  tips:         { label: '✨ Glow Tips', color: '#c084fc' },
+  kitchen:      { label: '🍳 Kitchen Basics', color: '#fb923c' },
+  wellness:     { label: '💚 Wellness Guides', color: '#4ade80' },
 };
 
 export default function Search() {
@@ -388,7 +393,7 @@ export default function Search() {
 
                     {/* COMMUNITIES */}
                     {section === 'communities' && items.map(c => (
-                      <button key={c.id} onClick={() => navigate('/community-hub')}
+                      <button key={c.id} onClick={() => navigate(`/community-hub/${c.id}`)}
                         className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left transition active:scale-98"
                         style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"

@@ -268,7 +268,8 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
             })}
           </div>
         </div>
-        <div className="px-4 pt-6 pb-12 border-t border-white/10 flex-shrink-0 grid grid-cols-2 gap-3">
+        <div className="px-4 pt-4 border-t border-white/10 flex-shrink-0 grid grid-cols-2 gap-3"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}>
           <button onClick={onClose} className="py-4 rounded-2xl text-sm font-semibold text-gray-400 bg-white/5">Cancel</button>
           <button onClick={() => { onSave(selected); onClose(); }} className="py-4 rounded-2xl text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg,#c44a55,#ff6a75)' }}>Save ({selected.length})</button>
         </div>
@@ -361,6 +362,8 @@ export default function Dashboard() {
   const [checkedInToday, setCheckedInToday] = useState(false);
   const [communityIds, setCommunityIds] = useState(() => loadSaved('ggu_community_apps', ['glow-feed', 'community-hub', 'mentorship']));
   const [showCommunityPicker, setShowCommunityPicker] = useState(false);
+  const [profileId, setProfileId] = useState(null);
+  const saveLayoutTimeout = useRef(null);
   const [editMode, setEditMode] = useState(false);
   const [dragOverId, setDragOverId] = useState(null);
   const draggedId = useRef(null);
@@ -369,6 +372,15 @@ export default function Dashboard() {
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
   useEffect(() => { localStorage.setItem('ggu_folders', JSON.stringify(folders)); }, [folders]);
   useEffect(() => { localStorage.setItem('ggu_community_apps', JSON.stringify(communityIds)); }, [communityIds]);
+
+  // Save layout to UserProfile (debounced) so it persists across devices/sessions
+  const saveLayoutToProfile = (pid, data) => {
+    clearTimeout(saveLayoutTimeout.current);
+    saveLayoutTimeout.current = setTimeout(async () => {
+      if (!pid) return;
+      await base44.entities.UserProfile.update(pid, { featured_sections: JSON.stringify(data) });
+    }, 1200);
+  };
 
   useEffect(() => {
     const savedColor = localStorage.getItem('ggu_bg_color');
@@ -417,12 +429,23 @@ export default function Dashboard() {
       await checkCheckin(u.email);
       await refreshPoints(u.email);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
-      if (profiles.length) {
-        const profile = profiles[0];
-        setProfileData(profile);
-        if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
-        if (profile.avatar_builder_config) { try { setAvatarConfig(JSON.parse(profile.avatar_builder_config)); } catch {} }
-      }
+        if (profiles.length) {
+          const profile = profiles[0];
+          setProfileData(profile);
+          setProfileId(profile.id);
+          if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+          if (profile.avatar_builder_config) { try { setAvatarConfig(JSON.parse(profile.avatar_builder_config)); } catch {} }
+          // Load saved layout from profile (overrides localStorage if present)
+          if (profile.featured_sections) {
+            try {
+              const saved = JSON.parse(profile.featured_sections);
+              if (saved.homeAppIds) { setHomeAppIds(saved.homeAppIds); localStorage.setItem('ggu_home_apps', JSON.stringify(saved.homeAppIds)); }
+              if (saved.quickIds) { setQuickIds(saved.quickIds); localStorage.setItem('ggu_quick_access', JSON.stringify(saved.quickIds)); }
+              if (saved.folders) { setFolders(saved.folders); localStorage.setItem('ggu_folders', JSON.stringify(saved.folders)); }
+              if (saved.communityIds) { setCommunityIds(saved.communityIds); localStorage.setItem('ggu_community_apps', JSON.stringify(saved.communityIds)); }
+            } catch {}
+          }
+        }
     }).catch(() => {});
 
     return () => {
@@ -438,6 +461,35 @@ export default function Dashboard() {
     const destId = homeAppIds[update.destination.index];
     setDragOverId(destId && destId !== draggedId.current ? destId : null);
   };
+  // Helper to update layout and sync to profile
+  const updateLayout = (newHomeAppIds, newQuickIds, newFolders, newCommunityIds) => {
+    const data = {
+      homeAppIds: newHomeAppIds,
+      quickIds: newQuickIds,
+      folders: newFolders,
+      communityIds: newCommunityIds,
+    };
+    saveLayoutToProfile(profileId, data);
+  };
+
+  const setHomeAppIdsAndSave = (updater) => {
+    setHomeAppIds(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      saveLayoutToProfile(profileId, { homeAppIds: next, quickIds, folders, communityIds });
+      return next;
+    });
+  };
+
+  const setQuickIdsAndSave = (next) => {
+    setQuickIds(next);
+    saveLayoutToProfile(profileId, { homeAppIds, quickIds: next, folders, communityIds });
+  };
+
+  const setCommunityIdsAndSave = (next) => {
+    setCommunityIds(next);
+    saveLayoutToProfile(profileId, { homeAppIds, quickIds, folders, communityIds: next });
+  };
+
   const onDragEnd = (result) => {
     setDragOverId(null);
     draggedId.current = null;
@@ -451,12 +503,18 @@ export default function Dashboard() {
     const shouldMerge = dragOverId !== null && dragOverId === targetItemId;
     if (shouldMerge && !isFolder(draggedItemId)) {
       if (isFolder(targetItemId)) {
-        setFolders(prev => ({ ...prev, [targetItemId]: { ...prev[targetItemId], appIds: [...(prev[targetItemId]?.appIds || []), draggedItemId] } }));
-        setHomeAppIds(prev => prev.filter(id => id !== draggedItemId));
+        const newFolders = { ...folders, [targetItemId]: { ...folders[targetItemId], appIds: [...(folders[targetItemId]?.appIds || []), draggedItemId] } };
+        const newIds = homeAppIds.filter(id => id !== draggedItemId);
+        setFolders(newFolders);
+        setHomeAppIds(newIds);
+        saveLayoutToProfile(profileId, { homeAppIds: newIds, quickIds, folders: newFolders, communityIds });
       } else {
         const folderId = 'folder_' + Date.now();
-        setFolders(prev => ({ ...prev, [folderId]: { id: folderId, name: 'Folder', appIds: [targetItemId, draggedItemId] } }));
-        setHomeAppIds(prev => { const next = prev.filter(id => id !== draggedItemId); return next.map(id => id === targetItemId ? folderId : id); });
+        const newFolders = { ...folders, [folderId]: { id: folderId, name: 'Folder', appIds: [targetItemId, draggedItemId] } };
+        const newIds = homeAppIds.filter(id => id !== draggedItemId).map(id => id === targetItemId ? folderId : id);
+        setFolders(newFolders);
+        setHomeAppIds(newIds);
+        saveLayoutToProfile(profileId, { homeAppIds: newIds, quickIds, folders: newFolders, communityIds });
       }
       return;
     }
@@ -464,6 +522,7 @@ export default function Dashboard() {
     const [moved] = items.splice(srcIndex, 1);
     items.splice(destIndex, 0, moved);
     setHomeAppIds(items);
+    saveLayoutToProfile(profileId, { homeAppIds: items, quickIds, folders, communityIds });
   };
 
   const firstName = user?.full_name?.split(' ')[0] || 'Gorgeous';
@@ -600,7 +659,7 @@ export default function Dashboard() {
         <div className="px-5 mb-6">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase">Quick Access</p>
-            <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-[11px] text-pink-400 font-semibold"><Plus size={11} /> Edit</button>
+            <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-[11px] text-pink-400 font-semibold"><Plus size={11} /> Customize</button>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             {quickIds.map(id => ALL_PAGES.find(p => p.id === id)).filter(Boolean).map(app =>
@@ -686,7 +745,7 @@ export default function Dashboard() {
                                 <SmallAppIcon app={app} onNavigate={snapshot.isDragging ? () => {} : navigate} />
                               )}
                               {editMode && (
-                                <button onPointerDown={e => { e.stopPropagation(); setHomeAppIds(prev => prev.filter(id => id !== itemId)); }}
+                                 <button onPointerDown={e => { e.stopPropagation(); setHomeAppIdsAndSave(prev => prev.filter(id => id !== itemId)); }}
                                   className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center z-20 shadow"
                                   style={{ fontSize: 13, color: '#f87171', lineHeight: 1 }}>×</button>
                               )}
@@ -698,7 +757,7 @@ export default function Dashboard() {
                   })}
                   {provided.placeholder}
                   {/* Add more button */}
-                  <button onClick={() => setShowQuickPicker(true)}
+                  <button onClick={() => { setShowQuickPicker(true); }}
                     className="flex flex-col items-center gap-1.5 select-none"
                     style={{ width: '100%' }}>
                     <div className="w-16 h-16 rounded-[18px] flex items-center justify-center border-2 border-dashed border-white/15 hover:border-pink-500/40 transition">
@@ -763,10 +822,10 @@ export default function Dashboard() {
           onClose={() => setShowCustomize(false)} />
       )}
       {showCommunityPicker && (
-        <PagePickerModal title="Customize Community" currentIds={communityIds} onSave={setCommunityIds} onClose={() => setShowCommunityPicker(false)} />
+        <PagePickerModal title="Customize Community" currentIds={communityIds} onSave={setCommunityIdsAndSave} onClose={() => setShowCommunityPicker(false)} />
       )}
       {showQuickPicker && (
-        <PagePickerModal title="Customize Quick Access" currentIds={quickIds} onSave={setQuickIds} onClose={() => setShowQuickPicker(false)} />
+        <PagePickerModal title="Customize Quick Access" currentIds={quickIds} onSave={setQuickIdsAndSave} onClose={() => setShowQuickPicker(false)} />
       )}
       {currentFolder && (
         <FolderModal folder={currentFolder} folders={folders} setFolders={setFolders}

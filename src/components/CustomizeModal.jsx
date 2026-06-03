@@ -226,7 +226,8 @@ export default function CustomizeModal({
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-end" onClick={onClose}>
       <div
-        className="w-full bg-[#130a10] rounded-t-3xl p-5 max-h-[90vh] overflow-y-auto"
+        className="w-full bg-[#130a10] rounded-t-3xl p-5 overflow-y-auto"
+        style={{ maxHeight: '92vh', paddingBottom: 0 }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -655,8 +656,9 @@ export default function CustomizeModal({
         <button
           onClick={onClose}
           className="w-full py-3 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold text-sm mt-6"
+          style={{ marginBottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)' }}
         >
-          Done
+          Done ✓
         </button>
       </div>
     </div>
