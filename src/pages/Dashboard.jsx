@@ -15,9 +15,20 @@ const G = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/';
 // Inject a scoped style to kill all browser-default button backgrounds/borders on this page
 const DASH_STYLE = `
   .ggu-dashboard button {
-    -webkit-appearance: none;
-    appearance: none;
-    background-color: transparent;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ggu-icon-btn,
+  .ggu-icon-btn:hover,
+  .ggu-icon-btn:focus,
+  .ggu-icon-btn:active {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
   }
 `;
 
@@ -217,7 +228,7 @@ function FolderIcon({ folder, onOpen, onLongPress }) {
   const endPress = () => clearTimeout(longTimer.current);
 
   return (
-    <button className="flex flex-col items-center gap-1.5 select-none w-full" onClick={onOpen}
+    <button className="ggu-icon-btn flex flex-col items-center gap-1.5 select-none w-full" onClick={onOpen}
       onMouseDown={startPress} onMouseUp={endPress} onMouseLeave={endPress}
       onTouchStart={startPress} onTouchEnd={endPress} onTouchMove={endPress}>
       <div className="w-16 h-16 rounded-[18px] flex items-center justify-center p-1.5"
@@ -399,7 +410,7 @@ function MediumWidget({ app, onNavigate }) {
 // ─── Small App Icon (4-col grid) ─────────────────────────────────────────────
 function SmallAppIcon({ app, onNavigate }) {
   return (
-    <button onClick={() => onNavigate(app.route)} className="flex flex-col items-center gap-1.5 select-none active:scale-90 transition-transform w-full" style={{ background: 'none', border: 'none', padding: 0, WebkitAppearance: 'none' }}>
+    <button onClick={() => onNavigate(app.route)} className="ggu-icon-btn flex flex-col items-center gap-1.5 select-none active:scale-90 transition-transform w-full" style={{ padding: 0 }}>
       <AppIcon app={app} size={58} />
       <span className="text-[10px] text-center text-gray-300 leading-tight" style={{ maxWidth: 64 }}>{app.label}</span>
     </button>
@@ -410,8 +421,8 @@ function SmallAppIcon({ app, onNavigate }) {
 function QuickChip({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-      className="flex flex-col items-center gap-1 flex-shrink-0 py-2 px-1 transition active:scale-90"
-      style={{ minWidth: 56, background: 'none', border: 'none', padding: '8px 4px', WebkitAppearance: 'none' }}>
+      className="ggu-icon-btn flex flex-col items-center gap-1 flex-shrink-0 transition active:scale-90"
+      style={{ minWidth: 56, padding: '8px 4px' }}>
       <AppIcon app={app} size={44} />
       <span className="text-[9px] text-gray-400 text-center leading-tight" style={{ maxWidth: 58 }}>{app.label}</span>
     </button>
@@ -831,8 +842,8 @@ export default function Dashboard() {
               <QuickChip key={app.id} app={app} onNavigate={navigate} />
             )}
             <button onClick={() => setShowQuickPicker(true)}
-              className="flex flex-col items-center justify-center gap-1 flex-shrink-0 py-2.5 px-2 transition active:scale-90"
-              style={{ minWidth: 56, background: 'transparent', border: 'none' }}>
+              className="ggu-icon-btn flex flex-col items-center justify-center gap-1 flex-shrink-0 transition active:scale-90"
+              style={{ minWidth: 56, padding: '10px 8px' }}>
               <div className="w-11 h-11 rounded-[12px] flex items-center justify-center border border-dashed border-white/15">
                 <Plus size={14} className="text-gray-600" />
               </div>
@@ -915,8 +926,8 @@ export default function Dashboard() {
             {/* Add more button */}
             <div style={{ width: 'calc(25% - 6px)', flexShrink: 0 }}>
               <button onClick={() => setShowHomePicker(true)}
-                className="flex flex-col items-center gap-1.5 select-none w-full"
-                style={{ background: 'none', border: 'none', padding: 0, WebkitAppearance: 'none' }}>
+                className="ggu-icon-btn flex flex-col items-center gap-1.5 select-none w-full"
+                style={{ padding: 0 }}>
                 <div className="w-full aspect-square rounded-[18px] flex items-center justify-center border border-dashed border-white/10 hover:border-pink-500/40 transition" style={{ maxWidth: 58, maxHeight: 58 }}>
                   <Plus size={18} className="text-gray-600" />
                 </div>
