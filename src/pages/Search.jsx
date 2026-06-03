@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
 import BottomNav from '@/components/BottomNav';
 import { Search as SearchIcon, X, ChevronRight, Loader2 } from 'lucide-react';
+import { RESOURCES, CAT_META } from '@/lib/libraryResources';
 
 // Static app pages for instant navigation search
 const CDN = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663618716083/WDWw94kRE3Ddo7F9rGLvjC/';
@@ -58,10 +59,11 @@ const APP_PAGES = [
   { id: 'notifications', label: 'Notifications', route: '/notifications', keywords: 'notifications alerts follows' },
 ];
 
-const SECTION_ORDER = ['pages', 'profiles', 'communities', 'posts', 'challenges', 'scholarships', 'quotes', 'tips', 'kitchen', 'wellness'];
+const SECTION_ORDER = ['pages', 'library', 'profiles', 'communities', 'posts', 'challenges', 'scholarships', 'quotes', 'tips', 'kitchen', 'wellness'];
 
 const SECTION_META = {
   pages:        { label: '📱 Features & Tools', color: '#ec4899' },
+  library:      { label: '📚 Girls Library', color: '#f472b6' },
   profiles:     { label: '👤 Girls', color: '#a855f7' },
   communities:  { label: '🌸 Communities', color: '#10b981' },
   posts:        { label: '📝 Posts', color: '#3b82f6' },
@@ -110,7 +112,19 @@ export default function Search() {
       p.keywords.toLowerCase().includes(qLower)
     ).slice(0, 6);
 
-    // 2. DB queries in parallel
+    // 2. Library resources (static — search title, desc, tips, category)
+    const library = RESOURCES.filter(r => {
+      const catLabel = CAT_META[r.cat]?.label || r.cat;
+      return (
+        (r.title || '').toLowerCase().includes(qLower) ||
+        (r.desc || '').toLowerCase().includes(qLower) ||
+        catLabel.toLowerCase().includes(qLower) ||
+        (r.cat || '').toLowerCase().includes(qLower) ||
+        (r.tips || []).some(t => t.toLowerCase().includes(qLower))
+      );
+    }).slice(0, 6);
+
+    // 3. DB queries in parallel
     const [profiles, posts, challenges, quotes, scholarships, kitchen, communities, tips, wellness] = await Promise.allSettled([
       base44.entities.UserProfile.list('-updated_date', 200).then(all =>
         all.filter(p =>
@@ -179,6 +193,7 @@ export default function Search() {
 
     setResults({
       pages,
+      library,
       profiles:     profiles.status     === 'fulfilled' ? profiles.value     : [],
       posts:        posts.status        === 'fulfilled' ? posts.value        : [],
       challenges:   challenges.status   === 'fulfilled' ? challenges.value   : [],
@@ -245,10 +260,10 @@ export default function Search() {
             <div className="text-5xl mb-4">🔍</div>
             <h2 className="text-lg font-bold text-white mb-2">Search the whole app</h2>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Search features, girls, posts, challenges, quotes, and more.
+              Search features, library resources, girls, posts, challenges, scholarships, and more.
             </p>
             <div className="mt-6 flex flex-wrap gap-2 justify-center">
-              {['fitness', 'challenges', 'quotes', 'journaling', 'scholarships'].map(tag => (
+              {['hair care', 'skincare', 'fitness', 'scholarships', 'budgeting', 'mindset', 'safety'].map(tag => (
                 <button key={tag} onClick={() => setQuery(tag)}
                   className="px-3 py-1.5 rounded-full text-xs font-semibold"
                   style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.2)', color: '#f9a8d4' }}>
@@ -297,6 +312,26 @@ export default function Search() {
                         <ChevronRight size={14} className="text-gray-600" />
                       </button>
                     ))}
+
+                    {/* LIBRARY RESOURCES */}
+                    {section === 'library' && items.map(resource => {
+                      const catMeta = CAT_META[resource.cat] || {};
+                      return (
+                        <button key={resource.id}
+                          onClick={() => navigate('/girls-library')}
+                          className="w-full flex items-start gap-3 p-3.5 rounded-2xl text-left transition active:scale-98"
+                          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                            style={{ background: 'rgba(244,114,182,0.15)' }}>{resource.emoji || catMeta.emoji || '📚'}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white">{resource.title}</p>
+                            <p className="text-xs font-semibold" style={{ color: catMeta.labelColor || '#c084fc' }}>{catMeta.label || resource.cat}</p>
+                            {resource.desc && <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{resource.desc}</p>}
+                          </div>
+                          <ChevronRight size={14} className="text-gray-600 flex-shrink-0" />
+                        </button>
+                      );
+                    })}
 
                     {/* PROFILES */}
                     {section === 'profiles' && items.map(profile => (

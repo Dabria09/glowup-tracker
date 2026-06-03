@@ -72,8 +72,8 @@ const ALL_PAGES = [
   { id: 'support', label: 'Help & Support', route: '/support', gradient: 'from-rose-900 via-pink-900 to-red-900', emoji: '💜', keywords: ['help', 'support', 'contact'] },
 ];
 
-const DEFAULT_HOME_IDS = ['daily-checkin', 'glow', 'glow-feed', 'fitness-tracker', 'diary', 'vision-board', 'glow-up-challenges', 'my-goals'];
-const DEFAULT_QUICK_IDS = ['daily-checkin', 'glow', 'diary', 'money-tracker'];
+const DEFAULT_HOME_IDS = ['daily-checkin', 'fitness-tracker', 'diary', 'vision-board', 'glow-up-challenges', 'my-goals', 'scholarships', 'wellness-hub'];
+const DEFAULT_QUICK_IDS = ['daily-checkin', 'diary', 'money-tracker', 'my-goals'];
 
 const SOCIAL = [
   { name: 'Instagram', handle: '@girlsglowingup', url: 'https://instagram.com/girlsglowingup', color: '#e1306c', icon: '📸' },
@@ -338,6 +338,37 @@ function QuickChip({ app, onNavigate }) {
   );
 }
 
+// ─── Size Picker Modal ────────────────────────────────────────────────────────
+function SizePickerModal({ app, currentSize, onSelect, onClose }) {
+  const sizes = [
+    { id: 'small', label: 'Small', desc: 'Icon only', icon: '▪' },
+    { id: 'medium', label: 'Medium', desc: 'Card style', icon: '▬' },
+    { id: 'large', label: 'Large', desc: 'Featured banner', icon: '■' },
+  ];
+  return (
+    <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(20px)' }} onClick={onClose}>
+      <div className="w-full rounded-t-3xl p-5" style={{ background: '#0f0a1e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <p className="font-bold text-white text-base">Widget Size — {app.label}</p>
+          <button onClick={onClose}><X size={18} className="text-gray-400" /></button>
+        </div>
+        <div className="grid grid-cols-3 gap-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}>
+          {sizes.map(s => (
+            <button key={s.id} onClick={() => { onSelect(s.id); onClose(); }}
+              className="flex flex-col items-center gap-2 p-4 rounded-2xl transition"
+              style={{ background: currentSize === s.id ? 'rgba(236,72,153,0.2)' : 'rgba(255,255,255,0.05)', border: `1px solid ${currentSize === s.id ? 'rgba(236,72,153,0.5)' : 'rgba(255,255,255,0.08)'}` }}>
+              <span className="text-2xl">{s.icon}</span>
+              <p className="text-sm font-bold text-white">{s.label}</p>
+              <p className="text-[10px] text-gray-500">{s.desc}</p>
+              {currentSize === s.id && <Check size={12} className="text-pink-400" />}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -366,12 +397,15 @@ export default function Dashboard() {
   const saveLayoutTimeout = useRef(null);
   const [editMode, setEditMode] = useState(false);
   const [dragOverId, setDragOverId] = useState(null);
+  const [widgetSizes, setWidgetSizes] = useState(() => loadSaved('ggu_widget_sizes', {}));
+  const [sizingId, setSizingId] = useState(null);
   const draggedId = useRef(null);
 
   useEffect(() => { localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds)); }, [homeAppIds]);
   useEffect(() => { localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds)); }, [quickIds]);
   useEffect(() => { localStorage.setItem('ggu_folders', JSON.stringify(folders)); }, [folders]);
   useEffect(() => { localStorage.setItem('ggu_community_apps', JSON.stringify(communityIds)); }, [communityIds]);
+  useEffect(() => { localStorage.setItem('ggu_widget_sizes', JSON.stringify(widgetSizes)); }, [widgetSizes]);
 
   // Save layout to UserProfile (debounced) so it persists across devices/sessions
   const saveLayoutToProfile = (pid, data) => {
@@ -380,6 +414,15 @@ export default function Dashboard() {
       if (!pid) return;
       await base44.entities.UserProfile.update(pid, { featured_sections: JSON.stringify(data) });
     }, 1200);
+  };
+
+  const setWidgetSizesAndSave = (updater) => {
+    setWidgetSizes(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      localStorage.setItem('ggu_widget_sizes', JSON.stringify(next));
+      saveLayoutToProfile(profileId, { homeAppIds, quickIds, folders, communityIds, widgetSizes: next });
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -443,6 +486,7 @@ export default function Dashboard() {
               if (saved.quickIds) { setQuickIds(saved.quickIds); localStorage.setItem('ggu_quick_access', JSON.stringify(saved.quickIds)); }
               if (saved.folders) { setFolders(saved.folders); localStorage.setItem('ggu_folders', JSON.stringify(saved.folders)); }
               if (saved.communityIds) { setCommunityIds(saved.communityIds); localStorage.setItem('ggu_community_apps', JSON.stringify(saved.communityIds)); }
+              if (saved.widgetSizes) { setWidgetSizes(saved.widgetSizes); localStorage.setItem('ggu_widget_sizes', JSON.stringify(saved.widgetSizes)); }
             } catch {}
           }
         }
@@ -462,32 +506,22 @@ export default function Dashboard() {
     setDragOverId(destId && destId !== draggedId.current ? destId : null);
   };
   // Helper to update layout and sync to profile
-  const updateLayout = (newHomeAppIds, newQuickIds, newFolders, newCommunityIds) => {
-    const data = {
-      homeAppIds: newHomeAppIds,
-      quickIds: newQuickIds,
-      folders: newFolders,
-      communityIds: newCommunityIds,
-    };
-    saveLayoutToProfile(profileId, data);
-  };
-
   const setHomeAppIdsAndSave = (updater) => {
     setHomeAppIds(prev => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
-      saveLayoutToProfile(profileId, { homeAppIds: next, quickIds, folders, communityIds });
+      saveLayoutToProfile(profileId, { homeAppIds: next, quickIds, folders, communityIds, widgetSizes });
       return next;
     });
   };
 
   const setQuickIdsAndSave = (next) => {
     setQuickIds(next);
-    saveLayoutToProfile(profileId, { homeAppIds, quickIds: next, folders, communityIds });
+    saveLayoutToProfile(profileId, { homeAppIds, quickIds: next, folders, communityIds, widgetSizes });
   };
 
   const setCommunityIdsAndSave = (next) => {
     setCommunityIds(next);
-    saveLayoutToProfile(profileId, { homeAppIds, quickIds, folders, communityIds: next });
+    saveLayoutToProfile(profileId, { homeAppIds, quickIds, folders, communityIds: next, widgetSizes });
   };
 
   const onDragEnd = (result) => {
@@ -507,14 +541,14 @@ export default function Dashboard() {
         const newIds = homeAppIds.filter(id => id !== draggedItemId);
         setFolders(newFolders);
         setHomeAppIds(newIds);
-        saveLayoutToProfile(profileId, { homeAppIds: newIds, quickIds, folders: newFolders, communityIds });
+        saveLayoutToProfile(profileId, { homeAppIds: newIds, quickIds, folders: newFolders, communityIds, widgetSizes });
       } else {
         const folderId = 'folder_' + Date.now();
         const newFolders = { ...folders, [folderId]: { id: folderId, name: 'Folder', appIds: [targetItemId, draggedItemId] } };
         const newIds = homeAppIds.filter(id => id !== draggedItemId).map(id => id === targetItemId ? folderId : id);
         setFolders(newFolders);
         setHomeAppIds(newIds);
-        saveLayoutToProfile(profileId, { homeAppIds: newIds, quickIds, folders: newFolders, communityIds });
+        saveLayoutToProfile(profileId, { homeAppIds: newIds, quickIds, folders: newFolders, communityIds, widgetSizes });
       }
       return;
     }
@@ -522,7 +556,7 @@ export default function Dashboard() {
     const [moved] = items.splice(srcIndex, 1);
     items.splice(destIndex, 0, moved);
     setHomeAppIds(items);
-    saveLayoutToProfile(profileId, { homeAppIds: items, quickIds, folders, communityIds });
+    saveLayoutToProfile(profileId, { homeAppIds: items, quickIds, folders, communityIds, widgetSizes });
   };
 
   const firstName = user?.full_name?.split(' ')[0] || 'Gorgeous';
@@ -730,24 +764,38 @@ export default function Dashboard() {
                     const folder = isFolder ? folders[itemId] : null;
                     const app = !isFolder ? getPageById(itemId) : null;
                     const isHoverTarget = dragOverId === itemId;
+                    const wSize = (!isFolder && widgetSizes[itemId]) || 'small';
                     if (isFolder && !folder) return null;
                     if (!isFolder && !app) return null;
+                    // medium/large widgets span 2 cols
+                    const spanClass = !isFolder && (wSize === 'medium' || wSize === 'large') ? 'col-span-2' : '';
                     return (
                       <Draggable key={itemId} draggableId={itemId} index={index + 3}>
                         {(provided, snapshot) => (
                           <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
                             style={provided.draggableProps.style}
-                            className={`transition-all duration-150 select-none cursor-grab active:cursor-grabbing ${isHoverTarget ? 'scale-110' : ''}`}>
+                            className={`transition-all duration-150 select-none cursor-grab active:cursor-grabbing ${isHoverTarget ? 'scale-105' : ''} ${spanClass}`}>
                             <div className={`relative rounded-[18px] transition-all ${isHoverTarget ? 'ring-2 ring-pink-400 ring-offset-1 ring-offset-transparent' : ''}`}>
                               {isFolder ? (
                                 <FolderIcon folder={folder} onOpen={() => !snapshot.isDragging && setOpenFolder(itemId)} onLongPress={() => setOpenFolder(itemId)} />
+                              ) : wSize === 'large' ? (
+                                <FeaturedWidget app={app} onNavigate={snapshot.isDragging ? () => {} : navigate} />
+                              ) : wSize === 'medium' ? (
+                                <MediumWidget app={app} onNavigate={snapshot.isDragging ? () => {} : navigate} />
                               ) : (
                                 <SmallAppIcon app={app} onNavigate={snapshot.isDragging ? () => {} : navigate} />
                               )}
                               {editMode && (
-                                 <button onPointerDown={e => { e.stopPropagation(); setHomeAppIdsAndSave(prev => prev.filter(id => id !== itemId)); }}
-                                  className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center z-20 shadow"
-                                  style={{ fontSize: 13, color: '#f87171', lineHeight: 1 }}>×</button>
+                                <>
+                                  <button onPointerDown={e => { e.stopPropagation(); setHomeAppIdsAndSave(prev => prev.filter(id => id !== itemId)); }}
+                                    className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center z-20 shadow"
+                                    style={{ fontSize: 13, color: '#f87171', lineHeight: 1 }}>×</button>
+                                  {!isFolder && (
+                                    <button onPointerDown={e => { e.stopPropagation(); setSizingId(itemId); }}
+                                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center z-20 shadow"
+                                      style={{ fontSize: 9, color: '#c084fc', lineHeight: 1 }}>⬛</button>
+                                  )}
+                                </>
                               )}
                             </div>
                           </div>
@@ -831,6 +879,11 @@ export default function Dashboard() {
         <FolderModal folder={currentFolder} folders={folders} setFolders={setFolders}
           homeAppIds={homeAppIds} setHomeAppIds={setHomeAppIds} navigate={navigate} onClose={() => setOpenFolder(null)} />
       )}
+      {sizingId && (() => { const sApp = getPageById(sizingId); return sApp ? (
+        <SizePickerModal app={sApp} currentSize={widgetSizes[sizingId] || 'small'}
+          onSelect={size => setWidgetSizesAndSave(prev => ({ ...prev, [sizingId]: size }))}
+          onClose={() => setSizingId(null)} />
+      ) : null; })()}
     </div>
   );
 }
