@@ -142,7 +142,7 @@ function AppIcon({ item }) {
         style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}
       >
         {item.image
-          ? <img src={item.image} alt={item.label} className="w-full h-full object-cover" />
+          ? <img src={item.image} alt={item.label} className="w-full h-full object-cover" style={{ mixBlendMode: 'screen' }} />
           : <span className="text-4xl drop-shadow-lg">{item.emoji}</span>
         }
       </div>

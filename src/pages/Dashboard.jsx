@@ -213,7 +213,7 @@ function AppIcon({ app, size = 64 }) {
       }}
     >
       {app.image
-        ? <img src={app.image} alt={app.label} className="w-full h-full object-cover" style={{ borderRadius: size * 0.225 }} />
+        ? <img src={app.image} alt={app.label} className="w-full h-full object-cover" style={{ borderRadius: size * 0.225, mixBlendMode: 'screen' }} />
         : <span style={{ fontSize: size * 0.42 }}>{app.emoji}</span>
       }
     </div>
@@ -237,7 +237,7 @@ function FolderIcon({ folder, onOpen, onLongPress }) {
           {[0,1,2,3].map(i => apps[i] ? (
             <div key={i} className={`rounded-[5px] overflow-hidden ${apps[i].image ? '' : 'bg-gradient-to-br ' + apps[i].gradient}`}
               style={{ width: 26, height: 26 }}>
-              {apps[i].image && <img src={apps[i].image} alt="" className="w-full h-full object-cover" />}
+              {apps[i].image && <img src={apps[i].image} alt="" className="w-full h-full object-cover" style={{ mixBlendMode: 'screen' }} />}
             </div>
           ) : <div key={i} className="rounded-[5px] bg-white/10" style={{ width: 26, height: 26 }} />)}
         </div>
@@ -781,7 +781,7 @@ export default function Dashboard() {
               className="w-full flex items-center gap-4 px-4 py-4 rounded-[22px] text-left active:scale-98 transition-all"
               style={{ background: 'linear-gradient(135deg, rgba(139,44,170,0.6), rgba(232,82,109,0.5))', border: '1px solid rgba(232,82,109,0.35)', backdropFilter: 'blur(16px)', boxShadow: '0 8px 32px rgba(232,82,109,0.2)' }}>
               <div className="w-12 h-12 rounded-[14px] overflow-hidden flex-shrink-0" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-                <img src={MANUS + 'icon-glow-check-in_fe36a2ac.png'} className="w-full h-full object-cover" alt="check in" />
+                <img src={MANUS + 'icon-glow-check-in_fe36a2ac.png'} className="w-full h-full object-cover" alt="check in" style={{ mixBlendMode: 'screen' }} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-bold tracking-wider text-yellow-300 mb-0.5 uppercase">Daily Glow Check-In</p>
