@@ -373,13 +373,10 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
 function FeaturedWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-      className="relative w-full rounded-[24px] overflow-hidden active:scale-98 transition-all select-none text-left"
-      style={{ height: 160, display: 'block', background: 'transparent' }}>
-      {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover rounded-[24px]" />}
-      {!app.image && <div className={`absolute inset-0 rounded-[24px] bg-gradient-to-br ${app.gradient}`} />}
-      <div className="absolute inset-x-0 bottom-0 p-4">
-        <p className="text-base font-bold text-white leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>{app.label}</p>
-      </div>
+      className="relative w-full rounded-[24px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-4"
+      style={{ height: 160, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
+      {app.image && <img src={app.image} alt="" className="absolute right-2 bottom-2 w-24 h-24 object-contain pointer-events-none opacity-90" />}
+      <p className="relative z-10 text-base font-bold text-white leading-tight">{app.label}</p>
     </button>
   );
 }
@@ -388,13 +385,10 @@ function FeaturedWidget({ app, onNavigate }) {
 function MediumWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-      className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left"
-      style={{ height: 110, display: 'block', background: 'transparent' }}>
-      {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover rounded-[22px]" />}
-      {!app.image && <div className={`absolute inset-0 rounded-[22px] bg-gradient-to-br ${app.gradient}`} />}
-      <div className="absolute inset-x-0 bottom-0 p-3">
-        <p className="text-sm font-bold text-white leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>{app.label}</p>
-      </div>
+      className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-3"
+      style={{ height: 110, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)' }}>
+      {app.image && <img src={app.image} alt="" className="absolute right-1 bottom-1 w-16 h-16 object-contain pointer-events-none opacity-90" />}
+      <p className="relative z-10 text-sm font-bold text-white leading-tight">{app.label}</p>
     </button>
   );
 }
@@ -971,10 +965,9 @@ export default function Dashboard() {
               if (!app) return null;
               return (
                 <button key={id} onClick={() => navigate(app.route)}
-                  className={`relative rounded-[18px] overflow-hidden flex flex-col items-start justify-end p-3 active:scale-95 transition-all ${!app.image ? 'bg-gradient-to-br ' + app.gradient : ''}`}
-                  style={{ height: 90 }}>
-                  {app.image && <img src={app.image} alt="" className="absolute inset-0 w-full h-full object-cover" />}
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 50%, transparent)' }} />
+                  className="relative rounded-[18px] overflow-hidden flex flex-col items-start justify-end p-3 active:scale-95 transition-all"
+                  style={{ height: 90, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
+                  {app.image && <img src={app.image} alt="" className="absolute right-1 bottom-1 w-12 h-12 object-contain pointer-events-none opacity-90" />}
                   <span className="relative text-[11px] font-bold text-white z-10">{app.label}</span>
                 </button>
               );
