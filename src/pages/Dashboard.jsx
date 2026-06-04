@@ -373,16 +373,12 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
 function FeaturedWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-      className={`relative w-full rounded-[24px] overflow-hidden active:scale-98 transition-all select-none text-left ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
-      style={{ height: 160, display: 'block', boxShadow: '0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
-      {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover" />}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.05) 100%)' }} />
+      className="relative w-full rounded-[24px] overflow-hidden active:scale-98 transition-all select-none text-left"
+      style={{ height: 160, display: 'block', background: 'transparent' }}>
+      {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover rounded-[24px]" />}
+      {!app.image && <div className={`absolute inset-0 rounded-[24px] bg-gradient-to-br ${app.gradient}`} />}
       <div className="absolute inset-x-0 bottom-0 p-4">
-        <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">Featured</p>
-        <p className="text-base font-bold text-white leading-tight">{app.label}</p>
-      </div>
-      <div className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
-        <ChevronRight size={14} className="text-white" />
+        <p className="text-base font-bold text-white leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>{app.label}</p>
       </div>
     </button>
   );
@@ -392,16 +388,12 @@ function FeaturedWidget({ app, onNavigate }) {
 function MediumWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-      className={`relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left ${app.image ? '' : 'bg-gradient-to-br ' + app.gradient}`}
-      style={{ height: 110, display: 'block', boxShadow: '0 6px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
-      {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover" />}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.65) 100%)' }} />
-      <div className="absolute inset-0 p-4 flex flex-col justify-between">
-        <div className="w-9 h-9 rounded-[10px] overflow-hidden flex-shrink-0"
-          style={{ background: 'rgba(0,0,0,0)' }}>
-          {app.image ? <img src={app.image} alt="" className="w-full h-full object-cover rounded-[10px]" /> : <span className="text-base">{app.emoji}</span>}
-        </div>
-        <p className="text-sm font-bold text-white leading-tight">{app.label}</p>
+      className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left"
+      style={{ height: 110, display: 'block', background: 'transparent' }}>
+      {app.image && <img src={app.image} alt={app.label} className="absolute inset-0 w-full h-full object-cover rounded-[22px]" />}
+      {!app.image && <div className={`absolute inset-0 rounded-[22px] bg-gradient-to-br ${app.gradient}`} />}
+      <div className="absolute inset-x-0 bottom-0 p-3">
+        <p className="text-sm font-bold text-white leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>{app.label}</p>
       </div>
     </button>
   );
