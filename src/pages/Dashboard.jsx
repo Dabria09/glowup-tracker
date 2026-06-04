@@ -387,8 +387,9 @@ function FeaturedWidget({ app, onNavigate }) {
       className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-4"
       style={{ height: 150, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
       {app.image && (
-        <img src={app.image} alt="" className="absolute right-3 top-1/2 -translate-y-1/2 object-contain pointer-events-none"
-          style={{ width: 72, height: 72 }} />
+        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+          <AppIcon app={app} size={76} />
+        </div>
       )}
       <p className="relative z-10 text-base font-bold text-white leading-tight">{app.label}</p>
     </button>
@@ -402,8 +403,9 @@ function MediumWidget({ app, onNavigate }) {
       className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-3"
       style={{ height: 100, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
       {app.image && (
-        <img src={app.image} alt="" className="absolute right-2 top-1/2 -translate-y-1/2 object-contain pointer-events-none"
-          style={{ width: 52, height: 52 }} />
+        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <AppIcon app={app} size={52} />
+        </div>
       )}
       <p className="relative z-10 text-sm font-bold text-white leading-tight">{app.label}</p>
     </button>
@@ -985,8 +987,9 @@ export default function Dashboard() {
                   className="relative rounded-[18px] overflow-hidden flex flex-col items-start justify-end p-3 active:scale-95 transition-all"
                   style={{ height: 90, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
                   {app.image && (
-                    <img src={app.image} alt="" className="absolute right-1 top-1/2 -translate-y-1/2 object-contain pointer-events-none"
-                      style={{ width: 44, height: 44 }} />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                      <AppIcon app={app} size={44} />
+                    </div>
                   )}
                   <span className="relative text-[11px] font-bold text-white z-10">{app.label}</span>
                 </button>
