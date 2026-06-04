@@ -209,7 +209,7 @@ function AppIcon({ app, size = 64 }) {
       className={`overflow-hidden flex items-center justify-center flex-shrink-0 ${!app.image ? 'bg-gradient-to-br ' + app.gradient : ''}`}
       style={{
         width: size, height: size, borderRadius: size * 0.225,
-        background: app.image ? 'transparent' : undefined,
+        background: app.image ? '#000' : undefined,
       }}
     >
       {app.image
@@ -374,7 +374,7 @@ function FeaturedWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
       className="relative w-full rounded-[24px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-4"
-      style={{ height: 160, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
+      style={{ height: 160, background: '#000', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
       {app.image && <img src={app.image} alt="" className="absolute right-2 bottom-2 w-24 h-24 object-contain pointer-events-none opacity-90" style={{ mixBlendMode: 'screen' }} />}
       <p className="relative z-10 text-base font-bold text-white leading-tight">{app.label}</p>
     </button>
@@ -386,7 +386,7 @@ function MediumWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
       className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-3"
-      style={{ height: 110, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)' }}>
+      style={{ height: 110, background: '#000', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)' }}>
       {app.image && <img src={app.image} alt="" className="absolute right-1 bottom-1 w-16 h-16 object-contain pointer-events-none opacity-90" style={{ mixBlendMode: 'screen' }} />}
       <p className="relative z-10 text-sm font-bold text-white leading-tight">{app.label}</p>
     </button>
@@ -966,7 +966,7 @@ export default function Dashboard() {
               return (
                 <button key={id} onClick={() => navigate(app.route)}
                   className="relative rounded-[18px] overflow-hidden flex flex-col items-start justify-end p-3 active:scale-95 transition-all"
-                  style={{ height: 90, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
+                  style={{ height: 90, background: '#000', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)' }}>
                   {app.image && <img src={app.image} alt="" className="absolute right-1 bottom-1 w-12 h-12 object-contain pointer-events-none opacity-90" style={{ mixBlendMode: 'screen' }} />}
                   <span className="relative text-[11px] font-bold text-white z-10">{app.label}</span>
                 </button>

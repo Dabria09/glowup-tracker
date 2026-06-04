@@ -139,7 +139,7 @@ function AppIcon({ item }) {
       )}
       <div
         className={`w-[76px] h-[76px] rounded-[18px] overflow-hidden shadow-lg group-hover:scale-95 transition-transform border border-white/5 ${item.image ? '' : 'bg-gradient-to-br ' + item.gradient + ' flex items-center justify-center'}`}
-        style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)' }}
+        style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)', background: item.image ? '#000' : undefined }}
       >
         {item.image
           ? <img src={item.image} alt={item.label} className="w-full h-full object-cover" style={{ mixBlendMode: 'screen' }} />
