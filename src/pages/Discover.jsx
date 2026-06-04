@@ -140,22 +140,20 @@ function AppIcon({ item }) {
         </span>
       )}
       <div className="relative group-hover:scale-95 transition-transform duration-200" style={{ width: size, height: size }}>
-        {/* Outer neon glow aura */}
         <div
-          className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-40 blur-md`}
-          style={{ borderRadius: br, transform: 'scale(1.1)' }}
-        />
-        {/* Gradient border shell */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient}`} style={{ borderRadius: br, padding: 1.5 }}>
-          {/* Deep-space card base */}
+          style={{
+            position: 'absolute', inset: 0, borderRadius: br,
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04))',
+            padding: 1.5,
+          }}
+        >
           <div
-            className="w-full h-full flex items-center justify-center overflow-hidden relative"
-            style={{ borderRadius: br - 2, background: '#0c0714', boxShadow: 'inset 0 2px 8px rgba(255,255,255,0.06)' }}
+            className="w-full h-full flex items-center justify-center overflow-hidden"
+            style={{ borderRadius: br - 2, background: 'rgba(28,14,42,0.85)' }}
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-20`} style={{ borderRadius: br - 2 }} />
             {item.image
-              ? <img src={item.image} alt={item.label} className="relative z-10 object-contain" style={{ width: '88%', height: '88%', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' }} />
-              : <span className="relative z-10 text-4xl drop-shadow-lg">{item.emoji}</span>
+              ? <img src={item.image} alt={item.label} className="object-contain" style={{ width: '85%', height: '85%' }} />
+              : <span className="text-4xl drop-shadow-lg">{item.emoji}</span>
             }
           </div>
         </div>

@@ -202,32 +202,26 @@ function loadSaved(key, defaults) {
 
 function getPageById(id) { return ALL_PAGES.find(p => p.id === id); }
 
-// ─── Widget Icon (iOS-style premium squircle with neon glow) ────────────────
+// ─── Widget Icon (iOS-style squircle) ────────────────────────────────────────
 function AppIcon({ app, size = 64 }) {
-  const br = Math.round(size * 0.225);
-  const innerBr = Math.round(size * 0.21);
+  const br = Math.round(size * 0.24);
   return (
     <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
-      {/* Outer neon glow aura */}
+      {/* Squircle base with gradient border effect */}
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${app.gradient || 'from-pink-500 via-purple-600 to-fuchsia-700'} opacity-40 blur-md`}
-        style={{ borderRadius: br, transform: 'scale(1.1)' }}
-      />
-      {/* Gradient border shell */}
-      <div
-        className={`absolute inset-0 bg-gradient-to-br ${app.gradient || 'from-pink-500 via-purple-600 to-fuchsia-700'}`}
-        style={{ borderRadius: br, padding: 1.5 }}
+        style={{
+          position: 'absolute', inset: 0, borderRadius: br,
+          background: `linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04))`,
+          padding: 1.5,
+        }}
       >
-        {/* Deep-space card base */}
         <div
-          className="w-full h-full flex items-center justify-center overflow-hidden relative"
-          style={{ borderRadius: innerBr, background: '#0c0714', boxShadow: 'inset 0 2px 8px rgba(255,255,255,0.06)' }}
+          className="w-full h-full flex items-center justify-center overflow-hidden"
+          style={{ borderRadius: br - 2, background: 'rgba(28,14,42,0.85)' }}
         >
-          {/* Inner ambient glow */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${app.gradient || 'from-pink-500 via-purple-600 to-fuchsia-700'} opacity-20`} style={{ borderRadius: innerBr }} />
           {app.image
-            ? <img src={app.image} alt={app.label} className="relative z-10 object-contain" style={{ width: '88%', height: '88%', filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.5))' }} />
-            : <span className="relative z-10" style={{ fontSize: size * 0.42 }}>{app.emoji}</span>
+            ? <img src={app.image} alt={app.label} className="object-contain" style={{ width: '85%', height: '85%' }} />
+            : <span style={{ fontSize: size * 0.42 }}>{app.emoji}</span>
           }
         </div>
       </div>
@@ -390,16 +384,11 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
 function FeaturedWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-      className="relative w-full rounded-[24px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-4 group"
-      style={{ height: 160, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
-      {/* Ambient color glow from the app's theme */}
-      <div className={`absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-gradient-to-br ${app.gradient} opacity-20 blur-2xl`} />
+      className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-4"
+      style={{ height: 150, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
       {app.image && (
-        <div className="absolute right-3 bottom-8 w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center"
-          style={{ background: 'rgba(0,0,0,0.4)' }}>
-          <div className={`absolute inset-0 bg-gradient-to-br ${app.gradient} opacity-20`} />
-          <img src={app.image} alt="" className="w-[90%] h-[90%] object-contain relative z-10" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' }} />
-        </div>
+        <img src={app.image} alt="" className="absolute right-3 top-1/2 -translate-y-1/2 object-contain pointer-events-none"
+          style={{ width: 72, height: 72 }} />
       )}
       <p className="relative z-10 text-base font-bold text-white leading-tight">{app.label}</p>
     </button>
@@ -410,16 +399,11 @@ function FeaturedWidget({ app, onNavigate }) {
 function MediumWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-      className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-3 group"
-      style={{ height: 110, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(20px)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
-      {/* Ambient color glow */}
-      <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-gradient-to-br ${app.gradient} opacity-20 blur-2xl`} />
+      className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-3"
+      style={{ height: 100, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
       {app.image && (
-        <div className="absolute right-2 bottom-6 w-14 h-14 rounded-xl overflow-hidden flex items-center justify-center"
-          style={{ background: 'rgba(0,0,0,0.4)' }}>
-          <div className={`absolute inset-0 bg-gradient-to-br ${app.gradient} opacity-20`} />
-          <img src={app.image} alt="" className="w-[90%] h-[90%] object-contain relative z-10" style={{ filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.5))' }} />
-        </div>
+        <img src={app.image} alt="" className="absolute right-2 top-1/2 -translate-y-1/2 object-contain pointer-events-none"
+          style={{ width: 52, height: 52 }} />
       )}
       <p className="relative z-10 text-sm font-bold text-white leading-tight">{app.label}</p>
     </button>
@@ -999,13 +983,10 @@ export default function Dashboard() {
               return (
                 <button key={id} onClick={() => navigate(app.route)}
                   className="relative rounded-[18px] overflow-hidden flex flex-col items-start justify-end p-3 active:scale-95 transition-all"
-                  style={{ height: 90, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(16px)', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
-                  <div className={`absolute -right-4 -bottom-4 w-20 h-20 rounded-full bg-gradient-to-br ${app.gradient} opacity-20 blur-xl`} />
+                  style={{ height: 90, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
                   {app.image && (
-                    <div className="absolute right-1 bottom-5 w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.35)' }}>
-                      <div className={`absolute inset-0 bg-gradient-to-br ${app.gradient} opacity-20`} />
-                      <img src={app.image} alt="" className="w-[90%] h-[90%] object-contain relative z-10" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))' }} />
-                    </div>
+                    <img src={app.image} alt="" className="absolute right-1 top-1/2 -translate-y-1/2 object-contain pointer-events-none"
+                      style={{ width: 44, height: 44 }} />
                   )}
                   <span className="relative text-[11px] font-bold text-white z-10">{app.label}</span>
                 </button>
