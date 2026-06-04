@@ -130,21 +130,35 @@ const RECOMMENDED = [
 
 function AppIcon({ item }) {
   const navigate = useNavigate();
+  const size = 76;
+  const br = 18;
   return (
     <div className="relative flex flex-col items-center gap-1.5 cursor-pointer group" onClick={() => item.route && navigate(item.route)}>
       {item.badge && (
-        <span className={`absolute -top-1.5 left-1/2 -translate-x-1/2 z-10 text-[9px] font-bold px-2 py-0.5 rounded-full text-white shadow-lg ${item.badge === 'Live' ? 'bg-red-500' : 'bg-purple-600'}`}>
+        <span className={`absolute -top-1.5 left-1/2 -translate-x-1/2 z-20 text-[9px] font-bold px-2 py-0.5 rounded-full text-white shadow-lg ${item.badge === 'Live' ? 'bg-red-500' : 'bg-purple-600'}`}>
           {item.badge}
         </span>
       )}
-      <div
-        className={`w-[76px] h-[76px] rounded-[18px] overflow-hidden shadow-lg group-hover:scale-95 transition-transform border border-white/5 ${item.image ? '' : 'bg-gradient-to-br ' + item.gradient + ' flex items-center justify-center'}`}
-        style={{ boxShadow: '0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)', background: item.image ? '#000' : undefined }}
-      >
-        {item.image
-          ? <img src={item.image} alt={item.label} className="w-full h-full object-cover" style={{ mixBlendMode: 'screen' }} />
-          : <span className="text-4xl drop-shadow-lg">{item.emoji}</span>
-        }
+      <div className="relative group-hover:scale-95 transition-transform duration-200" style={{ width: size, height: size }}>
+        {/* Outer neon glow aura */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-40 blur-md`}
+          style={{ borderRadius: br, transform: 'scale(1.1)' }}
+        />
+        {/* Gradient border shell */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient}`} style={{ borderRadius: br, padding: 1.5 }}>
+          {/* Deep-space card base */}
+          <div
+            className="w-full h-full flex items-center justify-center overflow-hidden relative"
+            style={{ borderRadius: br - 2, background: '#0c0714', boxShadow: 'inset 0 2px 8px rgba(255,255,255,0.06)' }}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-20`} style={{ borderRadius: br - 2 }} />
+            {item.image
+              ? <img src={item.image} alt={item.label} className="relative z-10 object-contain" style={{ width: '88%', height: '88%', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' }} />
+              : <span className="relative z-10 text-4xl drop-shadow-lg">{item.emoji}</span>
+            }
+          </div>
+        </div>
       </div>
       <span className="text-[11px] text-center text-gray-300 leading-tight w-20">{item.label}</span>
     </div>
