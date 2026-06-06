@@ -208,21 +208,30 @@ function AppIcon({ app, size = 64 }) {
   const hasImage = !!app.image;
   return (
     <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
-      <div
-        style={{
-          position: 'absolute', inset: 0, borderRadius: br,
-          background: hasImage ? 'transparent' : `linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04))`,
-          padding: hasImage ? 0 : 1.5
+      {hasImage ? (
+        /* Pretty gradient border ring for image icons */
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: br + 2,
+          padding: 2,
+          background: 'linear-gradient(135deg, rgba(236,72,153,0.7), rgba(168,85,247,0.7), rgba(251,191,36,0.5))',
         }}>
-        <div
-          className="w-full h-full flex items-center justify-center overflow-hidden"
-          style={{ borderRadius: br - 2, background: hasImage ? 'transparent' : 'rgba(28,14,42,0.85)' }}>
-          {app.image ?
-          <img src={app.image} alt={app.label} className="object-contain w-full h-full" /> :
-          <span style={{ fontSize: size * 0.42 }}>{app.emoji}</span>
-          }
+          <div className="w-full h-full overflow-hidden flex items-center justify-center"
+            style={{ borderRadius: br, background: '#08060e' }}>
+            <img src={app.image} alt={app.label} className="object-contain w-full h-full" />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: br,
+          background: `linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04))`,
+          padding: 1.5
+        }}>
+          <div className="w-full h-full flex items-center justify-center overflow-hidden"
+            style={{ borderRadius: br - 2, background: 'rgba(28,14,42,0.85)' }}>
+            <span style={{ fontSize: size * 0.42 }}>{app.emoji}</span>
+          </div>
+        </div>
+      )}
     </div>);
 
 }
@@ -414,7 +423,9 @@ function MediumWidget({ app, onNavigate }) {
 function SmallAppIcon({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)} className="ggu-icon-btn flex flex-col items-center gap-1.5 select-none active:scale-90 transition-transform w-full" style={{ padding: 0 }}>
-      <AppIcon app={app} size={58} />
+      <div className="w-full aspect-square" style={{ maxWidth: 64 }}>
+        <AppIcon app={app} size={58} />
+      </div>
       <span className="text-[10px] text-center text-gray-300 leading-tight" style={{ maxWidth: 64 }}>{app.label}</span>
     </button>);
 
