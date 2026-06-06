@@ -513,7 +513,19 @@ export default function Dashboard() {
   const [profileId, setProfileId] = useState(null);
   const saveLayoutTimeout = useRef(null);
   const [editMode, setEditMode] = useState(false);
-  const [widgetSizes, setWidgetSizes] = useState(() => loadSaved('ggu_widget_sizes', {}));
+  const [widgetSizes, setWidgetSizes] = useState(() => {
+    // One-time migration: clear widget sizes for removed/banned features
+    const saved = loadSaved('ggu_widget_sizes', {});
+    const cleaned = {};
+    Object.keys(saved).forEach((id) => {
+      // Only keep sizes for valid, non-banned features
+      if (!BANNED_HOME_IDS.has(id) && ALL_PAGES.some((p) => p.id === id)) {
+        cleaned[id] = saved[id];
+      }
+    });
+    localStorage.setItem('ggu_widget_sizes', JSON.stringify(cleaned));
+    return cleaned;
+  });
   const [sizingId, setSizingId] = useState(null);
 
   useEffect(() => {localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds));}, [homeAppIds]);
