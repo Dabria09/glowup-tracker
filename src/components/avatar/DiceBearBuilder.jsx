@@ -45,9 +45,9 @@ const HAIR_STYLES = [
   { label: 'Straight 2', value: 'straight02' },
   { label: 'Straight & Strand', value: 'straightAndStrand' },
   // Natural / textured
-  { label: 'Dreads', value: 'dreads' },
-  { label: 'Dreads Alt 1', value: 'dreads01' },
-  { label: 'Dreads Alt 2', value: 'dreads02' },
+  { label: 'Locs', value: 'dreads' },
+  { label: 'Locs Alt 1', value: 'dreads01' },
+  { label: 'Locs Alt 2', value: 'dreads02' },
   { label: 'Frizzle', value: 'frizzle' },
   { label: 'Fro', value: 'fro' },
   // Short / masc
