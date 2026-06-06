@@ -6,8 +6,9 @@ import { base44 } from '@/api/base44Client';
 
 const AGE_MODES = [
   { id: 'middle', label: 'Middle School', sub: 'Ages 11–13', emoji: '🌱' },
-  { id: 'early_high', label: 'Early High School', sub: 'Ages 14–15', emoji: '✨' },
-  { id: 'older_high', label: 'Older High School', sub: 'Ages 16–18', emoji: '👑' },
+  { id: 'high_school', label: 'High School', sub: 'Ages 14–18', emoji: '✨' },
+  { id: 'college', label: 'College', sub: 'Ages 18–22', emoji: '🎓' },
+  { id: 'adult_entrepreneur', label: 'Adult/Entrepreneur', sub: 'Ages 22+', emoji: '👑' },
 ];
 
 const CATEGORIES = [
@@ -72,106 +73,161 @@ const TIPS_BY_AGE = {
       'Think about what you love doing — that\'s a clue to your future',
     ],
   },
-  early_high: {
+  high_school: {
     confidence: [
       'Own your story — every part of it makes you powerful',
       'Speak up for yourself in situations that matter',
       'Your uniqueness is your greatest competitive advantage',
       'Stop shrinking yourself to make others comfortable',
-      'Be the friend you wish you had — and watch your circle grow',
+      'You are qualified. Stop waiting for permission to show up',
+      'Carry yourself like the person you\'re becoming',
+      'Rejection is redirection — don\'t take it personally',
     ],
     money: [
       'Open a savings account and watch compound interest work for you',
       'Look into ways to earn money — babysitting, tutoring, dog walking',
-      'Track your spending for one week and see where it goes',
-      'Learn one money term every week: budget, interest, invest',
-      'Financial discipline at 14 creates freedom at 24',
+      'Apply for scholarships like it\'s your part-time job',
+      'Learn what a credit score is and why it matters now',
+      'Understand the difference between good debt and bad debt',
+      'Financial discipline at 16 creates freedom at 26',
     ],
     school: [
       'Build a relationship with at least one teacher this semester',
       'Use a planner — time management is a skill that pays for life',
-      'Study in focused 25-minute blocks with short breaks',
-      'Your GPA matters for the next chapter — take it seriously now',
+      'Research colleges and deadlines now — not in senior panic mode',
+      'Your transcript tells a story. Make it one you\'re proud of',
+      'Build a resume now even if you don\'t have much on it yet',
       'Ask for help before you fall behind, not after',
     ],
     relationships: [
       'Healthy relationships feel safe, not anxious',
       'Setting boundaries is an act of self-respect',
-      'Drama drains energy. Protect your peace intentionally',
-      'Lead with kindness, but know your worth',
-      'The right people won\'t make you question your value',
+      'Know what a healthy relationship looks, sounds, and feels like',
+      'Surround yourself with people who are going somewhere',
+      'Learn to resolve conflict without losing your integrity',
     ],
     wellness: [
       'Your mental health is just as important as your grades',
       'Build a morning routine that sets your tone for the day',
       'Limit screen time before bed for better sleep quality',
-      'Move your body in a way you enjoy — not just exercise',
-      'Rest is not lazy — it\'s essential for growth',
+      'Protect your mental health like you protect your phone — charge it daily',
+      'You can\'t pour from an empty cup — fill yours first',
     ],
     mindset: [
       'Failure is a teacher, not a verdict',
-      'Leadership starts with leading yourself every day',
       'What you practice daily, you become eventually',
       'Comparison will rob you — stay in your lane and win',
-      'Your mindset is your most powerful tool — sharpen it daily',
+      'Decision making is a skill — practice making intentional choices',
+      'Discipline will always outlast motivation — build systems',
     ],
     career: [
       'Explore at least 3 career fields before committing to one',
       'Volunteer or shadow someone in a job that interests you',
-      'Your interests today could become your career tomorrow',
       'Start building a skill now that the future demands — coding, writing, design',
-      'Set one big goal for this year and break it into steps',
-    ],
-  },
-  older_high: {
-    confidence: [
-      'You are qualified. Stop waiting for permission to show up',
-      'Your voice in a room full of people matters — use it',
-      'Carry yourself like the person you\'re becoming',
-      'Rejection is redirection — don\'t take it personally',
-      'Every expert was once a beginner. Start now.',
-    ],
-    money: [
-      'Apply for scholarships like it\'s your part-time job',
-      'Learn what a credit score is and why it matters now',
-      'Start a small side hustle — every skill can generate income',
-      'Understand the difference between good debt and bad debt',
-      'Invest in one book about money — it will pay you back 100x',
-    ],
-    school: [
-      'Research colleges and deadlines now — not in senior panic mode',
-      'Take challenging classes — they prepare you for what\'s next',
-      'Your transcript tells a story. Make it one you\'re proud of',
-      'Build a resume now even if you don\'t have much on it yet',
-      'Seek mentors in fields you\'re interested in',
-    ],
-    relationships: [
-      'Know what a healthy relationship looks, sounds, and feels like',
-      'Your standards aren\'t too high — the wrong people just can\'t meet them',
-      'Independence in a relationship is healthy — don\'t lose yourself',
-      'Surround yourself with people who are going somewhere',
-      'Learn to resolve conflict without losing your integrity',
-    ],
-    wellness: [
-      'Protect your mental health like you protect your phone — charge it daily',
-      'Boundaries are self-care in action — practice them',
-      'Stress is normal; chronic stress is a warning sign — listen to it',
-      'Build habits now that your future self will thank you for',
-      'You can\'t pour from an empty cup — fill yours first',
-    ],
-    mindset: [
-      'Decision making is a skill — practice making intentional choices',
-      'Your habits in the next 2 years will shape your next decade',
-      'Stop waiting for the perfect moment — it doesn\'t exist',
-      'Every setback is setting you up for a bigger comeback',
-      'Discipline will always outlast motivation — build systems',
-    ],
-    career: [
-      'Start researching colleges, trade schools, and entrepreneurship paths equally',
-      'Your first job doesn\'t have to be your dream job — just start',
       'Network now — LinkedIn is free and powerful at any age',
       'Entrepreneurship is a valid path — it starts with solving one problem',
-      'Financial literacy is a career skill. Master it before graduation.',
+    ],
+  },
+  college: {
+    confidence: [
+      'You earned your seat at the table — own it',
+      'Imposter syndrome is a liar. You belong here',
+      'Take up space confidently — your perspective matters',
+      'Advocate for yourself with professors, advisors, and employers',
+      'Your confidence is a skill you build every day — practice it',
+    ],
+    money: [
+      'Avoid lifestyle inflation — just because you can spend doesn\'t mean you should',
+      'Build an emergency fund with at least $500 before anything else',
+      'Your student loans are real debt — understand the terms before you sign',
+      'Start investing even $25/month — time in the market beats timing the market',
+      'Learn to cook — it\'s the fastest way to cut your budget in half',
+    ],
+    school: [
+      'Go to office hours — professors remember students who show up',
+      'Your network is being built right now in every class and club',
+      'Choose classes that challenge you, not just ones that are easy',
+      'Internships matter more than GPA for most careers — get one early',
+      'Take care of your mental health before your grades fall — not after',
+    ],
+    relationships: [
+      'College friendships can last a lifetime — invest in the real ones',
+      'Long-distance relationships require intentional communication — decide if it\'s worth it',
+      'Networking is relationship building — treat everyone with respect',
+      'Know your dealbreakers before you enter relationships',
+      'It\'s okay to outgrow friendships from high school',
+    ],
+    wellness: [
+      'Sleep is your number one performance enhancer — protect it',
+      'Move your body daily — even a 20-minute walk changes your mood',
+      'Therapy is a strength, not a weakness — use campus resources',
+      'Meal prep once a week and save money and brain energy',
+      'Limit alcohol — it affects your grades, decisions, and mental health more than you think',
+    ],
+    mindset: [
+      'You\'re not behind. Everyone is on a different path',
+      'Failure in college teaches you more than any class',
+      'Who you become in college matters as much as what you study',
+      'Build your discipline now — it\'s the foundation of your career',
+      'Comparison on social media is a highlight reel. Real life is messier and better',
+    ],
+    career: [
+      'Start applying for internships in your freshman year',
+      'Build a personal brand online before graduation',
+      'Your major doesn\'t have to determine your entire career',
+      'Talk to alumni in careers that interest you — they love helping',
+      'Freelance or start a side project to build real-world skills',
+    ],
+  },
+  adult_entrepreneur: {
+    confidence: [
+      'Your lived experience is currency — don\'t undervalue it',
+      'Confidence is built through doing, not waiting until you\'re ready',
+      'Say yes before you know how — figure it out on the way',
+      'Own every decision you\'ve made — they all led you here',
+      'Show up as the version of yourself you\'re becoming, not just who you\'ve been',
+    ],
+    money: [
+      'Pay yourself first — automate savings before you see the money',
+      'Invest in assets that work while you sleep — stocks, real estate, business',
+      'A budget is a plan for your money, not a restriction',
+      'Your business needs separate finances from day one',
+      'Understand your tax obligations — money you don\'t plan for is money lost',
+    ],
+    school: [
+      'Learning never stops — dedicate 30 minutes a day to growing your knowledge',
+      'Certifications, courses, and masterminds are the new college for entrepreneurs',
+      'Mentor someone younger — teaching reinforces everything you know',
+      'Read one business or personal development book every month',
+      'Conferences and workshops build networks that change your trajectory',
+    ],
+    relationships: [
+      'Your inner circle will determine your outer results',
+      'Invest in relationships before you need them — generosity pays forward',
+      'Romantic partnerships need to be built on shared vision, not just chemistry',
+      'Know when to end relationships that cost more than they contribute',
+      'Hire slow, fire fast — your team reflects your values',
+    ],
+    wellness: [
+      'Burnout is a business killer — rest is a strategy, not laziness',
+      'Your body is your most important business asset — treat it like one',
+      'Set boundaries between work and personal life or work will consume everything',
+      'Mental health maintenance prevents mental health crises — don\'t skip it',
+      'Morning routines are the difference between reactive and intentional days',
+    ],
+    mindset: [
+      'Entrepreneurship is a mindset before it\'s a business',
+      'Every failure has tuition embedded in it — collect what it teaches',
+      'Vision without execution is just a dream — build systems',
+      'Stop comparing your chapter 3 to someone else\'s chapter 30',
+      'Your comfort zone and your growth zone cannot occupy the same space',
+    ],
+    career: [
+      'Build multiple income streams — dependence on one is a risk',
+      'Your personal brand is your most valuable business asset — invest in it',
+      'Know your numbers: revenue, profit margin, and cost of acquisition',
+      'Delegate what others can do so you can focus on what only you can do',
+      'Impact and income can coexist — build a business that does both',
     ],
   },
 };
@@ -181,7 +237,7 @@ function getTipsForMode(category, ageMode, adminTips) {
     t => t.category === category && t.is_active && (t.age_group === ageMode || t.age_group === 'all')
   );
   if (matching.length > 0) return matching.map(t => t.tip_text);
-  return TIPS_BY_AGE[ageMode]?.[category] || TIPS_BY_AGE.middle[category] || [];
+  return TIPS_BY_AGE[ageMode]?.[category] || TIPS_BY_AGE.high_school[category] || TIPS_BY_AGE.middle[category] || [];
 }
 
 const SAVED_KEY = 'ggu_glow_tips_saved';
@@ -193,7 +249,7 @@ function loadSaved() {
 
 export default function GlowTips() {
   const navigate = useNavigate();
-  const [ageMode, setAgeMode] = useState(() => localStorage.getItem(MODE_KEY) || 'early_high');
+  const [ageMode, setAgeMode] = useState(() => localStorage.getItem(MODE_KEY) || 'high_school');
   const [showModeModal, setShowModeModal] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const [savedTips, setSavedTips] = useState(loadSaved);
