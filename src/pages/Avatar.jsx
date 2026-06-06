@@ -5,11 +5,13 @@ import { ArrowLeft, Camera, Upload, Trash2, Sparkles, Crown, Check } from 'lucid
 import BottomNav from '@/components/BottomNav';
 import { motion, AnimatePresence } from 'framer-motion';
 import AestheticIconPicker, { AESTHETIC_ICONS } from '@/components/glow-identity/AestheticIconPicker';
+import DiceBearBuilder from '@/components/avatar/DiceBearBuilder';
 
 const IDENTITY_TABS = [
   { id: 'selfie', label: 'Real Selfie', emoji: '📸', desc: 'Your actual photo' },
   { id: 'persona', label: 'Glow Persona', emoji: '✨', desc: 'AI transformation' },
   { id: 'icon', label: 'Aesthetic Icon', emoji: '🎨', desc: 'Express yourself' },
+  { id: 'illustrated', label: 'Illustrated', emoji: '🖼️', desc: 'Build your avatar' },
 ];
 
 export default function Avatar() {
@@ -220,7 +222,7 @@ export default function Avatar() {
       {/* Tab Switcher */}
       <div className="px-4 mb-5">
         <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3 text-center">Choose Your Glow Identity</p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {IDENTITY_TABS.map(tab => {
             const isActive = activeTab === tab.id;
             return (
@@ -427,6 +429,22 @@ export default function Avatar() {
               <AestheticIconPicker
                 selectedIcon={selectedIconId}
                 onSelect={(icon) => saveIcon(icon)}
+              />
+            </div>
+          )}
+
+          {/* ── ILLUSTRATED AVATAR TAB ─────────────────── */}
+          {activeTab === 'illustrated' && (
+            <div className="px-4">
+              <DiceBearBuilder
+                profile={profile}
+                user={user}
+                onSaved={(url) => {
+                  setAvatarUrl(url);
+                  setIdentityType('selfie');
+                  setSavedMsg('🖼️ Illustrated avatar saved as your profile picture!');
+                  setTimeout(() => setSavedMsg(''), 2500);
+                }}
               />
             </div>
           )}
