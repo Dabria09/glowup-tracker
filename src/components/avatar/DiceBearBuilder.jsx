@@ -197,7 +197,7 @@ function buildUrl(config) {
     accessories: config.accessories,
     backgroundColor: config.background,
   });
-  return `https://api.dicebear.com/7.x/avataaars/svg?${params.toString()}`;
+  return `https://api.dicebear.com/7.x/avataaars/png?${params.toString()}&size=200`;
 }
 
 function randomFrom(arr) {
