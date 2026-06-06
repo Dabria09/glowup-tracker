@@ -139,9 +139,11 @@ export default function Onboarding() {
           <StepMentorChoice data={data} user={user} onNext={next} />
         )}
         {currentStep === 'complete' && (
-          <StepComplete data={data} onDone={() => navigate('/dashboard')} />
+          <StepComplete data={data} onDone={() => setShowTour(true)} />
         )}
       </div>
+
+      {showTour && <NewUserTour onComplete={() => { setShowTour(false); navigate('/dashboard'); }} />}
     </div>
   );
 }
