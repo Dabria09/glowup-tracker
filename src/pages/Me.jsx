@@ -234,10 +234,26 @@ export default function Me() {
   const [personaImages, setPersonaImages] = useState({});
   const [galleryImages, setGalleryImages] = useState([]);
 
+  const loadProfile = async (email) => {
+    const profiles = await base44.entities.UserProfile.filter({ user_email: email });
+    if (profiles.length) {
+      const p = profiles[0];
+      setProfile(p);
+      if (p.glow_persona_images) {
+        try { setPersonaImages(JSON.parse(p.glow_persona_images)?.images || {}); } catch {}
+      }
+      if (p.gallery_images) {
+        try { setGalleryImages(JSON.parse(p.gallery_images) || []); } catch {}
+      }
+    }
+  };
+
   useEffect(() => {
+    let userEmail = null;
     const load = async () => {
       try {
         const u = await base44.auth.me();
+        userEmail = u.email;
         setUser(u);
         const [profiles, pts, userPosts] = await Promise.all([
           base44.entities.UserProfile.filter({ user_email: u.email }),
@@ -262,6 +278,11 @@ export default function Me() {
       setLoading(false);
     };
     load();
+
+    // Re-fetch profile when user navigates back (e.g. after changing avatar)
+    const onFocus = () => { if (userEmail) loadProfile(userEmail); };
+    document.addEventListener('visibilitychange', onFocus);
+    return () => document.removeEventListener('visibilitychange', onFocus);
   }, []);
 
   // ── Media Upload (Thread) ────────────────────────────────────────────────
