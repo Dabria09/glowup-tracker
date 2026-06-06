@@ -99,6 +99,7 @@ import Glow from './pages/Glow';
 import Connect from './pages/Connect';
 import BanGate from './components/BanGate';
 import GlowPersona from './pages/GlowPersona';
+import DiceBearAvatar from './pages/DiceBearAvatar';
 import Notifications from './pages/Notifications';
 import Search from './pages/Search';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -145,6 +146,7 @@ const AuthenticatedApp = () => {
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/avatar" element={<Avatar />} />
       <Route path="/glow-persona" element={<GlowPersona />} />
+      <Route path="/dicebear-avatar" element={<DiceBearAvatar />} />
       <Route path="/discover" element={<Discover />} />
       <Route path="/fitness-tracker" element={<FitnessTracker />} />
       <Route path="/password-vault" element={<PasswordVault />} />
