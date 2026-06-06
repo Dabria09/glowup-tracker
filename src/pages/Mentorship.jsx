@@ -7,7 +7,6 @@ import { ChevronLeft, Search, Users, Plus, MessageCircle, BookOpen, LayoutDashbo
 import AnonymousQuestionModal from '@/components/mentorship/AnonymousQuestionModal';
 import MentorDirectory from '@/components/mentorship/MentorDirectory';
 import WisdomCard from '@/components/mentorship/WisdomCard';
-import MentorDashboard from '@/components/mentorship/MentorDashboard';
 import MenteeDashboard from '@/components/mentorship/MenteeDashboard';
 import MentorAdminDashboard from '@/components/mentorship/MentorAdminDashboard';
 import TeenMentorAdminDashboard from '@/components/mentorship/TeenMentorAdminDashboard';
@@ -128,7 +127,7 @@ export default function Mentorship() {
         {/* Action Buttons */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <button
-            onClick={() => setShowDashboard(true)}
+            onClick={() => navigate('/mentor-dashboard')}
             className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
             style={{ background: isMentor ? 'rgba(236,72,153,0.2)' : 'rgba(59,130,246,0.2)', border: isMentor ? '1px solid rgba(236,72,153,0.4)' : '1px solid rgba(59,130,246,0.4)' }}
           >
@@ -315,7 +314,19 @@ export default function Mentorship() {
               </button>
             </div>
             {isMentor || isTeenMentor ? (
-              <MentorDashboard user={user} />
+              <div className="text-center py-10">
+                <p className="text-white mb-4">Opening full dashboard...</p>
+                <button
+                  onClick={() => {
+                    setShowDashboard(false);
+                    navigate('/mentor-dashboard');
+                  }}
+                  className="px-6 py-3 rounded-xl font-semibold text-white"
+                  style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+                >
+                  Open Dashboard →
+                </button>
+              </div>
             ) : (
               <MenteeDashboard user={user} />
             )}

@@ -67,6 +67,7 @@ import CommunityDetail from './pages/CommunityDetail';
 import AdminLogs from './pages/AdminLogs';
 import GlowKitchen from './pages/GlowKitchen';
 import Mentorship from './pages/Mentorship';
+import MentorDashboard from './components/mentorship/MentorDashboard';
 import ParentDashboard from './pages/ParentDashboard';
 import GrowthMindset from './pages/GrowthMindset';
 import Scholarships from './pages/Scholarships';
@@ -201,6 +202,7 @@ const AuthenticatedApp = () => {
       <Route path="/admin-logs" element={<AdminLogs />} />
       <Route path="/glow-kitchen" element={<GlowKitchen />} />
       <Route path="/mentorship" element={<Mentorship />} />
+      <Route path="/mentor-dashboard" element={<MentorDashboard />} />
       <Route path="/parent-dashboard" element={<ParentDashboard />} />
       <Route path="/growth-mindset" element={<GrowthMindset />} />
       <Route path="/scholarships" element={<Scholarships />} />
