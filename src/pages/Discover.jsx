@@ -143,13 +143,13 @@ function AppIcon({ item }) {
         <div
           style={{
             position: 'absolute', inset: 0, borderRadius: br,
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04))',
+            background: 'linear-gradient(135deg, rgba(236,72,153,0.6), rgba(168,85,247,0.6), rgba(251,191,36,0.4))',
             padding: 1.5,
           }}
         >
           <div
             className="w-full h-full flex items-center justify-center overflow-hidden"
-            style={{ borderRadius: br - 2, background: 'rgba(28,14,42,0.85)' }}
+            style={{ borderRadius: br - 2, background: 'rgba(18,8,28,0.9)' }}
           >
             {item.image
               ? <img src={item.image} alt={item.label} className="object-contain" style={{ width: '85%', height: '85%' }} />

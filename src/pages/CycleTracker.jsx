@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, ChevronRight, Settings, Plus, Shield, Share2 } from 'lucide-react';
+import { ChevronLeft, Settings, Plus, Shield, Share2 } from 'lucide-react';
 import useGlowPoints from '@/hooks/useGlowPoints';
 import { toast } from 'sonner';
 
@@ -160,7 +160,7 @@ function MiniCalendar({ lastPeriodStart, cycleLength = 28 }) {
       <div className="flex items-center justify-between mb-3">
         <button onClick={() => { const d = new Date(viewDate); d.setMonth(d.getMonth() - 1); setViewDate(d); }} className="text-gray-400 hover:text-white"><ChevronLeft size={18} /></button>
         <span className="text-white font-bold">{monthName}</span>
-        <button onClick={() => { const d = new Date(viewDate); d.setMonth(d.getMonth() + 1); setViewDate(d); }} className="text-gray-400 hover:text-white"><ChevronRight size={18} /></button>
+        <button onClick={() => { const d = new Date(viewDate); d.setMonth(d.getMonth() + 1); setViewDate(d); }} className="text-gray-400 hover:text-white text-lg">›</button>
       </div>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <div key={d} className="text-center text-xs text-gray-500">{d}</div>)}
@@ -621,7 +621,7 @@ export default function CycleTracker() {
                   <div key={card.id} className={`rounded-xl border transition ${expandedCard === card.id ? 'border-purple-500/40 bg-purple-500/10' : 'border-white/10 bg-white/5'}`}>
                     <button className="w-full flex items-center justify-between px-3 py-3" onClick={() => setExpandedCard(expandedCard === card.id ? null : card.id)}>
                       <span className="flex items-center gap-2 text-sm font-semibold text-white"><span>{card.emoji}</span>{card.title}</span>
-                      <ChevronRight size={16} className={`text-gray-400 transition-transform ${expandedCard === card.id ? 'rotate-90' : ''}`} />
+                      <span className="text-gray-500 text-xs">{expandedCard === card.id ? '▲' : '▼'}</span>
                     </button>
                     {expandedCard === card.id && (
                       <div className="px-3 pb-3 text-sm text-gray-300">{card.content}</div>
@@ -637,7 +637,7 @@ export default function CycleTracker() {
                   <p className="font-bold text-white">🎒 School Survival Mode 🩸</p>
                   <p className="text-xs text-gray-500">Period week tips for school days</p>
                 </div>
-                <ChevronRight size={16} className={`text-gray-400 transition-transform flex-shrink-0 ${expandedSchool ? 'rotate-90' : ''}`} />
+                <span className="text-gray-500 text-xs flex-shrink-0">{expandedSchool ? '▲' : '▼'}</span>
               </button>
               {expandedSchool && (
                 <div className="mt-4 space-y-4">

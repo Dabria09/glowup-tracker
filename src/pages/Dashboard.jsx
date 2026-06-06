@@ -778,8 +778,9 @@ export default function Dashboard() {
 
         {/* ── GREETING & AVATAR ─────────────────────────────────── */}
         <div className="flex items-center gap-4 px-5 pt-2 pb-4">
-          <button onClick={() => navigate('/avatar')}>
+          <button onClick={() => navigate('/avatar')} className="flex flex-col items-center gap-1 flex-shrink-0">
             <UserAvatarDisplay profile={profileData} size={54} fallback={firstName[0]} showRing={true} />
+            <span className="text-[9px] text-gray-600 font-medium">My Avatar</span>
           </button>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] text-gray-500 font-medium">{greetingEmoji[greetingKey]} {t(greetingKey)}</p>
@@ -927,18 +928,10 @@ export default function Dashboard() {
                     <SmallAppIcon app={app} onNavigate={!isDragging ? navigate : () => {}} />
                     }
                     {editMode &&
-                    <>
-                        <button data-action="delete"
+                      <button data-action="delete"
                       onPointerDown={(e) => {e.stopPropagation();clearTimeout(longPressTimer.current);setHomeAppIdsAndSave((prev) => prev.filter((id) => id !== itemId));}}
                       className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-red-900 border border-red-700 flex items-center justify-center z-20 shadow"
                       style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1 }}>×</button>
-                        {!isFolder &&
-                      <button data-action="resize"
-                      onPointerDown={(e) => {e.stopPropagation();clearTimeout(longPressTimer.current);setSizingId(itemId);}}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 border border-gray-600 flex items-center justify-center z-20 shadow"
-                      style={{ fontSize: 9, color: '#c084fc', lineHeight: 1 }}>⬛</button>
-                      }
-                      </>
                     }
                   </div>
                 </div>);
