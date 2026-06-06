@@ -24,11 +24,11 @@ const CATEGORIES = [
 const TIPS_BY_AGE = {
   middle: {
     confidence: [
-      'Raise your hand in class at least once today',
       'Give yourself one compliment in the mirror before school',
-      'Wear something that makes you feel like YOU today',
-      'You don\'t have to fit in — you\'re meant to stand out',
       'Stand tall in the hallway — your posture shows how you feel',
+      'Raise your hand in class at least once today',
+      'You don\'t have to fit in — you\'re meant to stand out',
+      'Wear something that makes you feel like YOU today',
     ],
     money: [
       'Save $1 from your allowance every week — it adds up fast',
