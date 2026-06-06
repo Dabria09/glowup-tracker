@@ -7,6 +7,7 @@ import StepParentalConsent from '@/components/onboarding/StepParentalConsent';
 import StepAgreement from '@/components/onboarding/StepAgreement';
 import StepComplete from '@/components/onboarding/StepComplete';
 import StepMentorChoice from '@/components/onboarding/StepMentorChoice';
+import NewUserTour from '@/components/NewUserTour';
 
 const STEPS_DEFAULT = ['dob', 'username', 'agreement', 'complete'];
 const STEPS_MINOR   = ['dob', 'username', 'parental', 'agreement', 'complete'];
@@ -18,6 +19,7 @@ export default function Onboarding() {
   const wantsMentor = new URLSearchParams(window.location.search).get('mentor') === 'true';
   const [user, setUser] = useState(null);
   const [stepIndex, setStepIndex] = useState(0);
+  const [showTour, setShowTour] = useState(false);
   const [data, setData] = useState({
     date_of_birth: '', age: null, age_group: '',
     username: '', parent_name: '', parent_email: '',

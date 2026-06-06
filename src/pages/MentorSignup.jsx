@@ -4,21 +4,21 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2, Sparkles, Users } from "lucide-react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { UserPlus, Mail, Lock, Loader2, Users, Sparkles, CheckCircle } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "sonner";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
-export default function Register() {
+export default function MentorSignup() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [wantsMentor, setWantsMentor] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,6 +34,7 @@ export default function Register() {
     setLoading(true);
     try {
       await base44.auth.register({ email, password });
+      setRegisteredEmail(email);
       setShowOtp(true);
     } catch (err) {
       setError(err.message || "Registration failed");
@@ -50,8 +51,8 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      // Redirect to onboarding with mentor flag if selected
-      window.location.href = wantsMentor ? "/mentor-register" : "/onboarding";
+      // Redirect to mentor application
+      window.location.href = "/onboarding?mentor=true";
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
@@ -63,14 +64,14 @@ export default function Register() {
     setError("");
     try {
       await base44.auth.resendOtp(email);
-      toast.success("Code sent! Check your email for the new code.");
+      toast.success("Code sent! Check your email.");
     } catch (err) {
       setError(err.message || "Failed to resend code");
     }
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/onboarding");
+    base44.auth.loginWithProvider("google", "/onboarding?mentor=true");
   };
 
   if (showOtp) {
@@ -79,15 +80,15 @@ export default function Register() {
         style={{ background: 'radial-gradient(ellipse at top, #2d0a1e 0%, #1a0a18 40%, #0d0610 100%)' }}>
         
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute rounded-full" style={{ width: 400, height: 400, top: -100, left: -80, background: 'radial-gradient(circle, rgba(232,82,109,0.18), transparent 70%)', filter: 'blur(60px)' }} />
+          <div className="absolute rounded-full" style={{ width: 400, height: 400, top: -100, left: -80, background: 'radial-gradient(circle, rgba(245,158,11,0.18), transparent 70%)', filter: 'blur(60px)' }} />
         </div>
 
         <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-8">
-            <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="Girls Glowing Up" className="w-40 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-white mb-2">Verify Your Email ✉️</h1>
+            <div className="text-5xl mb-3">🌟</div>
+            <h1 className="text-2xl font-bold text-white mb-2">Verify Your Email</h1>
             <p className="text-sm text-gray-400">We sent a 6-digit code to</p>
-            <p className="text-sm text-pink-400 font-semibold">{email}</p>
+            <p className="text-sm text-amber-400 font-semibold">{email}</p>
           </div>
 
           <div className="rounded-3xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' }}>
@@ -117,7 +118,7 @@ export default function Register() {
             </div>
 
             <Button className="w-full h-12 font-bold text-white" onClick={handleVerify} disabled={loading || otpCode.length < 6}
-              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+              style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -126,14 +127,14 @@ export default function Register() {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Verify & Continue
+                  Verify & Apply
                 </>
               )}
             </Button>
 
             <p className="text-center text-sm text-gray-400 mt-4">
               Didn't receive the code?{" "}
-              <button onClick={handleResend} className="text-pink-400 font-semibold hover:underline">Resend</button>
+              <button onClick={handleResend} className="text-amber-400 font-semibold hover:underline">Resend</button>
             </p>
           </div>
         </div>
@@ -146,17 +147,43 @@ export default function Register() {
       style={{ background: 'radial-gradient(ellipse at top, #2d0a1e 0%, #1a0a18 40%, #0d0610 100%)' }}>
       
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute rounded-full" style={{ width: 400, height: 400, top: -100, left: -80, background: 'radial-gradient(circle, rgba(232,82,109,0.18), transparent 70%)', filter: 'blur(60px)' }} />
-        <div className="absolute rounded-full" style={{ width: 300, height: 300, top: '40%', right: -60, background: 'radial-gradient(circle, rgba(168,85,247,0.12), transparent 70%)', filter: 'blur(60px)' }} />
+        <div className="absolute rounded-full" style={{ width: 400, height: 400, top: -100, left: -80, background: 'radial-gradient(circle, rgba(245,158,11,0.18), transparent 70%)', filter: 'blur(60px)' }} />
+        <div className="absolute rounded-full" style={{ width: 300, height: 300, top: '40%', right: -60, background: 'radial-gradient(circle, rgba(236,72,153,0.12), transparent 70%)', filter: 'blur(60px)' }} />
       </div>
 
       <div className="w-full max-w-md relative z-10">
+        {/* Logo & Header */}
         <div className="text-center mb-8">
           <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="Girls Glowing Up" className="w-40 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Join Girls Glowing Up ✨</h1>
-          <p className="text-sm text-gray-400">Create your account and start glowing</p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Users size={24} className="text-amber-400" />
+            <h1 className="text-2xl font-bold text-white">Mentor Application</h1>
+          </div>
+          <p className="text-sm text-gray-400">Create your account to begin your mentor journey</p>
         </div>
 
+        {/* Benefits */}
+        <div className="rounded-2xl p-4 mb-6" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
+          <h3 className="font-bold text-amber-400 text-sm mb-3 flex items-center gap-2">
+            <Sparkles size={16} />
+            Why Become a Mentor?
+          </h3>
+          <div className="space-y-2">
+            {[
+              'Guide the next generation of confident girls',
+              'Share your expertise and life experience',
+              'Join a community of empowered women',
+              'Make a lasting impact on young lives',
+            ].map((benefit, i) => (
+              <div key={i} className="flex items-start gap-2 text-xs text-gray-300">
+                <CheckCircle size={14} className="text-amber-400 mt-0.5 flex-shrink-0" />
+                <span>{benefit}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Signup Form */}
         <div className="rounded-3xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' }}>
           <Button variant="outline" className="w-full h-12 text-sm font-medium mb-4 bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleGoogle}>
             <GoogleIcon className="w-5 h-5 mr-2" />
@@ -190,7 +217,7 @@ export default function Register() {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-pink-500"
+                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-amber-500"
                   required
                 />
               </div>
@@ -205,7 +232,7 @@ export default function Register() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-pink-500"
+                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-amber-500"
                   required
                 />
               </div>
@@ -220,29 +247,14 @@ export default function Register() {
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-pink-500"
+                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-amber-500"
                   required
                 />
               </div>
             </div>
 
-            {/* Mentor Interest Toggle */}
-            <div className="pt-2">
-              <label className="flex items-start gap-3 p-3 rounded-xl cursor-pointer transition"
-                style={{ background: wantsMentor ? 'rgba(236,72,153,0.15)' : 'rgba(255,255,255,0.03)', border: wantsMentor ? '1px solid rgba(236,72,153,0.3)' : '1px solid rgba(255,255,255,0.05)' }}>
-                <input type="checkbox" checked={wantsMentor} onChange={(e) => setWantsMentor(e.target.checked)} className="mt-1 accent-pink-500" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-white flex items-center gap-1">
-                    <Users size={14} className="text-pink-400" />
-                    I want to become a mentor
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">Guide other girls on their glow journey (13+)</p>
-                </div>
-              </label>
-            </div>
-
             <Button type="submit" className="w-full h-12 font-bold text-white" disabled={loading}
-              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+              style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -251,16 +263,17 @@ export default function Register() {
               ) : (
                 <>
                   <UserPlus className="w-4 h-4 mr-2" />
-                  Create Account
+                  Create Account & Apply
                 </>
               )}
             </Button>
           </form>
         </div>
 
+        {/* Footer */}
         <p className="text-center text-xs text-gray-500 mt-6">
           Already have an account?{" "}
-          <Link to="/login" className="text-pink-400 font-semibold hover:underline">Sign in</Link>
+          <Link to="/login" className="text-amber-400 font-semibold hover:underline">Sign in</Link>
         </p>
         <p className="text-center text-[10px] text-gray-600 mt-2">
           By signing up, you agree to our{" "}
