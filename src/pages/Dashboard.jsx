@@ -204,10 +204,12 @@ function getPageById(id) {return ALL_PAGES.find((p) => p.id === id);}
 
 // ─── Widget Icon (iOS-style squircle) ────────────────────────────────────────
 function AppIcon({ app, size = 64 }) {
-  const br = Math.round(size * 0.24);
+  const isFluid = typeof size === 'string';
+  const numSize = isFluid ? 64 : size;
+  const br = Math.round(numSize * 0.24);
   const hasImage = !!app.image;
   return (
-    <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
+    <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: isFluid ? '100%' : size, height: isFluid ? '100%' : size }}>
       {hasImage ? (
         /* Pretty gradient border ring for image icons */
         <div style={{
@@ -387,33 +389,37 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
 
 }
 
-// ─── Featured Widget (large — full width) ─────────────────────────────────────
+// ─── Featured Widget (large — full width, 2:1 aspect) ─────────────────────────
 function FeaturedWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-    className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-4"
-    style={{ height: 160, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
+    className="relative w-full rounded-[22px] overflow-hidden active:scale-[0.98] transition-all select-none text-left flex flex-col justify-end p-4"
+    style={{ aspectRatio: '2 / 1', background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
       {app.image &&
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-          <AppIcon app={app} size={110} />
+      <div className="absolute inset-0 flex items-center justify-end pr-5 pointer-events-none">
+        <div style={{ width: '42%', aspectRatio: '1/1' }}>
+          <AppIcon app={app} size="100%" />
         </div>
+      </div>
       }
-      <p className="relative z-10 text-base font-bold text-white leading-tight">{app.label}</p>
+      <p className="relative z-10 text-base font-bold text-white leading-tight drop-shadow">{app.label}</p>
     </button>);
 }
 
-// ─── Medium Widget (half width) ───────────────────────────────────────────────
+// ─── Medium Widget (half width, square aspect) ────────────────────────────────
 function MediumWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-    className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-3"
-    style={{ height: 110, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
+    className="relative w-full rounded-[22px] overflow-hidden active:scale-[0.98] transition-all select-none text-left flex flex-col justify-end p-3"
+    style={{ aspectRatio: '1 / 1', background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
       {app.image &&
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-          <AppIcon app={app} size={72} />
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ paddingBottom: '28px' }}>
+        <div style={{ width: '58%', aspectRatio: '1/1' }}>
+          <AppIcon app={app} size="100%" />
         </div>
+      </div>
       }
-      <p className="relative z-10 text-sm font-bold text-white leading-tight">{app.label}</p>
+      <p className="relative z-10 text-sm font-bold text-white leading-tight drop-shadow">{app.label}</p>
     </button>);
 }
 
