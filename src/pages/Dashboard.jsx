@@ -514,12 +514,12 @@ export default function Dashboard() {
   const saveLayoutTimeout = useRef(null);
   const [editMode, setEditMode] = useState(false);
   const [widgetSizes, setWidgetSizes] = useState(() => {
-    // One-time migration: clear widget sizes for removed/banned features
+    // One-time migration: clear widget sizes for removed/banned features and reset shout-outs
     const saved = loadSaved('ggu_widget_sizes', {});
     const cleaned = {};
     Object.keys(saved).forEach((id) => {
-      // Only keep sizes for valid, non-banned features
-      if (!BANNED_HOME_IDS.has(id) && ALL_PAGES.some((p) => p.id === id)) {
+      // Only keep sizes for valid, non-banned features (exclude shout-outs to reset it)
+      if (!BANNED_HOME_IDS.has(id) && ALL_PAGES.some((p) => p.id === id) && id !== 'shout-outs') {
         cleaned[id] = saved[id];
       }
     });
