@@ -252,7 +252,7 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
     setSaving(false);
     setSavedMsg('✅ Avatar saved as your profile picture!');
     setTimeout(() => setSavedMsg(''), 2500);
-    if (onSaved) onSaved(avatarUrl);
+    if (onSaved) await onSaved(avatarUrl);
   };
 
   const OPTIONS_MAP = {

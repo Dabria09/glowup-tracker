@@ -440,9 +440,14 @@ export default function Avatar() {
               <DiceBearBuilder
                 profile={profile}
                 user={user}
-                onSaved={(url) => {
+                onSaved={async (url) => {
                   setAvatarUrl(url);
                   setIdentityType('selfie');
+                  // Re-fetch profile so UserAvatarDisplay everywhere gets the updated avatar_url
+                  if (user) {
+                    const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+                    if (profiles.length) setProfile(profiles[0]);
+                  }
                   setSavedMsg('🖼️ Illustrated avatar saved as your profile picture!');
                   setTimeout(() => setSavedMsg(''), 2500);
                 }}
