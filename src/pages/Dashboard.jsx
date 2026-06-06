@@ -205,22 +205,20 @@ function getPageById(id) {return ALL_PAGES.find((p) => p.id === id);}
 // ─── Widget Icon (iOS-style squircle) ────────────────────────────────────────
 function AppIcon({ app, size = 64 }) {
   const br = Math.round(size * 0.24);
+  const hasImage = !!app.image;
   return (
     <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
-      {/* Squircle base with gradient border effect */}
       <div
         style={{
           position: 'absolute', inset: 0, borderRadius: br,
-          background: `linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04))`,
-          padding: 1.5
+          background: hasImage ? 'transparent' : `linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04))`,
+          padding: hasImage ? 0 : 1.5
         }}>
-        
         <div
           className="w-full h-full flex items-center justify-center overflow-hidden"
-          style={{ borderRadius: br - 2, background: 'rgba(28,14,42,0.85)' }}>
-          
+          style={{ borderRadius: br - 2, background: hasImage ? 'transparent' : 'rgba(28,14,42,0.85)' }}>
           {app.image ?
-          <img src={app.image} alt={app.label} className="object-contain" style={{ width: '85%', height: '85%' }} /> :
+          <img src={app.image} alt={app.label} className="object-contain w-full h-full" /> :
           <span style={{ fontSize: size * 0.42 }}>{app.emoji}</span>
           }
         </div>
