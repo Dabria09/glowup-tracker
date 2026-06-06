@@ -387,36 +387,34 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
 
 }
 
-// ─── Featured Widget (large 2-col) ────────────────────────────────────────────
+// ─── Featured Widget (large — full width) ─────────────────────────────────────
 function FeaturedWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
     className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-4"
-    style={{ height: 150, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
+    style={{ height: 160, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
       {app.image &&
       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-          <AppIcon app={app} size={84} />
+          <AppIcon app={app} size={110} />
         </div>
       }
       <p className="relative z-10 text-base font-bold text-white leading-tight">{app.label}</p>
     </button>);
-
 }
 
-// ─── Medium Widget (1-col) ────────────────────────────────────────────────────
+// ─── Medium Widget (half width) ───────────────────────────────────────────────
 function MediumWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
     className="relative w-full rounded-[22px] overflow-hidden active:scale-98 transition-all select-none text-left flex flex-col justify-end p-3"
-    style={{ height: 100, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
+    style={{ height: 110, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
       {app.image &&
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <AppIcon app={app} size={58} />
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+          <AppIcon app={app} size={72} />
         </div>
       }
       <p className="relative z-10 text-sm font-bold text-white leading-tight">{app.label}</p>
     </button>);
-
 }
 
 // ─── Small App Icon (4-col grid) ─────────────────────────────────────────────
@@ -887,8 +885,11 @@ export default function Dashboard() {
               const wSize = !isFolder && widgetSizes[itemId] || 'small';
               if (isFolder && !folder) return null;
               if (!isFolder && !app) return null;
-              const isBig = !isFolder && (wSize === 'medium' || wSize === 'large');
-              const itemW = isBig ? 'calc(50% - 4px)' : 'calc(25% - 6px)';
+              const itemW = isFolder || wSize === 'small'
+                ? 'calc(25% - 6px)'
+                : wSize === 'large'
+                  ? '100%'
+                  : 'calc(50% - 4px)';
               const isDragging = draggingId === itemId;
               const isOver = dragOverIndex === index;
               return (
@@ -981,32 +982,6 @@ export default function Dashboard() {
           })()}
         </div>
 
-        {/* ── COMMUNITY ────────────────────────────────────────── */}
-        <div className="px-5 mb-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase">Community</p>
-            <button onClick={() => setShowCommunityPicker(true)} className="flex items-center gap-1 text-[11px] text-pink-400 font-semibold"><Plus size={11} /> Edit</button>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {communityIds.map((id) => {
-              const app = getPageById(id);
-              if (!app) return null;
-              return (
-                <button key={id} onClick={() => navigate(app.route)}
-                className="relative rounded-[18px] overflow-hidden flex flex-col items-start justify-end p-3 active:scale-95 transition-all"
-                style={{ height: 90, background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                  {app.image &&
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                      <AppIcon app={app} size={44} />
-                    </div>
-                  }
-                  <span className="relative text-[11px] font-bold text-white z-10">{app.label}</span>
-                </button>);
-
-            })}
-          </div>
-        </div>
-
         {/* ── SOCIAL MEDIA (subtle, at bottom) ─────────────────── */}
         <div className="px-5 mb-6">
           <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase mb-3">Follow Us</p>
@@ -1033,9 +1008,6 @@ export default function Dashboard() {
       <CustomizeModal bgColor={bgColor} setBgColor={setBgColor} bgPattern={bgPattern} setBgPattern={setBgPattern}
       bgImage={bgImage} setBgImage={setBgImage} bgImagePos={bgImagePos} setBgImagePos={setBgImagePos}
       onClose={() => setShowCustomize(false)} />
-      }
-      {showCommunityPicker &&
-      <PagePickerModal title="Customize Community" currentIds={communityIds} onSave={setCommunityIdsAndSave} onClose={() => setShowCommunityPicker(false)} />
       }
       {showQuickPicker &&
       <PagePickerModal title="Customize Quick Access" currentIds={quickIds} onSave={setQuickIdsAndSave} onClose={() => setShowQuickPicker(false)} />
