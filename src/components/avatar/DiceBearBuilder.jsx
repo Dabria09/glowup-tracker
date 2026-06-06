@@ -177,7 +177,7 @@ const DEFAULT_CONFIG = {
 };
 
 function buildUrl(config) {
-  // DiceBear 10.x avataaars correct parameter names
+  // DiceBear 10.x avataaars — use SVG for reliable cross-browser display
   const params = new URLSearchParams({
     skinColor: config.skin,
     topVariant: config.hairStyle,
@@ -188,7 +188,29 @@ function buildUrl(config) {
     clothesVariant: config.clothes,
     clothesColor: config.clothesColor,
     backgroundColor: config.background,
-    size: '200',
+  });
+  if (config.accessories) {
+    params.set('accessoriesVariant', config.accessories);
+    params.set('accessoriesProbability', '100');
+  } else {
+    params.set('accessoriesProbability', '0');
+  }
+  return `https://api.dicebear.com/10.x/avataaars/svg?${params.toString()}`;
+}
+
+function buildPngUrl(config) {
+  // PNG version for saving to profile (more compatible as stored URL)
+  const params = new URLSearchParams({
+    skinColor: config.skin,
+    topVariant: config.hairStyle,
+    hairColor: config.hairColor,
+    eyesVariant: config.eyes,
+    eyebrowsVariant: config.eyebrows,
+    mouthVariant: config.mouth,
+    clothesVariant: config.clothes,
+    clothesColor: config.clothesColor,
+    backgroundColor: config.background,
+    size: '256',
   });
   if (config.accessories) {
     params.set('accessoriesVariant', config.accessories);
@@ -238,8 +260,9 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
 
   const save = async () => {
     setSaving(true);
+    const pngUrl = buildPngUrl(config);
     const data = {
-      avatar_url: avatarUrl,
+      avatar_url: pngUrl,
       avatar_builder_config: JSON.stringify(config),
       identity_type: 'selfie',
     };
@@ -251,7 +274,7 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
     setSaving(false);
     setSavedMsg('✅ Avatar saved as your profile picture!');
     setTimeout(() => setSavedMsg(''), 2500);
-    if (onSaved) await onSaved(avatarUrl);
+    if (onSaved) await onSaved(pngUrl);
   };
 
   const OPTIONS_MAP = {
@@ -279,8 +302,8 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
           <img
             src={avatarUrl}
             alt="avatar preview"
-            className="w-full h-full object-cover"
-            style={{ imageRendering: 'auto' }}
+            className="w-full h-full object-contain"
+            onError={(e) => { e.target.style.display='none'; }}
           />
         </div>
       </div>
