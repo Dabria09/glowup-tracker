@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shuffle, Save, Share2, Check } from 'lucide-react';
+import { Shuffle, Save, Check } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const SKIN_COLORS = [
@@ -205,13 +205,15 @@ function randomFrom(arr) {
 }
 
 export default function DiceBearBuilder({ profile, user, onSaved }) {
-  const [config, setConfig] = useState(() => {
+  const [config, setConfig] = useState(DEFAULT_CONFIG);
+
+  useEffect(() => {
+    if (!profile?.avatar_builder_config) return;
     try {
-      const saved = profile?.avatar_builder_config;
-      if (saved) return JSON.parse(saved);
+      const saved = JSON.parse(profile.avatar_builder_config);
+      setConfig(saved);
     } catch {}
-    return DEFAULT_CONFIG;
-  });
+  }, [profile]);
   const [activeTab, setActiveTab] = useState('skin');
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
