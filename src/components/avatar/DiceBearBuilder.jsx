@@ -11,9 +11,14 @@ const SKIN_COLORS = [
   { label: 'Wheat', value: 'ae5d29' },
   { label: 'Brown', value: '614335' },
   { label: 'Dark Brown', value: '4a312c' },
+  // Fantasy
+  { label: '🌸 Pastel Pink', value: 'fdb5b5' },
+  { label: '💜 Lavender', value: 'e0b0ff' },
+  { label: '🌊 Ocean Blue', value: '93c5fd' },
+  { label: '🌿 Cyber Mint', value: 'bbf7d0' },
 ];
 
-const HAT_STYLES = ['hat', 'hijab', 'turban', 'winterHat1', 'froBand'];
+const HAT_STYLES = ['hat', 'hijab', 'turban', 'winterHat1', 'winterHat02', 'winterHat03', 'winterHat04', 'froBand'];
 
 const HAIR_STYLES = [
   { label: 'Big Hair', value: 'bigHair' },
@@ -30,7 +35,8 @@ const HAIR_STYLES = [
   { label: 'Hijab', value: 'hijab' },
   { label: 'Long Curvy', value: 'longButNotTooLong' },
   { label: 'Mia Wallace', value: 'miaWallace' },
-  { label: 'Shaggy', value: 'shaggyMullet' },
+  { label: 'Shaggy', value: 'shaggy' },
+  { label: 'Shaggy Mullet', value: 'shaggyMullet' },
   { label: 'Shaved Sides', value: 'shavedSides' },
   { label: 'Short Curly', value: 'shortCurly' },
   { label: 'Short Flat', value: 'shortFlat' },
@@ -39,10 +45,16 @@ const HAIR_STYLES = [
   { label: 'Sides', value: 'sides' },
   { label: 'Straight', value: 'straight01' },
   { label: 'Straight 2', value: 'straight02' },
+  { label: 'Straight & Strand', value: 'straightAndStrand' },
   { label: 'The Caesar', value: 'theCaesar' },
   { label: 'Caesar Side', value: 'theCaesarAndSidePart' },
   { label: 'Turban', value: 'turban' },
-  { label: 'Winter Hat', value: 'winterHat1' },
+  { label: 'Winter Hat 1', value: 'winterHat1' },
+  { label: 'Winter Hat 2', value: 'winterHat02' },
+  { label: 'Winter Hat 3', value: 'winterHat03' },
+  { label: 'Winter Hat 4', value: 'winterHat04' },
+  { label: 'Dreads Alt 1', value: 'dreads01' },
+  { label: 'Dreads Alt 2', value: 'dreads02' },
 ];
 
 const HAIR_COLORS = [
@@ -115,6 +127,7 @@ const MOUTH = [
   { label: 'Serious', value: 'serious' },
   { label: 'Tongue', value: 'tongue' },
   { label: 'Twinkle', value: 'twinkle' },
+  { label: 'Vomit 🤢', value: 'vomit' },
 ];
 
 const CLOTHES = [
@@ -168,6 +181,27 @@ const ACCESSORIES = [
   { label: 'Round', value: 'round' },
   { label: 'Sunglasses', value: 'sunglasses' },
   { label: 'Wayfarers', value: 'wayfarers' },
+  { label: 'Eyepatch 🏴‍☠️', value: 'eyepatch' },
+];
+
+const FACIAL_HAIR = [
+  { label: 'None', value: '' },
+  { label: 'Light Beard', value: 'beardLight' },
+  { label: 'Medium Beard', value: 'beardMedium' },
+  { label: 'Majestic Beard', value: 'beardMajestic' },
+  { label: 'Fancy Moustache', value: 'moustacheFancy' },
+  { label: 'Magnum Moustache', value: 'moustacheMagnum' },
+];
+
+const FACIAL_HAIR_COLORS = [
+  { label: 'Auburn', value: 'a55728' },
+  { label: 'Black', value: '2c1b18' },
+  { label: 'Blonde', value: 'b58143' },
+  { label: 'Brown', value: '724133' },
+  { label: 'Dark Brown', value: '4a312c' },
+  { label: 'Platinum', value: 'ecdcbf' },
+  { label: 'Red', value: 'c93305' },
+  { label: 'Silver', value: 'e8e1e1' },
 ];
 
 const ACCESSORIES_COLORS = [
@@ -250,6 +284,8 @@ const TABS = [
   { id: 'graphicDesign', label: 'Graphic' },
   { id: 'accessories', label: 'Glasses' },
   { id: 'accessoriesColor', label: 'Frame Color' },
+  { id: 'facialHair', label: 'Facial Hair' },
+  { id: 'facialHairColor', label: 'Beard Color' },
   { id: 'background', label: 'BG' },
   { id: 'frame', label: '🖼 Frame' },
 ];
@@ -267,6 +303,8 @@ const OPTIONS_MAP = {
   graphicDesign: GRAPHIC_DESIGNS,
   accessories: ACCESSORIES,
   accessoriesColor: ACCESSORIES_COLORS,
+  facialHair: FACIAL_HAIR,
+  facialHairColor: FACIAL_HAIR_COLORS,
   background: BACKGROUNDS,
 };
 
@@ -275,10 +313,11 @@ const DEFAULT_CONFIG = {
   eyes: 'happy', eyebrows: 'default', mouth: 'smile',
   clothes: 'hoodie', clothesColor: 'ff488e', graphicDesign: 'diamond',
   accessories: '', accessoriesColor: '262e33',
+  facialHair: '', facialHairColor: '2c1b18',
   background: 'FCE4EC', frame: 'pink_glow',
 };
 
-const COLOR_TABS = ['hairColor', 'hatColor', 'clothesColor', 'accessoriesColor', 'background', 'skin'];
+const COLOR_TABS = ['hairColor', 'hatColor', 'clothesColor', 'accessoriesColor', 'facialHairColor', 'background', 'skin'];
 const MAX_HISTORY = 5;
 const HISTORY_KEY = 'ggu_avatar_history';
 
@@ -302,6 +341,13 @@ function buildUrl(config, format = 'svg', size = null) {
     if (config.accessoriesColor) params.set('accessoriesColor', config.accessoriesColor);
   } else {
     params.set('accessoriesProbability', '0');
+  }
+  if (config.facialHair) {
+    params.set('facialHairVariant', config.facialHair);
+    params.set('facialHairProbability', '100');
+    if (config.facialHairColor) params.set('facialHairColor', config.facialHairColor);
+  } else {
+    params.set('facialHairProbability', '0');
   }
   if (size) params.set('size', String(size));
   return `https://api.dicebear.com/10.x/avataaars/${format}?${params.toString()}`;
@@ -362,7 +408,10 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
       eyes: randomFrom(EYES), eyebrows: randomFrom(EYEBROWS), mouth: randomFrom(MOUTH),
       clothes: randomFrom(CLOTHES), clothesColor: randomFrom(CLOTHES_COLORS),
       graphicDesign: randomFrom(GRAPHIC_DESIGNS), accessories: randomFrom(ACCESSORIES),
-      accessoriesColor: randomFrom(ACCESSORIES_COLORS), background: randomFrom(BACKGROUNDS),
+      accessoriesColor: randomFrom(ACCESSORIES_COLORS),
+      facialHair: Math.random() > 0.6 ? randomFrom(FACIAL_HAIR.filter(f => f.value)) : '',
+      facialHairColor: randomFrom(FACIAL_HAIR_COLORS),
+      background: randomFrom(BACKGROUNDS),
       frame: FRAMES[Math.floor(Math.random() * FRAMES.length)].id,
     });
   };
@@ -460,10 +509,13 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
   const isGraphicShirt = config.clothes === 'graphicShirt';
   const hasAccessory = !!config.accessories;
 
+  const hasFacialHair = !!config.facialHair;
+
   const visibleTabs = TABS.filter(tab => {
     if (tab.id === 'hatColor') return isHatStyle;
     if (tab.id === 'graphicDesign') return isGraphicShirt;
     if (tab.id === 'accessoriesColor') return hasAccessory;
+    if (tab.id === 'facialHairColor') return hasFacialHair;
     return true;
   });
 
