@@ -222,7 +222,7 @@ export default function Avatar() {
       {/* Tab Switcher */}
       <div className="px-4 mb-5">
         <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3 text-center">Choose Your Glow Identity</p>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
           {IDENTITY_TABS.map(tab => {
             const isActive = activeTab === tab.id;
             return (
@@ -230,8 +230,9 @@ export default function Avatar() {
                 key={tab.id}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveTab(tab.id)}
-                className="flex flex-col items-center gap-1.5 py-3 rounded-2xl transition-all"
+                className="flex flex-col items-center gap-1.5 py-3 px-3 rounded-2xl transition-all flex-shrink-0"
                 style={{
+                  minWidth: 80,
                   background: isActive
                     ? 'linear-gradient(135deg,rgba(236,72,153,0.25),rgba(168,85,247,0.25))'
                     : 'rgba(255,255,255,0.05)',
