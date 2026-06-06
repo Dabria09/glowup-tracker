@@ -175,13 +175,13 @@ const GRAPHIC_DESIGNS = [
 
 const ACCESSORIES = [
   { label: 'None', value: '' },
-  { label: 'Kurt', value: 'kurt' },
-  { label: 'Prescription 01', value: 'prescription01' },
-  { label: 'Prescription 02', value: 'prescription02' },
-  { label: 'Round', value: 'round' },
-  { label: 'Sunglasses', value: 'sunglasses' },
-  { label: 'Wayfarers', value: 'wayfarers' },
-  { label: 'Eyepatch 🏴‍☠️', value: 'eyepatch' },
+  { label: '🕶 Wayfarers', value: 'wayfarers' },
+  { label: '👓 Round', value: 'round' },
+  { label: '💊 Prescription 01', value: 'prescription01' },
+  { label: '💊 Prescription 02', value: 'prescription02' },
+  { label: '😎 Sunglasses', value: 'sunglasses' },
+  { label: '🤓 Kurt', value: 'kurt' },
+  { label: '🏴‍☠️ Eyepatch', value: 'eyepatch' },
 ];
 
 const FACIAL_HAIR = [
@@ -207,14 +207,31 @@ const FACIAL_HAIR_COLORS = [
 const ACCESSORIES_COLORS = [
   { label: 'Black', value: '262e33' },
   { label: 'Blue', value: '65c9ff' },
-  { label: 'Gold', value: 'fef08a' },
+  { label: 'Gold ✨', value: 'fef08a' },
+  { label: 'Rose Gold 🌹', value: 'f4a0a0' },
   { label: 'Pink', value: 'ff488e' },
   { label: 'Purple', value: 'a855f7' },
   { label: 'Red', value: 'ff5c5c' },
-  { label: 'Silver', value: 'e8e1e1' },
+  { label: 'Silver 🪙', value: 'e8e1e1' },
+  { label: 'Bronze 🥉', value: 'cd7f32' },
   { label: 'Pastel Blue', value: 'b1e2ff' },
   { label: 'Pastel Pink', value: 'ffafb9' },
   { label: 'White', value: 'ffffff' },
+  { label: 'Tortoise 🐢', value: '8B5e3c' },
+  { label: 'Crystal 💎', value: 'a8d8ea' },
+];
+
+// Hat styles (subset of hair styles that are hat-type)
+const HAT_ONLY_STYLES = [
+  { label: 'None (use Hair)', value: '' },
+  { label: '🎩 Top Hat', value: 'hat' },
+  { label: '🧕 Hijab', value: 'hijab' },
+  { label: '🎯 Turban', value: 'turban' },
+  { label: '🧣 Winter Hat 1', value: 'winterHat1' },
+  { label: '🧣 Winter Hat 2', value: 'winterHat02' },
+  { label: '🧣 Winter Hat 3', value: 'winterHat03' },
+  { label: '🎿 Winter Hat 4', value: 'winterHat04' },
+  { label: '🎀 Fro Band', value: 'froBand' },
 ];
 
 const BACKGROUNDS = [
@@ -272,28 +289,30 @@ const PRESETS = [
 const TABS = [
   { id: 'presets', label: '✨ Presets' },
   { id: 'history', label: '🕐 History' },
-  { id: 'skin', label: 'Skin' },
-  { id: 'hairStyle', label: 'Hair' },
+  { id: 'skin', label: '🎨 Skin' },
+  { id: 'hairStyle', label: '💇 Hair' },
   { id: 'hairColor', label: 'Hair Color' },
+  { id: 'hatStyle', label: '🎩 Hats' },
   { id: 'hatColor', label: 'Hat Color' },
-  { id: 'eyes', label: 'Eyes' },
+  { id: 'eyes', label: '👁 Eyes' },
   { id: 'eyebrows', label: 'Brows' },
-  { id: 'mouth', label: 'Mouth' },
-  { id: 'clothes', label: 'Outfit' },
+  { id: 'mouth', label: '👄 Mouth' },
+  { id: 'clothes', label: '👗 Outfit' },
   { id: 'clothesColor', label: 'Outfit Color' },
   { id: 'graphicDesign', label: 'Graphic' },
-  { id: 'accessories', label: 'Glasses' },
+  { id: 'accessories', label: '🕶 Glasses' },
   { id: 'accessoriesColor', label: 'Frame Color' },
-  { id: 'facialHair', label: 'Facial Hair' },
+  { id: 'facialHair', label: '🧔 Facial Hair' },
   { id: 'facialHairColor', label: 'Beard Color' },
-  { id: 'background', label: 'BG' },
-  { id: 'frame', label: '🖼 Frame' },
+  { id: 'background', label: '🖼 BG' },
+  { id: 'frame', label: '✨ Frame' },
 ];
 
 const OPTIONS_MAP = {
   skin: SKIN_COLORS,
   hairStyle: HAIR_STYLES,
   hairColor: HAIR_COLORS,
+  hatStyle: HAT_ONLY_STYLES,
   hatColor: HAT_COLORS,
   eyes: EYES,
   eyebrows: EYEBROWS,
@@ -309,7 +328,8 @@ const OPTIONS_MAP = {
 };
 
 const DEFAULT_CONFIG = {
-  skin: 'd08b5b', hairStyle: 'fro', hairColor: '2c1b18', hatColor: 'ff488e',
+  skin: 'd08b5b', hairStyle: 'fro', hairColor: '2c1b18',
+  hatStyle: '', hatColor: 'ff488e',
   eyes: 'happy', eyebrows: 'default', mouth: 'smile',
   clothes: 'hoodie', clothesColor: 'ff488e', graphicDesign: 'diamond',
   accessories: '', accessoriesColor: '262e33',
@@ -322,9 +342,12 @@ const MAX_HISTORY = 5;
 const HISTORY_KEY = 'ggu_avatar_history';
 
 function buildUrl(config, format = 'svg', size = null) {
+  // hatStyle overrides hairStyle for the top slot when set
+  const topVariant = config.hatStyle || config.hairStyle;
+  const isHat = HAT_STYLES.includes(topVariant);
   const params = new URLSearchParams({
     skinColor: config.skin,
-    topVariant: config.hairStyle,
+    topVariant,
     hairColor: config.hairColor,
     eyesVariant: config.eyes,
     eyebrowsVariant: config.eyebrows,
@@ -333,7 +356,7 @@ function buildUrl(config, format = 'svg', size = null) {
     clothesColor: config.clothesColor,
     backgroundColor: config.background,
   });
-  if (HAT_STYLES.includes(config.hairStyle) && config.hatColor) params.set('hatColor', config.hatColor);
+  if (isHat && config.hatColor) params.set('hatColor', config.hatColor);
   if (config.clothes === 'graphicShirt' && config.graphicDesign) params.set('clothingGraphic', config.graphicDesign);
   if (config.accessories) {
     params.set('accessoriesVariant', config.accessories);
@@ -404,7 +427,9 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
   const randomize = () => {
     setConfig({
       skin: randomFrom(SKIN_COLORS), hairStyle: randomFrom(HAIR_STYLES),
-      hairColor: randomFrom(HAIR_COLORS), hatColor: randomFrom(HAT_COLORS),
+      hairColor: randomFrom(HAIR_COLORS),
+      hatStyle: Math.random() > 0.7 ? randomFrom(HAT_ONLY_STYLES.filter(h => h.value)) : '',
+      hatColor: randomFrom(HAT_COLORS),
       eyes: randomFrom(EYES), eyebrows: randomFrom(EYEBROWS), mouth: randomFrom(MOUTH),
       clothes: randomFrom(CLOTHES), clothesColor: randomFrom(CLOTHES_COLORS),
       graphicDesign: randomFrom(GRAPHIC_DESIGNS), accessories: randomFrom(ACCESSORIES),
@@ -505,14 +530,15 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
   };
 
   // Visible tabs based on context
-  const isHatStyle = HAT_STYLES.includes(config.hairStyle);
+  const activeTop = config.hatStyle || config.hairStyle;
+  const isHatActive = HAT_STYLES.includes(activeTop);
   const isGraphicShirt = config.clothes === 'graphicShirt';
   const hasAccessory = !!config.accessories;
-
   const hasFacialHair = !!config.facialHair;
+  const hasHatStyle = !!config.hatStyle;
 
   const visibleTabs = TABS.filter(tab => {
-    if (tab.id === 'hatColor') return isHatStyle;
+    if (tab.id === 'hatColor') return isHatActive;
     if (tab.id === 'graphicDesign') return isGraphicShirt;
     if (tab.id === 'accessoriesColor') return hasAccessory;
     if (tab.id === 'facialHairColor') return hasFacialHair;
