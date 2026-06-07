@@ -126,8 +126,8 @@ export default function Login() {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full h-12 font-bold text-white" disabled={loading}
-              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+            <Button type="submit" className="w-full h-12 font-bold text-white border-0" disabled={loading}
+              style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)', color: '#fff' }}>
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
