@@ -15,17 +15,31 @@ export default function AppModeGate() {
     try {
       const u = await base44.auth.me();
 
-      // If mentor is still pending, check MentorApplication for latest status
+      // If mentor is still pending, check both MentorApplication AND Mentor entity for approval
       if (u.account_type === "mentor" && u.mentor_status !== "approved") {
         try {
+          // Check MentorApplication entity
           const apps = await base44.entities.MentorApplication.filter({ created_by_id: u.id });
           const latestApp = apps.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
           if (latestApp?.status === "approved") {
-            await base44.entities.User.update(u.id, { mentor_status: "approved" });
+            await base44.auth.updateMe({ mentor_status: "approved" });
             u.mentor_status = "approved";
           }
         } catch (e) {
-          console.warn("Could not sync mentor status:", e);
+          console.warn("Could not sync from MentorApplication:", e);
+        }
+
+        // Also check Mentor entity directly (admin may approve there)
+        if (u.mentor_status !== "approved") {
+          try {
+            const mentors = await base44.entities.Mentor.filter({ user_email: u.email });
+            if (mentors.length > 0 && mentors[0].is_approved === true) {
+              await base44.auth.updateMe({ mentor_status: "approved" });
+              u.mentor_status = "approved";
+            }
+          } catch (e) {
+            console.warn("Could not sync from Mentor entity:", e);
+          }
         }
       }
 
