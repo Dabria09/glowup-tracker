@@ -23,7 +23,7 @@ export default function Onboarding() {
   const [data, setData] = useState({
     date_of_birth: '', age: null, age_group: '',
     username: '', parent_name: '', parent_email: '',
-    agreed_to_tos: false, agreed_to_privacy: false, stage: '',
+    agreed_to_tos: false, agreed_to_privacy: false,
   });
 
   useEffect(() => {
@@ -58,7 +58,6 @@ export default function Onboarding() {
       date_of_birth: data.date_of_birth,
       age: data.age,
       age_group: data.age_group,
-      stage: data.stage,
       agreed_to_tos: data.agreed_to_tos,
       agreed_to_privacy: data.agreed_to_privacy,
       onboarding_complete: data.age >= 13, // minors pending approval

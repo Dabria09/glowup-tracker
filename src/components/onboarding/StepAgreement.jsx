@@ -3,13 +3,12 @@ import { useState } from 'react';
 export default function StepAgreement({ data, update, onNext, onBack }) {
   const [tos, setTos] = useState(data.agreed_to_tos || false);
   const [privacy, setPrivacy] = useState(data.agreed_to_privacy || false);
-  const [stage, setStage] = useState(data.stage || '');
 
   const isUnder13 = data.age < 13;
-  const canContinue = tos && privacy && stage;
+  const canContinue = tos && privacy;
 
   const handleNext = () => {
-    update({ agreed_to_tos: tos, agreed_to_privacy: privacy, stage });
+    update({ agreed_to_tos: tos, agreed_to_privacy: privacy });
     onNext();
   };
 
@@ -17,22 +16,6 @@ export default function StepAgreement({ data, update, onNext, onBack }) {
     <div className="bg-card rounded-2xl p-6 border border-border shadow-lg">
       <h2 className="text-2xl font-bold font-poppins text-center mb-1">Almost There! 🌟</h2>
       <p className="text-muted-foreground text-sm text-center mb-6">Just a few more things before you start glowing.</p>
-
-      <div className="mb-5">
-        <p className="text-sm font-semibold font-poppins mb-3">Pick your stage:</p>
-        <div className="grid grid-cols-3 gap-2">
-          {[{ id: 'Girl', emoji: '🌸', label: 'Girl' }, { id: 'Mom', emoji: '💗', label: 'Mom' }, { id: 'Sis', emoji: '✨', label: 'Sis' }].map(s => (
-            <button
-              key={s.id}
-              onClick={() => setStage(s.id)}
-              className={`flex flex-col items-center gap-1 py-3 rounded-xl border text-sm font-semibold transition ${stage === s.id ? 'border-primary bg-primary/10 text-foreground' : 'border-border text-muted-foreground'}`}
-            >
-              <span className="text-2xl">{s.emoji}</span>
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <div className="mb-5 bg-secondary rounded-xl p-3 text-sm text-center text-foreground">
         You're joining as a <strong className="text-primary font-poppins">

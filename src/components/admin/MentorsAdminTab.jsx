@@ -23,7 +23,20 @@ export default function MentorsAdminTab() {
   };
 
   const updateStatus = async (id, status) => {
+    // Update the MentorApplication record
     await base44.entities.MentorApplication.update(id, { status, approved_date: status === 'approved' ? new Date().toISOString() : undefined });
+
+    // Also update the User entity so mentor_status reflects approval instantly
+    const app = applications.find(a => a.id === id);
+    if (app?.user_email) {
+      const users = await base44.entities.User.filter({ email: app.user_email });
+      if (users.length > 0) {
+        await base44.entities.User.update(users[0].id, {
+          mentor_status: status === 'approved' ? 'approved' : status === 'rejected' ? 'suspended' : 'pending',
+        });
+      }
+    }
+
     load();
   };
 
