@@ -44,7 +44,7 @@ export default function Onboarding() {
 
   const steps = data.age !== null && data.age < 13
     ? STEPS_MINOR
-    : wantsMentor ? STEPS_MENTOR : STEPS_DEFAULT;
+    : wantsMentor ? STEPS_DEFAULT : STEPS_DEFAULT;
   const currentStep = steps[stepIndex];
 
   const next = () => setStepIndex(i => i + 1);
@@ -135,7 +135,7 @@ export default function Onboarding() {
         {currentStep === 'agreement' && (
           <StepAgreement data={data} update={update} onNext={handleComplete} onBack={back} />
         )}
-        {currentStep === 'mentor' && (
+        {currentStep === 'mentor' && !wantsMentor && (
           <StepMentorChoice data={data} user={user} onNext={next} />
         )}
         {currentStep === 'complete' && (

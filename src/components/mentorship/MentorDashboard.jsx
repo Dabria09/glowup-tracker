@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { MessageCircle, CheckCircle, Clock, TrendingUp, Users, Award, Search, Filter, Star, Heart } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
+import MenteeDashboard from './MenteeDashboard';
 
 const CATEGORIES = ['All', 'Career', 'Education', 'Business', 'Wellness', 'Faith', 'Relationships'];
 const STATUS_FILTERS = [
@@ -23,6 +24,7 @@ export default function MentorDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [showResponseModal, setShowResponseModal] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
   const [stats, setStats] = useState({
     total_questions: 0,
     pending: 0,
@@ -140,9 +142,14 @@ export default function MentorDashboard() {
       <div className="px-5 pt-4 pb-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Mentor Dashboard 👩‍🏫</h1>
-          <button onClick={() => navigate('/mentorship')} className="text-sm text-pink-400 font-semibold">
-            Back to Hub
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => navigate('/mentorship')} className="text-sm text-pink-400 font-semibold">
+              Hub
+            </button>
+            <button onClick={() => setShowDashboard(true)} className="text-sm text-blue-400 font-semibold">
+              Find My Mentor
+            </button>
+          </div>
         </div>
 
         {/* Mentor Profile Card */}
@@ -379,6 +386,32 @@ export default function MentorDashboard() {
       </div>
 
       <BottomNav active="connect" />
+
+      {/* Mentee Dashboard Modal */}
+      {showDashboard && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end"
+          style={{ background: 'rgba(0,0,0,0.7)' }}
+          onClick={() => setShowDashboard(false)}
+        >
+          <div
+            className="w-full max-h-[90vh] overflow-y-auto rounded-t-3xl p-6"
+            style={{ background: '#1a0a30' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-bold text-white text-lg flex items-center gap-2">
+                <Users size={20} className="text-blue-400" />
+                Find My Mentor
+              </h2>
+              <button onClick={() => setShowDashboard(false)}>
+                <span className="text-2xl text-gray-400">×</span>
+              </button>
+            </div>
+            <MenteeDashboard user={user} />
+          </div>
+        </div>
+      )}
 
       {/* Response Modal */}
       {showResponseModal && selectedQuestion && (

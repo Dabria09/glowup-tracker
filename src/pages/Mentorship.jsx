@@ -51,6 +51,7 @@ export default function Mentorship() {
   const [loading, setLoading] = useState(true);
   const [isMentor, setIsMentor] = useState(false);
   const [isTeenMentor, setIsTeenMentor] = useState(false);
+  const [isMentee, setIsMentee] = useState(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
   const [showTeenAdminDashboard, setShowTeenAdminDashboard] = useState(false);
   const [showMatchingModal, setShowMatchingModal] = useState(false);
@@ -73,6 +74,10 @@ export default function Mentorship() {
       // Check if user is a teen mentor
       const teenMentorData = await base44.entities.TeenMentor.filter({ user_email: u.email, is_approved: true });
       setIsTeenMentor(teenMentorData.length > 0);
+
+      // Check if user is a mentee (has existing mentor sessions or requests)
+      const menteeSessions = await base44.entities.MentorSession.filter({ mentee_email: u.email });
+      setIsMentee(menteeSessions.length > 0);
 
       const mentorsData = await base44.entities.Mentor.filter({ is_approved: true });
       setMentors(mentorsData);
@@ -126,14 +131,26 @@ export default function Mentorship() {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <button
-            onClick={() => navigate('/mentor-dashboard')}
-            className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
-            style={{ background: isMentor ? 'rgba(236,72,153,0.2)' : 'rgba(59,130,246,0.2)', border: isMentor ? '1px solid rgba(236,72,153,0.4)' : '1px solid rgba(59,130,246,0.4)' }}
-          >
-            <LayoutDashboard size={16} />
-            <span>{isMentor ? 'Mentor Dashboard' : 'Mentee Dashboard'}</span>
-          </button>
+          {isMentor && (
+            <button
+              onClick={() => navigate('/mentor-dashboard')}
+              className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
+              style={{ background: 'rgba(236,72,153,0.2)', border: '1px solid rgba(236,72,153,0.4)' }}
+            >
+              <LayoutDashboard size={16} />
+              <span>Mentor Dashboard</span>
+            </button>
+          )}
+          {(isMentee || (!isMentor && !isTeenMentor)) && (
+            <button
+              onClick={() => setShowDashboard(true)}
+              className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
+              style={{ background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.4)' }}
+            >
+              <LayoutDashboard size={16} />
+              <span>Find a Mentor</span>
+            </button>
+          )}
           <button
             onClick={() => setShowMatchingModal(true)}
             className="px-4 py-3 rounded-xl font-semibold text-sm text-white transition hover:opacity-80 flex items-center justify-center gap-2"
@@ -306,30 +323,14 @@ export default function Mentorship() {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-bold text-white text-lg flex items-center gap-2">
-                <LayoutDashboard size={20} className={isMentor || isTeenMentor ? 'text-pink-400' : 'text-blue-400'} />
-                {isMentor ? 'Women Mentor Dashboard' : isTeenMentor ? 'Teen Mentor Dashboard' : 'Mentee Dashboard'}
+                <LayoutDashboard size={20} className="text-blue-400" />
+                Find a Mentor
               </h2>
               <button onClick={() => setShowDashboard(false)}>
                 <span className="text-2xl text-gray-400">×</span>
               </button>
             </div>
-            {isMentor || isTeenMentor ? (
-              <div className="text-center py-10">
-                <p className="text-white mb-4">Opening full dashboard...</p>
-                <button
-                  onClick={() => {
-                    setShowDashboard(false);
-                    navigate('/mentor-dashboard');
-                  }}
-                  className="px-6 py-3 rounded-xl font-semibold text-white"
-                  style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
-                >
-                  Open Dashboard →
-                </button>
-              </div>
-            ) : (
-              <MenteeDashboard user={user} />
-            )}
+            <MenteeDashboard user={user} />
           </div>
         </div>
       )}
