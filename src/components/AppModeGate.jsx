@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Sparkles, Crown, Loader2, LogOut, Clock, ShieldAlert } from "lucide-react";
+import { Sparkles, Crown, Loader2, LogOut, Clock, ShieldAlert, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function AppModeGate() {
@@ -10,25 +10,25 @@ export default function AppModeGate() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const checkAndSyncMentorStatus = async (u) => {
+    if (u.account_type !== "mentor" || u.mentor_status === "approved") return u;
+    // Cross-check MentorApplication using created_by_id (the mentor's own user ID)
+    const apps = await base44.entities.MentorApplication.filter({ created_by_id: u.id });
+    const latestApp = apps.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
+    if (latestApp?.status === "approved") {
+      // Update the User record directly using the user's own ID
+      await base44.entities.User.update(u.id, { mentor_status: "approved" });
+      return { ...u, mentor_status: "approved" };
+    }
+    return u;
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const u = await base44.auth.me();
-        // If mentor, cross-check MentorApplication for latest approved status
-        if (u.account_type === "mentor" && u.mentor_status !== "approved") {
-          const apps = await base44.entities.MentorApplication.filter({ user_email: u.email });
-          const latestApp = apps.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
-          if (latestApp?.status === "approved") {
-            // Directly update the User entity record
-            const allUsers = await base44.entities.User.list();
-            const matchedUser = allUsers.find(usr => usr.email === u.email);
-            if (matchedUser) {
-              await base44.entities.User.update(matchedUser.id, { mentor_status: "approved" });
-            }
-            u.mentor_status = "approved";
-          }
-        }
-        setUser(u);
+        const synced = await checkAndSyncMentorStatus(u);
+        setUser(synced);
       } catch (err) {
         setUser(null);
       } finally {
@@ -66,6 +66,15 @@ export default function AppModeGate() {
 
   // Pending Mentor Check
   if (user.account_type === "mentor" && user.mentor_status === "pending") {
+    const handleRefreshStatus = async () => {
+      setLoading(true);
+      try {
+        const u = await base44.auth.me();
+        const synced = await checkAndSyncMentorStatus(u);
+        setUser(synced);
+      } catch (err) {}
+      setLoading(false);
+    };
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-white text-center">
         <div className="w-20 h-20 bg-yellow-500/15 border border-yellow-500/30 rounded-full flex items-center justify-center mb-6">
@@ -79,6 +88,9 @@ export default function AppModeGate() {
           <span className="font-bold text-gray-200 block mb-1">Estimated Vetting Time</span>
           <p className="text-gray-400">Applications are typically vetted within 3-5 business days. You will receive an email confirmation once approved.</p>
         </div>
+        <Button onClick={handleRefreshStatus} className="w-full max-w-xs h-12 rounded-xl font-bold mb-3" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <RefreshCw size={16} className="mr-2" /> Check Approval Status
+        </Button>
         <Button onClick={() => base44.auth.logout("/")} variant="destructive" className="w-full max-w-xs h-12 rounded-xl font-bold">
           <LogOut size={16} className="mr-2" /> Sign Out
         </Button>

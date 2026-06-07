@@ -26,15 +26,15 @@ export default function MentorsAdminTab() {
     // Update the MentorApplication record
     await base44.entities.MentorApplication.update(id, { status, approved_date: status === 'approved' ? new Date().toISOString() : undefined });
 
-    // Also update the User entity so mentor_status reflects approval instantly
+    // Update the User entity via created_by_id stored on the application
     const app = applications.find(a => a.id === id);
-    if (app?.user_email) {
-      const allUsers = await base44.entities.User.list();
-      const matchedUser = allUsers.find(u => u.email === app.user_email);
-      if (matchedUser) {
-        await base44.entities.User.update(matchedUser.id, {
-          mentor_status: status === 'approved' ? 'approved' : status === 'rejected' ? 'suspended' : 'pending',
-        });
+    if (app?.created_by_id) {
+      const newMentorStatus = status === 'approved' ? 'approved' : status === 'rejected' ? 'suspended' : 'pending';
+      try {
+        await base44.entities.User.update(app.created_by_id, { mentor_status: newMentorStatus });
+        console.log(`✅ User ${app.created_by_id} mentor_status updated to ${newMentorStatus}`);
+      } catch (err) {
+        console.error('❌ Failed to update user mentor_status:', err);
       }
     }
 
