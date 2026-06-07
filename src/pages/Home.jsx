@@ -98,15 +98,24 @@ export default function Home() {
             A safe, empowering space where girls build <strong style={{ color: '#ffb2c0', fontWeight: 600 }}>confidence</strong>, discover their purpose, and connect with mentors who believe in them.
           </p>
 
-          <div className="flex flex-col items-center gap-3 w-full" style={{ maxWidth: 400 }}>
-            <button onClick={handleJoin} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${PINK_DEEP} 0%, ${PINK} 40%, ${PINK_HOT} 100%)`, color: 'white', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 16, fontWeight: 800, padding: '17px 28px', borderRadius: 16, border: 'none', cursor: 'pointer', boxShadow: `0 8px 32px rgba(232,82,109,0.5)`, letterSpacing: '-.2px' }}>
-              ✦ Join the Sisterhood
+          <div className="grid grid-cols-2 gap-3 w-full" style={{ maxWidth: 520 }}>
+            {/* Top Row: Mentor Options */}
+            <button onClick={() => navigate('/mentor-signup')} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: 'rgba(241,182,16,0.08)', border: '1.5px solid rgba(241,182,16,0.4)', color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 13, fontWeight: 700, padding: '14px 12px', borderRadius: 14, cursor: 'pointer' }}>
+              <span style={{ fontSize: 20 }}>🎓</span>
+              <span>Mentor Sign Up</span>
             </button>
-            <div className="flex items-center gap-3 w-full" style={{ color: 'rgba(196,148,158,0.4)', fontSize: 11, letterSpacing: 1 }}>
-              <div style={{ flex: 1, height: 1, background: 'rgba(232,82,109,0.18)' }} /><span>OR</span><div style={{ flex: 1, height: 1, background: 'rgba(232,82,109,0.18)' }} />
-            </div>
-            <button onClick={handleMentorSignIn} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5" style={{ background: 'transparent', border: `2px solid rgba(241,182,16,0.55)`, color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 15, fontWeight: 700, padding: '15px 28px', borderRadius: 16, cursor: 'pointer' }}>
-              🎓 Mentor Sign In
+            <button onClick={handleMentorSignIn} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: 'rgba(241,182,16,0.08)', border: '1.5px solid rgba(241,182,16,0.4)', color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 13, fontWeight: 700, padding: '14px 12px', borderRadius: 14, cursor: 'pointer' }}>
+              <span style={{ fontSize: 20 }}>✨</span>
+              <span>Mentor Sign In</span>
+            </button>
+            {/* Bottom Row: GGU Options */}
+            <button onClick={handleJoin} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${PINK_DEEP} 0%, ${PINK} 40%, ${PINK_HOT} 100%)`, color: 'white', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 14, fontWeight: 800, padding: '14px 12px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: `0 8px 32px rgba(232,82,109,0.5)` }}>
+              <span style={{ fontSize: 20 }}>✦</span>
+              <span>Join the Sisterhood</span>
+            </button>
+            <button onClick={() => { if (user) navigate('/dashboard'); else base44.auth.redirectToLogin('/dashboard'); }} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: 'rgba(232,82,109,0.12)', border: '1.5px solid rgba(232,82,109,0.35)', color: PINK_HOT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 13, fontWeight: 700, padding: '14px 12px', borderRadius: 14, cursor: 'pointer' }}>
+              <span style={{ fontSize: 20 }}>👑</span>
+              <span>{user ? 'Go to Dashboard' : 'Sign In to GGU'}</span>
             </button>
           </div>
 
