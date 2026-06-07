@@ -95,9 +95,21 @@ export default function MentorDashboard() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0d0608', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: '#0d0608', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <div style={{ fontSize: 28, fontWeight: 900, background: 'linear-gradient(135deg, #e8526d, #f1b610)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Girls Glowing Up™</div>
         <div style={{ width: 40, height: 40, border: '3px solid rgba(232,82,109,0.2)', borderTop: '3px solid #e8526d', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>Loading your mentor dashboard...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0d0608', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 }}>
+        <div style={{ fontSize: 40 }}>🔒</div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>Mentor Access Required</div>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textAlign: 'center' }}>Please sign in with your mentor account to access this dashboard.</p>
       </div>
     );
   }
