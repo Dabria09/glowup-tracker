@@ -13,15 +13,18 @@ export default function MentorModeToggle() {
     const checkMentorStatus = async () => {
       try {
         const user = await base44.auth.me();
-        const mentors = await base44.entities.Mentor.filter({ user_email: user.email, is_approved: true });
-        const teenMentors = await base44.entities.TeenMentor.filter({ user_email: user.email, is_approved: true });
-        setIsMentor(mentors.length > 0 || teenMentors.length > 0);
+        // Check for ANY mentor record (pending or approved)
+        const mentors = await base44.entities.Mentor.filter({ user_email: user.email });
+        const teenMentors = await base44.entities.TeenMentor.filter({ user_email: user.email });
+        const hasMentorRecord = mentors.length > 0 || teenMentors.length > 0;
+        setIsMentor(hasMentorRecord);
         
-        // If mentor and on dashboard, check if they should default to mentor mode
-        if ((mentors.length > 0 || teenMentors.length > 0) && location.pathname === '/dashboard') {
+        // If user has mentor record and is on dashboard, redirect to mentor dashboard
+        // UNLESS they've explicitly set mode to 'ggu'
+        if (hasMentorRecord && location.pathname === '/dashboard') {
           const savedMode = localStorage.getItem('ggu_mentor_mode');
-          if (!savedMode) {
-            // First time - default to mentor mode for approved mentors
+          // Only redirect if they haven't explicitly chosen GGU mode
+          if (savedMode !== 'ggu') {
             setMode('mentor');
             localStorage.setItem('ggu_mentor_mode', 'mentor');
             navigate('/mentor-dashboard', { replace: true });

@@ -9,28 +9,28 @@ const TOUR_STEPS = [
     id: 'welcome',
     title: 'Welcome to Your Glow Journey! ✨',
     description: 'You\'re officially part of the Girls Glowing Up community. Let\'s explore what makes GGU your safe space to grow, learn, and shine.',
-    emoji: '🎉',
+    illustration: '🌸',
     gradient: 'from-pink-500 via-rose-500 to-fuchsia-500',
   },
   {
     id: 'daily-checkin',
     title: 'Daily Glow Check-In',
     description: 'Start each day by checking in with yourself. Track your mood, earn points, and build self-awareness habits that last a lifetime.',
-    emoji: '📅',
+    illustration: '📔',
     gradient: 'from-purple-500 via-pink-500 to-rose-500',
   },
   {
     id: 'dashboard',
     title: 'Your Personalized Dashboard',
     description: 'Customize your home screen with the features you use most. Drag, drop, and organize your glow journey your way.',
-    emoji: '🏠',
+    illustration: '🎨',
     gradient: 'from-indigo-500 via-purple-500 to-pink-500',
   },
   {
     id: 'challenges',
     title: 'Glow Up Challenges',
     description: 'Transform your life one challenge at a time. 30-day programs for confidence, wellness, career, and personal growth.',
-    emoji: '⚡',
+    illustration: '🦋',
     gradient: 'from-amber-500 via-orange-500 to-red-500',
     action: '/glow-up-challenges',
     actionLabel: 'View Challenges',
@@ -39,7 +39,7 @@ const TOUR_STEPS = [
     id: 'community',
     title: 'Find Your Tribe',
     description: 'Join communities, connect with mentors, and meet girls who share your interests. You\'re never alone on this journey.',
-    emoji: '👯',
+    illustration: '👭',
     gradient: 'from-teal-500 via-cyan-500 to-blue-500',
     action: '/community-hub',
     actionLabel: 'Explore Communities',
@@ -48,7 +48,7 @@ const TOUR_STEPS = [
     id: 'mentorship',
     title: 'Mentorship Hub',
     description: 'Get guidance from women who\'ve walked the path. Book 1-on-1 sessions, ask anonymous questions, or become a mentor yourself.',
-    emoji: '🌟',
+    illustration: '🌟',
     gradient: 'from-green-500 via-emerald-500 to-teal-500',
     action: '/mentorship',
     actionLabel: 'Find a Mentor',
@@ -57,7 +57,7 @@ const TOUR_STEPS = [
     id: 'points',
     title: 'Earn & Redeem Glow Points',
     description: 'Every action earns points — check-ins, challenges, community posts. Level up and unlock exclusive rewards in the Glow Store.',
-    emoji: '🏆',
+    illustration: '🎁',
     gradient: 'from-yellow-500 via-amber-500 to-orange-500',
     action: '/glow-store',
     actionLabel: 'Visit Store',
@@ -66,7 +66,7 @@ const TOUR_STEPS = [
     id: 'complete',
     title: 'You\'re All Set! 💖',
     description: 'You\'re ready to start glowing. Remember: this is your safe space to be authentic, grow, and support other girls on their journey.',
-    emoji: '💕',
+    illustration: '💕',
     gradient: 'from-pink-500 via-rose-500 to-red-500',
   },
 ];
@@ -138,14 +138,16 @@ export default function NewUserTour({ onComplete }) {
         <div className="rounded-3xl overflow-hidden shadow-2xl"
           style={{ background: 'rgba(20,10,30,0.95)', border: '1px solid rgba(255,255,255,0.1)' }}>
           
-          {/* Gradient header */}
+          {/* Gradient header with cute illustration */}
           <div className={`h-32 bg-gradient-to-r ${step.gradient} relative overflow-hidden`}>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-7xl drop-shadow-lg">{step.emoji}</span>
+              <span className="text-8xl drop-shadow-lg transform hover:scale-110 transition-transform duration-300">{step.illustration}</span>
             </div>
-            {/* Decorative circles */}
+            {/* Floating decorative elements */}
             <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
             <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-white/10" />
+            <div className="absolute top-8 left-8 w-8 h-8 rounded-full bg-white/15" />
+            <div className="absolute bottom-6 right-12 w-6 h-6 rounded-full bg-white/12" />
           </div>
 
           {/* Content */}
