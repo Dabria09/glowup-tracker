@@ -30,46 +30,66 @@ export default function MentorDashboard() {
 
   useEffect(() => {
     const loadData = async () => {
+      // Step 1: get user — if this fails we show loading forever, so always finalize
+      let currentUser = null;
       try {
-        const currentUser = await base44.auth.me();
+        currentUser = await base44.auth.me();
         setUser(currentUser);
+      } catch (e) {
+        console.error('auth.me failed', e);
+        setLoading(false);
+        return;
+      }
 
-        // Load mentor profile (check both Mentor and TeenMentor entities)
+      // Step 2: load mentor profile (try both, never crash)
+      let mentorProfile = null;
+      try {
         const mentors = await base44.entities.Mentor.filter({ user_email: currentUser.email });
         if (mentors.length > 0) {
-          setProfile(mentors[0]);
+          mentorProfile = mentors[0];
         } else {
           const teenMentors = await base44.entities.TeenMentor.filter({ user_email: currentUser.email });
-          if (teenMentors.length > 0) setProfile(teenMentors[0]);
+          if (teenMentors.length > 0) mentorProfile = teenMentors[0];
         }
+        setProfile(mentorProfile);
+      } catch (e) {
+        console.error('profile load failed', e);
+      }
 
-        // Load anonymous questions
-        const allQuestions = await base44.entities.AnonymousQuestion.list('-submitted_date', 100);
+      // Step 3: load questions
+      let allQuestions = [];
+      try {
+        allQuestions = await base44.entities.AnonymousQuestion.list('-created_date', 100);
         const mentorQuestions = allQuestions.filter(q =>
           (q.assigned_mentor_email === currentUser.email) ||
           (q.status === 'pending' && !q.assigned_mentor_email)
         );
         setQuestions(mentorQuestions);
-
-        // Load sessions
-        const mentorSessions = await base44.entities.MentorSession.filter({ mentor_email: currentUser.email });
-        setSessions(mentorSessions);
-
-        // Stats
-        const assignedQuestions = allQuestions.filter(q => q.assigned_mentor_email === currentUser.email);
-        setStats({
-          total_questions: assignedQuestions.length,
-          pending: assignedQuestions.filter(q => q.status === 'pending').length,
-          answered: assignedQuestions.filter(q => q.status === 'answered').length,
-          helpful_count: assignedQuestions.reduce((sum, q) => sum + (q.helpful_count || 0), 0),
-          sessions_completed: mentorSessions.filter(s => s.status === 'completed').length,
-          rating: profile?.rating || 0,
-        });
-      } catch (error) {
-        console.error('Error loading mentor dashboard:', error);
-      } finally {
-        setLoading(false);
+      } catch (e) {
+        console.error('questions load failed', e);
       }
+
+      // Step 4: load sessions
+      let mentorSessions = [];
+      try {
+        mentorSessions = await base44.entities.MentorSession.filter({ mentor_email: currentUser.email });
+        setSessions(mentorSessions);
+      } catch (e) {
+        console.error('sessions load failed', e);
+      }
+
+      // Step 5: compute stats
+      const assignedQuestions = allQuestions.filter(q => q.assigned_mentor_email === currentUser.email);
+      setStats({
+        total_questions: assignedQuestions.length,
+        pending: assignedQuestions.filter(q => q.status === 'pending').length,
+        answered: assignedQuestions.filter(q => q.status === 'answered').length,
+        helpful_count: assignedQuestions.reduce((sum, q) => sum + (q.helpful_count || 0), 0),
+        sessions_completed: mentorSessions.filter(s => s.status === 'completed').length,
+        rating: mentorProfile?.rating || 0,
+      });
+
+      setLoading(false);
     };
     loadData();
   }, []);
@@ -101,7 +121,7 @@ export default function MentorDashboard() {
     );
   }
 
-  const upcomingSessions = sessions.filter(s => s.status === 'upcoming' || s.status === 'scheduled');
+  const upcomingSessions = sessions.filter(s => s.status === 'scheduled');
   const completedSessions = sessions.filter(s => s.status === 'completed');
   const pendingApplications = questions.filter(q => q.status === 'pending' && !q.assigned_mentor_email);
   const myQuestions = questions.filter(q => q.assigned_mentor_email === user?.email);
@@ -184,15 +204,15 @@ export default function MentorDashboard() {
               ) : upcomingSessions.slice(0, 2).map(s => (
                 <div key={s.id} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(194,24,91,0.2)', borderRadius: 14, padding: '14px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #C2185B, #6A1B9A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800 }}>{(s.mentee_name || s.mentee_email || 'M')[0]}</div>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #C2185B, #6A1B9A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800 }}>{(s.mentee_email || 'M')[0].toUpperCase()}</div>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 700 }}>{s.mentee_name || s.mentee_email}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700 }}>{s.mentee_email}</div>
                       <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{s.topic || s.session_type || 'Session'}</div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#F48FB1' }}>{s.scheduled_date ? new Date(s.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>{s.scheduled_time || ''}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#F48FB1' }}>{s.session_date ? new Date(s.session_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>{s.session_type || ''}</div>
                   </div>
                 </div>
               ))}
@@ -273,18 +293,18 @@ export default function MentorDashboard() {
                   <div key={s.id} style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${label.includes('Upcoming') ? 'rgba(194,24,91,0.3)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 14, padding: '14px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 42, height: 42, borderRadius: '50%', background: label.includes('Upcoming') ? 'linear-gradient(135deg, #C2185B, #6A1B9A)' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800 }}>
-                        {(s.mentee_name || s.mentee_email || 'M')[0]}
+                        {(s.mentee_email || 'M')[0].toUpperCase()}
                       </div>
                       <div>
-                        <div style={{ fontSize: 14, fontWeight: 700 }}>{s.mentee_name || s.mentee_email}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>{s.mentee_email}</div>
                         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>{s.topic || s.session_type}</div>
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: label.includes('Upcoming') ? '#F48FB1' : 'rgba(255,255,255,0.5)' }}>
-                        {s.scheduled_date ? new Date(s.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
+                        {s.session_date ? new Date(s.session_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
                       </div>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{s.scheduled_time || ''}</div>
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{s.session_type || ''}</div>
                     </div>
                   </div>
                 ))}
