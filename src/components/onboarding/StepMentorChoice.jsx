@@ -6,6 +6,17 @@ export default function StepMentorChoice({ data, user, onNext }) {
   const [showMentorModal, setShowMentorModal] = useState(false);
   const [showTeenModal, setShowTeenModal] = useState(false);
 
+  const age = data.age;
+  const isTeen = age !== null && age < 18;
+
+  const handleMentorClick = () => {
+    if (isTeen) {
+      setShowTeenModal(true);
+    } else {
+      setShowMentorModal(true);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center text-center gap-6">
       <div>
@@ -14,23 +25,20 @@ export default function StepMentorChoice({ data, user, onNext }) {
         <p className="text-sm text-muted-foreground max-w-xs mx-auto">
           Would you like to guide other girls on their glow journey? You can always apply later.
         </p>
+        {age !== null && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Based on your age ({age}), you'll be registered as {isTeen ? 'a Teen Mentor' : 'an Adult Mentor'}.
+          </p>
+        )}
       </div>
 
       <div className="w-full space-y-3">
         <button
-          onClick={() => setShowMentorModal(true)}
+          onClick={handleMentorClick}
           className="w-full py-4 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2"
           style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
         >
-          <span>👩‍🏫</span> Become a Mentor <span className="font-normal text-xs opacity-80">(Women 18+)</span>
-        </button>
-
-        <button
-          onClick={() => setShowTeenModal(true)}
-          className="w-full py-4 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2"
-          style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
-        >
-          <span>🌟</span> Become a Teen Mentor <span className="font-normal text-xs opacity-80">(Ages 13–19)</span>
+          <span>👩‍🏫</span> {isTeen ? 'Become a Teen Mentor (13-17)' : 'Become a Mentor (18+)'}
         </button>
 
         <button

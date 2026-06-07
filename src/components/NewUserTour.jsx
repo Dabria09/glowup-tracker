@@ -18,8 +18,6 @@ const TOUR_STEPS = [
     description: 'Start each day by checking in with yourself. Track your mood, earn points, and build self-awareness habits that last a lifetime.',
     emoji: '📅',
     gradient: 'from-purple-500 via-pink-500 to-rose-500',
-    action: '/daily-checkin',
-    actionLabel: 'Try Check-In',
   },
   {
     id: 'dashboard',
