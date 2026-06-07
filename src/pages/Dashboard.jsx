@@ -939,12 +939,20 @@ export default function Dashboard() {
 
                     <SmallAppIcon app={app} onNavigate={!isDragging ? navigate : () => {}} />
                     }
-                    {editMode &&
+                    {editMode && (
+                      <>
                       <button data-action="delete"
                       onPointerDown={(e) => {e.stopPropagation();clearTimeout(longPressTimer.current);setHomeAppIdsAndSave((prev) => prev.filter((id) => id !== itemId));}}
                       className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-red-900 border border-red-700 flex items-center justify-center z-20 shadow"
                       style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1 }}>×</button>
-                    }
+                      {!isFolder && (
+                        <button data-action="resize"
+                        onPointerDown={(e) => {e.stopPropagation();clearTimeout(longPressTimer.current);setSizingId(itemId);}}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-purple-900 border border-purple-700 flex items-center justify-center z-20 shadow"
+                        style={{ fontSize: 11, color: '#e9d5ff', lineHeight: 1 }}>⤢</button>
+                      )}
+                      </>
+                    )}
                   </div>
                 </div>);
 
