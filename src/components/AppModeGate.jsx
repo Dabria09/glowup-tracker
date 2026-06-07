@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Sparkles, Crown, Loader2, LogOut, Clock, ShieldAlert, RefreshCw } from "lucide-react";
@@ -7,49 +7,51 @@ import { Button } from "@/components/ui/button";
 export default function AppModeGate() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const checkAndSyncMentorStatus = async (u) => {
-    if (u.account_type !== "mentor" || u.mentor_status === "approved") return u;
-    // Cross-check MentorApplication using created_by_id (the mentor's own user ID)
-    const apps = await base44.entities.MentorApplication.filter({ created_by_id: u.id });
-    const latestApp = apps.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
-    if (latestApp?.status === "approved") {
-      // Update the User record directly using the user's own ID
-      await base44.entities.User.update(u.id, { mentor_status: "approved" });
-      return { ...u, mentor_status: "approved" };
+  const loadUser = useCallback(async () => {
+    try {
+      const u = await base44.auth.me();
+
+      // If mentor is still pending, check MentorApplication for latest status
+      if (u.account_type === "mentor" && u.mentor_status !== "approved") {
+        try {
+          const apps = await base44.entities.MentorApplication.filter({ created_by_id: u.id });
+          const latestApp = apps.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
+          if (latestApp?.status === "approved") {
+            await base44.entities.User.update(u.id, { mentor_status: "approved" });
+            u.mentor_status = "approved";
+          }
+        } catch (e) {
+          console.warn("Could not sync mentor status:", e);
+        }
+      }
+
+      setUser(u);
+    } catch (err) {
+      setUser(null);
     }
-    return u;
-  };
+  }, []);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const u = await base44.auth.me();
-        const synced = await checkAndSyncMentorStatus(u);
-        setUser(synced);
-      } catch (err) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
+    setLoading(true);
+    loadUser().finally(() => setLoading(false));
   }, [location.pathname]);
+
+  const handleRefreshStatus = async () => {
+    setRefreshing(true);
+    await loadUser();
+    setRefreshing(false);
+  };
 
   const handleToggleMode = async () => {
     if (!user || user.account_type !== "linked") return;
     const nextMode = user.active_mode === "mentor" ? "girl" : "mentor";
-    
     await base44.auth.updateMe({ active_mode: nextMode });
     setUser({ ...user, active_mode: nextMode });
-    
-    if (nextMode === "mentor") {
-      navigate("/mentor-dashboard");
-    } else {
-      navigate("/dashboard");
-    }
+    navigate(nextMode === "mentor" ? "/mentor-dashboard" : "/dashboard");
   };
 
   if (loading) {
@@ -64,17 +66,8 @@ export default function AppModeGate() {
     return <Navigate to="/login" replace />;
   }
 
-  // Pending Mentor Check
+  // Pending Mentor
   if (user.account_type === "mentor" && user.mentor_status === "pending") {
-    const handleRefreshStatus = async () => {
-      setLoading(true);
-      try {
-        const u = await base44.auth.me();
-        const synced = await checkAndSyncMentorStatus(u);
-        setUser(synced);
-      } catch (err) {}
-      setLoading(false);
-    };
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-white text-center">
         <div className="w-20 h-20 bg-yellow-500/15 border border-yellow-500/30 rounded-full flex items-center justify-center mb-6">
@@ -88,8 +81,14 @@ export default function AppModeGate() {
           <span className="font-bold text-gray-200 block mb-1">Estimated Vetting Time</span>
           <p className="text-gray-400">Applications are typically vetted within 3-5 business days. You will receive an email confirmation once approved.</p>
         </div>
-        <Button onClick={handleRefreshStatus} className="w-full max-w-xs h-12 rounded-xl font-bold mb-3" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>
-          <RefreshCw size={16} className="mr-2" /> Check Approval Status
+        <Button
+          onClick={handleRefreshStatus}
+          disabled={refreshing}
+          className="w-full max-w-xs h-12 rounded-xl font-bold mb-3"
+          style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+        >
+          <RefreshCw size={16} className={`mr-2 ${refreshing ? "animate-spin" : ""}`} />
+          {refreshing ? "Checking..." : "Check Approval Status"}
         </Button>
         <Button onClick={() => base44.auth.logout("/")} variant="destructive" className="w-full max-w-xs h-12 rounded-xl font-bold">
           <LogOut size={16} className="mr-2" /> Sign Out
@@ -98,7 +97,7 @@ export default function AppModeGate() {
     );
   }
 
-  // Suspended Mentor Check
+  // Suspended Mentor
   if (user.account_type === "mentor" && user.mentor_status === "suspended") {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-white text-center">
@@ -120,19 +119,11 @@ export default function AppModeGate() {
   const isMentorPath = location.pathname.startsWith("/mentor-");
   const isGirlPath = ["/dashboard", "/discover", "/glow", "/connect", "/me"].some(p => location.pathname.startsWith(p));
 
-  if (user.account_type === "mentor" && isGirlPath) {
-    return <Navigate to="/mentor-dashboard" replace />;
-  }
-  if (user.account_type === "girl" && isMentorPath) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  if (user.account_type === "mentor" && isGirlPath) return <Navigate to="/mentor-dashboard" replace />;
+  if (user.account_type === "girl" && isMentorPath) return <Navigate to="/dashboard" replace />;
   if (user.account_type === "linked") {
-    if (user.active_mode === "mentor" && isGirlPath) {
-      return <Navigate to="/mentor-dashboard" replace />;
-    }
-    if (user.active_mode === "girl" && isMentorPath) {
-      return <Navigate to="/dashboard" replace />;
-    }
+    if (user.active_mode === "mentor" && isGirlPath) return <Navigate to="/mentor-dashboard" replace />;
+    if (user.active_mode === "girl" && isMentorPath) return <Navigate to="/dashboard" replace />;
   }
 
   const isMentorModeActive = user.account_type === "mentor" || (user.account_type === "linked" && user.active_mode === "mentor");
@@ -153,19 +144,16 @@ export default function AppModeGate() {
           <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
             {isMentorModeActive ? "👑 Pro Dashboard" : "✨ Member View"}
           </span>
-
           <button onClick={handleToggleMode} className="relative flex items-center gap-1.5 p-1 rounded-full border transition"
             style={{
               background: isMentorModeActive ? "rgba(168, 85, 247, 0.15)" : "rgba(236, 72, 153, 0.15)",
               borderColor: isMentorModeActive ? "rgba(168, 85, 247, 0.4)" : "rgba(236, 72, 153, 0.4)"
             }}>
             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isMentorModeActive ? "bg-purple-600 text-white shadow" : "text-gray-400"}`}>
-              <Crown size={12} />
-              <span>Mentor Mode</span>
+              <Crown size={12} /><span>Mentor Mode</span>
             </div>
             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${!isMentorModeActive ? "bg-pink-600 text-white shadow" : "text-gray-400"}`}>
-              <Sparkles size={12} />
-              <span>GGU Mode</span>
+              <Sparkles size={12} /><span>GGU Mode</span>
             </div>
           </button>
         </div>
