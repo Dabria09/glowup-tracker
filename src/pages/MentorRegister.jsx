@@ -163,8 +163,15 @@ export default function MentorRegister() {
         interview_status: 'not_scheduled',
       });
 
+      // Set account type to mentor with pending status
+      await base44.auth.updateMe({
+        account_type: "mentor",
+        mentor_status: "pending",
+        active_mode: "mentor"
+      });
+
       toast.success("Application submitted! We'll review within 3-5 business days.");
-      navigate('/mentorship');
+      navigate('/mentor-dashboard');
     } catch (error) {
       console.error('Error submitting application:', error);
       setError('Error submitting application. Please try again.');

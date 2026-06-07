@@ -77,9 +77,13 @@ export default function Onboarding() {
     }
     await base44.entities.UserProfile.create(profileData);
     
-    // If mentor, redirect immediately to mentor dashboard
+    // If mentor, set account type and redirect to mentor dashboard
     if (isMentor) {
-      localStorage.setItem('ggu_mentor_mode', 'mentor');
+      await base44.auth.updateMe({
+        account_type: "mentor",
+        mentor_status: "pending",
+        active_mode: "mentor"
+      });
       navigate('/mentor-dashboard');
       return;
     }

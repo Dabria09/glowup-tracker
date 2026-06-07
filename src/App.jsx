@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import AppModeGate from '@/components/AppModeGate';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MentorSignup from './pages/MentorSignup';
@@ -147,6 +148,7 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<Home />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route element={<AppModeGate />}>
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/avatar" element={<Avatar />} />
@@ -246,6 +248,7 @@ const AuthenticatedApp = () => {
       <Route path="/messages" element={<DirectMessages />} />
       <Route path="/glow-pass" element={<GlowPass />} />
       <Route path="/pioneer-network" element={<PioneerNetwork />} />
+        </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

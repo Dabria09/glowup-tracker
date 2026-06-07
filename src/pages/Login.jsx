@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogIn, Mail, Lock, Loader2, Sparkles, Users } from "lucide-react";
+import { LogIn, Mail, Lock, Loader2, Sparkles, Users, Crown } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 
 export default function Login() {
@@ -20,7 +20,16 @@ export default function Login() {
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/dashboard";
+      const user = await base44.auth.me();
+      
+      // Route based on account type and mode
+      if (user.account_type === "mentor" || (user.account_type === "linked" && user.active_mode === "mentor")) {
+        window.location.href = "/mentor-dashboard";
+      } else if (user.account_type === "linked" && user.active_mode === "girl") {
+        window.location.href = "/dashboard";
+      } else {
+        window.location.href = "/dashboard";
+      }
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
@@ -134,11 +143,11 @@ export default function Login() {
           </form>
 
           {/* Mentor CTA */}
-          <div className="mt-6 p-4 rounded-2xl" style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.2)' }}>
-            <p className="text-xs text-pink-300 font-semibold mb-2 flex items-center gap-1">
-              <Users size={12} /> Are you a mentor?
+          <div className="mt-6 p-4 rounded-2xl" style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}>
+            <p className="text-xs text-purple-300 font-semibold mb-2 flex items-center gap-1">
+              <Crown size={12} /> Are you a mentor?
             </p>
-            <Link to="/login?mentor=true" className="text-xs text-pink-400 hover:underline">Access mentor portal →</Link>
+            <Link to="/mentor-register" className="text-xs text-purple-400 hover:underline">Register as mentor →</Link>
           </div>
         </div>
 

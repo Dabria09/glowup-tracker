@@ -51,7 +51,7 @@ export default function Register() {
         base44.auth.setToken(result.access_token);
       }
       // Redirect to onboarding with mentor flag if selected
-      window.location.href = wantsMentor ? "/mentor-register" : "/onboarding";
+      window.location.href = wantsMentor ? "/onboarding?mentor=true" : "/onboarding";
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {

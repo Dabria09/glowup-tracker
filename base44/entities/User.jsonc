@@ -1,17 +1,52 @@
 {
+  "name": "User",
+  "type": "object",
   "properties": {
     "role": {
       "type": "string",
-      "description": "The role of the user in the app",
+      "description": "The system role of the user (admin vs user)",
       "enum": [
         "admin",
         "user"
-      ]
+      ],
+      "default": "user"
+    },
+    "account_type": {
+      "type": "string",
+      "description": "Account type determining app access",
+      "enum": [
+        "girl",
+        "mentor",
+        "linked"
+      ],
+      "default": "girl"
+    },
+    "mentor_status": {
+      "type": "string",
+      "description": "Vetting state of the mentor application",
+      "enum": [
+        "pending",
+        "approved",
+        "suspended"
+      ],
+      "default": "pending"
+    },
+    "linked_girl_account_id": {
+      "type": "string",
+      "description": "Linked GGU Girl User ID (if account_type is 'linked')",
+      "default": null
+    },
+    "active_mode": {
+      "type": "string",
+      "description": "Active state determining current nav and views shown",
+      "enum": [
+        "mentor",
+        "girl"
+      ],
+      "default": "girl"
     }
   },
   "required": [
     "role"
-  ],
-  "name": "User",
-  "type": "object"
+  ]
 }
