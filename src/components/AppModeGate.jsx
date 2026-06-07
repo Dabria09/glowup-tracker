@@ -14,13 +14,17 @@ export default function AppModeGate() {
     const fetchUser = async () => {
       try {
         const u = await base44.auth.me();
-        // If mentor, cross-check MentorApplication for latest status
-        if (u.account_type === "mentor" && u.mentor_status === "pending") {
+        // If mentor, cross-check MentorApplication for latest approved status
+        if (u.account_type === "mentor" && u.mentor_status !== "approved") {
           const apps = await base44.entities.MentorApplication.filter({ user_email: u.email });
           const latestApp = apps.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
           if (latestApp?.status === "approved") {
-            // Update User record so future loads are instant
-            await base44.auth.updateMe({ mentor_status: "approved" });
+            // Directly update the User entity record
+            const allUsers = await base44.entities.User.list();
+            const matchedUser = allUsers.find(usr => usr.email === u.email);
+            if (matchedUser) {
+              await base44.entities.User.update(matchedUser.id, { mentor_status: "approved" });
+            }
             u.mentor_status = "approved";
           }
         }
