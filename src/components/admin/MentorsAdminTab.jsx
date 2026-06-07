@@ -29,9 +29,10 @@ export default function MentorsAdminTab() {
     // Also update the User entity so mentor_status reflects approval instantly
     const app = applications.find(a => a.id === id);
     if (app?.user_email) {
-      const users = await base44.entities.User.filter({ email: app.user_email });
-      if (users.length > 0) {
-        await base44.entities.User.update(users[0].id, {
+      const allUsers = await base44.entities.User.list();
+      const matchedUser = allUsers.find(u => u.email === app.user_email);
+      if (matchedUser) {
+        await base44.entities.User.update(matchedUser.id, {
           mentor_status: status === 'approved' ? 'approved' : status === 'rejected' ? 'suspended' : 'pending',
         });
       }
