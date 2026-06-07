@@ -40,10 +40,15 @@ export default function MentorDashboard() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
 
-        // Load mentor profile
-        const mentors = await base44.entities.Mentor.filter({ email: currentUser.email });
+        // Load mentor profile (check both Mentor and TeenMentor entities)
+        const mentors = await base44.entities.Mentor.filter({ user_email: currentUser.email });
         if (mentors.length > 0) {
           setProfile(mentors[0]);
+        } else {
+          const teenMentors = await base44.entities.TeenMentor.filter({ user_email: currentUser.email });
+          if (teenMentors.length > 0) {
+            setProfile(teenMentors[0]);
+          }
         }
 
         // Load anonymous questions (assigned to this mentor OR unassigned if mentor wants to claim)
@@ -57,7 +62,7 @@ export default function MentorDashboard() {
         
         setQuestions(mentorQuestions);
 
-        // Calculate stats
+        // Calculate stats (include both Mentor and TeenMentor sessions)
         const assignedQuestions = allQuestions.filter(q => q.assigned_mentor_email === currentUser.email);
         const statsData = {
           total_questions: assignedQuestions.length,
@@ -160,8 +165,9 @@ export default function MentorDashboard() {
               <div className="flex-1">
                 <h2 className="font-bold text-white">{profile.full_name}</h2>
                 {profile.title && <p className="text-xs text-gray-400">{profile.title}</p>}
+                {profile.grade && <p className="text-xs text-gray-400">Grade {profile.grade}</p>}
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-green-400">✓ Active Mentor</span>
+                  <span className="text-xs text-green-400">✓ Active {profile.grade ? 'Teen ' : ''}Mentor</span>
                   {profile.is_featured && (
                     <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b' }}>
                       👑 Ms. Glow
