@@ -11,7 +11,7 @@ import NewUserTour from '@/components/NewUserTour';
 
 const STEPS_DEFAULT = ['dob', 'username', 'agreement', 'complete'];
 const STEPS_MINOR   = ['dob', 'username', 'parental', 'agreement', 'complete'];
-const STEPS_MENTOR  = ['dob', 'username', 'agreement', 'mentor', 'complete'];
+const STEPS_MENTOR  = ['dob', 'username', 'agreement', 'mentor'];
 
 export default function Onboarding() {
   const [hardBanned, setHardBanned] = useState(null);
@@ -44,7 +44,7 @@ export default function Onboarding() {
 
   const steps = data.age !== null && data.age < 13
     ? STEPS_MINOR
-    : wantsMentor ? STEPS_DEFAULT : STEPS_DEFAULT;
+    : STEPS_MENTOR;
   const currentStep = steps[stepIndex];
 
   const next = () => setStepIndex(i => i + 1);
@@ -142,14 +142,12 @@ export default function Onboarding() {
         {currentStep === 'username' && <StepUsername data={data} update={update} onNext={next} onBack={back} />}
         {currentStep === 'parental' && <StepParentalConsent data={data} update={update} onNext={next} onBack={back} />}
         {currentStep === 'agreement' && (
-          <StepAgreement data={data} update={update} onNext={handleComplete} onBack={back} />
+          <StepAgreement data={data} update={update} onNext={next} onBack={back} />
         )}
-        {currentStep === 'mentor' && !wantsMentor && (
+        {currentStep === 'mentor' && (
           <StepMentorChoice data={data} user={user} onNext={(isMentor) => handleComplete(isMentor)} />
         )}
-        {currentStep === 'complete' && (
-          <StepComplete data={data} onDone={() => navigate('/dashboard')} />
-        )}
+
       </div>
 
       {showTour && <NewUserTour onComplete={() => { setShowTour(false); navigate('/dashboard'); }} />}
