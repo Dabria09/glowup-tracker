@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MentorApplicationModal from '@/components/mentorship/MentorApplicationModal';
 import TeenMentorApplicationModal from '@/components/mentorship/TeenMentorApplicationModal';
 
 export default function StepMentorChoice({ data, user, onNext }) {
+  const navigate = useNavigate();
   const [showMentorModal, setShowMentorModal] = useState(false);
   const [showTeenModal, setShowTeenModal] = useState(false);
 
@@ -15,6 +17,14 @@ export default function StepMentorChoice({ data, user, onNext }) {
     } else {
       setShowMentorModal(true);
     }
+  };
+
+  const handleMentorSubmitted = () => {
+    setShowMentorModal(false);
+    setShowTeenModal(false);
+    // Set mentor mode and redirect to mentor dashboard
+    localStorage.setItem('ggu_mentor_mode', 'mentor');
+    navigate('/mentor-dashboard');
   };
 
   return (
@@ -53,13 +63,13 @@ export default function StepMentorChoice({ data, user, onNext }) {
         isOpen={showMentorModal}
         onClose={() => setShowMentorModal(false)}
         user={user}
-        onSubmitted={() => { setShowMentorModal(false); onNext(); }}
+        onSubmitted={handleMentorSubmitted}
       />
       <TeenMentorApplicationModal
         isOpen={showTeenModal}
         onClose={() => setShowTeenModal(false)}
         user={user}
-        onSubmitted={() => { setShowTeenModal(false); onNext(); }}
+        onSubmitted={handleMentorSubmitted}
       />
     </div>
   );
