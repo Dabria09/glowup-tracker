@@ -18,6 +18,8 @@ export default function MentorDashboard() {
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [showMenteeSearch, setShowMenteeSearch] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [stats, setStats] = useState({ total_questions: 0, pending: 0, answered: 0, helpful_count: 0, sessions_completed: 0, rating: 0 });
 
   useEffect(() => {
@@ -354,18 +356,7 @@ export default function MentorDashboard() {
 
             {/* Delete Account */}
             <button
-              onClick={async () => {
-                if (window.confirm('Are you sure you want to delete your account? This cannot be undone.')) {
-                  try {
-                    // Remove mentor profile records
-                    const mentors = await base44.entities.Mentor.filter({ user_email: user.email });
-                    for (const m of mentors) await base44.entities.Mentor.delete(m.id);
-                    const teenMentors = await base44.entities.TeenMentor.filter({ user_email: user.email });
-                    for (const m of teenMentors) await base44.entities.TeenMentor.delete(m.id);
-                  } catch (e) {}
-                  base44.auth.logout('/');
-                }
-              }}
+              onClick={() => setShowDeleteModal(true)}
               style={{ width: '100%', padding: 14, borderRadius: 14, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
               <Trash2 size={16} /> Delete Account
@@ -385,6 +376,45 @@ export default function MentorDashboard() {
               <button onClick={() => setShowMenteeSearch(false)} className="text-2xl text-gray-400">×</button>
             </div>
             <MenteeDashboard user={user} />
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.85)' }}>
+          <div className="w-full max-w-sm rounded-3xl p-6" style={{ background: '#1a0508', border: '1px solid rgba(239,68,68,0.3)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>⚠️</div>
+              <h2 style={{ color: '#ef4444', fontWeight: 800, fontSize: 18, marginBottom: 6 }}>Delete Account</h2>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 1.5 }}>This is permanent and cannot be undone. Your profile, sessions, and all data will be deleted forever.</p>
+            </div>
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginBottom: 8, fontWeight: 700 }}>Type <span style={{ color: '#ef4444' }}>DELETE</span> to confirm:</p>
+            <input
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              placeholder="Type DELETE here"
+              style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 12, padding: '12px 14px', color: '#fff', fontSize: 14, outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
+            />
+            <button
+              disabled={deleteConfirmText !== 'DELETE'}
+              onClick={async () => {
+                try {
+                  const mentors = await base44.entities.Mentor.filter({ user_email: user.email });
+                  for (const m of mentors) await base44.entities.Mentor.delete(m.id);
+                  const teenMentors = await base44.entities.TeenMentor.filter({ user_email: user.email });
+                  for (const m of teenMentors) await base44.entities.TeenMentor.delete(m.id);
+                  await base44.auth.deleteAccount();
+                } catch (e) {}
+                base44.auth.logout('/');
+              }}
+              style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: deleteConfirmText === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.2)', color: '#fff', fontSize: 14, fontWeight: 800, cursor: deleteConfirmText === 'DELETE' ? 'pointer' : 'not-allowed', marginBottom: 10, opacity: deleteConfirmText === 'DELETE' ? 1 : 0.5 }}
+            >
+              Permanently Delete My Account
+            </button>
+            <button onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); }} style={{ width: '100%', padding: 12, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
