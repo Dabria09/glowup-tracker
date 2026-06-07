@@ -46,6 +46,26 @@
         "In-person"
       ]
     },
+    "application_status": {
+      "type": "string",
+      "title": "Application Status",
+      "enum": [
+        "pending_review",
+        "interview_scheduled",
+        "interview_complete",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending_review"
+    },
+    "interview_date": {
+      "type": "string",
+      "title": "Interview Date"
+    },
+    "interview_notes": {
+      "type": "string",
+      "title": "Interview Notes"
+    },
     "is_approved": {
       "type": "boolean",
       "title": "Approved",

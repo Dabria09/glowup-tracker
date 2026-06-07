@@ -8,6 +8,7 @@ import BottomNav from '@/components/BottomNav';
 import CustomizeModal from '@/components/CustomizeModal';
 import AvatarPreview from '@/components/avatar/AvatarPreview';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
+import MentorModeToggle from '@/components/MentorModeToggle';
 
 const MANUS = 'https://gguapp-wdww94kr.manus.space/manus-storage/';
 const G = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/';
@@ -780,6 +781,9 @@ export default function Dashboard() {
       }
 
       <div className="relative z-10">
+
+        {/* ── MENTOR MODE TOGGLE ─────────────────────────────────────── */}
+        <MentorModeToggle defaultMode="ggu" />
 
         {/* ── TOP STATUS BAR ─────────────────────────────────────── */}
         <div className="flex items-center justify-between px-5 pt-4 pb-2">

@@ -50,6 +50,36 @@
         "In-person"
       ]
     },
+    "application_status": {
+      "type": "string",
+      "title": "Application Status",
+      "enum": [
+        "pending_review",
+        "interview_scheduled",
+        "interview_complete",
+        "background_check_pending",
+        "background_check_complete",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending_review"
+    },
+    "interview_date": {
+      "type": "string",
+      "title": "Interview Date"
+    },
+    "interview_notes": {
+      "type": "string",
+      "title": "Interview Notes"
+    },
+    "background_check_url": {
+      "type": "string",
+      "title": "Background Check URL"
+    },
+    "background_check_date": {
+      "type": "string",
+      "title": "Background Check Date"
+    },
     "is_approved": {
       "type": "boolean",
       "title": "Approved",

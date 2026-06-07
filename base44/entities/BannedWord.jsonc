@@ -4,7 +4,7 @@
   "properties": {
     "word": {
       "type": "string",
-      "title": "Word / Phrase"
+      "title": "Banned Word"
     },
     "category": {
       "type": "string",
@@ -12,20 +12,30 @@
       "enum": [
         "profanity",
         "hate_speech",
-        "harassment",
+        "bullying",
+        "personal_info",
         "spam",
         "other"
       ],
-      "default": "profanity"
-    },
-    "added_by": {
-      "type": "string",
-      "title": "Added By (Admin Email)"
+      "default": "other"
     },
     "is_active": {
       "type": "boolean",
       "title": "Active",
       "default": true
+    },
+    "auto_flag": {
+      "type": "boolean",
+      "title": "Auto-Flag for Review",
+      "default": true
+    },
+    "added_by": {
+      "type": "string",
+      "title": "Added By (Admin Email)"
+    },
+    "added_date": {
+      "type": "string",
+      "title": "Added Date"
     }
   },
   "required": [
