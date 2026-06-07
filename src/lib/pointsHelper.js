@@ -20,6 +20,7 @@ export const POINT_VALUES = {
   kitchen_post: 15,
   shout_out_post: 10,
   book_club: 20,
+  avatar_customized: 25,
 
   // Health & wellness (medium-high)
   fitness_log: 20,
@@ -123,6 +124,7 @@ const ACTION_META = {
   scholarship_saved: { label: 'Scholarship Saved', emoji: '🎓' },
   shoutout_given:    { label: 'Shout Out Given', emoji: '📣' },
   contact_added:     { label: 'Contact Added', emoji: '📞' },
+  avatar_customized: { label: 'Fully Customized Avatar', emoji: '🎨' },
   diary_entry:       { label: 'Diary Entry', emoji: '📔' },
   sticky_note:       { label: 'Sticky Note', emoji: '📝' },
   glow_feed_post:    { label: 'Glow Feed Post', emoji: '📸' },
@@ -175,6 +177,11 @@ const DAILY_CAPPED_ACTIONS = new Set([
   'calm_corner', 'gratitude_entry', 'spiritual_habit', 'glow_score_check',
 ]);
 
+// Actions that can only be awarded once per calendar month (admin credits)
+const MONTHLY_CAPPED_ACTIONS = new Set([
+  'avatar_customized',
+]);
+
 function getLocalDateStr() {
   const n = new Date();
   return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
@@ -197,6 +204,23 @@ export async function awardPoints(userEmail, action) {
         h => h.created_date?.slice(0, 10) === todayStr
       );
       if (alreadyToday) return 0; // already awarded today, skip
+    } catch {}
+  }
+
+  // Monthly deduplication guard (admin credits)
+  if (MONTHLY_CAPPED_ACTIONS.has(action)) {
+    const todayStr = getLocalDateStr();
+    const currentMonth = todayStr.slice(0, 7); // YYYY-MM
+    try {
+      const recentHistory = await base44.entities.PointsHistory.filter(
+        { user_email: userEmail, action },
+        '-created_date',
+        10
+      );
+      const alreadyThisMonth = recentHistory.some(
+        h => h.created_date?.slice(0, 7) === currentMonth
+      );
+      if (alreadyThisMonth) return 0; // already awarded this month, skip
     } catch {}
   }
 

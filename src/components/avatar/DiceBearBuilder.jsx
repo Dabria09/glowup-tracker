@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Shuffle, Save, Download, Share2, Check, Sparkles, Copy, Clock, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { awardPoints } from '@/lib/pointsHelper';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -456,7 +457,6 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [history, setHistory] = useState([]);
-  const [pointsAwarded, setPointsAwarded] = useState(false);
 
   // Load saved config + history
   useEffect(() => {
@@ -521,20 +521,15 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
       await base44.entities.UserProfile.create({ user_email: user.email, ...data });
     }
 
-    // Award 25 points if fully customized and not yet awarded this session
-    if (!pointsAwarded && isFullyCustomized(config) && user?.email) {
+    // Award 25 points if fully customized (monthly cap enforced by awardPoints)
+    if (isFullyCustomized(config) && user?.email) {
       try {
-        const existing = await base44.entities.UserPoints.filter({ user_email: user.email });
-        if (existing.length) {
-          const rec = existing[0];
-          await base44.entities.UserPoints.update(rec.id, { total_points: (rec.total_points || 0) + 25 });
+        const newTotal = await awardPoints(user.email, 'avatar_customized');
+        if (newTotal > 0) {
+          showMsg('✅ Saved! +25 Glow Points for fully customizing your avatar! 🎉');
+        } else {
+          showMsg('✅ Avatar saved as your profile picture!');
         }
-        await base44.entities.PointsHistory.create({
-          user_email: user.email, action: 'avatar_customized',
-          label: 'Fully Customized Avatar 🎨', emoji: '🎨', points: 25,
-        });
-        setPointsAwarded(true);
-        showMsg('✅ Saved! +25 Glow Points for fully customizing your avatar! 🎉');
       } catch {
         showMsg('✅ Avatar saved as your profile picture!');
       }
@@ -666,12 +661,9 @@ export default function DiceBearBuilder({ profile, user, onSaved }) {
 
       {msg && <p className="text-green-400 text-xs font-semibold mb-3 text-center px-2">{msg}</p>}
 
-      {/* Points hint */}
-      {!pointsAwarded && (
-        <p className="text-[10px] text-yellow-500/70 mb-3 text-center">
-          🎨 Customize 6+ features & save to earn +25 Glow Points!
-        </p>
-      )}
+      <p className="text-[10px] text-yellow-500/70 mb-3 text-center">
+        🎨 Customize 6+ features & save to earn +25 Glow Points (once per month)!
+      </p>
 
       {/* Tab Bar */}
       <div className="w-full overflow-x-auto pb-2 mb-3" style={{ scrollbarWidth: 'none' }}>
