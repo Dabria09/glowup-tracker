@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Home, ExternalLink, ChevronRight, Sparkles, Award } from 'lucide-react';
+import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Home, ExternalLink, ChevronRight, Sparkles, Award, LogOut, Trash2 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import MenteeDashboard from './MenteeDashboard';
 
@@ -345,6 +345,30 @@ export default function MentorDashboard() {
             </button>
             <button onClick={() => navigate('/my-glow-link')} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1px solid rgba(232,82,109,0.35)', background: 'transparent', color: '#f48fb1', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
               🔗 View My Glow Link
+            </button>
+
+            {/* Sign Out */}
+            <button onClick={() => base44.auth.logout('/')} style={{ width: '100%', marginTop: 8, padding: 14, borderRadius: 14, border: '1px solid rgba(255,255,255,0.12)', background: 'transparent', color: 'rgba(255,255,255,0.5)', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <LogOut size={16} /> Sign Out
+            </button>
+
+            {/* Delete Account */}
+            <button
+              onClick={async () => {
+                if (window.confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+                  try {
+                    // Remove mentor profile records
+                    const mentors = await base44.entities.Mentor.filter({ user_email: user.email });
+                    for (const m of mentors) await base44.entities.Mentor.delete(m.id);
+                    const teenMentors = await base44.entities.TeenMentor.filter({ user_email: user.email });
+                    for (const m of teenMentors) await base44.entities.TeenMentor.delete(m.id);
+                  } catch (e) {}
+                  base44.auth.logout('/');
+                }
+              }}
+              style={{ width: '100%', padding: 14, borderRadius: 14, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            >
+              <Trash2 size={16} /> Delete Account
             </button>
           </div>
         )}
