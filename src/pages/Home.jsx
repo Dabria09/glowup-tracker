@@ -54,8 +54,8 @@ export default function Home() {
 
   const handleJoin = () => navigate(user ? '/dashboard' : '/join');
   const handleMentorSignIn = () => {
-    if (user) { navigate('/mentorship'); }
-    else { base44.auth.redirectToLogin('/mentorship'); }
+    if (user) { navigate('/mentor-dashboard'); }
+    else { base44.auth.redirectToLogin('/mentor-dashboard'); }
   };
 
   return (

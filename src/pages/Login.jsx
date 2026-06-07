@@ -38,11 +38,11 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/dashboard");
+    base44.auth.loginWithProvider("google", "/");
   };
 
   const handleApple = () => {
-    base44.auth.loginWithProvider("apple", "/dashboard");
+    base44.auth.loginWithProvider("apple", "/");
   };
 
   return (
