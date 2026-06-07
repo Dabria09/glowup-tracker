@@ -148,6 +148,7 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<Home />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route path="/mentor-dashboard" element={<MentorDashboard />} />
         <Route element={<AppModeGate />}>
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/onboarding" element={<Onboarding />} />
@@ -204,7 +205,6 @@ const AuthenticatedApp = () => {
       <Route path="/admin-logs" element={<AdminLogs />} />
       <Route path="/glow-kitchen" element={<GlowKitchen />} />
       <Route path="/mentorship" element={<Mentorship />} />
-      <Route path="/mentor-dashboard" element={<MentorDashboard />} />
       <Route path="/parent-dashboard" element={<ParentDashboard />} />
       <Route path="/growth-mindset" element={<GrowthMindset />} />
       <Route path="/scholarships" element={<Scholarships />} />
