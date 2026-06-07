@@ -532,7 +532,13 @@ export default function Dashboard() {
   useEffect(() => {localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds));}, [quickIds]);
   useEffect(() => {localStorage.setItem('ggu_folders', JSON.stringify(folders));}, [folders]);
   useEffect(() => {localStorage.setItem('ggu_community_apps', JSON.stringify(communityIds));}, [communityIds]);
-  useEffect(() => {localStorage.setItem('ggu_widget_sizes', JSON.stringify(widgetSizes));}, [widgetSizes]);
+  useEffect(() => {
+    localStorage.setItem('ggu_widget_sizes', JSON.stringify(widgetSizes));
+    // Also sync to UserProfile if profile exists
+    if (profileId) {
+      base44.entities.UserProfile.update(profileId, { featured_sections: JSON.stringify({ homeAppIds, quickIds, folders, communityIds, widgetSizes }) });
+    }
+  }, [widgetSizes, homeAppIds, quickIds, folders, communityIds, profileId]);
 
   // Save layout to UserProfile (debounced) so it persists across devices/sessions
   const saveLayoutToProfile = (pid, data) => {
@@ -623,7 +629,17 @@ export default function Dashboard() {
             if (saved.quickIds) {setQuickIds(saved.quickIds);localStorage.setItem('ggu_quick_access', JSON.stringify(saved.quickIds));}
             if (saved.folders) {setFolders(saved.folders);localStorage.setItem('ggu_folders', JSON.stringify(saved.folders));}
             if (saved.communityIds) {setCommunityIds(saved.communityIds);localStorage.setItem('ggu_community_apps', JSON.stringify(saved.communityIds));}
-            if (saved.widgetSizes) {setWidgetSizes(saved.widgetSizes);localStorage.setItem('ggu_widget_sizes', JSON.stringify(saved.widgetSizes));}
+            if (saved.widgetSizes) {
+              // Clear shout-outs widget size, keep others
+              const cleanedSizes = {};
+              Object.keys(saved.widgetSizes).forEach((id) => {
+                if (id !== 'shout-outs' && ALL_PAGES.some((p) => p.id === id)) {
+                  cleanedSizes[id] = saved.widgetSizes[id];
+                }
+              });
+              setWidgetSizes(cleanedSizes);
+              localStorage.setItem('ggu_widget_sizes', JSON.stringify(cleanedSizes));
+            }
           } catch {}
         }
       }
