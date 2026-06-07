@@ -50,7 +50,7 @@ export default function Onboarding() {
   const next = () => setStepIndex(i => i + 1);
   const back = () => setStepIndex(i => i - 1);
 
-  const handleComplete = async () => {
+  const handleComplete = async (isMentor = false) => {
     if (!user) return;
     const profileData = {
       user_email: user.email,
@@ -76,7 +76,16 @@ export default function Onboarding() {
       });
     }
     await base44.entities.UserProfile.create(profileData);
-    next();
+    
+    // If mentor, redirect immediately to mentor dashboard
+    if (isMentor) {
+      localStorage.setItem('ggu_mentor_mode', 'mentor');
+      navigate('/mentor-dashboard');
+      return;
+    }
+    
+    // For non-mentors, show the tour then go to dashboard
+    setShowTour(true);
   };
 
   const progressSteps = steps.filter(s => s !== 'complete');
@@ -136,10 +145,10 @@ export default function Onboarding() {
           <StepAgreement data={data} update={update} onNext={handleComplete} onBack={back} />
         )}
         {currentStep === 'mentor' && !wantsMentor && (
-          <StepMentorChoice data={data} user={user} onNext={next} />
+          <StepMentorChoice data={data} user={user} onNext={(isMentor) => handleComplete(isMentor)} />
         )}
         {currentStep === 'complete' && (
-          <StepComplete data={data} onDone={() => setShowTour(true)} />
+          <StepComplete data={data} onDone={() => navigate('/dashboard')} />
         )}
       </div>
 

@@ -22,9 +22,8 @@ export default function StepMentorChoice({ data, user, onNext }) {
   const handleMentorSubmitted = () => {
     setShowMentorModal(false);
     setShowTeenModal(false);
-    // Set mentor mode and redirect to mentor dashboard
-    localStorage.setItem('ggu_mentor_mode', 'mentor');
-    navigate('/mentor-dashboard');
+    // Signal to parent component that this is a mentor - it will handle redirect after profile creation
+    onNext(true);
   };
 
   return (
