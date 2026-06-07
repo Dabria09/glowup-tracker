@@ -95,8 +95,12 @@ export default function NewUserTour({ onComplete }) {
 
   const handleAction = (route) => {
     if (route) {
-      navigate(route);
-      handleComplete();
+      // Open in new tab so user doesn't lose tour progress
+      window.open(route, '_blank');
+      // Move to next step instead of completing
+      if (currentStep < TOUR_STEPS.length - 1) {
+        setCurrentStep(prev => prev + 1);
+      }
     }
   };
 
@@ -171,12 +175,17 @@ export default function NewUserTour({ onComplete }) {
               )}
               
               {step.action && step.actionLabel ? (
-                <Button onClick={() => handleAction(step.action)}
-                  className="flex-1 h-12 font-bold text-white"
-                  style={{ background: `linear-gradient(135deg, var(--tw-gradient-stops))` }}
-                  variant="default">
-                  {step.actionLabel}
-                </Button>
+                <>
+                  <Button onClick={() => handleAction(step.action)} variant="outline"
+                    className="flex-1 h-12 bg-white/5 border-white/10 hover:bg-white/10 text-white">
+                    {step.actionLabel}
+                  </Button>
+                  <Button onClick={handleNext}
+                    className="flex-1 h-12 font-bold text-white"
+                    style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
+                    Next <ChevronRight size={18} className="ml-1" />
+                  </Button>
+                </>
               ) : (
                 <Button onClick={handleNext}
                   className="flex-1 h-12 font-bold text-white"
