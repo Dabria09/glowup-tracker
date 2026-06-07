@@ -152,7 +152,7 @@ function AppIcon({ item }) {
             style={{ borderRadius: br - 2, background: 'rgba(18,8,28,0.9)' }}>
             
             {item.image ?
-            <img src={item.image} alt={item.label} className="object-contain rounded-xl" style={{ width: '85%', height: '85%' }} /> :
+            <img src={item.image} alt={item.label} className="object-contain rounded-2xl" style={{ width: '85%', height: '85%' }} /> :
             <span className="text-4xl drop-shadow-lg">{item.emoji}</span>
             }
           </div>
