@@ -233,6 +233,7 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
             type="button"
             onClick={(e) => {
               console.log('🟢 INLINE onClick fired');
+              alert('BUTTON CLICKED!');
               handleSubmit(e);
             }}
             className="flex-1 bg-primary hover:bg-primary/90 text-white relative z-10"
