@@ -54,19 +54,6 @@ export default function StepAgreement({
 
   return (
     <div className="space-y-6">
-      {/* Progress Header */}
-      <div className="text-center space-y-1">
-        <div style={{ fontFamily: '"Playfair Display", serif', fontWeight: 900, fontSize: 22, background: 'linear-gradient(135deg, #e8526d, #f1b610)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Girls Glowing Up™
-        </div>
-        <p className="text-xs text-gray-400">Step 9 of 9</p>
-        <div className="flex gap-1 mt-2">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} className="flex-1 h-1.5 rounded-full" style={{ background: i < 9 ? '#ec4899' : 'rgba(255,255,255,0.1)' }} />
-          ))}
-        </div>
-      </div>
-
       {/* Title */}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-white" style={{ fontFamily: '"Playfair Display", serif' }}>

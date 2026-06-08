@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 export default function StepSafetyConduct({ data, update, onNext, onBack, userAge }) {
   const [errors, setErrors] = useState({});
+  const [teenAcknowledged, setTeenAcknowledged] = useState(false);
 
   // Only show for adult mentors (18+)
   const isAdult = userAge !== null && userAge >= 18;
@@ -73,31 +74,58 @@ export default function StepSafetyConduct({ data, update, onNext, onBack, userAg
     </div>
   );
 
-  // Teen mentors (under 18) skip this step
+  // Teen mentor safety guidelines
   if (!isAdult) {
+    const guidelines = [
+      { emoji: '👨‍👩‍👧', title: 'Parent / Guardian Availability', body: 'Your parent or guardian must remain contactable throughout your time as a mentor. GGU staff may reach out to them at any time regarding your conduct or participation.' },
+      { emoji: '🔒', title: 'Safe Digital Boundaries', body: 'Never share your personal phone number, social media handles, or any contact details with mentees. All communication must take place inside the GGU platform.' },
+      { emoji: '🚫', title: 'Zero Tolerance Policy', body: 'Bullying, harassment, or sharing any inappropriate content will result in your immediate suspension and your parent or guardian being notified directly.' },
+      { emoji: '🆘', title: 'Report Uncomfortable Interactions', body: 'If any interaction ever makes you feel unsafe or uncomfortable, report it immediately using the in-app report button and contact GGU at mentors@girlsglowingup.com.' },
+    ];
+
     return (
       <div className="flex flex-col items-center text-center gap-6">
         <div>
           <div className="text-4xl mb-3">🛡️</div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">Safety & Conduct</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Teen Mentor Safety Standards</h2>
           <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-            This step is for adult mentors (18+) only.
-          </p>
-          <p className="text-xs text-gray-400 mt-2">
-            Click Continue to proceed.
+            As a teen mentor, please read and acknowledge these safety guidelines before continuing.
           </p>
         </div>
 
-        <div className="w-full flex gap-3 mt-4">
-          <button
-            onClick={onBack}
-            className="flex-1 py-3 rounded-2xl font-semibold text-sm text-muted-foreground border border-border hover:bg-muted transition"
-          >
+        <div className="w-full space-y-3 text-left">
+          {guidelines.map((g) => (
+            <div key={g.title} className="flex gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
+              <span className="text-2xl">{g.emoji}</span>
+              <div>
+                <p className="text-sm font-semibold text-white mb-1">{g.title}</p>
+                <p className="text-xs text-gray-400 leading-relaxed">{g.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <label className="w-full flex items-start gap-3 p-4 rounded-2xl bg-pink-500/10 border border-pink-500/20 cursor-pointer text-left">
+          <input
+            type="checkbox"
+            checked={teenAcknowledged}
+            onChange={(e) => setTeenAcknowledged(e.target.checked)}
+            className="w-5 h-5 mt-0.5 accent-pink-500 shrink-0"
+          />
+          <span className="text-sm text-white">
+            I have read and understand these Teen Safety Standards, and I agree to follow them under parental oversight.
+            <span className="text-pink-400"> *</span>
+          </span>
+        </label>
+
+        <div className="w-full flex gap-3">
+          <button onClick={onBack} className="flex-1 py-3 rounded-2xl font-semibold text-sm text-muted-foreground border border-border hover:bg-muted transition">
             Back
           </button>
           <button
             onClick={onNext}
-            className="flex-1 py-3 rounded-2xl font-bold text-white text-sm"
+            disabled={!teenAcknowledged}
+            className="flex-1 py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-40 disabled:cursor-not-allowed transition"
             style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
           >
             Continue

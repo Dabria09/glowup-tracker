@@ -1,7 +1,28 @@
 import { useState } from 'react';
 
+const QuestionField = ({ name, label, placeholder, value, onChange, error }) => (
+  <div className="mb-4">
+    <label className="block text-sm font-semibold text-white mb-2">
+      {label} <span className="text-pink-400">*</span>
+    </label>
+    <textarea
+      value={value || ''}
+      onChange={(e) => onChange(name, e.target.value)}
+      placeholder={placeholder}
+      rows={3}
+      className={`w-full px-4 py-3 rounded-xl bg-white/10 border ${
+        error ? 'border-red-500' : 'border-white/20'
+      } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition text-sm`}
+    />
+    {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+    <p className="text-gray-500 text-xs mt-1">1-3 sentences</p>
+  </div>
+);
+
 export default function StepYourWhy({ data, update, onNext, onBack }) {
   const [errors, setErrors] = useState({});
+
+  const handleChange = (name, value) => update({ [name]: value });
 
   const validate = () => {
     const newErrors = {};
@@ -30,27 +51,6 @@ export default function StepYourWhy({ data, update, onNext, onBack }) {
     }
   };
 
-  const QuestionField = ({ name, label, placeholder }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-semibold text-white mb-2">
-        {label} <span className="text-pink-400">*</span>
-      </label>
-      <textarea
-        value={data[name] || ''}
-        onChange={(e) => update({ [name]: e.target.value })}
-        placeholder={placeholder}
-        rows={3}
-        className={`w-full px-4 py-3 rounded-xl bg-white/10 border ${
-          errors[name] ? 'border-red-500' : 'border-white/20'
-        } text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 transition text-sm`}
-      />
-      {errors[name] && (
-        <p className="text-red-400 text-xs mt-1">{errors[name]}</p>
-      )}
-      <p className="text-gray-500 text-xs mt-1">1-3 sentences</p>
-    </div>
-  );
-
   return (
     <div className="flex flex-col items-center text-center gap-6">
       <div>
@@ -62,35 +62,11 @@ export default function StepYourWhy({ data, update, onNext, onBack }) {
       </div>
 
       <div className="w-full text-left">
-        <QuestionField
-          name="why_mentor"
-          label="Why do you want to be a GGU mentor?"
-          placeholder="I want to mentor because..."
-        />
-        
-        <QuestionField
-          name="wish_told_younger"
-          label="What is one thing you wish someone had told you at a younger age?"
-          placeholder="I wish I had known..."
-        />
-        
-        <QuestionField
-          name="empowerment_meaning"
-          label="What does empowerment mean to you?"
-          placeholder="Empowerment means..."
-        />
-        
-        <QuestionField
-          name="challenge_overcome"
-          label="Describe a challenge you overcame that could help a girl going through something similar"
-          placeholder="I faced a challenge where..."
-        />
-        
-        <QuestionField
-          name="mentoring_style"
-          label="What is your mentoring style? (coach, cheerleader, teacher, or something else?)"
-          placeholder="I would describe my mentoring style as..."
-        />
+        <QuestionField name="why_mentor" label="Why do you want to be a GGU mentor?" placeholder="I want to mentor because..." value={data.why_mentor} onChange={handleChange} error={errors.why_mentor} />
+        <QuestionField name="wish_told_younger" label="What is one thing you wish someone had told you at a younger age?" placeholder="I wish I had known..." value={data.wish_told_younger} onChange={handleChange} error={errors.wish_told_younger} />
+        <QuestionField name="empowerment_meaning" label="What does empowerment mean to you?" placeholder="Empowerment means..." value={data.empowerment_meaning} onChange={handleChange} error={errors.empowerment_meaning} />
+        <QuestionField name="challenge_overcome" label="Describe a challenge you overcame that could help a girl going through something similar" placeholder="I faced a challenge where..." value={data.challenge_overcome} onChange={handleChange} error={errors.challenge_overcome} />
+        <QuestionField name="mentoring_style" label="What is your mentoring style? (coach, cheerleader, teacher, or something else?)" placeholder="I would describe my mentoring style as..." value={data.mentoring_style} onChange={handleChange} error={errors.mentoring_style} />
       </div>
 
       <div className="w-full flex gap-3 mt-4">
