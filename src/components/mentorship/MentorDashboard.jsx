@@ -24,6 +24,7 @@ export default function MentorDashboard() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef(null);
+  const [application, setApplication] = useState(null);
   const [stats, setStats] = useState({ total_questions: 0, pending: 0, answered: 0, helpful_count: 0, sessions_completed: 0, rating: 0 });
 
   useEffect(() => {
@@ -57,6 +58,11 @@ export default function MentorDashboard() {
           (q.status === 'pending' && !q.assigned_mentor_email)
         );
         setQuestions(mentorQuestions);
+      } catch (e) {}
+
+      try {
+        const apps = await base44.entities.MentorApplication.filter({ user_email: currentUser.email });
+        if (apps.length > 0) setApplication(apps[0]);
       } catch (e) {}
 
       let mentorSessions = [];
@@ -277,7 +283,7 @@ export default function MentorDashboard() {
             )}
 
             {/* Application Status */}
-            <ApplicationStatusTracker profile={profile} />
+            <ApplicationStatusTracker profile={profile} application={application} />
 
             {/* Upcoming Sessions */}
             <Section title="Upcoming Sessions" icon={<Calendar size={14} />}>
@@ -409,7 +415,7 @@ export default function MentorDashboard() {
             ))}
 
             {/* Application Status */}
-            <ApplicationStatusTracker profile={profile} />
+            <ApplicationStatusTracker profile={profile} application={application} />
 
             {expertise.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 16, marginTop: 4 }}>

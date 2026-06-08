@@ -46,6 +46,33 @@
       "type": "string",
       "title": "Avatar URL"
     },
+    "date_of_birth": {
+      "type": "string",
+      "title": "Date of Birth (YYYY-MM-DD)"
+    },
+    "mentor_track": {
+      "type": "string",
+      "title": "Mentor Track",
+      "enum": [
+        "adult",
+        "teen"
+      ],
+      "default": "adult"
+    },
+    "parent_email": {
+      "type": "string",
+      "title": "Parent/Guardian Email (Teen track)"
+    },
+    "parent_consent_sent": {
+      "type": "boolean",
+      "title": "Parent Consent Email Sent",
+      "default": false
+    },
+    "parent_consent_given": {
+      "type": "boolean",
+      "title": "Parent Consent Received",
+      "default": false
+    },
     "status": {
       "type": "string",
       "title": "Application Status",
@@ -58,6 +85,36 @@
         "inactive"
       ],
       "default": "pending"
+    },
+    "checklist_identity_verified": {
+      "type": "boolean",
+      "title": "Identity Verified",
+      "default": false
+    },
+    "checklist_background_cleared": {
+      "type": "boolean",
+      "title": "Background Check Cleared (Adult only)",
+      "default": false
+    },
+    "checklist_interview_completed": {
+      "type": "boolean",
+      "title": "Interview Completed",
+      "default": false
+    },
+    "checklist_lesson_passed": {
+      "type": "boolean",
+      "title": "GGU Mentor Lesson Passed",
+      "default": false
+    },
+    "checklist_tos_signed": {
+      "type": "boolean",
+      "title": "Terms of Service Signed",
+      "default": false
+    },
+    "checklist_final_approved": {
+      "type": "boolean",
+      "title": "Final Approval by GGU Admin",
+      "default": false
     },
     "submitted_date": {
       "type": "string",
