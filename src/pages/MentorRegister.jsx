@@ -49,7 +49,12 @@ export default function MentorRegister() {
 
   // Step 2 — Professional
   const [occupation, setOccupation] = useState("");
+  const [employer, setEmployer] = useState("");
   const [education, setEducation] = useState("");
+  const [fieldOfStudy, setFieldOfStudy] = useState("");
+  const [experienceYears, setExperienceYears] = useState("");
+  const [workedWithYouth, setWorkedWithYouth] = useState("");
+  const [youthExperienceDesc, setYouthExperienceDesc] = useState("");
   const [expertiseAreas, setExpertiseAreas] = useState([]);
   const [ageGroups, setAgeGroups] = useState([]);
   const [menteeCount, setMenteeCount] = useState("");
@@ -169,7 +174,12 @@ export default function MentorRegister() {
         user_email: user?.email || email,
         full_name: fullName,
         occupation,
+        employer,
         education,
+        field_of_study: fieldOfStudy,
+        experience_years: experienceYears ? parseFloat(experienceYears) : null,
+        worked_with_youth: workedWithYouth === 'yes',
+        youth_experience_description: youthExperienceDesc,
         expertise: JSON.stringify(expertiseAreas),
         age_groups: JSON.stringify(ageGroups),
         mentee_count: menteeCount,
@@ -413,10 +423,15 @@ export default function MentorRegister() {
         {/* STEP 2 — Professional Background */}
         {step === 2 && (
           <StepProfessionalBackground
-            data={{ occupation, education, expertiseAreas, ageGroups, menteeCount, hoursPerMonth }}
+            data={{ occupation, employer, education, fieldOfStudy, experienceYears, workedWithYouth, youthExperienceDesc, expertiseAreas, ageGroups, menteeCount, hoursPerMonth }}
             update={(patch) => {
               setOccupation(patch.occupation || occupation);
+              setEmployer(patch.employer || employer);
               setEducation(patch.education || education);
+              setFieldOfStudy(patch.fieldOfStudy || fieldOfStudy);
+              setExperienceYears(patch.experienceYears || experienceYears);
+              setWorkedWithYouth(patch.workedWithYouth || workedWithYouth);
+              setYouthExperienceDesc(patch.youthExperienceDesc || youthExperienceDesc);
               setExpertiseAreas(patch.expertiseAreas || expertiseAreas);
               setAgeGroups(patch.ageGroups || ageGroups);
               setMenteeCount(patch.menteeCount || menteeCount);

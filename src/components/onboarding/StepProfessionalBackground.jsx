@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 
 const EXPERTISE_AREAS = ['Career Development', 'Financial Literacy', 'College Prep', 'Mental Wellness', 'Entrepreneurship', 'STEM', 'Arts & Creative', 'Athletics', 'Life Skills', 'Other'];
 const AGE_GROUPS = ['Glow Girls 5–12', 'Glow Teens 13–18', 'Glow Women 19–26'];
 const MENTEE_COUNTS = ['1', '2', '3', '4', '5+'];
 const HOURS_PER_MONTH = ['2–4 hrs', '5–8 hrs', '9–12 hrs', '12+ hrs'];
+const EDUCATION_LEVELS = ['Some high school', 'High school diploma or GED', 'Some college', "Associate degree", "Bachelor's degree", "Master's degree", 'Doctoral or professional degree'];
 
 const fieldStyle = { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)' };
 
@@ -18,7 +20,12 @@ function Field({ label, children }) {
 
 export default function StepProfessionalBackground({ data, update, onNext, onBack, setError }) {
   const [occupation, setOccupation] = useState(data.occupation || "");
+  const [employer, setEmployer] = useState(data.employer || "");
   const [education, setEducation] = useState(data.education || "");
+  const [fieldOfStudy, setFieldOfStudy] = useState(data.fieldOfStudy || "");
+  const [experienceYears, setExperienceYears] = useState(data.experienceYears || "");
+  const [workedWithYouth, setWorkedWithYouth] = useState(data.workedWithYouth || "");
+  const [youthExperienceDesc, setYouthExperienceDesc] = useState(data.youthExperienceDesc || "");
   const [expertiseAreas, setExpertiseAreas] = useState(data.expertiseAreas || []);
   const [ageGroups, setAgeGroups] = useState(data.ageGroups || []);
   const [menteeCount, setMenteeCount] = useState(data.menteeCount || "");
@@ -34,7 +41,7 @@ export default function StepProfessionalBackground({ data, update, onNext, onBac
       return;
     }
     // Save data
-    update({ occupation, education, expertiseAreas, ageGroups, menteeCount, hoursPerMonth });
+    update({ occupation, employer, education, fieldOfStudy, experienceYears, workedWithYouth, youthExperienceDesc, expertiseAreas, ageGroups, menteeCount, hoursPerMonth });
     setError("");
     onNext();
   };
@@ -45,56 +52,107 @@ export default function StepProfessionalBackground({ data, update, onNext, onBac
         <input value={occupation} onChange={e => setOccupation(e.target.value)} placeholder="e.g., Software Engineer, Teacher, Entrepreneur"
           className="field-input" style={fieldStyle} />
       </Field>
-      <Field label="Highest Level of Education *">
+      
+      <Field label="Employer or School Name (optional)">
+        <input value={employer} onChange={e => setEmployer(e.target.value)} placeholder="e.g., Google, Lincoln High School"
+          className="field-input" style={fieldStyle} />
+      </Field>
+      
+      <Field label="Highest Level of Education Completed *">
         <select value={education} onChange={e => setEducation(e.target.value)} className="field-input" style={fieldStyle}>
           <option value="">Select...</option>
-          {['High School Diploma', 'Some College', "Associate's Degree", "Bachelor's Degree", "Master's Degree", "Doctoral Degree", 'Trade/Vocational Certificate', 'Other'].map(o => <option key={o}>{o}</option>)}
+          {EDUCATION_LEVELS.map(o => <option key={o}>{o}</option>)}
         </select>
       </Field>
+      
+      <Field label="Field of Study or Industry">
+        <input value={fieldOfStudy} onChange={e => setFieldOfStudy(e.target.value)} placeholder="e.g., Computer Science, Education, Healthcare"
+          className="field-input" style={fieldStyle} />
+      </Field>
+      
+      <Field label="Years of Experience in Your Field">
+        <input type="number" value={experienceYears} onChange={e => setExperienceYears(e.target.value)} placeholder="e.g., 5" min="0" max="50"
+          className="field-input" style={fieldStyle} />
+      </Field>
+      
+      <Field label="Have You Worked with Youth Before? *">
+        <div className="flex gap-3 mt-1">
+          <button
+            type="button"
+            onClick={() => setWorkedWithYouth('yes')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${workedWithYouth === 'yes' ? 'bg-pink-500 text-white' : 'bg-white/5 text-gray-300 border border-white/10'}`}
+          >
+            Yes
+          </button>
+          <button
+            type="button"
+            onClick={() => setWorkedWithYouth('no')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${workedWithYouth === 'no' ? 'bg-pink-500 text-white' : 'bg-white/5 text-gray-300 border border-white/10'}`}
+          >
+            No
+          </button>
+        </div>
+      </Field>
+      
+      {workedWithYouth === 'yes' && (
+        <Field label="Briefly Describe Your Youth Experience">
+          <textarea 
+            value={youthExperienceDesc} 
+            onChange={e => setYouthExperienceDesc(e.target.value)} 
+            placeholder="e.g., I volunteered as a high school tutor for 3 years, working with students ages 14-18 in math and science..."
+            rows={3}
+            className="field-input resize-none" 
+            style={fieldStyle} 
+          />
+        </Field>
+      )}
+      
       <Field label="Areas of Expertise (select all that apply) *">
         <div className="flex flex-wrap gap-2 mt-1">
           {EXPERTISE_AREAS.map(area => (
-            <button key={area} type="button" onClick={() => toggleMulti(area, expertiseAreas, setExpertiseAreas)}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold transition"
-              style={expertiseAreas.includes(area) ? { background: 'linear-gradient(135deg, #e8526d, #f1b610)', color: '#fff' } : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}>
+            <button 
+              key={area} 
+              type="button" 
+              onClick={() => toggleMulti(area, expertiseAreas, setExpertiseAreas)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${expertiseAreas.includes(area) ? 'bg-pink-500 text-white' : 'bg-white/5 text-gray-300 border border-white/10'}`}
+            >
               {area}
             </button>
           ))}
         </div>
       </Field>
-      <Field label="Age Group You Want to Mentor *">
+      
+      <Field label="Age Groups You Want to Mentor (select all that apply) *">
         <div className="flex flex-wrap gap-2 mt-1">
-          {AGE_GROUPS.map(ag => (
-            <button key={ag} type="button" onClick={() => toggleMulti(ag, ageGroups, setAgeGroups)}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold transition"
-              style={ageGroups.includes(ag) ? { background: 'linear-gradient(135deg, #a855f7, #e8526d)', color: '#fff' } : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}>
-              {ag}
+          {AGE_GROUPS.map(group => (
+            <button 
+              key={group} 
+              type="button" 
+              onClick={() => toggleMulti(group, ageGroups, setAgeGroups)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${ageGroups.includes(group) ? 'bg-pink-500 text-white' : 'bg-white/5 text-gray-300 border border-white/10'}`}
+            >
+              {group}
             </button>
           ))}
         </div>
       </Field>
-      <Field label="How many mentees can you commit to at one time?">
-        <div className="flex gap-2 mt-1">
-          {MENTEE_COUNTS.map(c => (
-            <button key={c} type="button" onClick={() => setMenteeCount(c)}
-              className="flex-1 py-2 rounded-xl text-sm font-bold transition"
-              style={menteeCount === c ? { background: 'linear-gradient(135deg, #e8526d, #f1b610)', color: '#fff' } : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}>
-              {c}
-            </button>
-          ))}
-        </div>
-      </Field>
-      <Field label="Hours per month you can commit?">
-        <div className="flex flex-wrap gap-2 mt-1">
-          {HOURS_PER_MONTH.map(h => (
-            <button key={h} type="button" onClick={() => setHoursPerMonth(h)}
-              className="px-4 py-2 rounded-xl text-xs font-bold transition"
-              style={hoursPerMonth === h ? { background: 'linear-gradient(135deg, #e8526d, #f1b610)', color: '#fff' } : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}>
-              {h}
-            </button>
-          ))}
-        </div>
-      </Field>
+      
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Max Mentees">
+          <select value={menteeCount} onChange={e => setMenteeCount(e.target.value)} className="field-input" style={fieldStyle}>
+            <option value="">Select...</option>
+            {MENTEE_COUNTS.map(o => <option key={o}>{o}</option>)}
+          </select>
+        </Field>
+        
+        <Field label="Hours/Month">
+          <select value={hoursPerMonth} onChange={e => setHoursPerMonth(e.target.value)} className="field-input" style={fieldStyle}>
+            <option value="">Select...</option>
+            {HOURS_PER_MONTH.map(o => <option key={o}>{o}</option>)}
+          </select>
+        </Field>
+      </div>
+
       <div className="flex gap-3 pt-2">
         {onBack && (
           <button onClick={onBack} className="flex-1 py-3 rounded-xl text-sm font-bold text-gray-400 transition hover:text-white"
@@ -104,7 +162,7 @@ export default function StepProfessionalBackground({ data, update, onNext, onBac
         )}
         <button onClick={handleContinue} className="flex-1 py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2"
           style={{ background: 'linear-gradient(135deg, #e8526d, #f1b610)' }}>
-          Continue
+          Continue <ChevronRight size={16} />
         </button>
       </div>
     </div>

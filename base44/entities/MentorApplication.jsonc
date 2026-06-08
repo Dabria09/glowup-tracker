@@ -50,9 +50,33 @@
       "type": "string",
       "title": "Occupation"
     },
+    "employer": {
+      "type": "string",
+      "title": "Employer or School Name"
+    },
     "education": {
       "type": "string",
-      "title": "Education"
+      "title": "Education Level"
+    },
+    "field_of_study": {
+      "type": "string",
+      "title": "Field of Study or Industry"
+    },
+    "experience_years": {
+      "type": "number",
+      "title": "Years of Experience"
+    },
+    "worked_with_youth": {
+      "type": "string",
+      "title": "Worked with Youth Before",
+      "enum": [
+        "yes",
+        "no"
+      ]
+    },
+    "youth_experience_description": {
+      "type": "string",
+      "title": "Youth Experience Description"
     },
     "categories": {
       "type": "string",
@@ -73,10 +97,6 @@
     "hours_per_month": {
       "type": "string",
       "title": "Hours Per Month"
-    },
-    "experience_years": {
-      "type": "number",
-      "title": "Years of Experience"
     },
     "why_mentor": {
       "type": "string",
