@@ -1,15 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MentorApplicationModal from '@/components/mentorship/MentorApplicationModal';
 import TeenMentorApplicationModal from '@/components/mentorship/TeenMentorApplicationModal';
 
-export default function StepMentorChoice({ data, user, onNext }) {
+export default function StepMentorChoice({ data, user, isMentorFlow, onNext }) {
   const navigate = useNavigate();
   const [showMentorModal, setShowMentorModal] = useState(false);
   const [showTeenModal, setShowTeenModal] = useState(false);
 
   const age = data.age;
   const isTeen = age !== null && age < 18;
+
+  // Auto-skip mentor choice if user is already in mentor flow
+  useEffect(() => {
+    if (isMentorFlow) {
+      onNext(true);
+    }
+  }, [isMentorFlow]);
 
   const handleMentorClick = () => {
     if (isTeen) {

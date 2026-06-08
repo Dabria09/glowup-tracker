@@ -158,7 +158,7 @@ export default function Onboarding() {
           <StepAgreement data={data} update={update} onNext={next} onBack={back} />
         )}
         {currentStep === 'mentor' && (
-          <StepMentorChoice data={data} user={user} onNext={(isMentor) => handleComplete(isMentor)} />
+          <StepMentorChoice data={data} user={user} isMentorFlow={isMentorFlow} onNext={(isMentor) => handleComplete(isMentor)} />
         )}
 
       </div>
