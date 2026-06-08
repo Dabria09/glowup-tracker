@@ -27,6 +27,9 @@ export default function Onboarding() {
   });
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isFromMentorSignup = urlParams.get('mentor') === 'true';
+    
     base44.auth.me().then(async (u) => {
       setUser(u);
       // Check hard ban on this email
@@ -34,7 +37,7 @@ export default function Onboarding() {
       if (activeBans.length) { setHardBanned(activeBans[0]); return; }
       
       // Check if user is already marked as mentor (from mentor signup flow)
-      if (u.account_type === 'mentor' || u.mentor_status === 'pending') {
+      if (u.account_type === 'mentor' || u.mentor_status === 'pending' || isFromMentorSignup) {
         setIsMentorFlow(true);
       }
       
@@ -54,7 +57,7 @@ export default function Onboarding() {
     ? STEPS_MINOR
     : isMentorFlow
       ? ['dob', 'username', 'agreement', 'complete'] // Skip mentor choice for mentor flow
-      : STEPS_MENTOR;
+      : ['dob', 'username', 'mentor', 'agreement', 'complete'];
   const currentStep = steps[stepIndex];
 
   const next = () => setStepIndex(i => i + 1);
