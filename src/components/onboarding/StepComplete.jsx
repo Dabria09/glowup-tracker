@@ -1,43 +1,181 @@
-export default function StepComplete({ data, onDone }) {
-  const isUnder13 = data.age < 13;
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, Mail, Clock, FileText, HelpCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+export default function StepComplete({ applicationId }) {
+  const navigate = useNavigate();
+
+  const stages = [
+    {
+      number: 1,
+      title: 'Application Received',
+      description: 'Your application is in our system',
+      icon: '📥',
+      status: 'complete'
+    },
+    {
+      number: 2,
+      title: 'Initial Review',
+      description: 'GGU team reviews your application',
+      icon: '👀',
+      status: 'pending'
+    },
+    {
+      number: 3,
+      title: 'Background Check',
+      description: 'Safety verification (adult mentors only)',
+      icon: '🛡️',
+      status: 'pending'
+    },
+    {
+      number: 4,
+      title: 'Interview',
+      description: 'Video call with GGU coordinator',
+      icon: '🎥',
+      status: 'pending'
+    },
+    {
+      number: 5,
+      title: 'Training & Certification',
+      description: 'Complete GGU Mentor Lesson',
+      icon: '📚',
+      status: 'pending'
+    },
+    {
+      number: 6,
+      title: 'Final Approval',
+      description: 'Welcome to the mentor community!',
+      icon: '🎉',
+      status: 'pending'
+    }
+  ];
 
   return (
-    <div className="bg-card rounded-2xl p-6 border border-border shadow-lg text-center">
-      <div className="text-5xl mb-4">{isUnder13 ? '📧' : '🎉'}</div>
-      <h2 className="text-2xl font-bold font-poppins mb-2">{isUnder13 ? 'Almost There!' : 'Welcome to GGU! ✨'}</h2>
-
-      {isUnder13 ? (
-        <>
-          <p className="text-muted-foreground text-sm mb-4">
-            We've sent a consent request to <strong>{data.parent_email}</strong>. Your account will be activated once your parent approves.
-          </p>
-          <div className="bg-amber-100 border border-amber-300 rounded-xl p-4 text-xs text-amber-800 text-left mb-5 space-y-2">
-            <p>📬 Ask your parent to check their email from <strong>noreply@girlsglowingup.com</strong></p>
-            <p>⏳ Approval usually takes 1–24 hours</p>
-            <p>🔒 Your data is protected until consent is given</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <div className="flex justify-center">
+          <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center">
+            <CheckCircle2 className="h-12 w-12 text-primary" />
           </div>
-        </>
-      ) : (
-        <>
-          <p className="text-muted-foreground text-sm mb-4">
-            Hey <strong>@{data.username}</strong>! You're officially a{' '}
-            <span className="text-primary font-bold font-poppins">
-              {data.age_group === 'glow_girls' ? '🌱 Glow Girl' : data.age_group === 'glow_teens' ? '🌸 Glow Teen' : '👑 Glow Woman'}
-            </span>. Your glow-up journey starts now!
+        </div>
+        <h2 className="text-3xl font-playfair-display text-white">
+          Application Submitted!
+        </h2>
+        <p className="text-muted-foreground text-lg">
+          Thank you for applying to become a GGU Mentor
+        </p>
+      </div>
+
+      {/* Application ID */}
+      <Card className="glass-glow">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Application ID</p>
+              <p className="text-2xl font-mono font-bold text-white">{applicationId}</p>
+            </div>
+            <FileText className="h-8 w-8 text-primary" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Timeline */}
+      <Card className="glass-glow">
+        <CardHeader>
+          <CardTitle className="text-xl font-playfair-display text-white flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            What Happens Next
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Estimated timeline: <span className="text-primary font-semibold">5-7 business days</span>
           </p>
-          <div className="grid grid-cols-2 gap-2 text-xs text-left mb-5">
-            {[{ icon: '📚', text: 'GGU Curriculum' }, { icon: '💬', text: 'Daily Quotes' }, { icon: '🌸', text: 'Cycle Tracker' }, { icon: '⚡', text: 'Me vs Me' }].map(f => (
-              <div key={f.text} className="bg-secondary rounded-xl p-3 flex items-start gap-2">
-                <span>{f.icon}</span><span className="text-foreground">{f.text}</span>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {stages.map((stage) => (
+              <div
+                key={stage.number}
+                className={`flex items-start gap-4 p-4 rounded-lg border ${
+                  stage.status === 'complete'
+                    ? 'bg-primary/10 border-primary/20'
+                    : 'bg-white/5 border-white/10'
+                }`}
+              >
+                <div className="text-2xl">{stage.icon}</div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold text-white">{stage.title}</h4>
+                    {stage.status === 'complete' && (
+                      <Badge className="bg-primary text-primary-foreground">
+                        Complete
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{stage.description}</p>
+                </div>
+                <div className="text-sm font-semibold text-white">
+                  Step {stage.number}
+                </div>
               </div>
             ))}
           </div>
-        </>
-      )}
+        </CardContent>
+      </Card>
 
-      <button onClick={onDone} className="w-full py-3 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-sm hover:opacity-90 transition">
-        {isUnder13 ? 'Go to App (Pending Approval)' : "Let's Glow! ✨"}
-      </button>
+      {/* Contact Info */}
+      <Card className="glass-glow">
+        <CardContent className="p-6 space-y-4">
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-primary/10 border border-primary/20">
+            <HelpCircle className="h-5 w-5 text-primary mt-0.5" />
+            <div className="space-y-2">
+              <p className="text-white font-medium">Have Questions?</p>
+              <p className="text-sm text-muted-foreground">
+                Contact us at{' '}
+                <a
+                  href="mailto:mentor@girlsglowingup.com"
+                  className="text-primary hover:underline"
+                >
+                  mentor@girlsglowingup.com
+                </a>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-accent/10 border border-accent/20">
+            <Mail className="h-5 w-5 text-accent mt-0.5" />
+            <div className="space-y-2">
+              <p className="text-white font-medium">Stay Updated</p>
+              <p className="text-sm text-muted-foreground">
+                You'll receive email updates at each stage of the review process.
+                Check your inbox (and spam folder) regularly.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Action Buttons */}
+      <div className="space-y-3 pt-4">
+        <Button
+          onClick={() => navigate('/mentor-dashboard')}
+          className="w-full bg-primary hover:bg-primary/90 text-white"
+          size="lg"
+        >
+          Go to Mentor Dashboard
+        </Button>
+        <Button
+          onClick={() => navigate('/mentorship')}
+          variant="outline"
+          className="w-full border-white/20 text-white hover:bg-white/10"
+          size="lg"
+        >
+          View Application Status
+        </Button>
+      </div>
     </div>
   );
 }

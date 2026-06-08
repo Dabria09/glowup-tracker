@@ -9,6 +9,7 @@ import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import StepWhoYouAre from "@/components/onboarding/StepWhoYouAre";
+import StepParentalConsent from "@/components/onboarding/StepParentalConsent";
 import StepProfessionalBackground from "@/components/onboarding/StepProfessionalBackground";
 import StepYourWhy from "@/components/onboarding/StepYourWhy";
 import StepSafetyConduct from "@/components/onboarding/StepSafetyConduct";
@@ -54,7 +55,14 @@ export default function MentorRegister() {
     languages: '',
     avatar_url: '',
     date_of_birth: '',
+    parent_email: '',
+    parent_name: '',
+    parent_phone: '',
+    parent_relationship: '',
   });
+
+  // Step 1.5 — Parental Consent (teen mentors only)
+  const [parentConsentSent, setParentConsentSent] = useState(false);
 
   // Step 2 — Professional Background
   const [professionalData, setProfessionalData] = useState({
@@ -120,6 +128,7 @@ export default function MentorRegister() {
   const updateWhoYouAre = (patch) => setWhoYouAreData(prev => ({ ...prev, ...patch }));
   const updateYourWhy = (patch) => setYourWhyData(prev => ({ ...prev, ...patch }));
   const updateSafety = (patch) => setSafetyData(prev => ({ ...prev, ...patch }));
+  const updateParentalConsent = (patch) => setWhoYouAreData(prev => ({ ...prev, ...patch }));
 
   const calcAge = (dobStr) => {
     if (!dobStr) return 0;
@@ -230,6 +239,9 @@ export default function MentorRegister() {
         // Agreements
         agreements_accepted: JSON.stringify(["tos", "conduct"]),
         agreements_timestamp: new Date().toISOString(),
+        parent_name: whoYouAreData.parent_name,
+        parent_phone: whoYouAreData.parent_phone,
+        parent_relationship: whoYouAreData.parent_relationship,
         status: "pending",
         submitted_date: new Date().toISOString(),
       });
@@ -386,6 +398,18 @@ export default function MentorRegister() {
 
       case 1:
         return <StepWhoYouAre data={whoYouAreData} update={updateWhoYouAre} onNext={handleNext} onBack={handleBack} />;
+      
+      case 1.5:
+        return (
+          <StepParentalConsent
+            data={whoYouAreData}
+            update={updateParentalConsent}
+            onNext={() => { setParentConsentSent(true); setStep(2); }}
+            onBack={handleBack}
+            parentEmail={whoYouAreData.parent_email}
+            setParentEmail={(email) => updateWhoYouAre({ parent_email: email })}
+          />
+        );
       
       case 2:
         return <StepProfessionalBackground data={professionalData} update={setProfessionalData} toggleMulti={toggleMulti} onNext={handleNext} onBack={handleBack} />;
