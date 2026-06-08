@@ -162,27 +162,6 @@ export default function MentorSignup() {
           <p className="text-sm text-gray-400">Create your account to begin your mentor journey</p>
         </div>
 
-        {/* Benefits */}
-        <div className="rounded-2xl p-4 mb-6" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
-          <h3 className="font-bold text-amber-400 text-sm mb-3 flex items-center gap-2">
-            <Sparkles size={16} />
-            Why Become a Mentor?
-          </h3>
-          <div className="space-y-2">
-            {[
-              'Guide the next generation of confident girls',
-              'Share your expertise and life experience',
-              'Join a community of empowered women',
-              'Make a lasting impact on young lives',
-            ].map((benefit, i) => (
-              <div key={i} className="flex items-start gap-2 text-xs text-gray-300">
-                <CheckCircle size={14} className="text-amber-400 mt-0.5 flex-shrink-0" />
-                <span>{benefit}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Signup Form */}
         <div className="rounded-3xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' }}>
           <Button variant="outline" className="w-full h-12 text-sm font-medium mb-4 bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleGoogle}>
