@@ -68,6 +68,7 @@ export default function Onboarding() {
         }
         
         // Only redirect if onboarded AND not trying to signup as mentor
+        // If user is already onboarded but wants to apply as mentor, let them proceed
         if (!isFromMentorSignup) {
           try {
             const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
@@ -78,6 +79,18 @@ export default function Onboarding() {
             }
           } catch (profileErr) {
             console.log('[Onboarding] Profile check skipped:', profileErr.message);
+          }
+        } else {
+          // User is in mentor signup flow - check if they already have a mentor application
+          try {
+            const apps = await base44.entities.MentorApplication.filter({ user_email: u.email });
+            if (apps.length && apps[0].status !== 'rejected') {
+              console.log('[Onboarding] Already has mentor application, redirecting to mentor dashboard');
+              navigate('/mentor-dashboard');
+              return;
+            }
+          } catch (appErr) {
+            console.log('[Onboarding] Mentor app check skipped:', appErr.message);
           }
         }
         
