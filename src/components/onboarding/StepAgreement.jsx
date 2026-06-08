@@ -69,7 +69,7 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
           Review and accept our terms to complete your application
         </p>
       </CardHeader>
-      <CardContent className="space-y-6" style={{ pointerEvents: 'auto' }}>
+      <CardContent className="space-y-6" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 50 }}>
         <Alert className="bg-primary/10 border-primary/20">
           <AlertDescription className="text-white text-sm">
             Before submitting, please read and accept the following agreements. Your electronic signature confirms your commitment to these terms.
@@ -216,28 +216,32 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
           </div>
         </div>
 
-        <div className="flex gap-4 pt-4" style={{ pointerEvents: 'auto' }}>
+        <div className="flex gap-4 pt-4" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 100 }}>
           <Button
             type="button"
             variant="outline"
             onClick={(e) => {
-              console.log('🟡 Back button onClick fired');
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('🟡 Back button clicked');
               onBack();
             }}
             className="flex-1 border-white/20 text-white hover:bg-white/10"
-            style={{ pointerEvents: 'auto !important', cursor: 'pointer' }}
+            style={{ pointerEvents: 'auto !important', cursor: 'pointer', position: 'relative', zIndex: 101 }}
           >
             Back
           </Button>
           <Button
             type="button"
             onClick={(e) => {
-              console.log('🟢 INLINE onClick fired');
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('🟢 Submit button clicked');
               handleSubmit(e);
             }}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white relative z-10"
+            className="flex-1 bg-primary hover:bg-primary/90 text-white"
             disabled={loading}
-            style={{ pointerEvents: 'auto !important', cursor: 'pointer' }}
+            style={{ pointerEvents: 'auto !important', cursor: 'pointer', position: 'relative', zIndex: 101, touchAction: 'manipulation' }}
           >
             {loading && <span className="animate-spin mr-2">⏳</span>}
             Submit Application
