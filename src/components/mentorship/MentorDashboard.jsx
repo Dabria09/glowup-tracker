@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, ChevronRight, Sparkles, Award, LogOut, Trash2, Crown } from 'lucide-react';
+import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, ChevronRight, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2 } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
 import MenteeDashboard from './MenteeDashboard';
 
@@ -21,6 +21,8 @@ export default function MentorDashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showGguModal, setShowGguModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef(null);
   const [stats, setStats] = useState({ total_questions: 0, pending: 0, answered: 0, helpful_count: 0, sessions_completed: 0, rating: 0 });
 
   useEffect(() => {
@@ -117,6 +119,21 @@ export default function MentorDashboard() {
     );
   }
 
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    setUploadingAvatar(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.Mentor.update(profile.id, { avatar_url: file_url });
+      setProfile({ ...profile, avatar_url: file_url });
+    } catch (err) {
+      console.error('Avatar upload failed', err);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleGguToggle = async () => {
     if (user?.account_type === 'linked') {
       await base44.auth.updateMe({ active_mode: 'girl' });
@@ -156,8 +173,10 @@ export default function MentorDashboard() {
       {/* Header */}
       <div style={{ background: 'rgba(13,6,8,0.97)', borderBottom: '1px solid rgba(232,82,109,0.15)', backdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 50, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg, #e8526d, #f1b610)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#fff', flexShrink: 0 }}>
-            {initials}
+          <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg, #e8526d, #f1b610)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#fff', flexShrink: 0, overflow: 'hidden' }}>
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : initials}
           </div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.1 }}>{profile?.full_name || user?.full_name || 'Mentor'}</div>
@@ -179,8 +198,10 @@ export default function MentorDashboard() {
             <div style={{ position: 'absolute', bottom: -30, right: 40, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', pointerEvents: 'none' }} />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, position: 'relative' }}>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 900, flexShrink: 0 }}>
-                {initials}
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 900, flexShrink: 0, overflow: 'hidden' }}>
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : initials}
               </div>
               <div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>{profile?.full_name || user?.full_name || 'Mentor'}</div>
@@ -339,6 +360,33 @@ export default function MentorDashboard() {
         {/* ── PROFILE TAB ── */}
         {activeTab === 'Profile' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+            {/* Avatar Upload */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 8, paddingBottom: 4 }}>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleAvatarUpload}
+              />
+              <div style={{ position: 'relative', width: 96, height: 96, marginBottom: 12 }}>
+                <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'linear-gradient(135deg, #e8526d, #f1b610)', border: '3px solid rgba(232,82,109,0.5)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, fontWeight: 900, color: '#fff' }}>
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : initials}
+                </div>
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  style={{ position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, borderRadius: '50%', background: '#e8526d', border: '2px solid #0d0608', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                >
+                  {uploadingAvatar ? <Loader2 size={13} color="#fff" style={{ animation: 'spin 0.8s linear infinite' }} /> : <Camera size={13} color="#fff" />}
+                </button>
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 4 }}>Tap the camera icon to update your photo</div>
+            </div>
+
             {[
               { label: 'Full Name', value: profile?.full_name || user?.full_name || '—', icon: <User size={14} /> },
               { label: 'Mentor Title', value: profile?.title || 'GGU Mentor', icon: <Award size={14} /> },
