@@ -86,9 +86,17 @@
       "type": "string",
       "title": "Areas of Expertise"
     },
+    "other_expertise": {
+      "type": "string",
+      "title": "Other Expertise Description"
+    },
     "age_groups": {
       "type": "string",
       "title": "Age Groups (JSON array)"
+    },
+    "mentoring_type": {
+      "type": "string",
+      "title": "Mentoring Type Preference"
     },
     "mentee_count": {
       "type": "string",
@@ -98,17 +106,17 @@
       "type": "string",
       "title": "Hours Per Month"
     },
-    "why_mentor": {
-      "type": "string",
-      "title": "Why Do You Want to Mentor?"
-    },
     "availability": {
       "type": "string",
-      "title": "Availability"
+      "title": "Availability (JSON array)"
     },
     "session_type": {
       "type": "string",
-      "title": "Session Type"
+      "title": "Session Type Preference"
+    },
+    "why_mentor": {
+      "type": "string",
+      "title": "Why Do You Want to Mentor?"
     },
     "avatar_url": {
       "type": "string",

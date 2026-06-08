@@ -58,8 +58,11 @@ export default function MentorRegister() {
   const [expertiseAreas, setExpertiseAreas] = useState([]);
   const [otherExpertise, setOtherExpertise] = useState("");
   const [ageGroups, setAgeGroups] = useState([]);
+  const [mentoringType, setMentoringType] = useState("");
   const [menteeCount, setMenteeCount] = useState("");
   const [hoursPerMonth, setHoursPerMonth] = useState("");
+  const [availability, setAvailability] = useState([]);
+  const [sessionType, setSessionType] = useState("");
 
   // Step 3 — Background check consents
   const [consentBgCheck, setConsentBgCheck] = useState(false);
@@ -184,8 +187,11 @@ export default function MentorRegister() {
         expertise: JSON.stringify(expertiseAreas),
         other_expertise: otherExpertise,
         age_groups: JSON.stringify(ageGroups),
+        mentoring_type: mentoringType,
         mentee_count: menteeCount,
         hours_per_month: hoursPerMonth,
+        availability: JSON.stringify(availability),
+        session_type: sessionType,
         bg_check_consent: consentBgCheck,
         avatar_url: headshotUrl || photoFile?.file_url,
         id_url: idUrl,
@@ -425,7 +431,7 @@ export default function MentorRegister() {
         {/* STEP 2 — Professional Background */}
         {step === 2 && (
           <StepProfessionalBackground
-            data={{ occupation, employer, education, fieldOfStudy, experienceYears, workedWithYouth, youthExperienceDesc, expertiseAreas, otherExpertise, ageGroups, menteeCount, hoursPerMonth }}
+            data={{ occupation, employer, education, fieldOfStudy, experienceYears, workedWithYouth, youthExperienceDesc, expertiseAreas, otherExpertise, ageGroups, mentoringType, menteeCount, hoursPerMonth, availability, sessionType }}
             update={(patch) => {
               setOccupation(patch.occupation || occupation);
               setEmployer(patch.employer || employer);
@@ -437,8 +443,11 @@ export default function MentorRegister() {
               setExpertiseAreas(patch.expertiseAreas || expertiseAreas);
               setOtherExpertise(patch.otherExpertise || otherExpertise);
               setAgeGroups(patch.ageGroups || ageGroups);
+              setMentoringType(patch.mentoringType || mentoringType);
               setMenteeCount(patch.menteeCount || menteeCount);
               setHoursPerMonth(patch.hoursPerMonth || hoursPerMonth);
+              setAvailability(patch.availability || availability);
+              setSessionType(patch.sessionType || sessionType);
             }}
             onNext={() => {
               const age = calcAge(dob);
