@@ -61,9 +61,9 @@ export default function Onboarding() {
           console.log('[Onboarding] Ban check skipped:', banErr.message);
         }
         
-        // Check if user is already marked as mentor (from mentor signup flow)
-        if (u.account_type === 'mentor' || u.mentor_status === 'pending' || isFromMentorSignup) {
-          console.log('[Onboarding] Setting mentor flow');
+        // ONLY use URL parameter to determine mentor flow - ignore account_type from previous sessions
+        if (isFromMentorSignup) {
+          console.log('[Onboarding] Setting mentor flow from URL param');
           setIsMentorFlow(true);
         }
         
@@ -76,21 +76,9 @@ export default function Onboarding() {
           console.log('[Onboarding] Profile check skipped:', profileErr.message);
         }
 
-        // If user is in mentor signup flow, always let them proceed (don't redirect to dashboard)
+        // CRITICAL: If user came from mentor signup, NEVER redirect to dashboard - always let them apply
         if (isFromMentorSignup) {
-          // Check if they already have a pending/approved mentor application
-          try {
-            const apps = await base44.entities.MentorApplication.filter({ user_email: u.email });
-            if (apps.length && apps[0].status !== 'rejected') {
-              console.log('[Onboarding] Already has mentor application, redirecting to mentor dashboard');
-              navigate('/mentor-dashboard');
-              return;
-            }
-          } catch (appErr) {
-            console.log('[Onboarding] Mentor app check skipped:', appErr.message);
-          }
-          // No existing mentor app - let them proceed with application
-          console.log('[Onboarding] Mentor signup flow - proceeding with application');
+          console.log('[Onboarding] Mentor signup flow - proceeding with application (no redirect)');
         } else if (hasCompleteProfile) {
           // Regular user already onboarded - redirect to dashboard
           console.log('[Onboarding] Already onboarded, redirecting to dashboard');
