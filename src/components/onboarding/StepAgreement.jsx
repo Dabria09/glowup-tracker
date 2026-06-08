@@ -212,18 +212,7 @@ export default function StepAgreement({ onBack, onSubmit, loading }) {
           </div>
         </div>
 
-        {/* Debug Display */}
-        <div className="pt-4 pb-2 px-3 bg-white/5 rounded-lg border border-white/10">
-          <p className="text-xs font-mono text-accent">
-            TOS: {acceptTOS ? '✅ true' : '❌ false'} — 
-            Conduct: {acceptConduct ? '✅ true' : '❌ false'} — 
-            Accuracy: {acceptAccuracy ? '✅ true' : '❌ false'} — 
-            Signature: "{signature}" ({signatureIsValid ? '✅ valid' : '❌ invalid'})
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Button: {canSubmit ? '✅ ENABLED' : '❌ DISABLED'}
-          </p>
-        </div>
+
 
         <div className="flex gap-4 pt-4" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 100 }}>
           <Button

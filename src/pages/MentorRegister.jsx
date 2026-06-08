@@ -269,9 +269,14 @@ export default function MentorRegister() {
       toast.success("Application submitted! We'll review within 5-7 business days.");
       setStep(7); // Complete step
     } catch (err) {
-      console.error('Submit error:', err);
-      setError("Something went wrong. Please try again.");
-      toast.error("Something went wrong. Please try again.");
+      console.error('Submit error details:', {
+        message: err.message,
+        code: err.code,
+        response: err.response,
+        fullError: err
+      });
+      setError(`Error: ${err.message || 'Something went wrong. Please try again.'}`);
+      toast.error(`Error: ${err.message || 'Something went wrong. Please try again.'}`);
     }
     setLoading(false);
   };
