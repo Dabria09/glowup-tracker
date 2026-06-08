@@ -1,7 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -32,20 +30,21 @@ Deno.serve(async (req) => {
       'SuccessStory', 'MentorshipResource', 'ParentConsent', 'GlowPass'
     ];
 
-    for (let i = 0; i < entitiesToDelete.length; i++) {
-      const entityName = entitiesToDelete[i];
-      try {
-        const records = await base44.asServiceRole.entities[entityName].filter({ user_email: user.email });
-        for (const record of records) {
-          await base44.asServiceRole.entities[entityName].delete(record.id);
-          await sleep(80);
+    // Run all entity deletions in parallel — no sleep delays
+    await Promise.all(
+      entitiesToDelete.map(async (entityName) => {
+        try {
+          const records = await base44.asServiceRole.entities[entityName].filter({ user_email: user.email });
+          if (records.length > 0) {
+            await Promise.all(records.map(record =>
+              base44.asServiceRole.entities[entityName].delete(record.id)
+            ));
+          }
+        } catch (e) {
+          console.log(`Could not delete ${entityName}:`, e.message);
         }
-      } catch (e) {
-        console.log(`Could not delete ${entityName}:`, e.message);
-      }
-      // Small pause between entities to avoid rate limits
-      await sleep(150);
-    }
+      })
+    );
 
     return Response.json({ success: true });
   } catch (error) {

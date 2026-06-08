@@ -156,15 +156,15 @@ function DeleteAccountModal({ profile, onClose }) {
 
   const doDelete = async () => {
     if (confirmText !== 'DELETE') return;
-    setDeleting(true);
+    setDeleting(true); // Instant feedback
     await base44.functions.invoke('deleteAccount', {});
-    await base44.auth.logout('/');
+    setStep(3); // Show confirmation immediately — logout happens on button click
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}>
       <div className="w-full max-w-sm rounded-3xl p-6" style={{ background: '#1a0508', border: '1px solid rgba(220,38,38,0.4)' }}>
-        {step === 1 ? (
+        {step === 1 && (
           <>
             <div className="flex justify-center mb-4">
               <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'rgba(220,38,38,0.15)' }}>
@@ -185,7 +185,9 @@ function DeleteAccountModal({ profile, onClose }) {
               <button onClick={() => setStep(2)} className="flex-1 py-3 rounded-2xl font-bold text-sm text-white" style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>Continue</button>
             </div>
           </>
-        ) : (
+        )}
+
+        {step === 2 && (
           <>
             <h3 className="text-center font-bold text-lg text-white mb-3">Confirm Deletion</h3>
             <p className="text-sm text-center mb-4" style={{ color: MUTED }}>Type <strong className="text-red-400">DELETE</strong> to confirm</p>
@@ -199,12 +201,36 @@ function DeleteAccountModal({ profile, onClose }) {
             <div className="flex gap-3">
               <button onClick={onClose} className="flex-1 py-3 rounded-2xl font-semibold text-sm" style={{ background: 'rgba(255,255,255,0.05)', color: MUTED }}>Cancel</button>
               <button onClick={doDelete} disabled={confirmText !== 'DELETE' || deleting}
-                className="flex-1 py-3 rounded-2xl font-bold text-sm text-white disabled:opacity-40"
+                className="flex-1 py-3 rounded-2xl font-bold text-sm text-white disabled:opacity-40 flex items-center justify-center gap-2"
                 style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>
-                {deleting ? 'Deleting... (this may take a moment)' : 'Delete Forever'}
+                {deleting && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                {deleting ? 'Deleting...' : 'Delete Forever'}
               </button>
             </div>
           </>
+        )}
+
+        {step === 3 && (
+          <div className="text-center space-y-5">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'rgba(232,82,109,0.1)', border: '1px solid rgba(232,82,109,0.25)' }}>
+                <Check size={28} className="text-pink-400" />
+              </div>
+            </div>
+            <div>
+              <h3 className="font-bold text-xl text-white mb-2">Account Deleted</h3>
+              <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
+                Your account has been successfully deleted. We're sorry to see you go.
+              </p>
+            </div>
+            <button
+              onClick={() => base44.auth.logout('/')}
+              className="w-full py-3 rounded-2xl font-bold text-sm text-white"
+              style={{ background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, boxShadow: '0 4px 16px rgba(232,82,109,0.3)' }}
+            >
+              Return to Landing Page
+            </button>
+          </div>
         )}
       </div>
     </div>
