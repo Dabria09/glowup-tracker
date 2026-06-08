@@ -13,6 +13,8 @@ import StepParentalConsent from "@/components/onboarding/StepParentalConsent";
 import StepProfessionalBackground from "@/components/onboarding/StepProfessionalBackground";
 import StepYourWhy from "@/components/onboarding/StepYourWhy";
 import StepSafetyConduct from "@/components/onboarding/StepSafetyConduct";
+import StepVerifyIdentity from "@/components/onboarding/StepVerifyIdentity";
+import StepBackgroundCheck from "@/components/onboarding/StepBackgroundCheck";
 import StepReferences from "@/components/onboarding/StepReferences";
 import StepAgreement from "@/components/onboarding/StepAgreement";
 import StepComplete from "@/components/onboarding/StepComplete";
@@ -93,13 +95,25 @@ export default function MentorRegister() {
     mentoring_style: '',
   });
 
-  // Step 4 — Safety & Conduct (adult mentors 18+ only)
+  // Step 4 — Safety & Conduct
   const [safetyData, setSafetyData] = useState({
     felony_conviction: undefined,
+    felony_explanation: '',
     restraining_order: undefined,
+    restraining_explanation: '',
     removed_from_minors_role: undefined,
+    removed_explanation: '',
     consent_background_check: false,
     understand_application_hold: false,
+  });
+
+  // Step 4.5 — ID Verification
+  const [idVerificationData, setIdVerificationData] = useState({
+    id_document_name: '',
+    id_document_type: '',
+    id_document_url: '',
+    face_photo_name: '',
+    face_photo_url: '',
   });
 
   // Step 5 — References
@@ -455,11 +469,54 @@ export default function MentorRegister() {
       case 3:
         return <StepYourWhy data={yourWhyData} update={updateYourWhy} onNext={handleNext} onBack={handleBack} />;
       
-      case 4:
-        return <StepSafetyConduct data={safetyData} update={updateSafety} onNext={handleNext} onBack={handleBack} />;
-      
+      case 4: {
+        const isAdult4 = calcAge(whoYouAreData.date_of_birth) >= 18;
+        return (
+          <StepSafetyConduct
+            data={safetyData}
+            update={updateSafety}
+            onNext={() => setStep(4.5)}
+            onBack={handleBack}
+            userAge={calcAge(whoYouAreData.date_of_birth)}
+          />
+        );
+      }
+
+      case 4.5: {
+        const isAdult45 = calcAge(whoYouAreData.date_of_birth) >= 18;
+        return (
+          <StepVerifyIdentity
+            data={idVerificationData}
+            update={(patch) => setIdVerificationData(prev => ({ ...prev, ...patch }))}
+            onNext={() => isAdult45 ? setStep(4.75) : setStep(5)}
+            onBack={() => setStep(4)}
+            isAdult={isAdult45}
+          />
+        );
+      }
+
+      case 4.75:
+        // Background Check — adult mentors only
+        return (
+          <StepBackgroundCheck
+            data={safetyData}
+            update={updateSafety}
+            onNext={() => setStep(5)}
+            onBack={() => setStep(4.5)}
+          />
+        );
+
       case 5:
-        return <StepReferences ref1={ref1} setRef1={setRef1} ref2={ref2} setRef2={setRef2} onNext={handleNext} onBack={handleBack} />;
+        return (
+          <StepReferences
+            ref1={ref1} setRef1={setRef1} ref2={ref2} setRef2={setRef2}
+            onNext={handleNext}
+            onBack={() => {
+              const isAdult5 = calcAge(whoYouAreData.date_of_birth) >= 18;
+              setStep(isAdult5 ? 4.75 : 4.5);
+            }}
+          />
+        );
       
       case 6:
         return (
@@ -492,10 +549,10 @@ export default function MentorRegister() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 flex items-center justify-center px-4">
       <div className="w-full max-w-2xl bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-gray-800">
-        {step > 0 && step < 8 && (
+        {step > 0 && step < 7 && (
           <div className="mb-8">
-            <div className="flex gap-2 mb-4">
-              {[1, 1.5, 2, 3, 4, 5, 6, 7].map((s) => (
+            <div className="flex gap-1.5 mb-4">
+              {[1, 1.5, 2, 3, 4, 4.5, 4.75, 5, 6].map((s) => (
                 <div
                   key={s}
                   className={`flex-1 h-1.5 rounded-full transition-all ${
@@ -504,7 +561,17 @@ export default function MentorRegister() {
                 />
               ))}
             </div>
-            <p className="text-xs text-gray-400 text-right">Step {Math.floor(step)} of 7</p>
+            <p className="text-xs text-gray-400 text-right">
+              {step === 1 && 'Step 1 of 8 — Who You Are'}
+              {step === 1.5 && 'Step 2 of 8 — Parental Consent'}
+              {step === 2 && 'Step 3 of 8 — Professional Background'}
+              {step === 3 && 'Step 4 of 8 — Your Why'}
+              {step === 4 && 'Step 5 of 8 — Safety & Conduct'}
+              {step === 4.5 && 'Step 6 of 8 — Identity Verification'}
+              {step === 4.75 && 'Step 7 of 8 — Background Check'}
+              {step === 5 && 'Step 8 of 8 — References'}
+              {step === 6 && 'Step 9 of 9 — Review & Sign'}
+            </p>
           </div>
         )}
         
