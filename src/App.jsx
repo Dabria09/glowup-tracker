@@ -148,13 +148,13 @@ const AuthenticatedApp = () => {
       <Route path="/mentor-login" element={<MentorLogin />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/" element={<Home />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route path="/mentor-dashboard" element={<MentorDashboard />} />
         <Route element={<AppModeGate />}>
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/avatar" element={<Avatar />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/avatar" element={<Avatar />} />
       <Route path="/glow-persona" element={<GlowPersona />} />
       <Route path="/dicebear-avatar" element={<DiceBearAvatar />} />
       <Route path="/discover" element={<Discover />} />
