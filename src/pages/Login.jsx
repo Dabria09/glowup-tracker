@@ -18,13 +18,21 @@ export default function Login() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("oauth") === "1") {
-      base44.auth.me().then(user => {
-        if (user?.account_type === "mentor" || (user?.account_type === "linked" && user?.active_mode === "mentor")) {
+      base44.auth.me().then(async user => {
+        if (!user?.account_type) {
+          await base44.auth.logout();
+          window.location.href = "/login?deleted=1";
+          return;
+        }
+        if (user.account_type === "mentor" || (user.account_type === "linked" && user.active_mode === "mentor")) {
           window.location.href = "/mentor-dashboard";
         } else {
           window.location.href = "/dashboard";
         }
       }).catch(() => {});
+    }
+    if (params.get("deleted") === "1") {
+      setError("No account found. Please register or contact support.");
     }
   }, []);
 
@@ -35,6 +43,14 @@ export default function Login() {
     try {
       await base44.auth.loginViaEmailPassword(email, password);
       const user = await base44.auth.me();
+
+      // If account was deleted, user has no account_type — block access
+      if (!user.account_type) {
+        await base44.auth.logout();
+        setError("No account found for this email. Please register or contact support.");
+        setLoading(false);
+        return;
+      }
       
       // Route based on account type and mode
       if (user.account_type === "mentor" || (user.account_type === "linked" && user.active_mode === "mentor")) {
