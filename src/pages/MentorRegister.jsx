@@ -397,7 +397,20 @@ export default function MentorRegister() {
         );
 
       case 1:
-        return <StepWhoYouAre data={whoYouAreData} update={updateWhoYouAre} onNext={handleNext} onBack={handleBack} />;
+        return (
+          <StepWhoYouAre
+            data={whoYouAreData}
+            update={updateWhoYouAre}
+            onNext={(isTeen) => {
+              if (isTeen) {
+                setStep(1.5); // Parental consent step
+              } else {
+                setStep(2); // Professional background
+              }
+            }}
+            onBack={handleBack}
+          />
+        );
       
       case 1.5:
         return (
@@ -437,10 +450,10 @@ export default function MentorRegister() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 flex items-center justify-center px-4">
       <div className="w-full max-w-2xl bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-gray-800">
-        {step > 0 && step < 7 && (
+        {step > 0 && step < 8 && (
           <div className="mb-8">
             <div className="flex gap-2 mb-4">
-              {[1, 2, 3, 4, 5, 6].map((s) => (
+              {[1, 1.5, 2, 3, 4, 5, 6, 7].map((s) => (
                 <div
                   key={s}
                   className={`flex-1 h-1.5 rounded-full transition-all ${
@@ -449,7 +462,7 @@ export default function MentorRegister() {
                 />
               ))}
             </div>
-            <p className="text-xs text-gray-400 text-right">Step {step} of 6</p>
+            <p className="text-xs text-gray-400 text-right">Step {Math.floor(step)} of 7</p>
           </div>
         )}
         

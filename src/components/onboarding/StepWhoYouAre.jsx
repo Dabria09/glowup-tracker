@@ -17,12 +17,25 @@ export default function StepWhoYouAre({ data, update, onNext, onBack }) {
     reader.readAsDataURL(file);
   };
 
+  const calcAge = (dobStr) => {
+    if (!dobStr) return 0;
+    const diff = Date.now() - new Date(dobStr).getTime();
+    return Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
+  };
+
   const handleContinue = () => {
-    if (!data.preferredName || !data.bio || !data.schoolOrWorkplace || !data.languages) {
+    if (!data.preferred_name || !data.bio || !data.school_or_workplace || !data.languages) {
       alert('Please complete all required fields');
       return;
     }
-    onNext({ photoFile });
+    // Check if user is under 18 (teen mentor)
+    const age = calcAge(data.date_of_birth);
+    if (age < 18 && age > 0) {
+      // Route to parental consent step
+      onNext(true); // Pass flag for teen mentor
+    } else {
+      onNext(false);
+    }
   };
 
   return (
