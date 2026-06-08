@@ -57,6 +57,12 @@ export default function Home() {
     if (user) { navigate('/mentor-dashboard'); }
     else { base44.auth.redirectToLogin('/mentor-dashboard'); }
   };
+  
+  const handleClearSession = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+  };
 
   return (
     <div style={{ background: BG, color: WHITE, fontFamily: '"DM Sans", "Inter", sans-serif', minHeight: '100vh', overflowX: 'hidden' }}>
@@ -238,6 +244,10 @@ export default function Home() {
             ))}
           </div>
           <p style={{ fontSize: 11, color: 'rgba(196,148,158,0.35)' }}>© 2025 Girls Glowing Up™. All rights reserved.</p>
+          {/* Debug: Clear Session Button */}
+          <button onClick={handleClearSession} className="mt-4 px-4 py-2 text-xs rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10" style={{ background: 'rgba(239,68,68,0.1)' }}>
+            🧹 Clear Session (Debug)
+          </button>
         </footer>
       </div>
     </div>
