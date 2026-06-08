@@ -111,14 +111,19 @@ export default function MentorRegister() {
   const [acceptConduct, setAcceptConduct] = useState(false);
   const [signature, setSignature] = useState("");
 
-  // Check for OAuth return
+  // Auto-detect already logged-in users and skip account creation
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("step") === "2") {
-      base44.auth.me().then(u => {
-        if (u) { setEmail(u.email); setFullName(u.full_name || ""); setStep(1); }
-      }).catch(() => {});
-    }
+    base44.auth.isAuthenticated().then(authed => {
+      if (authed) {
+        base44.auth.me().then(u => {
+          if (u) {
+            setEmail(u.email);
+            setFullName(u.full_name || "");
+            setStep(1);
+          }
+        }).catch(() => {});
+      }
+    }).catch(() => {});
   }, []);
 
   const toggleMulti = (val, arr, setArr) => {

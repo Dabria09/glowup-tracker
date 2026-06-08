@@ -27,8 +27,8 @@ export default function MentorSignup() {
       try {
         const authed = await base44.auth.isAuthenticated();
         if (authed) {
-          // Already logged in - go straight to onboarding with mentor flag
-          window.location.href = "/onboarding?mentor=true";
+          // Already logged in - go straight to mentor registration
+          window.location.href = "/mentor-register";
           return;
         }
         setIsCheckingAuth(false);
@@ -82,7 +82,7 @@ export default function MentorSignup() {
         base44.auth.setToken(result.access_token);
       }
       // Redirect to mentor application
-      window.location.href = "/onboarding?mentor=true";
+      window.location.href = "/mentor-register";
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
@@ -101,7 +101,7 @@ export default function MentorSignup() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/onboarding?mentor=true");
+    base44.auth.loginWithProvider("google", "/mentor-register");
   };
 
   if (showOtp) {

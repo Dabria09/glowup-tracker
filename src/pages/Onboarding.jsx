@@ -30,6 +30,13 @@ export default function Onboarding() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const isFromMentorSignup = urlParams.get('mentor') === 'true';
+
+    // Immediately redirect mentor flow to the proper wizard
+    if (isFromMentorSignup) {
+      window.location.href = '/mentor-register';
+      return;
+    }
+
     console.log('[Onboarding] 🔍 INIT - mentor param:', isFromMentorSignup, 'URL:', window.location.search);
     
     const initAuth = async () => {
