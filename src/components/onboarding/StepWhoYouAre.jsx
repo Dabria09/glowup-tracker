@@ -24,15 +24,17 @@ export default function StepWhoYouAre({ data, update, onNext, onBack }) {
   };
 
   const handleContinue = () => {
-    if (!data.preferredName || !data.bio || !data.schoolOrWorkplace || !data.languages) {
+    if (!data.preferredName || !data.bio || !data.schoolOrWorkplace || !data.languages || !data.date_of_birth) {
       alert('Please complete all required fields');
       return;
     }
-    // Check if user is under 18 (teen mentor)
     const age = calcAge(data.date_of_birth);
-    if (age < 18 && age > 0) {
-      // Route to parental consent step
-      onNext(true); // Pass flag for teen mentor
+    if (age < 13) {
+      alert('You must be at least 13 years old to apply as a mentor.');
+      return;
+    }
+    if (age < 18) {
+      onNext(true); // Teen mentor — needs parental consent
     } else {
       onNext(false);
     }
@@ -134,6 +136,19 @@ export default function StepWhoYouAre({ data, update, onNext, onBack }) {
             className="w-full mt-1 rounded-xl px-4 py-3 text-sm text-white outline-none"
             style={fieldStyle}
           />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Date of Birth *</label>
+          <input
+            type="date"
+            value={data.date_of_birth || ''}
+            onChange={e => update({ date_of_birth: e.target.value })}
+            max={new Date().toISOString().split('T')[0]}
+            className="w-full mt-1 rounded-xl px-4 py-3 text-sm text-white outline-none"
+            style={fieldStyle}
+          />
+          <p className="text-xs text-gray-500 mt-1">Must be 13 or older to apply as a mentor</p>
         </div>
 
         <div>

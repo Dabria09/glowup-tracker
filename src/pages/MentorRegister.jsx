@@ -106,10 +106,8 @@ export default function MentorRegister() {
   const [ref1, setRef1] = useState({ name: '', relationship: '', email: '' });
   const [ref2, setRef2] = useState({ name: '', relationship: '', email: '' });
 
-  // Step 6 — Agreement
-  const [acceptTOS, setAcceptTOS] = useState(false);
-  const [acceptConduct, setAcceptConduct] = useState(false);
-  const [signature, setSignature] = useState("");
+  // Step 6 — Agreement (captured from StepAgreement's onSubmit callback)
+  // No local state needed — StepAgreement calls onSubmit(agreementData) directly
 
   // Auto-detect already logged-in users and skip account creation
   useEffect(() => {
@@ -190,20 +188,6 @@ export default function MentorRegister() {
   const handleBack = () => setStep(s => s - 1);
 
   const handleSubmit = async () => {
-    // Validate before proceeding
-    console.log('Submit clicked - Validation state:', {
-      acceptTOS,
-      acceptConduct,
-      signature,
-      signatureLength: signature?.length,
-      canSubmit: acceptTOS && acceptConduct && signature?.trim().length >= 2
-    });
-    
-    if (!acceptTOS || !acceptConduct || !signature || signature.trim().length < 2) {
-      toast.error("Please accept both agreements and provide your electronic signature");
-      return;
-    }
-    
     setLoading(true);
     try {
       const user = await base44.auth.me();
@@ -466,7 +450,7 @@ export default function MentorRegister() {
         );
       
       case 2:
-        return <StepProfessionalBackground data={professionalData} update={setProfessionalData} toggleMulti={toggleMulti} onNext={handleNext} onBack={handleBack} />;
+        return <StepProfessionalBackground data={professionalData} update={(patch) => setProfessionalData(prev => ({ ...prev, ...patch }))} toggleMulti={toggleMulti} onNext={handleNext} onBack={handleBack} />;
       
       case 3:
         return <StepYourWhy data={yourWhyData} update={updateYourWhy} onNext={handleNext} onBack={handleBack} />;

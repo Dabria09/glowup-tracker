@@ -45,7 +45,7 @@ export default function StepAgreement({
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
-    await onSubmit();
+    await onSubmit({ acceptTOS, acceptConduct, acceptAccuracy, signature });
   };
 
   const scrollBoxClass = "overflow-y-auto rounded-lg text-xs leading-relaxed text-gray-300 space-y-2";
