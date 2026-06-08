@@ -9,12 +9,13 @@ import { Shield, CheckCircle, FileText, PenTool } from 'lucide-react';
 
 export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, setAcceptConduct, signature, setSignature, onSubmit, onBack, loading }) {
   const [showSignatureError, setShowSignatureError] = useState(false);
+  const [acceptAccuracy, setAcceptAccuracy] = useState(false);
 
   // Simple validation: signature is valid if it has 2+ characters
   const signatureValid = signature && signature.trim().length >= 2;
   
   // Submit is enabled only when all 3 conditions are met
-  const canSubmit = acceptTOS && acceptConduct && signatureValid;
+  const canSubmit = acceptTOS && acceptConduct && acceptAccuracy && signatureValid;
 
   const handleSignatureChange = (e) => {
     setSignature(e.target.value);
@@ -119,7 +120,10 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                   <Checkbox
                     id="tos"
                     checked={acceptTOS}
-                    onCheckedChange={setAcceptTOS}
+                    onCheckedChange={(checked) => {
+                      console.log('🔴 TOS checkbox changed:', checked);
+                      setAcceptTOS(checked);
+                    }}
                     className="data-[state=checked]:bg-primary"
                   />
                   <Label htmlFor="tos" className="text-sm text-white cursor-pointer">
@@ -156,7 +160,10 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                   <Checkbox
                     id="conduct"
                     checked={acceptConduct}
-                    onCheckedChange={setAcceptConduct}
+                    onCheckedChange={(checked) => {
+                      console.log('🟠 Conduct checkbox changed:', checked);
+                      setAcceptConduct(checked);
+                    }}
                     className="data-[state=checked]:bg-accent"
                   />
                   <Label htmlFor="conduct" className="text-sm text-white cursor-pointer">
@@ -176,9 +183,19 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                 <p className="text-xs text-muted-foreground">
                   I certify that all information provided in this application is truthful, accurate, and complete. I understand that providing false or misleading information may result in rejection or removal.
                 </p>
-                <div className="flex items-center gap-2 mt-3">
-                  <CheckCircle className="h-4 w-4 text-accent" />
-                  <span className="text-xs text-white">Acknowledged by proceeding</span>
+                <div className="flex items-start gap-2 mt-3">
+                  <Checkbox
+                    id="accuracy"
+                    checked={acceptAccuracy}
+                    onCheckedChange={(checked) => {
+                      console.log('🔵 Accuracy checkbox changed:', checked);
+                      setAcceptAccuracy(checked);
+                    }}
+                    className="data-[state=checked]:bg-accent"
+                  />
+                  <Label htmlFor="accuracy" className="text-sm text-white cursor-pointer">
+                    I certify all information is truthful and accurate
+                  </Label>
                 </div>
               </div>
             </div>
@@ -210,6 +227,19 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
           </div>
         </div>
 
+        {/* Debug Display */}
+        <div className="pt-4 pb-2 px-3 bg-white/5 rounded-lg border border-white/10">
+          <p className="text-xs font-mono text-accent">
+            TOS: {acceptTOS ? '✅ true' : '❌ false'} — 
+            Conduct: {acceptConduct ? '✅ true' : '❌ false'} — 
+            Accuracy: {acceptAccuracy ? '✅ true' : '❌ false'} — 
+            Signature: {signature ? `${signature.trim().length} chars` : 'empty'}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Button: {!canSubmit ? 'DISABLED' : 'ENABLED'}
+          </p>
+        </div>
+
         <div className="flex gap-4 pt-4" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 100 }}>
           <Button
             type="button"
@@ -230,6 +260,7 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              console.log('🟢 Submit button clicked - canSubmit:', canSubmit);
               handleSubmit(e);
             }}
             className="flex-1 bg-primary hover:bg-primary/90 text-white"
