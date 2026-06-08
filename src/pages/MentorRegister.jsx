@@ -8,6 +8,8 @@ import { Mail, Lock, Loader2, Upload, User, CheckCircle, ChevronRight, Shield } 
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import StepWhoYouAre from "@/components/onboarding/StepWhoYouAre";
+import StepProfessionalBackground from "@/components/onboarding/StepProfessionalBackground";
 
 const EXPERTISE_AREAS = ['Career Development', 'Financial Literacy', 'College Prep', 'Mental Wellness', 'Entrepreneurship', 'STEM', 'Arts & Creative', 'Athletics', 'Life Skills', 'Other'];
 const AGE_GROUPS = ['Glow Girls 5–12', 'Glow Teens 13–18', 'Glow Women 19–26'];
@@ -31,6 +33,19 @@ export default function MentorRegister() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [dob, setDob] = useState("");
+
+  // Who You Are step
+  const [whoYouAreData, setWhoYouAreData] = useState({
+    preferredName: '',
+    pronouns: '',
+    bio: '',
+    schoolOrWorkplace: '',
+    languages: '',
+    phone: '',
+    city: '',
+    state: '',
+  });
+  const [photoFile, setPhotoFile] = useState(null);
 
   // Step 2 — Professional
   const [occupation, setOccupation] = useState("");
@@ -160,7 +175,7 @@ export default function MentorRegister() {
         mentee_count: menteeCount,
         hours_per_month: hoursPerMonth,
         bg_check_consent: consentBgCheck,
-        avatar_url: headshotUrl,
+        avatar_url: headshotUrl || photoFile?.file_url,
         id_url: idUrl,
         ref1_name: ref1.name,
         ref1_relationship: ref1.relationship,
@@ -174,6 +189,15 @@ export default function MentorRegister() {
         background_check_status: 'not_started',
         interview_status: 'not_scheduled',
         categories: JSON.stringify(expertiseAreas),
+        // Additional fields from Who You Are step
+        preferred_name: whoYouAreData.preferredName,
+        pronouns: whoYouAreData.pronouns,
+        bio: whoYouAreData.bio,
+        school_or_workplace: whoYouAreData.schoolOrWorkplace,
+        languages: whoYouAreData.languages,
+        phone: whoYouAreData.phone,
+        city: whoYouAreData.city,
+        state: whoYouAreData.state,
       });
 
       await base44.auth.updateMe({
@@ -343,15 +367,18 @@ export default function MentorRegister() {
     );
   }
 
-  // ── MULTI-STEP APPLICATION (Steps 1–6) ──
+  // ── MULTI-STEP APPLICATION (Steps 1–7) ──
   const stepTitles = [
     'Create Account', // step 0
-    'Professional Background', // step 1
-    'Background & Safety', // step 2
-    'ID Verification', // step 3
-    'References', // step 4
-    'Agreement & Submit', // step 5
+    'Who You Are', // step 1
+    'Professional Background', // step 2
+    'Background & Safety', // step 3
+    'ID Verification', // step 4
+    'References', // step 5
+    'Agreement & Submit', // step 6
   ];
+
+  const updateWhoYouAre = (patch) => setWhoYouAreData(prev => ({ ...prev, ...patch }));
 
   return (
     <div className="min-h-screen text-white pb-24" style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
@@ -370,78 +397,42 @@ export default function MentorRegister() {
         <h2 className="text-xl font-bold text-white mb-1">Step {step}: {stepTitles[step]}</h2>
         {error && <div className="mt-3 p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">{error}</div>}
 
-        {/* STEP 1 — Professional Background */}
+        {/* STEP 1 — Who You Are */}
         {step === 1 && (
-          <div className="mt-5 space-y-5">
-            <Field label="Current Occupation *">
-              <input value={occupation} onChange={e => setOccupation(e.target.value)} placeholder="e.g., Software Engineer, Teacher, Entrepreneur"
-                className="field-input" style={fieldStyle} />
-            </Field>
-            <Field label="Highest Level of Education *">
-              <select value={education} onChange={e => setEducation(e.target.value)} className="field-input" style={fieldStyle}>
-                <option value="">Select...</option>
-                {['High School Diploma', 'Some College', "Associate's Degree", "Bachelor's Degree", "Master's Degree", "Doctoral Degree", 'Trade/Vocational Certificate', 'Other'].map(o => <option key={o}>{o}</option>)}
-              </select>
-            </Field>
-            <Field label="Areas of Expertise (select all that apply) *">
-              <div className="flex flex-wrap gap-2 mt-1">
-                {EXPERTISE_AREAS.map(area => (
-                  <button key={area} type="button" onClick={() => toggleMulti(area, expertiseAreas, setExpertiseAreas)}
-                    className="px-3 py-1.5 rounded-full text-xs font-semibold transition"
-                    style={expertiseAreas.includes(area) ? { background: 'linear-gradient(135deg, #e8526d, #f1b610)', color: '#fff' } : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}>
-                    {area}
-                  </button>
-                ))}
-              </div>
-            </Field>
-            <Field label="Age Group You Want to Mentor *">
-              <div className="flex flex-wrap gap-2 mt-1">
-                {AGE_GROUPS.map(ag => (
-                  <button key={ag} type="button" onClick={() => toggleMulti(ag, ageGroups, setAgeGroups)}
-                    className="px-3 py-1.5 rounded-full text-xs font-semibold transition"
-                    style={ageGroups.includes(ag) ? { background: 'linear-gradient(135deg, #a855f7, #e8526d)', color: '#fff' } : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)' }}>
-                    {ag}
-                  </button>
-                ))}
-              </div>
-            </Field>
-            <Field label="How many mentees can you commit to at one time?">
-              <div className="flex gap-2 mt-1">
-                {MENTEE_COUNTS.map(c => (
-                  <button key={c} type="button" onClick={() => setMenteeCount(c)}
-                    className="flex-1 py-2 rounded-xl text-sm font-bold transition"
-                    style={menteeCount === c ? { background: 'linear-gradient(135deg, #e8526d, #f1b610)', color: '#fff' } : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}>
-                    {c}
-                  </button>
-                ))}
-              </div>
-            </Field>
-            <Field label="Hours per month you can commit?">
-              <div className="flex flex-wrap gap-2 mt-1">
-                {HOURS_PER_MONTH.map(h => (
-                  <button key={h} type="button" onClick={() => setHoursPerMonth(h)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold transition"
-                    style={hoursPerMonth === h ? { background: 'linear-gradient(135deg, #e8526d, #f1b610)', color: '#fff' } : { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}>
-                    {h}
-                  </button>
-                ))}
-              </div>
-            </Field>
-            <NavButtons
-              onBack={() => setStep(0)}
-              onNext={() => {
-                if (!occupation || !education || !expertiseAreas.length || !ageGroups.length) { setError("Please complete all required fields"); return; }
-                setError("");
-                // Skip background check step for teen mentors (13-17)
-                const age = calcAge(dob);
-                setStep(age >= 18 ? 2 : 3);
-              }}
-            />
-          </div>
+          <StepWhoYouAre
+            data={whoYouAreData}
+            update={updateWhoYouAre}
+            onNext={({ photoFile }) => {
+              setPhotoFile(photoFile);
+              setStep(2);
+            }}
+            onBack={() => setStep(0)}
+          />
         )}
 
-        {/* STEP 2 — Background & Safety (Adult mentors 18+ only) */}
+        {/* STEP 2 — Professional Background */}
         {step === 2 && (
+          <StepProfessionalBackground
+            data={{ occupation, education, expertiseAreas, ageGroups, menteeCount, hoursPerMonth }}
+            update={(patch) => {
+              setOccupation(patch.occupation || occupation);
+              setEducation(patch.education || education);
+              setExpertiseAreas(patch.expertiseAreas || expertiseAreas);
+              setAgeGroups(patch.ageGroups || ageGroups);
+              setMenteeCount(patch.menteeCount || menteeCount);
+              setHoursPerMonth(patch.hoursPerMonth || hoursPerMonth);
+            }}
+            onNext={() => {
+              const age = calcAge(dob);
+              setStep(age >= 18 ? 3 : 4);
+            }}
+            onBack={() => setStep(1)}
+            setError={setError}
+          />
+        )}
+
+        {/* STEP 3 — Background & Safety (Adult mentors 18+ only) */}
+        {step === 3 && (
           <div className="mt-5 space-y-5">
             <div className="rounded-2xl p-4 mb-3" style={{ background: 'rgba(147,51,234,0.08)', border: '1px solid rgba(147,51,234,0.3)' }}>
               <p className="text-xs text-purple-300">✨ Adult mentor track (18+) — Background check required for working with minors</p>
@@ -476,8 +467,8 @@ export default function MentorRegister() {
           </div>
         )}
 
-        {/* STEP 3 — ID Verification */}
-        {step === 3 && (
+        {/* STEP 4 — ID Verification */}
+        {step === 4 && (
           <div className="mt-5 space-y-5">
             <div className="rounded-2xl p-4 mb-2" style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.25)' }}>
               <p className="text-xs text-blue-300">🔒 Your ID is used for verification only and is not stored publicly or shared with mentees.</p>
@@ -529,8 +520,8 @@ export default function MentorRegister() {
           </div>
         )}
 
-        {/* STEP 4 — References */}
-        {step === 4 && (
+        {/* STEP 5 — References */}
+        {step === 5 && (
           <div className="mt-5 space-y-5">
             <p className="text-sm text-gray-400">References are optional but encouraged. Provide up to 2 professional references who can speak to your character and work.</p>
 
@@ -547,8 +538,8 @@ export default function MentorRegister() {
           </div>
         )}
 
-        {/* STEP 5 — Agreement */}
-        {step === 5 && (
+        {/* STEP 6 — Agreement */}
+        {step === 6 && (
           <div className="mt-5 space-y-5">
             <div className="rounded-2xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <h3 className="font-bold text-white">Mentor Terms of Service</h3>

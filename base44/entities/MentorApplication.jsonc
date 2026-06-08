@@ -10,13 +10,49 @@
       "type": "string",
       "title": "Full Name"
     },
-    "title": {
+    "preferred_name": {
       "type": "string",
-      "title": "Professional Title"
+      "title": "Preferred Name"
+    },
+    "pronouns": {
+      "type": "string",
+      "title": "Pronouns"
     },
     "bio": {
       "type": "string",
       "title": "Bio"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Phone Number"
+    },
+    "city": {
+      "type": "string",
+      "title": "City"
+    },
+    "state": {
+      "type": "string",
+      "title": "State"
+    },
+    "school_or_workplace": {
+      "type": "string",
+      "title": "School or Workplace"
+    },
+    "languages": {
+      "type": "string",
+      "title": "Languages"
+    },
+    "title": {
+      "type": "string",
+      "title": "Professional Title"
+    },
+    "occupation": {
+      "type": "string",
+      "title": "Occupation"
+    },
+    "education": {
+      "type": "string",
+      "title": "Education"
     },
     "categories": {
       "type": "string",
@@ -25,6 +61,18 @@
     "expertise": {
       "type": "string",
       "title": "Areas of Expertise"
+    },
+    "age_groups": {
+      "type": "string",
+      "title": "Age Groups (JSON array)"
+    },
+    "mentee_count": {
+      "type": "string",
+      "title": "Mentee Count"
+    },
+    "hours_per_month": {
+      "type": "string",
+      "title": "Hours Per Month"
     },
     "experience_years": {
       "type": "number",
@@ -187,6 +235,8 @@
   "required": [
     "user_email",
     "full_name",
+    "preferred_name",
+    "bio",
     "categories",
     "why_mentor"
   ]
