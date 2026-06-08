@@ -399,13 +399,7 @@ export default function MentorDashboard() {
             <button
               disabled={deleteConfirmText !== 'DELETE'}
               onClick={async () => {
-                try {
-                  const mentors = await base44.entities.Mentor.filter({ user_email: user.email });
-                  for (const m of mentors) await base44.entities.Mentor.delete(m.id);
-                  const teenMentors = await base44.entities.TeenMentor.filter({ user_email: user.email });
-                  for (const m of teenMentors) await base44.entities.TeenMentor.delete(m.id);
-                  await base44.auth.deleteAccount();
-                } catch (e) {}
+                await base44.functions.invoke('deleteAccount', {});
                 base44.auth.logout('/');
               }}
               style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: deleteConfirmText === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.2)', color: '#fff', fontSize: 14, fontWeight: 800, cursor: deleteConfirmText === 'DELETE' ? 'pointer' : 'not-allowed', marginBottom: 10, opacity: deleteConfirmText === 'DELETE' ? 1 : 0.5 }}
