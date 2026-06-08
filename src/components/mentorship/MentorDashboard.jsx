@@ -17,7 +17,11 @@ export default function MentorDashboard() {
   const [questions, setQuestions] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('Overview');
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    return TABS.includes(tab) ? tab : 'Overview';
+  });
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [showMenteeSearch, setShowMenteeSearch] = useState(false);
