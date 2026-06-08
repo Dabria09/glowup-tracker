@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, ChevronRight, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2 } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
 import MenteeDashboard from './MenteeDashboard';
+import ApplicationStatusTracker from './ApplicationStatusTracker';
 
 const TABS = ['Overview', 'My Mentees', 'Sessions', 'Applications', 'Profile'];
 
@@ -275,6 +276,9 @@ export default function MentorDashboard() {
               </div>
             )}
 
+            {/* Application Status */}
+            <ApplicationStatusTracker profile={profile} />
+
             {/* Upcoming Sessions */}
             <Section title="Upcoming Sessions" icon={<Calendar size={14} />}>
               {upcomingSessions.length === 0 ? (
@@ -403,6 +407,9 @@ export default function MentorDashboard() {
                 <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{item.value}</span>
               </div>
             ))}
+
+            {/* Application Status */}
+            <ApplicationStatusTracker profile={profile} />
 
             {expertise.length > 0 && (
               <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 16, marginTop: 4 }}>
