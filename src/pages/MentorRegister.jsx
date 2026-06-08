@@ -473,10 +473,27 @@ export default function MentorRegister() {
         return <StepReferences ref1={ref1} setRef1={setRef1} ref2={ref2} setRef2={setRef2} onNext={handleNext} onBack={handleBack} />;
       
       case 6:
-        return <StepAgreement acceptTOS={acceptTOS} setAcceptTOS={setAcceptTOS} acceptConduct={acceptConduct} setAcceptConduct={setAcceptConduct} signature={signature} setSignature={setSignature} onSubmit={handleSubmit} onBack={handleBack} loading={loading} />;
+        return (
+          <StepAgreement
+            onBack={handleBack}
+            onSubmit={handleSubmit}
+            loading={loading}
+            fullName={fullName}
+            mentorTrack={calcAge(whoYouAreData.date_of_birth) >= 18 ? 'adult' : 'teen'}
+            ageGroups={professionalData.ageGroups || professionalData.age_groups || []}
+            expertise={professionalData.expertiseAreas || professionalData.expertise || []}
+          />
+        );
       
       case 7:
-        return <StepComplete message="Your mentor application has been submitted!" description="Our team will review your application within 5-7 business days. You'll receive an email with next steps." onDone={() => navigate('/mentor-dashboard')} />;
+        return (
+          <StepComplete
+            fullName={fullName}
+            email={email}
+            mentorTrack={calcAge(whoYouAreData.date_of_birth) >= 18 ? 'adult' : 'teen'}
+            parentEmail={whoYouAreData.parent_email}
+          />
+        );
       
       default:
         return null;
