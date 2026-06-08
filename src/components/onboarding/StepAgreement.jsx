@@ -24,20 +24,10 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
 
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
-    console.log('🔴 BUTTON CLICKED - StepAgreement handleSubmit called', {
-      acceptTOS,
-      acceptConduct,
-      signature,
-      signatureValid,
-      canSubmit,
-      onSubmit: typeof onSubmit
-    });
     
-    // Always call onSubmit - let parent handle validation
+    // Call parent submit handler
     if (typeof onSubmit === 'function') {
       onSubmit();
-    } else {
-      console.error('onSubmit is not a function:', onSubmit);
     }
   };
 
@@ -206,6 +196,10 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
               onChange={handleSignatureChange}
               placeholder="Type your full legal name"
               className={showSignatureError ? 'border-destructive' : ''}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
             />
             <p className="text-xs text-muted-foreground">
               By typing your name above, you electronically sign this application with the same legal validity as a handwritten signature.
@@ -236,15 +230,14 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log('🟢 Submit button clicked');
               handleSubmit(e);
             }}
             className="flex-1 bg-primary hover:bg-primary/90 text-white"
-            disabled={loading}
+            disabled={!canSubmit || loading}
             style={{ pointerEvents: 'auto !important', cursor: 'pointer', position: 'relative', zIndex: 101, touchAction: 'manipulation' }}
           >
             {loading && <span className="animate-spin mr-2">⏳</span>}
-            Submit Application
+            {loading ? 'Submitting...' : 'Submit Application'}
           </Button>
         </div>
       </CardContent>
