@@ -98,6 +98,11 @@ export default function Onboarding() {
       ? ['dob', 'username', 'agreement', 'complete'] // Skip mentor choice for mentor flow
       : ['dob', 'username', 'mentor', 'agreement', 'complete'];
   const currentStep = steps[stepIndex];
+  
+  // Debug: log step transitions
+  useEffect(() => {
+    console.log('[Onboarding] Step changed:', { stepIndex, currentStep, steps, isMentorFlow, data });
+  }, [stepIndex, currentStep, steps, isMentorFlow, data]);
 
   const next = () => setStepIndex(i => i + 1);
   const back = () => setStepIndex(i => i - 1);
@@ -201,7 +206,15 @@ export default function Onboarding() {
         {currentStep === 'mentor' && (
           <StepMentorChoice data={data} user={user} isMentorFlow={isMentorFlow} onNext={(isMentor) => handleComplete(isMentor)} />
         )}
-
+        {currentStep === 'complete' && (
+          <StepComplete data={data} onDone={() => handleComplete(isMentorFlow)} />
+        )}
+        {!currentStep && (
+          <div className="text-center text-white">
+            <p>Loading...</p>
+            <p className="text-xs text-gray-400 mt-2">Step: {stepIndex}, Steps: {steps.join(', ')}</p>
+          </div>
+        )}
       </div>
 
       {showTour && <NewUserTour onComplete={() => { setShowTour(false); navigate('/dashboard'); }} />}
