@@ -20,11 +20,14 @@ Deno.serve(async (req) => {
       await base44.entities.TeenMentor.delete(m.id);
     }
 
-    // Delete the user account using service role
-    const users = await base44.asServiceRole.entities.User.filter({ email: user.email });
-    for (const u of users) {
-      await base44.asServiceRole.entities.User.delete(u.id);
+    // Delete user profile
+    const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+    for (const p of profiles) {
+      await base44.entities.UserProfile.delete(p.id);
     }
+
+    // Delete the User entity record — this removes them from the app entirely
+    await base44.asServiceRole.entities.User.delete(user.id);
 
     return Response.json({ success: true });
   } catch (error) {
