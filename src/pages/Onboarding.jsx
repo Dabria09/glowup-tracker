@@ -30,7 +30,14 @@ export default function Onboarding() {
     const urlParams = new URLSearchParams(window.location.search);
     const isFromMentorSignup = urlParams.get('mentor') === 'true';
     
-    base44.auth.me().then(async (u) => {
+    base44.auth.isAuthenticated().then(async (authed) => {
+      if (!authed) {
+        // Not authenticated - redirect to login but remember to come back here
+        base44.auth.redirectToLogin('/onboarding' + (isFromMentorSignup ? '?mentor=true' : ''));
+        return;
+      }
+      
+      const u = await base44.auth.me();
       setUser(u);
       // Check hard ban on this email
       const activeBans = await base44.entities.BannedUser.filter({ user_email: u.email, ban_type: 'hard', is_active: true });
@@ -47,7 +54,7 @@ export default function Onboarding() {
         navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
         return;
       }
-    }).catch(() => navigate('/'));
+    });
   }, []);
 
   const update = (patch) => setData(prev => ({ ...prev, ...patch }));
