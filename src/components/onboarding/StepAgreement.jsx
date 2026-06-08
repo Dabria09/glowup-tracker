@@ -23,13 +23,24 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
   };
 
   const handleSubmit = () => {
+    console.log('StepAgreement handleSubmit called', {
+      acceptTOS,
+      acceptConduct,
+      signature,
+      signatureValid,
+      canSubmit,
+      onSubmit: typeof onSubmit
+    });
+    
     if (!canSubmit) {
       // Only show error if user tries to submit with invalid signature
       if (!signatureValid) {
         setShowSignatureError(true);
       }
+      console.log('Submit blocked - validation failed');
       return;
     }
+    console.log('Calling onSubmit from parent');
     onSubmit();
   };
 

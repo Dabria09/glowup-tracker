@@ -191,6 +191,15 @@ export default function MentorRegister() {
       const age = calcAge(whoYouAreData.date_of_birth);
       const mentorTrack = age >= 18 ? "adult" : "teen";
       
+      // Debug: log values at submit time
+      console.log('Submit clicked - Validation state:', {
+        acceptTOS,
+        acceptConduct,
+        signature,
+        signatureLength: signature?.length,
+        canSubmit: acceptTOS && acceptConduct && signature?.trim().length >= 2
+      });
+      
       // Create MentorApplication record
       await base44.entities.MentorApplication.create({
         user_email: user.email,
@@ -222,7 +231,12 @@ export default function MentorRegister() {
         availability: JSON.stringify(professionalData.availability),
         session_type: professionalData.session_type,
         categories: JSON.stringify(professionalData.categories),
+        // Your Why fields
         why_mentor: yourWhyData.why_mentor,
+        wish_someone_told: yourWhyData.wish_told_younger,
+        empowerment_meaning: yourWhyData.empowerment_meaning,
+        challenge_overcome: yourWhyData.challenge_overcome,
+        mentoring_style: yourWhyData.mentoring_style,
         // Safety data (for adult mentors)
         felony_conviction: safetyData.felony_conviction,
         restraining_order: safetyData.restraining_order,
@@ -246,10 +260,13 @@ export default function MentorRegister() {
         submitted_date: new Date().toISOString(),
       });
       
+      console.log('Application created successfully');
       toast.success("Application submitted! We'll review within 5-7 business days.");
       setStep(7); // Complete step
     } catch (err) {
-      toast.error(err.message || "Submission failed");
+      console.error('Submit error:', err);
+      setError("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     }
     setLoading(false);
   };
