@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import StepWhoYouAre from "@/components/onboarding/StepWhoYouAre";
 import StepProfessionalBackground from "@/components/onboarding/StepProfessionalBackground";
+import StepYourWhy from "@/components/onboarding/StepYourWhy";
 
 const EXPERTISE_AREAS = ['Career Development', 'Financial Literacy', 'College Prep', 'Mental Wellness', 'Entrepreneurship', 'STEM', 'Arts & Creative', 'Athletics', 'Life Skills', 'Other'];
 const AGE_GROUPS = ['Glow Girls 5–12', 'Glow Teens 13–18', 'Glow Women 19–26'];
@@ -78,7 +79,16 @@ export default function MentorRegister() {
   const [ref1, setRef1] = useState({ name: '', relationship: '', email: '' });
   const [ref2, setRef2] = useState({ name: '', relationship: '', email: '' });
 
-  // Step 6 — Agreement
+  // Step 6 — Your Why
+  const [yourWhyData, setYourWhyData] = useState({
+    whyMentor: '',
+    wishSomeoneTold: '',
+    empowermentMeaning: '',
+    challengeOvercome: '',
+    mentoringStyle: '',
+  });
+
+  // Step 7 — Agreement
   const [acceptTOS, setAcceptTOS] = useState(false);
   const [acceptConduct, setAcceptConduct] = useState(false);
   const [signature, setSignature] = useState("");
@@ -216,6 +226,12 @@ export default function MentorRegister() {
         phone: whoYouAreData.phone,
         city: whoYouAreData.city,
         state: whoYouAreData.state,
+        // Your Why step fields
+        why_mentor: yourWhyData.whyMentor,
+        wish_someone_told: yourWhyData.wishSomeoneTold,
+        empowerment_meaning: yourWhyData.empowermentMeaning,
+        challenge_overcome: yourWhyData.challengeOvercome,
+        mentoring_style: yourWhyData.mentoringStyle,
       });
 
       await base44.auth.updateMe({
@@ -393,7 +409,8 @@ export default function MentorRegister() {
     'Background & Safety', // step 3
     'ID Verification', // step 4
     'References', // step 5
-    'Agreement & Submit', // step 6
+    'Your Why', // step 6
+    'Agreement & Submit', // step 7
   ];
 
   const updateWhoYouAre = (patch) => setWhoYouAreData(prev => ({ ...prev, ...patch }));
@@ -561,12 +578,25 @@ export default function MentorRegister() {
               </div>
             ))}
 
-            <NavButtons onBack={() => { setError(""); setStep(3); }} onNext={() => { setError(""); setStep(5); }} />
+            <NavButtons onBack={() => { setError(""); setStep(3); }} onNext={() => { setError(""); setStep(6); }} />
           </div>
         )}
 
-        {/* STEP 6 — Agreement */}
+        {/* STEP 6 — Your Why */}
         {step === 6 && (
+          <StepYourWhy
+            data={yourWhyData}
+            update={(patch) => setYourWhyData(prev => ({ ...prev, ...patch }))}
+            onNext={() => {
+              setError("");
+              setStep(7);
+            }}
+            onBack={() => setStep(5)}
+          />
+        )}
+
+        {/* STEP 7 — Agreement */}
+        {step === 7 && (
           <div className="mt-5 space-y-5">
             <div className="rounded-2xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <h3 className="font-bold text-white">Mentor Terms of Service</h3>
@@ -603,7 +633,7 @@ export default function MentorRegister() {
               {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{idUploading ? 'Uploading files...' : 'Submitting...'}</> : 'Submit Application'}
             </Button>
 
-            <button onClick={() => { setError(""); setStep(4); }} className="w-full py-3 text-sm text-gray-400 hover:text-white transition">← Back</button>
+            <button onClick={() => { setError(""); setStep(6); }} className="w-full py-3 text-sm text-gray-400 hover:text-white transition">← Back</button>
           </div>
         )}
       </div>

@@ -118,6 +118,22 @@
       "type": "string",
       "title": "Why Do You Want to Mentor?"
     },
+    "wish_someone_told": {
+      "type": "string",
+      "title": "What Do You Wish Someone Had Told You"
+    },
+    "empowerment_meaning": {
+      "type": "string",
+      "title": "What Empowerment Means to You"
+    },
+    "challenge_overcome": {
+      "type": "string",
+      "title": "Challenge You Overcame"
+    },
+    "mentoring_style": {
+      "type": "string",
+      "title": "Mentoring Style"
+    },
     "avatar_url": {
       "type": "string",
       "title": "Avatar URL"
