@@ -8,7 +8,7 @@ import ApplicationStatusTracker from './ApplicationStatusTracker';
 import MentorLesson from './MentorLesson';
 import MentorInbox from './MentorInbox';
 
-const TABS = ['Overview', 'Inbox', 'Sessions', 'Lesson', 'Profile'];
+const TABS = ['Overview', 'Inbox', 'My Mentees', 'Sessions', 'Lesson', 'Profile'];
 
 export default function MentorDashboard() {
   const navigate = useNavigate();
@@ -327,6 +327,17 @@ export default function MentorDashboard() {
               ))}
             </Section>
           </div>
+        )}
+
+        {/* ── MY MENTEES TAB ── */}
+        {activeTab === 'My Mentees' && (
+          <Section title={`All Assigned Questions (${myQuestions.length})`} icon={<BookOpen size={14} />}>
+            {myQuestions.length === 0 ? (
+              <EmptyState emoji="📭" text="No questions assigned yet. Claim some from your Inbox!" />
+            ) : myQuestions.map(q => (
+              <QuestionCard key={q.id} question={q} isOwned onRespond={() => { setSelectedQuestion(q); setShowResponseModal(true); }} />
+            ))}
+          </Section>
         )}
 
         {/* ── INBOX TAB ── */}
