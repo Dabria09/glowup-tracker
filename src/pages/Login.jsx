@@ -19,12 +19,18 @@ export default function Login() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("oauth") === "1") {
       base44.auth.me().then(async user => {
-        if (!user?.account_type) {
-          await base44.auth.logout();
-          window.location.href = "/login?deleted=1";
-          return;
+        if (!user) { window.location.href = "/login?deleted=1"; return; }
+        const isMentorOnly = user.account_type === "mentor";
+        const isLinked = user.account_type === "linked";
+        if (!isMentorOnly && !isLinked) {
+          const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+          if (profiles.length === 0) {
+            await base44.auth.logout();
+            window.location.href = "/login?deleted=1";
+            return;
+          }
         }
-        if (user.account_type === "mentor" || (user.account_type === "linked" && user.active_mode === "mentor")) {
+        if (isMentorOnly || (isLinked && user.active_mode === "mentor")) {
           window.location.href = "/mentor-dashboard";
         } else {
           window.location.href = "/dashboard";
@@ -44,19 +50,26 @@ export default function Login() {
       await base44.auth.loginViaEmailPassword(email, password);
       const user = await base44.auth.me();
 
-      // If account was deleted, user has no account_type — block access
-      if (!user.account_type) {
-        await base44.auth.logout();
-        setError("No account found for this email. Please register or contact support.");
-        setLoading(false);
-        return;
+      // Check if this is a mentor-only account (no GGU app profile)
+      const isMentorOnly = user.account_type === "mentor";
+      const isLinked = user.account_type === "linked";
+      const isGirl = user.account_type === "girl";
+
+      // For non-mentor accounts, verify a UserProfile exists (proves they completed onboarding)
+      if (!isMentorOnly && !isLinked) {
+        const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+        if (profiles.length === 0) {
+          // No profile = deleted or incomplete account
+          await base44.auth.logout();
+          setError("No account found for this email. Please register a new account.");
+          setLoading(false);
+          return;
+        }
       }
-      
+
       // Route based on account type and mode
-      if (user.account_type === "mentor" || (user.account_type === "linked" && user.active_mode === "mentor")) {
+      if (isMentorOnly || (isLinked && user.active_mode === "mentor")) {
         window.location.href = "/mentor-dashboard";
-      } else if (user.account_type === "linked" && user.active_mode === "girl") {
-        window.location.href = "/dashboard";
       } else {
         window.location.href = "/dashboard";
       }
