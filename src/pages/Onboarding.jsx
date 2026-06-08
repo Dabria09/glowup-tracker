@@ -16,10 +16,10 @@ const STEPS_MENTOR  = ['dob', 'username', 'agreement', 'mentor'];
 export default function Onboarding() {
   const [hardBanned, setHardBanned] = useState(null);
   const navigate = useNavigate();
-  const wantsMentor = new URLSearchParams(window.location.search).get('mentor') === 'true';
   const [user, setUser] = useState(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [showTour, setShowTour] = useState(false);
+  const [isMentorFlow, setIsMentorFlow] = useState(false);
   const [data, setData] = useState({
     date_of_birth: '', age: null, age_group: '',
     username: '', parent_name: '', parent_email: '',
@@ -32,19 +32,29 @@ export default function Onboarding() {
       // Check hard ban on this email
       const activeBans = await base44.entities.BannedUser.filter({ user_email: u.email, ban_type: 'hard', is_active: true });
       if (activeBans.length) { setHardBanned(activeBans[0]); return; }
+      
+      // Check if user is already marked as mentor (from mentor signup flow)
+      if (u.account_type === 'mentor' || u.mentor_status === 'pending') {
+        setIsMentorFlow(true);
+      }
+      
       // If already onboarded, go to dashboard
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
       if (profiles.length && profiles[0].onboarding_complete) {
-        navigate('/dashboard');
+        navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
+        return;
       }
     }).catch(() => navigate('/'));
   }, []);
 
   const update = (patch) => setData(prev => ({ ...prev, ...patch }));
 
+  // Skip mentor choice step if user is already in mentor flow
   const steps = data.age !== null && data.age < 13
     ? STEPS_MINOR
-    : STEPS_MENTOR;
+    : isMentorFlow
+      ? ['dob', 'username', 'agreement', 'complete'] // Skip mentor choice for mentor flow
+      : STEPS_MENTOR;
   const currentStep = steps[stepIndex];
 
   const next = () => setStepIndex(i => i + 1);
@@ -76,8 +86,8 @@ export default function Onboarding() {
     }
     await base44.entities.UserProfile.create(profileData);
     
-    // If mentor, set account type and redirect to mentor dashboard
-    if (isMentor) {
+    // If mentor (from mentor flow or explicit selection), redirect to mentor dashboard
+    if (isMentor || isMentorFlow) {
       await base44.auth.updateMe({
         account_type: "mentor",
         mentor_status: "pending",

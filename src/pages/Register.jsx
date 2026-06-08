@@ -14,7 +14,6 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [wantsMentor, setWantsMentor] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
@@ -50,8 +49,7 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      // Redirect to onboarding with mentor flag if selected
-      window.location.href = wantsMentor ? "/onboarding?mentor=true" : "/onboarding";
+      window.location.href = "/onboarding";
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
@@ -235,19 +233,7 @@ export default function Register() {
             </div>
 
             {/* Mentor Interest Toggle */}
-            <div className="pt-2">
-              <label className="flex items-start gap-3 p-3 rounded-xl cursor-pointer transition"
-                style={{ background: wantsMentor ? 'rgba(236,72,153,0.15)' : 'rgba(255,255,255,0.03)', border: wantsMentor ? '1px solid rgba(236,72,153,0.3)' : '1px solid rgba(255,255,255,0.05)' }}>
-                <input type="checkbox" checked={wantsMentor} onChange={(e) => setWantsMentor(e.target.checked)} className="mt-1 accent-pink-500" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-white flex items-center gap-1">
-                    <Users size={14} className="text-pink-400" />
-                    I want to become a mentor
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">Guide other girls on their glow journey (13+)</p>
-                </div>
-              </label>
-            </div>
+
 
             <Button type="submit" className="w-full h-12 font-bold text-white" disabled={loading}
               style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
