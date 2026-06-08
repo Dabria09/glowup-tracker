@@ -221,8 +221,12 @@ export default function MentorRegister() {
         consent_background_check: safetyData.consent_background_check,
         understand_application_hold: safetyData.understand_application_hold,
         // References
-        reference_1: JSON.stringify(ref1),
-        reference_2: JSON.stringify(ref2),
+        reference_1_name: ref1.name,
+        reference_1_relationship: ref1.relationship,
+        reference_1_email: ref1.email,
+        reference_2_name: ref2.name,
+        reference_2_relationship: ref2.relationship,
+        reference_2_email: ref2.email,
         // Agreements
         agreements_accepted: JSON.stringify(["tos", "conduct"]),
         agreements_timestamp: new Date().toISOString(),

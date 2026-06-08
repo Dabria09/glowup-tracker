@@ -155,6 +155,18 @@
       "type": "string",
       "title": "Parent/Guardian Email (Teen track)"
     },
+    "parent_name": {
+      "type": "string",
+      "title": "Parent/Guardian Name (Teen track)"
+    },
+    "parent_phone": {
+      "type": "string",
+      "title": "Parent/Guardian Phone (Teen track)"
+    },
+    "parent_relationship": {
+      "type": "string",
+      "title": "Parent/Guardian Relationship (Teen track)"
+    },
     "parent_consent_sent": {
       "type": "boolean",
       "title": "Parent Consent Email Sent",
@@ -164,6 +176,30 @@
       "type": "boolean",
       "title": "Parent Consent Received",
       "default": false
+    },
+    "reference_1_name": {
+      "type": "string",
+      "title": "Reference 1 Name"
+    },
+    "reference_1_relationship": {
+      "type": "string",
+      "title": "Reference 1 Relationship"
+    },
+    "reference_1_email": {
+      "type": "string",
+      "title": "Reference 1 Email"
+    },
+    "reference_2_name": {
+      "type": "string",
+      "title": "Reference 2 Name"
+    },
+    "reference_2_relationship": {
+      "type": "string",
+      "title": "Reference 2 Relationship"
+    },
+    "reference_2_email": {
+      "type": "string",
+      "title": "Reference 2 Email"
     },
     "status": {
       "type": "string",
