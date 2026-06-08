@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Home, ExternalLink, ChevronRight, Sparkles, Award, LogOut, Trash2 } from 'lucide-react';
-import BottomNav from '@/components/BottomNav';
+import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
 import MenteeDashboard from './MenteeDashboard';
 
 const TABS = ['Overview', 'My Mentees', 'Sessions', 'Applications', 'Profile'];
@@ -365,7 +365,7 @@ export default function MentorDashboard() {
         )}
       </div>
 
-      <BottomNav active="connect" />
+      <MentorBottomNav active="dashboard" />
 
       {/* Find Mentor Modal */}
       {showMenteeSearch && (

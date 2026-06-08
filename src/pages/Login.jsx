@@ -190,7 +190,11 @@ export default function Login() {
             <p className="text-xs text-purple-300 font-semibold mb-2 flex items-center gap-1">
               <Crown size={12} /> Are you a mentor?
             </p>
-            <Link to="/mentor-register" className="text-xs text-purple-400 hover:underline">Register as mentor →</Link>
+            <div className="flex gap-3">
+              <Link to="/mentor-login" className="text-xs text-purple-400 hover:underline">Sign in →</Link>
+              <span className="text-gray-600">|</span>
+              <Link to="/mentor-register" className="text-xs text-purple-400 hover:underline">Apply Now →</Link>
+            </div>
           </div>
         </div>
 
