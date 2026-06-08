@@ -1,7 +1,24 @@
 import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 
-const EXPERTISE_AREAS = ['Career Development', 'Financial Literacy', 'College Prep', 'Mental Wellness', 'Entrepreneurship', 'STEM', 'Arts & Creative', 'Athletics', 'Life Skills', 'Other'];
+const EXPERTISE_AREAS = [
+  'Career Development',
+  'Financial Literacy',
+  'College Prep and Applications',
+  'Entrepreneurship and Business',
+  'Mental Wellness and Confidence',
+  'STEM and Technology',
+  'Arts and Creative Industries',
+  'Athletics and Sports',
+  'Social Media and Content Creation',
+  'Fashion and Beauty Industry',
+  'Health and Fitness',
+  'Community Leadership and Civic Engagement',
+  'Relationships and Communication',
+  'Life Skills and Independence',
+  'Faith and Spirituality (optional)',
+  'Other'
+];
 const AGE_GROUPS = ['Glow Girls 5–12', 'Glow Teens 13–18', 'Glow Women 19–26'];
 const MENTEE_COUNTS = ['1', '2', '3', '4', '5+'];
 const HOURS_PER_MONTH = ['2–4 hrs', '5–8 hrs', '9–12 hrs', '12+ hrs'];
@@ -27,6 +44,7 @@ export default function StepProfessionalBackground({ data, update, onNext, onBac
   const [workedWithYouth, setWorkedWithYouth] = useState(data.workedWithYouth || "");
   const [youthExperienceDesc, setYouthExperienceDesc] = useState(data.youthExperienceDesc || "");
   const [expertiseAreas, setExpertiseAreas] = useState(data.expertiseAreas || []);
+  const [otherExpertise, setOtherExpertise] = useState(data.otherExpertise || "");
   const [ageGroups, setAgeGroups] = useState(data.ageGroups || []);
   const [menteeCount, setMenteeCount] = useState(data.menteeCount || "");
   const [hoursPerMonth, setHoursPerMonth] = useState(data.hoursPerMonth || "");
@@ -41,7 +59,7 @@ export default function StepProfessionalBackground({ data, update, onNext, onBac
       return;
     }
     // Save data
-    update({ occupation, employer, education, fieldOfStudy, experienceYears, workedWithYouth, youthExperienceDesc, expertiseAreas, ageGroups, menteeCount, hoursPerMonth });
+    update({ occupation, employer, education, fieldOfStudy, experienceYears, workedWithYouth, youthExperienceDesc, expertiseAreas, otherExpertise, ageGroups, menteeCount, hoursPerMonth });
     setError("");
     onNext();
   };
@@ -120,6 +138,15 @@ export default function StepProfessionalBackground({ data, update, onNext, onBac
             </button>
           ))}
         </div>
+        {expertiseAreas.includes('Other') && (
+          <input
+            value={otherExpertise}
+            onChange={e => setOtherExpertise(e.target.value)}
+            placeholder="Please describe your expertise..."
+            className="field-input mt-2"
+            style={fieldStyle}
+          />
+        )}
       </Field>
       
       <Field label="Age Groups You Want to Mentor (select all that apply) *">

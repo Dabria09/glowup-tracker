@@ -56,6 +56,7 @@ export default function MentorRegister() {
   const [workedWithYouth, setWorkedWithYouth] = useState("");
   const [youthExperienceDesc, setYouthExperienceDesc] = useState("");
   const [expertiseAreas, setExpertiseAreas] = useState([]);
+  const [otherExpertise, setOtherExpertise] = useState("");
   const [ageGroups, setAgeGroups] = useState([]);
   const [menteeCount, setMenteeCount] = useState("");
   const [hoursPerMonth, setHoursPerMonth] = useState("");
@@ -181,6 +182,7 @@ export default function MentorRegister() {
         worked_with_youth: workedWithYouth === 'yes',
         youth_experience_description: youthExperienceDesc,
         expertise: JSON.stringify(expertiseAreas),
+        other_expertise: otherExpertise,
         age_groups: JSON.stringify(ageGroups),
         mentee_count: menteeCount,
         hours_per_month: hoursPerMonth,
@@ -423,7 +425,7 @@ export default function MentorRegister() {
         {/* STEP 2 — Professional Background */}
         {step === 2 && (
           <StepProfessionalBackground
-            data={{ occupation, employer, education, fieldOfStudy, experienceYears, workedWithYouth, youthExperienceDesc, expertiseAreas, ageGroups, menteeCount, hoursPerMonth }}
+            data={{ occupation, employer, education, fieldOfStudy, experienceYears, workedWithYouth, youthExperienceDesc, expertiseAreas, otherExpertise, ageGroups, menteeCount, hoursPerMonth }}
             update={(patch) => {
               setOccupation(patch.occupation || occupation);
               setEmployer(patch.employer || employer);
@@ -433,6 +435,7 @@ export default function MentorRegister() {
               setWorkedWithYouth(patch.workedWithYouth || workedWithYouth);
               setYouthExperienceDesc(patch.youthExperienceDesc || youthExperienceDesc);
               setExpertiseAreas(patch.expertiseAreas || expertiseAreas);
+              setOtherExpertise(patch.otherExpertise || otherExpertise);
               setAgeGroups(patch.ageGroups || ageGroups);
               setMenteeCount(patch.menteeCount || menteeCount);
               setHoursPerMonth(patch.hoursPerMonth || hoursPerMonth);
