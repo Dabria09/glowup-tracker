@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Home, ExternalLink, ChevronRight, Sparkles, Award, LogOut, Trash2 } from 'lucide-react';
+import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, ChevronRight, Sparkles, Award, LogOut, Trash2, Crown } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
 import MenteeDashboard from './MenteeDashboard';
 
@@ -19,6 +19,7 @@ export default function MentorDashboard() {
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [showMenteeSearch, setShowMenteeSearch] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showGguModal, setShowGguModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [stats, setStats] = useState({ total_questions: 0, pending: 0, answered: 0, helpful_count: 0, sessions_completed: 0, rating: 0 });
 
@@ -116,6 +117,15 @@ export default function MentorDashboard() {
     );
   }
 
+  const handleGguToggle = async () => {
+    if (user?.account_type === 'linked') {
+      await base44.auth.updateMe({ active_mode: 'girl' });
+      window.location.href = '/dashboard';
+    } else {
+      setShowGguModal(true);
+    }
+  };
+
   const upcomingSessions = sessions.filter(s => s.status === 'scheduled');
   const completedSessions = sessions.filter(s => s.status === 'completed');
   const pendingApplications = questions.filter(q => q.status === 'pending' && !q.assigned_mentor_email);
@@ -127,6 +137,21 @@ export default function MentorDashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0d0608', fontFamily: "'Poppins', sans-serif", color: '#fff', paddingBottom: 90, overflowX: 'hidden' }}>
+
+      {/* Mode Toggle Bar */}
+      <div style={{ background: 'rgba(13,6,8,0.98)', borderBottom: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 60, padding: '10px 20px', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 30, padding: 3, gap: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 26, background: 'linear-gradient(135deg, #e8526d, #c2185b)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'default' }}>
+            <Crown size={13} /> Mentor Mode
+          </div>
+          <button
+            onClick={handleGguToggle}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 26, background: 'transparent', color: 'rgba(255,255,255,0.45)', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', transition: 'color 0.2s' }}
+          >
+            <Sparkles size={13} /> GGU App
+          </button>
+        </div>
+      </div>
 
       {/* Header */}
       <div style={{ background: 'rgba(13,6,8,0.97)', borderBottom: '1px solid rgba(232,82,109,0.15)', backdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 50, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -421,6 +446,39 @@ export default function MentorDashboard() {
           onResponseSubmitted={handleResponseSubmitted}
           user={user}
         />
+      )}
+
+      {/* GGU Account Modal */}
+      {showGguModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-6" style={{ background: 'rgba(0,0,0,0.85)' }} onClick={() => setShowGguModal(false)}>
+          <div className="w-full max-w-sm rounded-3xl p-6" style={{ background: '#130810', border: '1px solid rgba(232,82,109,0.25)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <div style={{ fontSize: 36, marginBottom: 8 }}>✨</div>
+              <h2 style={{ color: '#fff', fontWeight: 800, fontSize: 18, marginBottom: 6 }}>Access GGU App</h2>
+              <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, lineHeight: 1.5 }}>Link a GGU account to switch between your mentor dashboard and the GGU app seamlessly.</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => { setShowGguModal(false); window.location.href = '/login?link=true'; }}
+                style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: 'linear-gradient(135deg, #e8526d, #f1b610)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+              >
+                🔗 Log in with existing GGU account
+              </button>
+              <button
+                onClick={() => { setShowGguModal(false); window.location.href = '/register?link=true'; }}
+                style={{ width: '100%', padding: 14, borderRadius: 14, border: '1px solid rgba(232,82,109,0.35)', background: 'transparent', color: '#f48fb1', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+              >
+                ✨ Create a GGU account with the same email
+              </button>
+              <button
+                onClick={() => setShowGguModal(false)}
+                style={{ width: '100%', padding: 12, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.35)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
