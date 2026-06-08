@@ -6,8 +6,9 @@ import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
 import MenteeDashboard from './MenteeDashboard';
 import ApplicationStatusTracker from './ApplicationStatusTracker';
 import MentorLesson from './MentorLesson';
+import MentorInbox from './MentorInbox';
 
-const TABS = ['Overview', 'My Mentees', 'Sessions', 'Applications', 'Lesson', 'Profile'];
+const TABS = ['Overview', 'Inbox', 'Sessions', 'Lesson', 'Profile'];
 
 export default function MentorDashboard() {
   const navigate = useNavigate();
@@ -245,6 +246,7 @@ export default function MentorDashboard() {
           {TABS.map(tab => {
             const isLessonUnlocked = tab === 'Lesson' && application?.checklist_interview_completed && !application?.checklist_lesson_passed;
             const isLessonPassed = tab === 'Lesson' && application?.checklist_lesson_passed;
+            const hasUnread = tab === 'Inbox' && questions.filter(q => q.status === 'pending' && (!q.assigned_mentor_email || q.assigned_mentor_email === user?.email)).length > 0;
             return (
               <button
                 key={tab}
@@ -266,6 +268,9 @@ export default function MentorDashboard() {
                 }}
               >
                 {tab}{isLessonPassed && ' ✓'}{isLessonUnlocked && ' 🔓'}
+                {hasUnread && activeTab !== 'Inbox' && (
+                  <span style={{ position: 'absolute', top: 2, right: 2, width: 8, height: 8, borderRadius: '50%', background: '#e8526d', border: '1px solid #0d0608' }} />
+                )}
               </button>
             );
           })}
@@ -282,8 +287,8 @@ export default function MentorDashboard() {
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#f1b610' }}>🔔 {pendingApplications.length} New Question{pendingApplications.length > 1 ? 's' : ''}</div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Girls are waiting for your wisdom</div>
                 </div>
-                <button onClick={() => setActiveTab('Applications')} style={{ padding: '7px 14px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #f1b610, #e8a900)', color: '#1a0a04', fontSize: 11, fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}>
-                  Review →
+                <button onClick={() => setActiveTab('Inbox')} style={{ padding: '7px 14px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #f1b610, #e8a900)', color: '#1a0a04', fontSize: 11, fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}>
+                  Open Inbox →
                 </button>
               </div>
             )}
@@ -324,15 +329,20 @@ export default function MentorDashboard() {
           </div>
         )}
 
-        {/* ── MY MENTEES TAB ── */}
-        {activeTab === 'My Mentees' && (
-          <Section title={`All Assigned Questions (${myQuestions.length})`} icon={<BookOpen size={14} />}>
-            {myQuestions.length === 0 ? (
-              <EmptyState emoji="📭" text="No questions assigned yet. Claim some from Applications!" />
-            ) : myQuestions.map(q => (
-              <QuestionCard key={q.id} question={q} isOwned onRespond={() => { setSelectedQuestion(q); setShowResponseModal(true); }} />
-            ))}
-          </Section>
+        {/* ── INBOX TAB ── */}
+        {activeTab === 'Inbox' && (
+          <MentorInbox
+            questions={questions}
+            user={user}
+            onRefresh={async () => {
+              const allQ = await base44.entities.AnonymousQuestion.list('-created_date', 100);
+              const filtered = allQ.filter(q =>
+                q.assigned_mentor_email === user.email ||
+                (q.status === 'pending' && !q.assigned_mentor_email)
+              );
+              setQuestions(filtered);
+            }}
+          />
         )}
 
         {/* ── SESSIONS TAB ── */}
@@ -349,42 +359,7 @@ export default function MentorDashboard() {
           </div>
         )}
 
-        {/* ── APPLICATIONS TAB ── */}
-        {activeTab === 'Applications' && (
-          <Section title="Mentee Questions" icon={<Sparkles size={14} />}>
-            {questions.length === 0 ? (
-              <EmptyState emoji="🎉" text="No pending questions!" />
-            ) : questions.map(q => {
-              const isAssigned = q.assigned_mentor_email === user?.email;
-              return (
-                <div key={q.id} style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${isAssigned ? 'rgba(232,82,109,0.35)' : 'rgba(241,182,16,0.25)'}`, borderRadius: 16, padding: 16, marginBottom: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 12, background: isAssigned ? 'linear-gradient(135deg, #e8526d, #c2185b)' : 'linear-gradient(135deg, #f1b610, #e8a900)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>?</div>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{q.category}</div>
-                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{new Date(q.submitted_date || q.created_date).toLocaleDateString()}</div>
-                      </div>
-                    </div>
-                    <span style={{ padding: '3px 10px', borderRadius: 10, fontSize: 10, fontWeight: 700, background: isAssigned ? 'rgba(232,82,109,0.2)' : 'rgba(241,182,16,0.2)', color: isAssigned ? '#f48fb1' : '#f1b610' }}>
-                      {isAssigned ? '✓ Claimed' : 'Open'}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', fontStyle: 'italic', margin: '0 0 12px', lineHeight: 1.5 }}>"{q.question}"</p>
-                  {!isAssigned ? (
-                    <button onClick={() => handleClaimQuestion(q)} style={{ width: '100%', padding: '10px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #e8526d, #f1b610)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                      Claim Question
-                    </button>
-                  ) : (
-                    <button onClick={() => { setSelectedQuestion(q); setShowResponseModal(true); }} style={{ width: '100%', padding: '10px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #e8526d, #c2185b)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                      {q.answer ? 'Edit Response' : 'Respond'}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </Section>
-        )}
+
 
         {/* ── LESSON TAB ── */}
         {activeTab === 'Lesson' && (
