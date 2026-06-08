@@ -29,36 +29,50 @@ export default function Onboarding() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const isFromMentorSignup = urlParams.get('mentor') === 'true';
+    console.log('[Onboarding] Starting init, mentor param:', isFromMentorSignup);
     
     const initAuth = async () => {
       try {
+        console.log('[Onboarding] Checking auth status...');
         const authed = await base44.auth.isAuthenticated();
+        console.log('[Onboarding] Auth status:', authed);
+        
         if (!authed) {
-          // Not authenticated - redirect to login but remember to come back here
+          console.log('[Onboarding] Not authenticated, redirecting to login...');
           base44.auth.redirectToLogin('/onboarding' + (isFromMentorSignup ? '?mentor=true' : ''));
           return;
         }
         
+        console.log('[Onboarding] Getting user info...');
         const u = await base44.auth.me();
+        console.log('[Onboarding] User:', u);
         setUser(u);
+        
         // Check hard ban on this email
         const activeBans = await base44.entities.BannedUser.filter({ user_email: u.email, ban_type: 'hard', is_active: true });
-        if (activeBans.length) { setHardBanned(activeBans[0]); return; }
+        if (activeBans.length) { 
+          console.log('[Onboarding] User is banned:', activeBans[0]);
+          setHardBanned(activeBans[0]); 
+          return; 
+        }
         
         // Check if user is already marked as mentor (from mentor signup flow)
         if (u.account_type === 'mentor' || u.mentor_status === 'pending' || isFromMentorSignup) {
+          console.log('[Onboarding] Setting mentor flow');
           setIsMentorFlow(true);
         }
         
         // If already onboarded, go to dashboard
         const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
         if (profiles.length && profiles[0].onboarding_complete) {
+          console.log('[Onboarding] Already onboarded, redirecting to dashboard');
           navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
           return;
         }
+        
+        console.log('[Onboarding] Initialization complete, showing onboarding');
       } catch (err) {
-        console.error('Onboarding auth error:', err);
-        // On error, redirect to home
+        console.error('[Onboarding] Auth error:', err);
         navigate('/');
       }
     };
@@ -141,23 +155,13 @@ export default function Onboarding() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
-        <div className="text-center">
-          <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-32 mx-auto mb-6 animate-pulse" />
-          <div className="w-10 h-10 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin mx-auto" />
-          <p className="text-white mt-4 text-sm">Redirecting to login...</p>
-        </div>
+        <div className="w-10 h-10 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-8 font-inter">
-      <img
-        src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png"
-        alt="Girls Glowing Up"
-        className="w-36 mx-auto mb-6"
-      />
-
       {/* Progress bar */}
       {currentStep !== 'complete' && (
         <div className="w-full max-w-sm mb-6">
