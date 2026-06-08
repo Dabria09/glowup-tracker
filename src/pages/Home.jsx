@@ -52,7 +52,6 @@ export default function Home() {
     base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
-  const handleJoin = () => navigate(user ? '/dashboard' : '/join');
   const handleMentorSignIn = () => {
     if (user) { navigate('/mentor-dashboard'); }
     else { base44.auth.redirectToLogin('/mentor-dashboard'); }
@@ -104,8 +103,7 @@ export default function Home() {
             A safe, empowering space where girls build <strong style={{ color: '#ffb2c0', fontWeight: 600 }}>confidence</strong>, discover their purpose, and connect with mentors who believe in them.
           </p>
 
-          <div className="grid grid-cols-2 gap-3 w-full" style={{ maxWidth: 520 }}>
-            {/* Top Row: Mentor Options */}
+          <div className="grid grid-cols-2 gap-3 w-full" style={{ maxWidth: 400 }}>
             <button onClick={() => navigate('/mentor-signup')} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: 'rgba(241,182,16,0.08)', border: '1.5px solid rgba(241,182,16,0.4)', color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 13, fontWeight: 700, padding: '14px 12px', borderRadius: 14, cursor: 'pointer' }}>
               <span style={{ fontSize: 20 }}>🎓</span>
               <span>Mentor Sign Up</span>
@@ -113,15 +111,6 @@ export default function Home() {
             <button onClick={handleMentorSignIn} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: 'rgba(241,182,16,0.08)', border: '1.5px solid rgba(241,182,16,0.4)', color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 13, fontWeight: 700, padding: '14px 12px', borderRadius: 14, cursor: 'pointer' }}>
               <span style={{ fontSize: 20 }}>✨</span>
               <span>Mentor Sign In</span>
-            </button>
-            {/* Bottom Row: GGU Options */}
-            <button onClick={handleJoin} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${PINK_DEEP} 0%, ${PINK} 40%, ${PINK_HOT} 100%)`, color: 'white', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 14, fontWeight: 800, padding: '14px 12px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: `0 8px 32px rgba(232,82,109,0.5)` }}>
-              <span style={{ fontSize: 20 }}>✦</span>
-              <span>Join the Sisterhood</span>
-            </button>
-            <button onClick={() => { if (user) navigate('/dashboard'); else base44.auth.redirectToLogin('/dashboard'); }} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: 'rgba(232,82,109,0.12)', border: '1.5px solid rgba(232,82,109,0.35)', color: PINK_HOT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 13, fontWeight: 700, padding: '14px 12px', borderRadius: 14, cursor: 'pointer' }}>
-              <span style={{ fontSize: 20 }}>👑</span>
-              <span>{user ? 'Go to Dashboard' : 'Sign In to GGU'}</span>
             </button>
           </div>
 
@@ -222,18 +211,11 @@ export default function Home() {
 
         {/* BOTTOM CTA */}
         <section className="px-6 pb-16 max-w-md mx-auto text-center">
-          <h2 style={{ fontFamily: '"Playfair Display",serif', fontSize: 'clamp(24px,6vw,36px)', fontWeight: 900, marginBottom: 10, lineHeight: 1.1 }}>Your glow up starts today.</h2>
-          <p style={{ fontSize: 14, color: MUTED, marginBottom: 26, lineHeight: 1.6 }}>Join thousands of girls already leveling up their confidence, health, and future — one glow at a time.</p>
-          <div className="flex flex-col gap-3">
-            <button onClick={handleJoin} className="w-full flex items-center justify-center gap-2 font-bold transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${PINK_DEEP} 0%, ${PINK} 40%, ${PINK_HOT} 100%)`, color: 'white', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 16, fontWeight: 800, padding: '17px 28px', borderRadius: 16, border: 'none', cursor: 'pointer', boxShadow: `0 8px 32px rgba(232,82,109,0.5)` }}>
-              ✦ Join the Sisterhood
-            </button>
-            {user && (
-              <button onClick={() => navigate('/dashboard')} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5" style={{ background: 'transparent', border: `2px solid rgba(241,182,16,0.55)`, color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 15, fontWeight: 700, padding: '15px 28px', borderRadius: 16, cursor: 'pointer' }}>
-                Go to Dashboard →
-              </button>
-            )}
-          </div>
+          <h2 style={{ fontFamily: '"Playfair Display",serif', fontSize: 'clamp(24px,6vw,36px)', fontWeight: 900, marginBottom: 10, lineHeight: 1.1 }}>Become a Mentor Today.</h2>
+          <p style={{ fontSize: 14, color: MUTED, marginBottom: 26, lineHeight: 1.6 }}>Join our community of empowered women mentoring the next generation of confident girls.</p>
+          <button onClick={() => navigate('/mentor-signup')} className="w-full flex items-center justify-center gap-2 font-bold transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #ffe75c 100%)`, color: '#1a0a00', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 16, fontWeight: 800, padding: '17px 28px', borderRadius: 16, border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(241,182,16,0.45)' }}>
+            🎓 Apply to Be a Mentor
+          </button>
         </section>
 
         {/* FOOTER */}
