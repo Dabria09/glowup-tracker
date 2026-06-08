@@ -79,14 +79,18 @@ export default function Onboarding() {
           console.log('[Onboarding] Profile check skipped:', profileErr.message);
         }
 
-        // CRITICAL: If user came from mentor signup, NEVER redirect to dashboard - ALWAYS let them apply
         if (isFromMentorSignup) {
-          console.log('[Onboarding] ✅ MENTOR FLOW - Blocking all redirects, proceeding to application');
-          console.log('[Onboarding] Profile exists?', profileExists, 'Complete?', hasCompleteProfile, '- IGNORING, proceeding anyway');
+          // If user already has a complete profile AND is already a mentor, skip to mentor dashboard
+          if (hasCompleteProfile && (u.account_type === 'mentor' || u.mentor_status)) {
+            console.log('[Onboarding] Already a mentor with complete profile, redirecting to mentor dashboard');
+            navigate('/mentor-dashboard');
+            return;
+          }
+          console.log('[Onboarding] ✅ MENTOR FLOW - proceeding to mentor application');
         } else if (hasCompleteProfile) {
           // Regular user already onboarded - redirect to dashboard
           console.log('[Onboarding] Already onboarded, redirecting to dashboard');
-          navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
+          navigate('/dashboard');
           return;
         }
         
@@ -128,23 +132,33 @@ export default function Onboarding() {
       age_group: data.age_group,
       agreed_to_tos: data.agreed_to_tos,
       agreed_to_privacy: data.agreed_to_privacy,
-      onboarding_complete: data.age >= 13, // minors pending approval
+      onboarding_complete: data.age >= 13,
       parental_consent_given: false,
       parental_consent_sent: data.age < 13,
     };
     if (data.age < 13) {
       profileData.parent_email = data.parent_email;
       profileData.parent_name = data.parent_name;
-      // Send parental consent email
       await base44.integrations.Core.SendEmail({
         to: data.parent_email,
         subject: `Parental Consent Required – ${user.full_name || user.email} wants to join Girls Glowing Up™`,
         body: `Hello ${data.parent_name},\n\n${user.full_name || 'Your child'} has signed up for Girls Glowing Up™ and needs your approval.\n\nGirls Glowing Up™ is a safe, moderated platform for girls ages 5–26 to grow, learn, and connect with verified mentors.\n\nTo approve their account, please reply to this email or visit:\nhttps://gguapp.com/parental-consent\n\nIf you did not expect this email, you can safely ignore it.\n\nThank you,\nThe GGU Safety Team\n\n---\nGirls Glowing Up™ | safety@girlsglowingup.com`,
       });
     }
-    await base44.entities.UserProfile.create(profileData);
-    
-    // If mentor (from mentor flow or explicit selection), redirect to mentor dashboard
+
+    // UPSERT: update existing profile or create new one
+    try {
+      const existing = await base44.entities.UserProfile.filter({ user_email: user.email });
+      if (existing.length > 0) {
+        await base44.entities.UserProfile.update(existing[0].id, profileData);
+      } else {
+        await base44.entities.UserProfile.create(profileData);
+      }
+    } catch (err) {
+      console.error('[Onboarding] Profile save error:', err);
+    }
+
+    // If mentor flow, update user and redirect to mentor dashboard
     if (isMentor || isMentorFlow) {
       await base44.auth.updateMe({
         account_type: "mentor",
@@ -154,7 +168,7 @@ export default function Onboarding() {
       navigate('/mentor-dashboard');
       return;
     }
-    
+
     // For non-mentors, show the tour then go to dashboard
     setShowTour(true);
   };
@@ -162,18 +176,6 @@ export default function Onboarding() {
   const progressSteps = steps.filter(s => s !== 'complete');
   const progressIndex = Math.min(stepIndex, progressSteps.length - 1);
   
-  console.log('[Onboarding Render] user:', user?.email, 'stepIndex:', stepIndex, 'currentStep:', currentStep, 'isMentorFlow:', isMentorFlow, 'steps:', steps);
-
-  // Debug display - remove after testing
-  const debugInfo = {
-    user: user?.email,
-    isMentorFlow,
-    stepIndex,
-    currentStep,
-    hasProfile: 'checking...',
-  };
-
-  // Error boundary for debugging
   if (!currentStep && stepIndex < steps.length) {
     console.error('[Onboarding] Invalid step!', { stepIndex, steps, currentStep });
   }
@@ -208,11 +210,6 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-8 font-inter" style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
-      {/* Debug Banner - Testing */}
-      <div className="fixed top-0 left-0 right-0 bg-amber-500/90 text-black text-xs p-2 z-[9999] font-mono">
-        🧪 DEBUG: isMentorFlow={isMentorFlow?.toString()} | step={stepIndex} | currentStep={currentStep} | user={user?.email || 'none'}
-      </div>
-      
       {/* Progress bar */}
       {currentStep !== 'complete' && (
         <div className="w-full max-w-sm mb-6">
