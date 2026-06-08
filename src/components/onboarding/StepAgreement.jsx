@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,8 @@ import { Shield, CheckCircle, FileText, PenTool } from 'lucide-react';
 export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, setAcceptConduct, signature, setSignature, onSubmit, onBack, loading }) {
   const [errors, setErrors] = useState({});
 
-  const validate = () => {
+  // Real-time validation - runs whenever signature or checkboxes change
+  React.useEffect(() => {
     const newErrors = {};
     
     if (!acceptTOS) {
@@ -21,19 +22,23 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
       newErrors.acceptConduct = 'You must accept the Safety and Code of Conduct';
     }
     
-    if (!signature?.trim()) {
+    // Only show signature error if field is empty (less than 2 characters)
+    if (!signature || signature.length < 2) {
       newErrors.signature = 'Electronic signature is required';
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  }, [acceptTOS, acceptConduct, signature]);
 
   const handleSubmit = () => {
-    if (validate()) {
-      onSubmit();
+    // Final validation before submit
+    if (!acceptTOS || !acceptConduct || !signature || signature.length < 2) {
+      return;
     }
+    onSubmit();
   };
+
+  const isSubmitDisabled = !acceptTOS || !acceptConduct || !signature || signature.length < 2;
 
   const scrollBoxStyle = {
     maxHeight: '200px',
@@ -229,7 +234,7 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
             type="button"
             onClick={handleSubmit}
             className="flex-1 bg-primary hover:bg-primary/90 text-white"
-            disabled={loading}
+            disabled={loading || isSubmitDisabled}
           >
             {loading && <span className="animate-spin mr-2">⏳</span>}
             Submit Application
