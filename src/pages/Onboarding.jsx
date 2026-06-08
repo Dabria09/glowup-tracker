@@ -30,31 +30,40 @@ export default function Onboarding() {
     const urlParams = new URLSearchParams(window.location.search);
     const isFromMentorSignup = urlParams.get('mentor') === 'true';
     
-    base44.auth.isAuthenticated().then(async (authed) => {
-      if (!authed) {
-        // Not authenticated - redirect to login but remember to come back here
-        base44.auth.redirectToLogin('/onboarding' + (isFromMentorSignup ? '?mentor=true' : ''));
-        return;
+    const initAuth = async () => {
+      try {
+        const authed = await base44.auth.isAuthenticated();
+        if (!authed) {
+          // Not authenticated - redirect to login but remember to come back here
+          base44.auth.redirectToLogin('/onboarding' + (isFromMentorSignup ? '?mentor=true' : ''));
+          return;
+        }
+        
+        const u = await base44.auth.me();
+        setUser(u);
+        // Check hard ban on this email
+        const activeBans = await base44.entities.BannedUser.filter({ user_email: u.email, ban_type: 'hard', is_active: true });
+        if (activeBans.length) { setHardBanned(activeBans[0]); return; }
+        
+        // Check if user is already marked as mentor (from mentor signup flow)
+        if (u.account_type === 'mentor' || u.mentor_status === 'pending' || isFromMentorSignup) {
+          setIsMentorFlow(true);
+        }
+        
+        // If already onboarded, go to dashboard
+        const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+        if (profiles.length && profiles[0].onboarding_complete) {
+          navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
+          return;
+        }
+      } catch (err) {
+        console.error('Onboarding auth error:', err);
+        // On error, redirect to home
+        navigate('/');
       }
-      
-      const u = await base44.auth.me();
-      setUser(u);
-      // Check hard ban on this email
-      const activeBans = await base44.entities.BannedUser.filter({ user_email: u.email, ban_type: 'hard', is_active: true });
-      if (activeBans.length) { setHardBanned(activeBans[0]); return; }
-      
-      // Check if user is already marked as mentor (from mentor signup flow)
-      if (u.account_type === 'mentor' || u.mentor_status === 'pending' || isFromMentorSignup) {
-        setIsMentorFlow(true);
-      }
-      
-      // If already onboarded, go to dashboard
-      const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
-      if (profiles.length && profiles[0].onboarding_complete) {
-        navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
-        return;
-      }
-    });
+    };
+    
+    initAuth();
   }, []);
 
   const update = (patch) => setData(prev => ({ ...prev, ...patch }));
@@ -131,8 +140,12 @@ export default function Onboarding() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gray-600 border-t-pink-500 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
+        <div className="text-center">
+          <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-32 mx-auto mb-6 animate-pulse" />
+          <div className="w-10 h-10 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin mx-auto" />
+          <p className="text-white mt-4 text-sm">Loading...</p>
+        </div>
       </div>
     );
   }
