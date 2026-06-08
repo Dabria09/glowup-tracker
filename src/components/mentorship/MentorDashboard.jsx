@@ -26,6 +26,7 @@ export default function MentorDashboard() {
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [showMenteeSearch, setShowMenteeSearch] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [showGguModal, setShowGguModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -497,14 +498,21 @@ export default function MentorDashboard() {
               style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 12, padding: '12px 14px', color: '#fff', fontSize: 14, outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
             />
             <button
-              disabled={deleteConfirmText !== 'DELETE'}
+              disabled={deleteConfirmText !== 'DELETE' || deleteLoading}
               onClick={async () => {
-                await base44.functions.invoke('deleteAccount', {});
-                base44.auth.logout('/');
+                try {
+                  setDeleteLoading(true);
+                  await base44.functions.invoke('deleteAccount', {});
+                  base44.auth.logout('/');
+                } catch (err) {
+                  console.error('Delete failed:', err);
+                  setDeleteLoading(false);
+                  alert('Failed to delete account. Please try again or contact support.');
+                }
               }}
               style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: deleteConfirmText === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.2)', color: '#fff', fontSize: 14, fontWeight: 800, cursor: deleteConfirmText === 'DELETE' ? 'pointer' : 'not-allowed', marginBottom: 10, opacity: deleteConfirmText === 'DELETE' ? 1 : 0.5 }}
             >
-              Permanently Delete My Account
+              {deleteLoading ? 'Deleting...' : 'Permanently Delete My Account'}
             </button>
             <button onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); }} style={{ width: '100%', padding: 12, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Cancel
