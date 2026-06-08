@@ -157,7 +157,13 @@ function DeleteAccountModal({ profile, onClose }) {
   const doDelete = async () => {
     if (confirmText !== 'DELETE') return;
     setDeleting(true);
-    if (profile) await base44.entities.UserProfile.delete(profile.id);
+    try {
+      // Call backend function to delete ALL user data
+      await base44.functions.invoke('deleteAccount', {});
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
+    // Logout and redirect to home
     await base44.auth.logout('/');
   };
 
