@@ -415,13 +415,6 @@ export default function MentorDashboard() {
               </div>
             )}
 
-            <button onClick={() => navigate('/mentorship')} style={{ width: '100%', marginTop: 8, padding: 14, borderRadius: 14, border: 'none', background: 'linear-gradient(135deg, #e8526d, #f1b610)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-              🏠 Visit Mentorship Hub
-            </button>
-            <button onClick={() => navigate('/my-glow-link')} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1px solid rgba(232,82,109,0.35)', background: 'transparent', color: '#f48fb1', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-              🔗 View My Glow Link
-            </button>
-
             {/* Sign Out */}
             <button onClick={() => base44.auth.logout('/')} style={{ width: '100%', marginTop: 8, padding: 14, borderRadius: 14, border: '1px solid rgba(255,255,255,0.12)', background: 'transparent', color: 'rgba(255,255,255,0.5)', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               <LogOut size={16} /> Sign Out
