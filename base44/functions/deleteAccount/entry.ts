@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -9,9 +11,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Delete ALL user-related entity records
     const entitiesToDelete = [
-      'Mentor', 'TeenMentor', 'MentorApplication', 'UserProfile', 
+      'Mentor', 'TeenMentor', 'MentorApplication', 'UserProfile',
       'UserPoints', 'PointsHistory', 'GlowFollow', 'Notification',
       'CommunityPost', 'PostReaction', 'PostComment', 'ShoutOut',
       'ChatMessage', 'DailyPollVote', 'AnonymousQuestion', 'MentorshipProgress',
@@ -31,31 +32,22 @@ Deno.serve(async (req) => {
       'SuccessStory', 'MentorshipResource', 'ParentConsent', 'GlowPass'
     ];
 
-    for (const entityName of entitiesToDelete) {
+    for (let i = 0; i < entitiesToDelete.length; i++) {
+      const entityName = entitiesToDelete[i];
       try {
         const records = await base44.asServiceRole.entities[entityName].filter({ user_email: user.email });
         for (const record of records) {
           await base44.asServiceRole.entities[entityName].delete(record.id);
-        }
-        // Also try filtering by email field variations
-        try {
-          const records2 = await base44.asServiceRole.entities[entityName].filter({ email: user.email });
-          for (const record of records2) {
-            await base44.asServiceRole.entities[entityName].delete(record.id);
-          }
-        } catch (e2) {
-          // Ignore if entity doesn't have email field
+          await sleep(80);
         }
       } catch (e) {
-        // Ignore entities that don't exist or can't be filtered
         console.log(`Could not delete ${entityName}:`, e.message);
       }
+      // Small pause between entities to avoid rate limits
+      await sleep(150);
     }
 
-    return Response.json({ 
-      success: true, 
-      message: 'All user data deleted. You may now delete your account via platform settings.' 
-    });
+    return Response.json({ success: true });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

@@ -157,13 +157,7 @@ function DeleteAccountModal({ profile, onClose }) {
   const doDelete = async () => {
     if (confirmText !== 'DELETE') return;
     setDeleting(true);
-    try {
-      // Call backend function to delete ALL user data
-      await base44.functions.invoke('deleteAccount', {});
-    } catch (err) {
-      console.error('Delete error:', err);
-    }
-    // Logout and redirect to home
+    await base44.functions.invoke('deleteAccount', {});
     await base44.auth.logout('/');
   };
 
@@ -207,7 +201,7 @@ function DeleteAccountModal({ profile, onClose }) {
               <button onClick={doDelete} disabled={confirmText !== 'DELETE' || deleting}
                 className="flex-1 py-3 rounded-2xl font-bold text-sm text-white disabled:opacity-40"
                 style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>
-                {deleting ? 'Deleting...' : 'Delete Forever'}
+                {deleting ? 'Deleting... (this may take a moment)' : 'Delete Forever'}
               </button>
             </div>
           </>
