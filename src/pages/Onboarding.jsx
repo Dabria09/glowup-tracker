@@ -67,10 +67,10 @@ export default function Onboarding() {
           setIsMentorFlow(true);
         }
         
-        // If already onboarded, go to dashboard
+        // If already onboarded AND not in mentor signup flow, go to dashboard
         try {
           const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
-          if (profiles.length && profiles[0].onboarding_complete) {
+          if (profiles.length && profiles[0].onboarding_complete && !isFromMentorSignup) {
             console.log('[Onboarding] Already onboarded, redirecting to dashboard');
             navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
             return;

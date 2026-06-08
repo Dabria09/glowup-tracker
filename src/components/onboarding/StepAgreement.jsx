@@ -11,17 +11,26 @@ export default function StepAgreement({ onBack, onSubmit, loading }) {
   const [signature, setSignature] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const canSubmit = acceptTOS && acceptConduct && acceptAccuracy && signature.trim().length >= 2;
+  const signatureIsValid = signature && signature.trim().length >= 2;
+  const canSubmit = acceptTOS && acceptConduct && acceptAccuracy && signatureIsValid;
 
-  const checkboxStyle = {
-    width: 24,
-    height: 24,
-    border: '2px solid #ec4899',
-    borderRadius: 4,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
+  const scrollBoxStyle = {
+    maxHeight: 200,
+    overflowY: 'auto',
+    padding: '10px',
+    background: 'rgba(0,0,0,0.3)',
+    borderRadius: '6px',
+    fontSize: '12px',
+    lineHeight: '1.5',
+    color: '#d1d5db',
+  };
+
+  const headingStyle = {
+    fontWeight: '600',
+    color: '#f9fafb',
+    marginTop: '12px',
+    marginBottom: '6px',
+    fontSize: '13px',
   };
 
   const handleSubmit = async () => {
@@ -34,8 +43,6 @@ export default function StepAgreement({ onBack, onSubmit, loading }) {
       alert('Something went wrong. Please try again.');
     }
   };
-
-
 
   return (
     <Card className="w-full max-w-2xl mx-auto" style={{ pointerEvents: 'auto', background: 'rgba(30, 10, 40, 0.72)', backdropFilter: 'blur(28px)', border: '1px solid rgba(255, 255, 255, 0.14)' }}>
@@ -104,14 +111,17 @@ export default function StepAgreement({ onBack, onSubmit, loading }) {
                   <p style={headingStyle}>13. Contact</p>
                   <p>Questions: mentors@girlsglowingup.com</p>
                 </div>
-                <div 
-                  onClick={() => setAcceptTOS(!acceptTOS)}
-                  className="flex items-center gap-3 mt-3 cursor-pointer"
-                >
-                  <div style={{ ...checkboxStyle, background: acceptTOS ? '#ec4899' : 'transparent' }}>
-                    {acceptTOS && <span style={{ color: 'white', fontSize: '16px' }}>✓</span>}
-                  </div>
-                  <span className="text-sm text-white">I have read and accept the GGU Mentor Terms of Service in full</span>
+                <div className="flex items-center gap-3 mt-3">
+                  <input
+                    type="checkbox"
+                    id="tos-checkbox"
+                    checked={acceptTOS}
+                    onChange={(e) => setAcceptTOS(e.target.checked)}
+                    className="w-5 h-5 cursor-pointer"
+                  />
+                  <label htmlFor="tos-checkbox" className="text-sm text-white cursor-pointer">
+                    I have read and accept the GGU Mentor Terms of Service in full
+                  </label>
                 </div>
               </div>
             </div>
@@ -139,14 +149,17 @@ export default function StepAgreement({ onBack, onSubmit, loading }) {
                   <p style={headingStyle}>Reporting</p>
                   <p>Report concerning behavior using in-app report function immediately.</p>
                 </div>
-                <div 
-                  onClick={() => setAcceptConduct(!acceptConduct)}
-                  className="flex items-center gap-3 mt-3 cursor-pointer"
-                >
-                  <div style={{ ...checkboxStyle, background: acceptConduct ? '#ec4899' : 'transparent' }}>
-                    {acceptConduct && <span style={{ color: 'white', fontSize: '16px' }}>✓</span>}
-                  </div>
-                  <span className="text-sm text-white">I agree to follow the Safety and Code of Conduct at all times</span>
+                <div className="flex items-center gap-3 mt-3">
+                  <input
+                    type="checkbox"
+                    id="conduct-checkbox"
+                    checked={acceptConduct}
+                    onChange={(e) => setAcceptConduct(e.target.checked)}
+                    className="w-5 h-5 cursor-pointer"
+                  />
+                  <label htmlFor="conduct-checkbox" className="text-sm text-white cursor-pointer">
+                    I agree to follow the Safety and Code of Conduct at all times
+                  </label>
                 </div>
               </div>
             </div>
@@ -161,14 +174,17 @@ export default function StepAgreement({ onBack, onSubmit, loading }) {
                 <p className="text-xs text-muted-foreground">
                   I certify that all information provided in this application is truthful, accurate, and complete. I understand that providing false or misleading information may result in rejection or removal.
                 </p>
-                <div 
-                  onClick={() => setAcceptAccuracy(!acceptAccuracy)}
-                  className="flex items-center gap-3 mt-3 cursor-pointer"
-                >
-                  <div style={{ ...checkboxStyle, background: acceptAccuracy ? '#ec4899' : 'transparent' }}>
-                    {acceptAccuracy && <span style={{ color: 'white', fontSize: '16px' }}>✓</span>}
-                  </div>
-                  <span className="text-sm text-white">I certify all information is truthful and accurate</span>
+                <div className="flex items-center gap-3 mt-3">
+                  <input
+                    type="checkbox"
+                    id="accuracy-checkbox"
+                    checked={acceptAccuracy}
+                    onChange={(e) => setAcceptAccuracy(e.target.checked)}
+                    className="w-5 h-5 cursor-pointer"
+                  />
+                  <label htmlFor="accuracy-checkbox" className="text-sm text-white cursor-pointer">
+                    I certify all information is truthful and accurate
+                  </label>
                 </div>
               </div>
             </div>
@@ -202,10 +218,10 @@ export default function StepAgreement({ onBack, onSubmit, loading }) {
             TOS: {acceptTOS ? '✅ true' : '❌ false'} — 
             Conduct: {acceptConduct ? '✅ true' : '❌ false'} — 
             Accuracy: {acceptAccuracy ? '✅ true' : '❌ false'} — 
-            Signature: {signature ? `${signature.trim().length} chars` : 'empty'}
+            Signature: "{signature}" ({signatureIsValid ? '✅ valid' : '❌ invalid'})
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Button: {!canSubmit ? 'DISABLED' : 'ENABLED'}
+            Button: {canSubmit ? '✅ ENABLED' : '❌ DISABLED'}
           </p>
         </div>
 
