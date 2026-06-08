@@ -24,7 +24,7 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
 
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
-    console.log('StepAgreement handleSubmit called', {
+    console.log('🔴 BUTTON CLICKED - StepAgreement handleSubmit called', {
       acceptTOS,
       acceptConduct,
       signature,
@@ -34,7 +34,11 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
     });
     
     // Always call onSubmit - let parent handle validation
-    onSubmit();
+    if (typeof onSubmit === 'function') {
+      onSubmit();
+    } else {
+      console.error('onSubmit is not a function:', onSubmit);
+    }
   };
 
   const scrollBoxStyle = {
@@ -55,7 +59,7 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto glass-glow">
+    <Card className="w-full max-w-2xl mx-auto" style={{ pointerEvents: 'auto', background: 'rgba(30, 10, 40, 0.72)', backdropFilter: 'blur(28px)', border: '1px solid rgba(255, 255, 255, 0.14)' }}>
       <CardHeader>
         <CardTitle className="text-2xl font-playfair-display text-white flex items-center gap-3">
           <Shield className="h-6 w-6 text-primary" />
@@ -65,7 +69,7 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
           Review and accept our terms to complete your application
         </p>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6" style={{ pointerEvents: 'auto' }}>
         <Alert className="bg-primary/10 border-primary/20">
           <AlertDescription className="text-white text-sm">
             Before submitting, please read and accept the following agreements. Your electronic signature confirms your commitment to these terms.
@@ -212,20 +216,28 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
           </div>
         </div>
 
-        <div className="flex gap-4 pt-4">
+        <div className="flex gap-4 pt-4" style={{ pointerEvents: 'auto' }}>
           <Button
             type="button"
             variant="outline"
-            onClick={onBack}
+            onClick={(e) => {
+              console.log('🟡 Back button onClick fired');
+              onBack();
+            }}
             className="flex-1 border-white/20 text-white hover:bg-white/10"
+            style={{ pointerEvents: 'auto !important', cursor: 'pointer' }}
           >
             Back
           </Button>
           <Button
             type="button"
-            onClick={handleSubmit}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white"
+            onClick={(e) => {
+              console.log('🟢 INLINE onClick fired');
+              handleSubmit(e);
+            }}
+            className="flex-1 bg-primary hover:bg-primary/90 text-white relative z-10"
             disabled={loading}
+            style={{ pointerEvents: 'auto !important', cursor: 'pointer' }}
           >
             {loading && <span className="animate-spin mr-2">⏳</span>}
             Submit Application
