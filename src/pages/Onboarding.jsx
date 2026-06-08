@@ -50,11 +50,15 @@ export default function Onboarding() {
         setUser(u);
         
         // Check hard ban on this email
-        const activeBans = await base44.entities.BannedUser.filter({ user_email: u.email, ban_type: 'hard', is_active: true });
-        if (activeBans.length) { 
-          console.log('[Onboarding] User is banned:', activeBans[0]);
-          setHardBanned(activeBans[0]); 
-          return; 
+        try {
+          const activeBans = await base44.entities.BannedUser.filter({ user_email: u.email, ban_type: 'hard', is_active: true });
+          if (activeBans.length) { 
+            console.log('[Onboarding] User is banned:', activeBans[0]);
+            setHardBanned(activeBans[0]); 
+            return; 
+          }
+        } catch (banErr) {
+          console.log('[Onboarding] Ban check skipped:', banErr.message);
         }
         
         // Check if user is already marked as mentor (from mentor signup flow)
@@ -64,17 +68,21 @@ export default function Onboarding() {
         }
         
         // If already onboarded, go to dashboard
-        const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
-        if (profiles.length && profiles[0].onboarding_complete) {
-          console.log('[Onboarding] Already onboarded, redirecting to dashboard');
-          navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
-          return;
+        try {
+          const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+          if (profiles.length && profiles[0].onboarding_complete) {
+            console.log('[Onboarding] Already onboarded, redirecting to dashboard');
+            navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
+            return;
+          }
+        } catch (profileErr) {
+          console.log('[Onboarding] Profile check skipped:', profileErr.message);
         }
         
         console.log('[Onboarding] Initialization complete, showing onboarding');
       } catch (err) {
         console.error('[Onboarding] Auth error:', err);
-        navigate('/');
+        alert('Auth error: ' + err.message);
       }
     };
     
@@ -137,6 +145,8 @@ export default function Onboarding() {
 
   const progressSteps = steps.filter(s => s !== 'complete');
   const progressIndex = Math.min(stepIndex, progressSteps.length - 1);
+  
+  console.log('[Onboarding Render] user:', user?.email, 'stepIndex:', stepIndex, 'currentStep:', currentStep, 'isMentorFlow:', isMentorFlow);
 
   if (hardBanned) {
     return (
@@ -154,7 +164,14 @@ export default function Onboarding() {
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin mx-auto" />
+          <p className="text-white text-sm mt-4">Loading onboarding...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
