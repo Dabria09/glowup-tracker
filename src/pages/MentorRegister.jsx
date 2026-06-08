@@ -14,7 +14,7 @@ const AGE_GROUPS = ['Glow Girls 5–12', 'Glow Teens 13–18', 'Glow Women 19–
 const MENTEE_COUNTS = ['1', '2', '3', '4', '5+'];
 const HOURS_PER_MONTH = ['2–4 hrs', '5–8 hrs', '9–12 hrs', '12+ hrs'];
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 5; // Account creation (step 0) doesn't count toward the 5 application steps
 
 export default function MentorRegister() {
   const navigate = useNavigate();
@@ -87,7 +87,8 @@ export default function MentorRegister() {
     setError("");
     if (password !== confirmPassword) { setError("Passwords do not match"); return; }
     if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
-    if (calcAge(dob) < 18) { setError("You must be at least 18 years old to apply as a mentor"); return; }
+    const age = calcAge(dob);
+    if (age < 13) { setError("You must be at least 13 years old to apply as a mentor"); return; }
     setLoading(true);
     try {
       await base44.auth.register({ email, password });
@@ -303,9 +304,10 @@ export default function MentorRegister() {
                   </div>
                   <div>
                     <Label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Date of Birth</Label>
-                    <Input type="date" value={dob} onChange={e => setDob(e.target.value)} max={new Date(Date.now() - 18*365.25*24*60*60*1000).toISOString().split('T')[0]}
+                    <Input type="date" value={dob} onChange={e => setDob(e.target.value)} max={new Date(Date.now() - 13*365.25*24*60*60*1000).toISOString().split('T')[0]}
                       className="mt-1 h-12 bg-white/5 border-white/10 text-white focus:border-pink-500" required />
-                    {dob && calcAge(dob) < 18 && <p className="text-xs text-red-400 mt-1">Must be 18 or older</p>}
+                    {dob && calcAge(dob) < 13 && <p className="text-xs text-red-400 mt-1">Must be 13 or older</p>}
+                    {dob && calcAge(dob) >= 13 && calcAge(dob) < 18 && <p className="text-xs text-purple-400 mt-1">✨ Teen mentor track (13-17) — Parental consent required</p>}
                   </div>
                   <div>
                     <Label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Password</Label>
@@ -343,12 +345,12 @@ export default function MentorRegister() {
 
   // ── MULTI-STEP APPLICATION (Steps 1–6) ──
   const stepTitles = [
-    '', // step 0 is account creation
-    'Professional Background',
-    'Background & Safety',
-    'ID Verification',
-    'References',
-    'Agreement & Submit',
+    'Create Account', // step 0
+    'Professional Background', // step 1
+    'Background & Safety', // step 2
+    'ID Verification', // step 3
+    'References', // step 4
+    'Agreement & Submit', // step 5
   ];
 
   return (
@@ -357,9 +359,9 @@ export default function MentorRegister() {
       <div className="sticky top-0 z-50 px-5 py-4 flex items-center gap-4" style={{ background: 'rgba(15,5,32,0.95)', borderBottom: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}>
         <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-28" />
         <div className="flex-1">
-          <div className="text-xs text-gray-500 mb-1">Step {step} of {TOTAL_STEPS}</div>
+          <div className="text-xs text-gray-500 mb-1">{step === 0 ? 'Account Setup' : `Step ${step} of ${TOTAL_STEPS}`}</div>
           <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(step / TOTAL_STEPS) * 100}%`, background: 'linear-gradient(90deg, #e8526d, #f1b610)' }} />
+            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${((step === 0 ? 0 : step) / TOTAL_STEPS) * 100}%`, background: 'linear-gradient(90deg, #e8526d, #f1b610)' }} />
           </div>
         </div>
       </div>
@@ -429,15 +431,21 @@ export default function MentorRegister() {
               onBack={() => setStep(0)}
               onNext={() => {
                 if (!occupation || !education || !expertiseAreas.length || !ageGroups.length) { setError("Please complete all required fields"); return; }
-                setError(""); setStep(2);
+                setError("");
+                // Skip background check step for teen mentors (13-17)
+                const age = calcAge(dob);
+                setStep(age >= 18 ? 2 : 3);
               }}
             />
           </div>
         )}
 
-        {/* STEP 2 — Background & Safety */}
+        {/* STEP 2 — Background & Safety (Adult mentors 18+ only) */}
         {step === 2 && (
           <div className="mt-5 space-y-5">
+            <div className="rounded-2xl p-4 mb-3" style={{ background: 'rgba(147,51,234,0.08)', border: '1px solid rgba(147,51,234,0.3)' }}>
+              <p className="text-xs text-purple-300">✨ Adult mentor track (18+) — Background check required for working with minors</p>
+            </div>
             <div className="rounded-2xl p-5" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <Shield size={20} className="text-red-400" />
@@ -507,7 +515,12 @@ export default function MentorRegister() {
             </Field>
 
             <NavButtons
-              onBack={() => { setError(""); setStep(2); }}
+              onBack={() => {
+                setError("");
+                // Go back to Step 1 for teen mentors, Step 2 for adults
+                const age = calcAge(dob);
+                setStep(age >= 18 ? 2 : 1);
+              }}
               onNext={() => {
                 if (!idFile || !headshot) { setError("Please upload both your ID and a headshot photo"); return; }
                 setError(""); setStep(4);
