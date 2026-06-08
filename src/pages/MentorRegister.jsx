@@ -205,37 +205,39 @@ export default function MentorRegister() {
       const age = calcAge(whoYouAreData.date_of_birth);
       const mentorTrack = age >= 18 ? "adult" : "teen";
       
-      // Create MentorApplication record
-      await base44.entities.MentorApplication.create({
+      // Map camelCase form state to snake_case database fields
+      const applicationData = {
         user_email: user.email,
         full_name: fullName,
-        preferred_name: whoYouAreData.preferred_name,
+        // Who You Are - map camelCase to snake_case
+        preferred_name: whoYouAreData.preferredName || whoYouAreData.preferred_name,
         pronouns: whoYouAreData.pronouns,
         bio: whoYouAreData.bio,
         phone: whoYouAreData.phone,
         city: whoYouAreData.city,
         state: whoYouAreData.state,
-        school_or_workplace: whoYouAreData.school_or_workplace,
+        school_or_workplace: whoYouAreData.schoolOrWorkplace || whoYouAreData.school_or_workplace,
         languages: whoYouAreData.languages,
         avatar_url: whoYouAreData.avatar_url,
         date_of_birth: whoYouAreData.date_of_birth,
-        mentor_track: mentorTrack,
+        // Professional Background - map camelCase to snake_case
         title: professionalData.title,
         occupation: professionalData.occupation,
         employer: professionalData.employer,
         education: professionalData.education,
-        field_of_study: professionalData.field_of_study,
-        experience_years: professionalData.experience_years,
-        worked_with_youth: professionalData.worked_with_youth,
-        youth_experience_description: professionalData.youth_experience_description,
-        expertise: JSON.stringify(professionalData.expertise),
-        age_groups: JSON.stringify(professionalData.age_groups),
-        mentoring_type: professionalData.mentoring_type,
-        mentee_count: professionalData.mentee_count,
-        hours_per_month: professionalData.hours_per_month,
+        field_of_study: professionalData.fieldOfStudy || professionalData.field_of_study,
+        experience_years: professionalData.experienceYears || professionalData.experience_years,
+        worked_with_youth: professionalData.workedWithYouth || professionalData.worked_with_youth,
+        youth_experience_description: professionalData.youthExperienceDesc || professionalData.youth_experience_description,
+        // Map expertiseAreas to both expertise and categories
+        expertise: JSON.stringify(professionalData.expertiseAreas || professionalData.expertise || []),
+        categories: JSON.stringify(professionalData.expertiseAreas || professionalData.categories || []),
+        age_groups: JSON.stringify(professionalData.ageGroups || professionalData.age_groups || []),
+        mentoring_type: professionalData.mentoringType || professionalData.mentoring_type,
+        mentee_count: professionalData.menteeCount || professionalData.mentee_count,
+        hours_per_month: professionalData.hoursPerMonth || professionalData.hours_per_month,
         availability: JSON.stringify(professionalData.availability),
-        session_type: professionalData.session_type,
-        categories: JSON.stringify(professionalData.categories),
+        session_type: professionalData.sessionType || professionalData.session_type,
         // Your Why fields
         why_mentor: yourWhyData.why_mentor,
         wish_someone_told: yourWhyData.wish_told_younger,
@@ -261,9 +263,16 @@ export default function MentorRegister() {
         parent_name: whoYouAreData.parent_name,
         parent_phone: whoYouAreData.parent_phone,
         parent_relationship: whoYouAreData.parent_relationship,
+        // Required fields
+        mentor_track: mentorTrack,
         status: "pending",
         submitted_date: new Date().toISOString(),
-      });
+      };
+      
+      console.log('Submitting application with data:', applicationData);
+      
+      // Create MentorApplication record
+      await base44.entities.MentorApplication.create(applicationData);
       
       console.log('Application created successfully');
       toast.success("Application submitted! We'll review within 5-7 business days.");
