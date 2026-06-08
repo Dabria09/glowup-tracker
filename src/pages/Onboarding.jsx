@@ -153,7 +153,12 @@ export default function Onboarding() {
   const progressSteps = steps.filter(s => s !== 'complete');
   const progressIndex = Math.min(stepIndex, progressSteps.length - 1);
   
-  console.log('[Onboarding Render] user:', user?.email, 'stepIndex:', stepIndex, 'currentStep:', currentStep, 'isMentorFlow:', isMentorFlow);
+  console.log('[Onboarding Render] user:', user?.email, 'stepIndex:', stepIndex, 'currentStep:', currentStep, 'isMentorFlow:', isMentorFlow, 'steps:', steps);
+
+  // Error boundary for debugging
+  if (!currentStep && stepIndex < steps.length) {
+    console.error('[Onboarding] Invalid step!', { stepIndex, steps, currentStep });
+  }
 
   if (hardBanned) {
     return (
@@ -171,11 +176,13 @@ export default function Onboarding() {
   }
 
   if (!user) {
+    console.log('[Onboarding] Waiting for user object...');
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin mx-auto" />
           <p className="text-white text-sm mt-4">Loading onboarding...</p>
+          <p className="text-gray-500 text-xs mt-2">Auth: {user === null ? 'checking...' : 'loading'}</p>
         </div>
       </div>
     );
@@ -203,13 +210,17 @@ export default function Onboarding() {
         {currentStep === 'username' && <StepUsername data={data} update={update} onNext={next} onBack={back} />}
         {currentStep === 'parental' && <StepParentalConsent data={data} update={update} onNext={next} onBack={back} />}
         {currentStep === 'agreement' && (
-          <StepAgreement data={data} update={update} onNext={next} onBack={back} />
+          <StepAgreement
+            onBack={back}
+            onSubmit={() => handleComplete(isMentorFlow)}
+            loading={false}
+          />
         )}
         {currentStep === 'mentor' && (
           <StepMentorChoice data={data} user={user} isMentorFlow={isMentorFlow} onNext={(isMentor) => handleComplete(isMentor)} />
         )}
         {currentStep === 'complete' && (
-          <StepComplete data={data} onDone={() => handleComplete(isMentorFlow)} />
+          <StepComplete applicationId="PENDING" />
         )}
         {!currentStep && (
           <div className="text-center text-white">
