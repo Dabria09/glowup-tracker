@@ -14,6 +14,7 @@ const STEPS_MINOR   = ['dob', 'username', 'parental', 'agreement', 'complete'];
 const STEPS_MENTOR  = ['dob', 'username', 'agreement', 'mentor'];
 
 export default function Onboarding() {
+  console.log('[Onboarding Component] Rendering...');
   const [hardBanned, setHardBanned] = useState(null);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -153,15 +154,11 @@ export default function Onboarding() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
-        <div className="w-10 h-10 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin" />
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-8 font-inter">
+    <div className="min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-8 font-inter" style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
       {/* Progress bar */}
       {currentStep !== 'complete' && (
         <div className="w-full max-w-sm mb-6">
