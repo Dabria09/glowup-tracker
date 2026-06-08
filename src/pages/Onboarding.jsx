@@ -67,21 +67,18 @@ export default function Onboarding() {
           setIsMentorFlow(true);
         }
         
-        // Only redirect if onboarded AND not trying to signup as mentor
-        // If user is already onboarded but wants to apply as mentor, let them proceed
-        if (!isFromMentorSignup) {
-          try {
-            const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
-            if (profiles.length && profiles[0].onboarding_complete) {
-              console.log('[Onboarding] Already onboarded, redirecting to dashboard');
-              navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
-              return;
-            }
-          } catch (profileErr) {
-            console.log('[Onboarding] Profile check skipped:', profileErr.message);
-          }
-        } else {
-          // User is in mentor signup flow - check if they already have a mentor application
+        // Check if user already has a complete profile
+        let hasCompleteProfile = false;
+        try {
+          const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+          hasCompleteProfile = profiles.length && profiles[0].onboarding_complete;
+        } catch (profileErr) {
+          console.log('[Onboarding] Profile check skipped:', profileErr.message);
+        }
+
+        // If user is in mentor signup flow, always let them proceed (don't redirect to dashboard)
+        if (isFromMentorSignup) {
+          // Check if they already have a pending/approved mentor application
           try {
             const apps = await base44.entities.MentorApplication.filter({ user_email: u.email });
             if (apps.length && apps[0].status !== 'rejected') {
@@ -92,6 +89,13 @@ export default function Onboarding() {
           } catch (appErr) {
             console.log('[Onboarding] Mentor app check skipped:', appErr.message);
           }
+          // No existing mentor app - let them proceed with application
+          console.log('[Onboarding] Mentor signup flow - proceeding with application');
+        } else if (hasCompleteProfile) {
+          // Regular user already onboarded - redirect to dashboard
+          console.log('[Onboarding] Already onboarded, redirecting to dashboard');
+          navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
+          return;
         }
         
         console.log('[Onboarding] Initialization complete, showing onboarding');
