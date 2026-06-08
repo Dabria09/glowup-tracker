@@ -24,7 +24,7 @@ export default function StepWhoYouAre({ data, update, onNext, onBack }) {
   };
 
   const handleContinue = () => {
-    if (!data.preferred_name || !data.bio || !data.school_or_workplace || !data.languages) {
+    if (!data.preferredName || !data.bio || !data.schoolOrWorkplace || !data.languages) {
       alert('Please complete all required fields');
       return;
     }

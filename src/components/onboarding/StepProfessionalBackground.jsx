@@ -38,7 +38,7 @@ function Field({ label, children }) {
   );
 }
 
-export default function StepProfessionalBackground({ data, update, onNext, onBack, setError }) {
+export default function StepProfessionalBackground({ data, update, onNext, onBack, setError = () => {} }) {
   const [occupation, setOccupation] = useState(data.occupation || "");
   const [employer, setEmployer] = useState(data.employer || "");
   const [education, setEducation] = useState(data.education || "");
@@ -61,7 +61,7 @@ export default function StepProfessionalBackground({ data, update, onNext, onBac
 
   const handleContinue = () => {
     if (!occupation || !education || !expertiseAreas.length || !ageGroups.length || !mentoringType || !menteeCount || !hoursPerMonth || !availability.length || !sessionType) {
-      setError("Please complete all required fields");
+      alert("Please complete all required fields");
       return;
     }
     // Save data
