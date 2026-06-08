@@ -5,8 +5,9 @@ import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Chev
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
 import MenteeDashboard from './MenteeDashboard';
 import ApplicationStatusTracker from './ApplicationStatusTracker';
+import MentorLesson from './MentorLesson';
 
-const TABS = ['Overview', 'My Mentees', 'Sessions', 'Applications', 'Profile'];
+const TABS = ['Overview', 'My Mentees', 'Sessions', 'Applications', 'Lesson', 'Profile'];
 
 export default function MentorDashboard() {
   const navigate = useNavigate();
@@ -241,28 +242,33 @@ export default function MentorDashboard() {
 
         {/* Tab Bar */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 20, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
-          {TABS.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                padding: '8px 14px',
-                borderRadius: 20,
-                border: activeTab === tab ? 'none' : '1px solid rgba(255,255,255,0.12)',
-                background: activeTab === tab ? 'linear-gradient(135deg, #e8526d, #f1b610)' : 'rgba(255,255,255,0.04)',
-                color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.5)',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                boxShadow: activeTab === tab ? '0 4px 14px rgba(232,82,109,0.35)' : 'none',
-                transition: 'all 0.2s',
-                flexShrink: 0,
-              }}
-            >
-              {tab}
-            </button>
-          ))}
+          {TABS.map(tab => {
+            const isLessonUnlocked = tab === 'Lesson' && application?.checklist_interview_completed && !application?.checklist_lesson_passed;
+            const isLessonPassed = tab === 'Lesson' && application?.checklist_lesson_passed;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 20,
+                  border: activeTab === tab ? 'none' : isLessonUnlocked ? '1px solid rgba(147,51,234,0.5)' : '1px solid rgba(255,255,255,0.12)',
+                  background: activeTab === tab ? 'linear-gradient(135deg, #e8526d, #f1b610)' : isLessonUnlocked ? 'rgba(147,51,234,0.15)' : 'rgba(255,255,255,0.04)',
+                  color: activeTab === tab ? '#fff' : isLessonUnlocked ? '#c084fc' : isLessonPassed ? '#4ade80' : 'rgba(255,255,255,0.5)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  boxShadow: activeTab === tab ? '0 4px 14px rgba(232,82,109,0.35)' : 'none',
+                  transition: 'all 0.2s',
+                  flexShrink: 0,
+                  position: 'relative',
+                }}
+              >
+                {tab}{isLessonPassed && ' ✓'}{isLessonUnlocked && ' 🔓'}
+              </button>
+            );
+          })}
         </div>
 
         {/* ── OVERVIEW TAB ── */}
@@ -278,6 +284,19 @@ export default function MentorDashboard() {
                 </div>
                 <button onClick={() => setActiveTab('Applications')} style={{ padding: '7px 14px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #f1b610, #e8a900)', color: '#1a0a04', fontSize: 11, fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}>
                   Review →
+                </button>
+              </div>
+            )}
+
+            {/* Lesson unlock alert */}
+            {application?.checklist_interview_completed && !application?.checklist_lesson_passed && (
+              <div style={{ background: 'linear-gradient(135deg, rgba(147,51,234,0.15), rgba(79,70,229,0.1))', border: '1px solid rgba(147,51,234,0.4)', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#c084fc' }}>📚 Mentor Lesson Unlocked!</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Complete your certification lesson to finish Stage 5</div>
+                </div>
+                <button onClick={() => setActiveTab('Lesson')} style={{ padding: '7px 14px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #9333ea, #6366f1)', color: '#fff', fontSize: 11, fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}>
+                  Start →
                 </button>
               </div>
             )}
@@ -365,6 +384,18 @@ export default function MentorDashboard() {
               );
             })}
           </Section>
+        )}
+
+        {/* ── LESSON TAB ── */}
+        {activeTab === 'Lesson' && (
+          <MentorLesson
+            application={application}
+            user={user}
+            onComplete={async () => {
+              const apps = await base44.entities.MentorApplication.filter({ user_email: user.email });
+              if (apps.length > 0) setApplication(apps[0]);
+            }}
+          />
         )}
 
         {/* ── PROFILE TAB ── */}
