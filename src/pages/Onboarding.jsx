@@ -144,7 +144,7 @@ export default function Onboarding() {
         <div className="text-center">
           <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-32 mx-auto mb-6 animate-pulse" />
           <div className="w-10 h-10 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin mx-auto" />
-          <p className="text-white mt-4 text-sm">Loading...</p>
+          <p className="text-white mt-4 text-sm">Redirecting to login...</p>
         </div>
       </div>
     );
