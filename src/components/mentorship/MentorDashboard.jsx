@@ -502,12 +502,17 @@ export default function MentorDashboard() {
               onClick={async () => {
                 try {
                   setDeleteLoading(true);
-                  await base44.functions.invoke('deleteAccount', {});
+                  const result = await base44.functions.invoke('deleteAccount', {});
+                  if (result.data?.message?.includes('platform')) {
+                    alert('Mentor profile data deleted. To fully delete your account and free up this email, please go to Account Settings → Delete Account (platform feature).');
+                  } else {
+                    alert('Account deleted successfully!');
+                  }
                   base44.auth.logout('/');
                 } catch (err) {
                   console.error('Delete failed:', err);
                   setDeleteLoading(false);
-                  alert('Failed to delete account. Please try again or contact support.');
+                  alert('Failed to delete account. Please contact support for assistance.');
                 }
               }}
               style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: deleteConfirmText === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.2)', color: '#fff', fontSize: 14, fontWeight: 800, cursor: deleteConfirmText === 'DELETE' ? 'pointer' : 'not-allowed', marginBottom: 10, opacity: deleteConfirmText === 'DELETE' ? 1 : 0.5 }}
