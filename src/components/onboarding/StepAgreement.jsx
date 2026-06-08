@@ -1,53 +1,41 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, CheckCircle, FileText, PenTool } from 'lucide-react';
+import { Shield, CheckCircle, FileText } from 'lucide-react';
 
-export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, setAcceptConduct, signature, setSignature, onSubmit, onBack, loading }) {
-  const [showSignatureError, setShowSignatureError] = useState(false);
+export default function StepAgreement({ onBack, onSubmit, loading }) {
+  const [acceptTOS, setAcceptTOS] = useState(false);
+  const [acceptConduct, setAcceptConduct] = useState(false);
   const [acceptAccuracy, setAcceptAccuracy] = useState(false);
+  const [signature, setSignature] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Simple validation: signature is valid if it has 2+ characters
-  const signatureValid = signature && signature.trim().length >= 2;
-  
-  // Submit is enabled only when all 3 conditions are met
-  const canSubmit = acceptTOS && acceptConduct && acceptAccuracy && signatureValid;
+  const canSubmit = acceptTOS && acceptConduct && acceptAccuracy && signature.trim().length >= 2;
 
-  const handleSignatureChange = (e) => {
-    setSignature(e.target.value);
-    // Clear error message while typing
-    setShowSignatureError(false);
+  const checkboxStyle = {
+    width: 24,
+    height: 24,
+    border: '2px solid #ec4899',
+    borderRadius: 4,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   };
 
-  const handleSubmit = (e) => {
-    if (e) e.preventDefault();
-    
-    // Call parent submit handler
-    if (typeof onSubmit === 'function') {
-      onSubmit();
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+    setIsSubmitting(true);
+    try {
+      await onSubmit();
+    } catch (error) {
+      setIsSubmitting(false);
+      alert('Something went wrong. Please try again.');
     }
   };
 
-  const scrollBoxStyle = {
-    maxHeight: '200px',
-    overflowY: 'auto',
-    fontSize: '12px',
-    lineHeight: '1.5',
-    color: '#9ca3af',
-    paddingRight: '8px',
-  };
 
-  const headingStyle = {
-    color: '#f1b610',
-    fontWeight: '600',
-    marginTop: '12px',
-    marginBottom: '6px',
-    fontSize: '12px',
-  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto" style={{ pointerEvents: 'auto', background: 'rgba(30, 10, 40, 0.72)', backdropFilter: 'blur(28px)', border: '1px solid rgba(255, 255, 255, 0.14)' }}>
@@ -116,30 +104,14 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                   <p style={headingStyle}>13. Contact</p>
                   <p>Questions: mentors@girlsglowingup.com</p>
                 </div>
-                <div className="flex items-start gap-2 mt-3">
-                  <Checkbox
-                    id="tos"
-                    checked={acceptTOS}
-                    onCheckedChange={(checked) => {
-                      console.log('🔴 TOS checkbox changed:', checked);
-                      setAcceptTOS(checked);
-                    }}
-                    className="data-[state=checked]:bg-primary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  />
-                  <Label 
-                    htmlFor="tos" 
-                    className="text-sm text-white cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
-                    I have read and accept the GGU Mentor Terms of Service in full
-                  </Label>
+                <div 
+                  onClick={() => setAcceptTOS(!acceptTOS)}
+                  className="flex items-center gap-3 mt-3 cursor-pointer"
+                >
+                  <div style={{ ...checkboxStyle, background: acceptTOS ? '#ec4899' : 'transparent' }}>
+                    {acceptTOS && <span style={{ color: 'white', fontSize: '16px' }}>✓</span>}
+                  </div>
+                  <span className="text-sm text-white">I have read and accept the GGU Mentor Terms of Service in full</span>
                 </div>
               </div>
             </div>
@@ -167,30 +139,14 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                   <p style={headingStyle}>Reporting</p>
                   <p>Report concerning behavior using in-app report function immediately.</p>
                 </div>
-                <div className="flex items-start gap-2 mt-3">
-                  <Checkbox
-                    id="conduct"
-                    checked={acceptConduct}
-                    onCheckedChange={(checked) => {
-                      console.log('🟠 Conduct checkbox changed:', checked);
-                      setAcceptConduct(checked);
-                    }}
-                    className="data-[state=checked]:bg-accent"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  />
-                  <Label 
-                    htmlFor="conduct" 
-                    className="text-sm text-white cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
-                    I agree to follow the Safety and Code of Conduct at all times
-                  </Label>
+                <div 
+                  onClick={() => setAcceptConduct(!acceptConduct)}
+                  className="flex items-center gap-3 mt-3 cursor-pointer"
+                >
+                  <div style={{ ...checkboxStyle, background: acceptConduct ? '#ec4899' : 'transparent' }}>
+                    {acceptConduct && <span style={{ color: 'white', fontSize: '16px' }}>✓</span>}
+                  </div>
+                  <span className="text-sm text-white">I agree to follow the Safety and Code of Conduct at all times</span>
                 </div>
               </div>
             </div>
@@ -205,30 +161,14 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                 <p className="text-xs text-muted-foreground">
                   I certify that all information provided in this application is truthful, accurate, and complete. I understand that providing false or misleading information may result in rejection or removal.
                 </p>
-                <div className="flex items-start gap-2 mt-3">
-                  <Checkbox
-                    id="accuracy"
-                    checked={acceptAccuracy}
-                    onCheckedChange={(checked) => {
-                      console.log('🔵 Accuracy checkbox changed:', checked);
-                      setAcceptAccuracy(checked);
-                    }}
-                    className="data-[state=checked]:bg-accent"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  />
-                  <Label 
-                    htmlFor="accuracy" 
-                    className="text-sm text-white cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
-                    I certify all information is truthful and accurate
-                  </Label>
+                <div 
+                  onClick={() => setAcceptAccuracy(!acceptAccuracy)}
+                  className="flex items-center gap-3 mt-3 cursor-pointer"
+                >
+                  <div style={{ ...checkboxStyle, background: acceptAccuracy ? '#ec4899' : 'transparent' }}>
+                    {acceptAccuracy && <span style={{ color: 'white', fontSize: '16px' }}>✓</span>}
+                  </div>
+                  <span className="text-sm text-white">I certify all information is truthful and accurate</span>
                 </div>
               </div>
             </div>
@@ -236,27 +176,23 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
 
           {/* Electronic Signature */}
           <div className="space-y-2">
-            <Label htmlFor="signature" className="text-white flex items-center gap-2">
-              <PenTool className="h-4 w-4" />
+            <label className="text-white flex items-center gap-2 text-sm">
               Electronic Signature *
-            </Label>
-            <Input
-              id="signature"
+            </label>
+            <input
+              type="text"
               value={signature}
-              onChange={handleSignatureChange}
-              placeholder="Type your full legal name"
-              className={showSignatureError ? 'border-destructive' : ''}
-              autoComplete="off"
+              onChange={(e) => setSignature(e.target.value)}
               autoCorrect="off"
               autoCapitalize="off"
+              autoComplete="off"
               spellCheck="false"
+              placeholder="Type your full name"
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:border-pink-500"
             />
             <p className="text-xs text-muted-foreground">
               By typing your name above, you electronically sign this application with the same legal validity as a handwritten signature.
             </p>
-            {showSignatureError && (
-              <p className="text-destructive text-xs">Electronic Agreement Required</p>
-            )}
           </div>
         </div>
 
@@ -277,31 +213,25 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
           <Button
             type="button"
             variant="outline"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log('🟡 Back button clicked');
-              onBack();
-            }}
+            onClick={onBack}
             className="flex-1 border-white/20 text-white hover:bg-white/10"
-            style={{ pointerEvents: 'auto !important', cursor: 'pointer', position: 'relative', zIndex: 101 }}
+            style={{ pointerEvents: 'auto !important', cursor: 'pointer' }}
           >
             Back
           </Button>
           <Button
             type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log('🟢 Submit button clicked - canSubmit:', canSubmit);
-              handleSubmit(e);
+            onClick={handleSubmit}
+            disabled={!canSubmit || loading || isSubmitting}
+            className="flex-1 text-white"
+            style={{ 
+              pointerEvents: 'auto !important', 
+              cursor: canSubmit && !loading && !isSubmitting ? 'pointer' : 'not-allowed',
+              background: canSubmit && !loading && !isSubmitting ? '#ec4899' : '#6b7280',
             }}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white"
-            disabled={!canSubmit || loading}
-            style={{ pointerEvents: 'auto !important', cursor: 'pointer', position: 'relative', zIndex: 101, touchAction: 'manipulation' }}
           >
-            {loading && <span className="animate-spin mr-2">⏳</span>}
-            {loading ? 'Submitting...' : 'Submit Application'}
+            {(loading || isSubmitting) && <span className="animate-spin mr-2">⏳</span>}
+            {loading || isSubmitting ? 'Submitting...' : 'Submit Application'}
           </Button>
         </div>
       </CardContent>
