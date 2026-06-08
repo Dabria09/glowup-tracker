@@ -185,20 +185,25 @@ export default function MentorRegister() {
   const handleBack = () => setStep(s => s - 1);
 
   const handleSubmit = async () => {
+    // Validate before proceeding
+    console.log('Submit clicked - Validation state:', {
+      acceptTOS,
+      acceptConduct,
+      signature,
+      signatureLength: signature?.length,
+      canSubmit: acceptTOS && acceptConduct && signature?.trim().length >= 2
+    });
+    
+    if (!acceptTOS || !acceptConduct || !signature || signature.trim().length < 2) {
+      toast.error("Please accept both agreements and provide your electronic signature");
+      return;
+    }
+    
     setLoading(true);
     try {
       const user = await base44.auth.me();
       const age = calcAge(whoYouAreData.date_of_birth);
       const mentorTrack = age >= 18 ? "adult" : "teen";
-      
-      // Debug: log values at submit time
-      console.log('Submit clicked - Validation state:', {
-        acceptTOS,
-        acceptConduct,
-        signature,
-        signatureLength: signature?.length,
-        canSubmit: acceptTOS && acceptConduct && signature?.trim().length >= 2
-      });
       
       // Create MentorApplication record
       await base44.entities.MentorApplication.create({

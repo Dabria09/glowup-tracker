@@ -22,7 +22,8 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
     setShowSignatureError(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault();
     console.log('StepAgreement handleSubmit called', {
       acceptTOS,
       acceptConduct,
@@ -32,15 +33,7 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
       onSubmit: typeof onSubmit
     });
     
-    if (!canSubmit) {
-      // Only show error if user tries to submit with invalid signature
-      if (!signatureValid) {
-        setShowSignatureError(true);
-      }
-      console.log('Submit blocked - validation failed');
-      return;
-    }
-    console.log('Calling onSubmit from parent');
+    // Always call onSubmit - let parent handle validation
     onSubmit();
   };
 
@@ -232,7 +225,7 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
             type="button"
             onClick={handleSubmit}
             className="flex-1 bg-primary hover:bg-primary/90 text-white"
-            disabled={loading || !canSubmit}
+            disabled={loading}
           >
             {loading && <span className="animate-spin mr-2">⏳</span>}
             Submit Application
