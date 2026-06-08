@@ -238,7 +238,12 @@ export default function MentorRegister() {
 
         <div className="w-full max-w-md relative z-10 py-8">
           <div className="text-center mb-8">
-            <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="Girls Glowing Up" className="w-44 mx-auto mb-5" />
+            <img
+              src="https://media.base44.com/images/public/6a0e12a89992f9565c11e330/845ad74b2_CD382222-BC38-4ADA-BAD6-16F4900160602.png"
+              alt="Girls Glowing Up"
+              className="w-56 mx-auto mb-5"
+              style={{ filter: 'drop-shadow(0 0 20px rgba(232,82,109,0.4))' }}
+            />
             <h1 className="text-2xl font-bold text-white mb-1">Mentor Application</h1>
             <p className="text-sm text-gray-400">Create your account to begin</p>
           </div>
