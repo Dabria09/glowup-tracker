@@ -10,27 +10,61 @@ Deno.serve(async (req) => {
     }
 
     const entitiesToDelete = [
-      'Mentor', 'TeenMentor', 'MentorApplication', 'UserProfile',
-      'UserPoints', 'PointsHistory', 'GlowFollow', 'Notification',
-      'CommunityPost', 'PostReaction', 'PostComment', 'ShoutOut',
-      'ChatMessage', 'DailyPollVote', 'AnonymousQuestion', 'MentorshipProgress',
-      'SessionReport', 'ContestEntry', 'GratitudeEntry', 'SpiritualReflection',
-      'SpiritualGoal', 'Affirmation', 'VisionBoardItem', 'CycleLog',
-      'CycleSymptomLog', 'HomeworkTask', 'Trip', 'TripActivity', 'TripExpense',
-      'TripDocument', 'TimeTask', 'GlowEvent', 'GlowTask', 'GlowGuest',
-      'CleaningTask', 'StickyNote', 'CalendarEvent', 'Countdown', 'DiaryEntry',
-      'FitnessLog', 'Contact', 'PasswordVault', 'Appointment', 'SavedQuote',
-      'MoneyEntry', 'SavingsGoal', 'GlowUpPost', 'BookClubNomination',
-      'BookClubVote', 'BookClubDiscussion', 'MealPlan', 'GroceryItem',
-      'KitchenPost', 'Recipe', 'GlowBoard', 'TeamDiscussion', 'SquadContest',
-      'TeamContest', 'SquadChallenge', 'GlowRoom', 'CommunityMember',
-      'SpiritualProfile', 'VisionBoard', 'WeeklyChallenge', 'DailyTask',
-      'KitchenBasic', 'GlowUpCertificate', 'ScholarshipWin', 'JobApplication',
-      'MentorSession', 'PeerMentoringCircle', 'TeenMentorTraining',
-      'SuccessStory', 'MentorshipResource', 'ParentConsent', 'GlowPass'
+      // Profile & Points
+      'UserProfile', 'UserPoints', 'PointsHistory',
+      // Mentor
+      'Mentor', 'TeenMentor', 'MentorApplication', 'TeenMentorApplication',
+      'MentorSession', 'MentorshipProgress', 'MentorshipBadge',
+      'PeerMentoringCircle', 'TeenMentorTraining', 'SuccessStory',
+      'MentorshipResource', 'ParentConsent', 'SessionReport',
+      // Social / Community
+      'GlowFollow', 'Notification', 'CommunityPost', 'PostReaction',
+      'PostComment', 'ShoutOut', 'CommunityMember', 'CommunityPoll',
+      'AnonymousQuestion',
+      // Teams & Squads
+      'TeamMember', 'SquadMember',
+      // Chat
+      'ChatMessage',
+      // Polls & Votes
+      'DailyPollVote',
+      // Contests
+      'ContestEntry',
+      // Spiritual / Wellness
+      'GratitudeEntry', 'SpiritualReflection', 'SpiritualGoal',
+      'SpiritualHabit', 'SpiritualProfile', 'Affirmation',
+      // Vision
+      'VisionBoard', 'VisionBoardItem',
+      // Health
+      'CycleLog', 'CycleSymptomLog', 'FitnessLog',
+      // Tasks & Planning
+      'HomeworkTask', 'TimeTask', 'CleaningTask', 'DailyTask', 'WeeklyChallenge',
+      // Glow Up Challenges
+      'GlowUpChallenge',
+      // Events & Trips
+      'Trip', 'TripActivity', 'TripExpense', 'TripDocument', 'TripPackItem',
+      'GlowEvent', 'GlowTask', 'GlowGuest', 'GlowBudgetItem',
+      // Personal Tools
+      'CalendarEvent', 'Countdown', 'DiaryEntry', 'StickyNote',
+      'Contact', 'PasswordVault', 'Appointment', 'SavedQuote',
+      // Finance
+      'MoneyEntry', 'SavingsGoal',
+      // Social Feed
+      'GlowUpPost', 'GlowBoard', 'GlowRoom',
+      // Book Club
+      'BookClubNomination', 'BookClubVote', 'BookClubDiscussion', 'BookClubProgress',
+      // Kitchen
+      'MealPlan', 'GroceryItem', 'KitchenPost', 'Recipe', 'KitchenBasic',
+      // Teams
+      'TeamDiscussion', 'SquadContest', 'TeamContest', 'SquadChallenge',
+      // Career / Education
+      'JobApplication', 'ScholarshipWin',
+      // Certificates & Goals
+      'GlowUpCertificate',
+      // Glow Pass
+      'GlowPass',
     ];
 
-    // Run all entity deletions in parallel — no sleep delays
+    // Run all entity deletions in parallel
     await Promise.all(
       entitiesToDelete.map(async (entityName) => {
         try {
