@@ -26,10 +26,10 @@ Deno.serve(async (req) => {
       await base44.entities.UserProfile.delete(p.id);
     }
 
-    // Delete the User entity record — this removes them from the app entirely
-    await base44.asServiceRole.entities.User.delete(user.id);
+    // Note: We don't delete the User entity record here as that's handled by the platform's account deletion flow.
+    // This function only cleans up mentor-specific data. The user should use the platform's built-in account deletion.
 
-    return Response.json({ success: true });
+    return Response.json({ success: true, message: 'Mentor data deleted. Please use platform settings to delete your full account.' });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
