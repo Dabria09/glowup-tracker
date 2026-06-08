@@ -125,8 +125,19 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                       setAcceptTOS(checked);
                     }}
                     className="data-[state=checked]:bg-primary"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                   />
-                  <Label htmlFor="tos" className="text-sm text-white cursor-pointer">
+                  <Label 
+                    htmlFor="tos" 
+                    className="text-sm text-white cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
                     I have read and accept the GGU Mentor Terms of Service in full
                   </Label>
                 </div>
@@ -165,8 +176,19 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                       setAcceptConduct(checked);
                     }}
                     className="data-[state=checked]:bg-accent"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                   />
-                  <Label htmlFor="conduct" className="text-sm text-white cursor-pointer">
+                  <Label 
+                    htmlFor="conduct" 
+                    className="text-sm text-white cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
                     I agree to follow the Safety and Code of Conduct at all times
                   </Label>
                 </div>
@@ -192,8 +214,19 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                       setAcceptAccuracy(checked);
                     }}
                     className="data-[state=checked]:bg-accent"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                   />
-                  <Label htmlFor="accuracy" className="text-sm text-white cursor-pointer">
+                  <Label 
+                    htmlFor="accuracy" 
+                    className="text-sm text-white cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
                     I certify all information is truthful and accurate
                   </Label>
                 </div>
