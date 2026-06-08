@@ -67,16 +67,18 @@ export default function Onboarding() {
           setIsMentorFlow(true);
         }
         
-        // If already onboarded AND not in mentor signup flow, go to dashboard
-        try {
-          const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
-          if (profiles.length && profiles[0].onboarding_complete && !isFromMentorSignup) {
-            console.log('[Onboarding] Already onboarded, redirecting to dashboard');
-            navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
-            return;
+        // Only redirect if onboarded AND not trying to signup as mentor
+        if (!isFromMentorSignup) {
+          try {
+            const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+            if (profiles.length && profiles[0].onboarding_complete) {
+              console.log('[Onboarding] Already onboarded, redirecting to dashboard');
+              navigate(u.account_type === 'mentor' ? '/mentor-dashboard' : '/dashboard');
+              return;
+            }
+          } catch (profileErr) {
+            console.log('[Onboarding] Profile check skipped:', profileErr.message);
           }
-        } catch (profileErr) {
-          console.log('[Onboarding] Profile check skipped:', profileErr.message);
         }
         
         console.log('[Onboarding] Initialization complete, showing onboarding');
