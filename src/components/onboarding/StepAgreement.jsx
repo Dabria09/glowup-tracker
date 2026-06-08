@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,37 +8,30 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, CheckCircle, FileText, PenTool } from 'lucide-react';
 
 export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, setAcceptConduct, signature, setSignature, onSubmit, onBack, loading }) {
-  const [errors, setErrors] = useState({});
+  const [showSignatureError, setShowSignatureError] = useState(false);
 
-  // Real-time validation - runs whenever signature or checkboxes change
-  React.useEffect(() => {
-    const newErrors = {};
-    
-    if (!acceptTOS) {
-      newErrors.acceptTOS = 'You must accept the Terms of Service';
-    }
-    
-    if (!acceptConduct) {
-      newErrors.acceptConduct = 'You must accept the Safety and Code of Conduct';
-    }
-    
-    // Only show signature error if field is empty (less than 2 characters)
-    if (!signature || signature.length < 2) {
-      newErrors.signature = 'Electronic signature is required';
-    }
+  // Simple validation: signature is valid if it has 2+ characters
+  const signatureValid = signature && signature.trim().length >= 2;
+  
+  // Submit is enabled only when all 3 conditions are met
+  const canSubmit = acceptTOS && acceptConduct && signatureValid;
 
-    setErrors(newErrors);
-  }, [acceptTOS, acceptConduct, signature]);
+  const handleSignatureChange = (e) => {
+    setSignature(e.target.value);
+    // Clear error message while typing
+    setShowSignatureError(false);
+  };
 
   const handleSubmit = () => {
-    // Final validation before submit
-    if (!acceptTOS || !acceptConduct || !signature || signature.length < 2) {
+    if (!canSubmit) {
+      // Only show error if user tries to submit with invalid signature
+      if (!signatureValid) {
+        setShowSignatureError(true);
+      }
       return;
     }
     onSubmit();
   };
-
-  const isSubmitDisabled = !acceptTOS || !acceptConduct || !signature || signature.length < 2;
 
   const scrollBoxStyle = {
     maxHeight: '200px',
@@ -135,9 +128,6 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                     I have read and accept the GGU Mentor Terms of Service in full
                   </Label>
                 </div>
-                {errors.acceptTOS && (
-                  <p className="text-destructive text-xs">{errors.acceptTOS}</p>
-                )}
               </div>
             </div>
           </div>
@@ -175,9 +165,6 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
                     I agree to follow the Safety and Code of Conduct at all times
                   </Label>
                 </div>
-                {errors.acceptConduct && (
-                  <p className="text-destructive text-xs">{errors.acceptConduct}</p>
-                )}
               </div>
             </div>
           </div>
@@ -208,15 +195,15 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
             <Input
               id="signature"
               value={signature}
-              onChange={(e) => setSignature(e.target.value)}
+              onChange={handleSignatureChange}
               placeholder="Type your full legal name"
-              className={errors.signature ? 'border-destructive' : ''}
+              className={showSignatureError ? 'border-destructive' : ''}
             />
             <p className="text-xs text-muted-foreground">
               By typing your name above, you electronically sign this application with the same legal validity as a handwritten signature.
             </p>
-            {errors.signature && (
-              <p className="text-destructive text-xs">{errors.signature}</p>
+            {showSignatureError && (
+              <p className="text-destructive text-xs">Electronic Agreement Required</p>
             )}
           </div>
         </div>
@@ -234,7 +221,7 @@ export default function StepAgreement({ acceptTOS, setAcceptTOS, acceptConduct, 
             type="button"
             onClick={handleSubmit}
             className="flex-1 bg-primary hover:bg-primary/90 text-white"
-            disabled={loading || isSubmitDisabled}
+            disabled={loading || !canSubmit}
           >
             {loading && <span className="animate-spin mr-2">⏳</span>}
             Submit Application
