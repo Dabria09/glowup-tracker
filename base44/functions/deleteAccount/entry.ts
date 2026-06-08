@@ -9,27 +9,53 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Delete mentor profile records
-    const mentors = await base44.entities.Mentor.filter({ user_email: user.email });
-    for (const m of mentors) {
-      await base44.entities.Mentor.delete(m.id);
+    // Delete ALL user-related entity records
+    const entitiesToDelete = [
+      'Mentor', 'TeenMentor', 'MentorApplication', 'UserProfile', 
+      'UserPoints', 'PointsHistory', 'GlowFollow', 'Notification',
+      'CommunityPost', 'PostReaction', 'PostComment', 'ShoutOut',
+      'ChatMessage', 'DailyPollVote', 'AnonymousQuestion', 'MentorshipProgress',
+      'SessionReport', 'ContestEntry', 'GratitudeEntry', 'SpiritualReflection',
+      'SpiritualGoal', 'Affirmation', 'VisionBoardItem', 'CycleLog',
+      'CycleSymptomLog', 'HomeworkTask', 'Trip', 'TripActivity', 'TripExpense',
+      'TripDocument', 'TimeTask', 'GlowEvent', 'GlowTask', 'GlowGuest',
+      'CleaningTask', 'StickyNote', 'CalendarEvent', 'Countdown', 'DiaryEntry',
+      'FitnessLog', 'Contact', 'PasswordVault', 'Appointment', 'SavedQuote',
+      'MoneyEntry', 'SavingsGoal', 'GlowUpPost', 'BookClubNomination',
+      'BookClubVote', 'BookClubDiscussion', 'MealPlan', 'GroceryItem',
+      'KitchenPost', 'Recipe', 'GlowBoard', 'TeamDiscussion', 'SquadContest',
+      'TeamContest', 'SquadChallenge', 'GlowRoom', 'CommunityMember',
+      'SpiritualProfile', 'VisionBoard', 'WeeklyChallenge', 'DailyTask',
+      'KitchenBasic', 'GlowUpCertificate', 'ScholarshipWin', 'JobApplication',
+      'MentorSession', 'PeerMentoringCircle', 'TeenMentorTraining',
+      'SuccessStory', 'MentorshipResource', 'ParentConsent', 'GlowPass'
+    ];
+
+    for (const entityName of entitiesToDelete) {
+      try {
+        const records = await base44.asServiceRole.entities[entityName].filter({ user_email: user.email });
+        for (const record of records) {
+          await base44.asServiceRole.entities[entityName].delete(record.id);
+        }
+        // Also try filtering by email field variations
+        try {
+          const records2 = await base44.asServiceRole.entities[entityName].filter({ email: user.email });
+          for (const record of records2) {
+            await base44.asServiceRole.entities[entityName].delete(record.id);
+          }
+        } catch (e2) {
+          // Ignore if entity doesn't have email field
+        }
+      } catch (e) {
+        // Ignore entities that don't exist or can't be filtered
+        console.log(`Could not delete ${entityName}:`, e.message);
+      }
     }
 
-    const teenMentors = await base44.entities.TeenMentor.filter({ user_email: user.email });
-    for (const m of teenMentors) {
-      await base44.entities.TeenMentor.delete(m.id);
-    }
-
-    // Delete user profile
-    const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-    for (const p of profiles) {
-      await base44.entities.UserProfile.delete(p.id);
-    }
-
-    // Note: We don't delete the User entity record here as that's handled by the platform's account deletion flow.
-    // This function only cleans up mentor-specific data. The user should use the platform's built-in account deletion.
-
-    return Response.json({ success: true, message: 'Mentor data deleted. Please use platform settings to delete your full account.' });
+    return Response.json({ 
+      success: true, 
+      message: 'All user data deleted. You may now delete your account via platform settings.' 
+    });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
