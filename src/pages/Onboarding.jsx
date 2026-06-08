@@ -30,7 +30,7 @@ export default function Onboarding() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const isFromMentorSignup = urlParams.get('mentor') === 'true';
-    console.log('[Onboarding] Starting init, mentor param:', isFromMentorSignup);
+    console.log('[Onboarding] 🔍 INIT - mentor param:', isFromMentorSignup, 'URL:', window.location.search);
     
     const initAuth = async () => {
       try {
@@ -61,24 +61,28 @@ export default function Onboarding() {
           console.log('[Onboarding] Ban check skipped:', banErr.message);
         }
         
-        // ONLY use URL parameter to determine mentor flow - ignore account_type from previous sessions
+        // FORCE mentor flow if URL param exists - this is the ONLY thing that matters
         if (isFromMentorSignup) {
-          console.log('[Onboarding] Setting mentor flow from URL param');
+          console.log('[Onboarding] 🔥 FORCING mentor flow from URL param - will NOT redirect to dashboard');
           setIsMentorFlow(true);
         }
         
         // Check if user already has a complete profile
         let hasCompleteProfile = false;
+        let profileExists = false;
         try {
           const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+          profileExists = profiles.length > 0;
           hasCompleteProfile = profiles.length && profiles[0].onboarding_complete;
+          console.log('[Onboarding] Profile check:', { exists: profileExists, complete: hasCompleteProfile, count: profiles.length });
         } catch (profileErr) {
           console.log('[Onboarding] Profile check skipped:', profileErr.message);
         }
 
-        // CRITICAL: If user came from mentor signup, NEVER redirect to dashboard - always let them apply
+        // CRITICAL: If user came from mentor signup, NEVER redirect to dashboard - ALWAYS let them apply
         if (isFromMentorSignup) {
-          console.log('[Onboarding] Mentor signup flow - proceeding with application (no redirect)');
+          console.log('[Onboarding] ✅ MENTOR FLOW - Blocking all redirects, proceeding to application');
+          console.log('[Onboarding] Profile exists?', profileExists, 'Complete?', hasCompleteProfile, '- IGNORING, proceeding anyway');
         } else if (hasCompleteProfile) {
           // Regular user already onboarded - redirect to dashboard
           console.log('[Onboarding] Already onboarded, redirecting to dashboard');
@@ -160,6 +164,15 @@ export default function Onboarding() {
   
   console.log('[Onboarding Render] user:', user?.email, 'stepIndex:', stepIndex, 'currentStep:', currentStep, 'isMentorFlow:', isMentorFlow, 'steps:', steps);
 
+  // Debug display - remove after testing
+  const debugInfo = {
+    user: user?.email,
+    isMentorFlow,
+    stepIndex,
+    currentStep,
+    hasProfile: 'checking...',
+  };
+
   // Error boundary for debugging
   if (!currentStep && stepIndex < steps.length) {
     console.error('[Onboarding] Invalid step!', { stepIndex, steps, currentStep });
@@ -195,6 +208,11 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-8 font-inter" style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
+      {/* Debug Banner - Testing */}
+      <div className="fixed top-0 left-0 right-0 bg-amber-500/90 text-black text-xs p-2 z-[9999] font-mono">
+        🧪 DEBUG: isMentorFlow={isMentorFlow?.toString()} | step={stepIndex} | currentStep={currentStep} | user={user?.email || 'none'}
+      </div>
+      
       {/* Progress bar */}
       {currentStep !== 'complete' && (
         <div className="w-full max-w-sm mb-6">
