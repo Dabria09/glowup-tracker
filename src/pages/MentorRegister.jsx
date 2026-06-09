@@ -44,6 +44,7 @@ export default function MentorRegister() {
   const [isVerified, setIsVerified] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showLoginInstead, setShowLoginInstead] = useState(false);
 
   // Step 1 — Who You Are
   const [whoYouAreData, setWhoYouAreData] = useState({
@@ -172,7 +173,13 @@ export default function MentorRegister() {
       setIsVerified(false);
       setStep(0.5); // OTP step
     } catch (err) {
-      setError(err.message || "Registration failed");
+      const msg = err.message || "";
+      if (msg.toLowerCase().includes("already exists") || msg.toLowerCase().includes("already registered")) {
+        setError(""); // Clear error — show dedicated prompt below
+        setShowLoginInstead(true);
+      } else {
+        setError(msg || "Registration failed");
+      }
     }
     setLoading(false);
   };
@@ -387,7 +394,20 @@ export default function MentorRegister() {
                 </div>
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
-              <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700" size="lg" disabled={loading}>
+              {showLoginInstead && (
+                <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-sm space-y-2">
+                  <p className="font-bold text-yellow-400">This email already has an account.</p>
+                  <p className="text-gray-300">If you previously deleted your account, your login credentials still exist. Please sign in instead to continue your mentor application.</p>
+                  <Button
+                    type="button"
+                    className="w-full bg-pink-600 hover:bg-pink-700 mt-1"
+                    onClick={() => window.location.href = `/mentor-login`}
+                  >
+                    Sign In Instead →
+                  </Button>
+                </div>
+              )}
+              <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700" size="lg" disabled={loading || showLoginInstead}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Account
               </Button>
