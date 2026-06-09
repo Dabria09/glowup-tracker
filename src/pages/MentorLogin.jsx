@@ -15,6 +15,7 @@ export default function MentorLogin() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    if (params.get("email")) setEmail(params.get("email"));
     if (params.get("oauth") === "1") {
       base44.auth.me().then(async (user) => {
         if (!user) { window.location.href = "/mentor-login?err=noaccount"; return; }
