@@ -15,24 +15,20 @@ export default function MentorLogin() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("email")) setEmail(params.get("email"));
+    // Pre-fill email when redirected from register page
+    if (params.get("prefill")) setEmail(decodeURIComponent(params.get("prefill")));
+    // Handle OAuth callback
     if (params.get("oauth") === "1") {
       base44.auth.me().then(async (user) => {
-        if (!user) { window.location.href = "/mentor-login?err=noaccount"; return; }
+        if (!user) { setError("No mentor account found. Please apply to become a mentor."); return; }
         const apps = await base44.entities.MentorApplication.filter({ user_email: user.email });
         if (apps && apps.length > 0) {
           window.location.href = "/mentor-dashboard";
         } else {
           await base44.auth.logout();
-          window.location.href = "/mentor-login?err=noaccount";
+          setError("No mentor account found for this email. Please apply to become a mentor.");
         }
       }).catch(() => {});
-    }
-    if (params.get("err") === "noaccount") {
-      setError("No mentor account found. Please apply to become a mentor.");
-    }
-    if (params.get("err") === "gguaccount") {
-      setError("This email is registered as a GGU member, not a mentor. Please sign in at the main login page or apply to become a mentor.");
     }
   }, []);
 

@@ -401,7 +401,7 @@ export default function MentorRegister() {
                   <Button
                     type="button"
                     className="w-full bg-pink-600 hover:bg-pink-700 text-white"
-                    onClick={() => window.location.href = `/mentor-login?email=${encodeURIComponent(email)}`}
+                    onClick={() => window.location.href = `/mentor-login?prefill=${encodeURIComponent(email)}`}
                   >
                     Sign In Instead
                   </Button>
