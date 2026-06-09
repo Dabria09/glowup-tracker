@@ -38,7 +38,7 @@ export default function Login() {
       }).catch(() => {});
     }
     if (params.get("deleted") === "1") {
-      setError("No account found. Please register or contact support.");
+      setError("This account no longer exists. Please create a new account to continue.");
     }
   }, []);
 
@@ -59,9 +59,11 @@ export default function Login() {
       if (!isMentorOnly && !isLinked) {
         const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
         if (profiles.length === 0) {
-          // No profile = deleted or incomplete account
+          // No profile = account was deleted — block access immediately
           await base44.auth.logout();
-          setError("No account found for this email. Please register a new account.");
+          try { localStorage.clear(); } catch {}
+          try { sessionStorage.clear(); } catch {}
+          setError("This account no longer exists. Please create a new account to continue.");
           setLoading(false);
           return;
         }

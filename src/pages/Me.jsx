@@ -156,9 +156,19 @@ function DeleteAccountModal({ profile, onClose }) {
 
   const doDelete = async () => {
     if (confirmText !== 'DELETE') return;
-    setDeleting(true); // Instant feedback
-    await base44.functions.invoke('deleteAccount', {});
-    setStep(3); // Show confirmation immediately — logout happens on button click
+    setDeleting(true);
+    try {
+      await base44.functions.invoke('deleteAccount', {});
+    } catch (e) {
+      // Even if the function errors, proceed with local cleanup and logout
+      console.log('deleteAccount error (proceeding with logout):', e.message);
+    }
+    // Clear ALL local storage, session storage, and cached credentials
+    try { localStorage.clear(); } catch {}
+    try { sessionStorage.clear(); } catch {}
+    // Force logout and redirect — do not wait for user to click a button
+    // This ensures the session token is invalidated immediately
+    await base44.auth.logout('/');
   };
 
   return (

@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
 
     // Entities using user_email field
     const userEmailEntities = [
-      'UserProfile', 'UserPoints', 'PointsHistory',
+      'UserPoints', 'PointsHistory',
       'Mentor', 'TeenMentor', 'MentorApplication', 'TeenMentorApplication',
       'MentorSession', 'MentorshipProgress', 'MentorshipBadge',
       'PeerMentoringCircle', 'TeenMentorTraining', 'SuccessStory',
@@ -82,8 +82,22 @@ Deno.serve(async (req) => {
       console.log(`Data cleanup error (continuing): ${e.message}`);
     }
 
-    // Always delete the auth user — this frees the email for re-registration
-    await base44.asServiceRole.entities.User.delete(user.id);
+    // Delete the UserProfile LAST (after all other data) and separately
+    // so the Login page's UserProfile check will block re-login even if User.delete fails
+    try {
+      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: email });
+      await Promise.all(profiles.map(p => base44.asServiceRole.entities.UserProfile.delete(p.id)));
+    } catch (e) {
+      console.log(`UserProfile delete error: ${e.message}`);
+    }
+
+    // Attempt to delete the auth/User record — may not fully remove auth credentials
+    // but the UserProfile check in Login.jsx will block re-login
+    try {
+      await base44.asServiceRole.entities.User.delete(user.id);
+    } catch (e) {
+      console.log(`User record delete error (non-fatal): ${e.message}`);
+    }
 
     return Response.json({ success: true });
   } catch (error) {
