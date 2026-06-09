@@ -1,5 +1,19 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+// Helper: delete all records for a user from an entity using user_email field, paginating until done
+async function deleteAllByEmail(serviceRole, entityName, email, fieldName = 'user_email') {
+  let deleted = 0;
+  while (true) {
+    const query = { [fieldName]: email };
+    const records = await serviceRole.entities[entityName].filter(query, '-created_date', 100);
+    if (!records || records.length === 0) break;
+    await Promise.all(records.map(r => serviceRole.entities[entityName].delete(r.id)));
+    deleted += records.length;
+    if (records.length < 100) break;
+  }
+  return deleted;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -9,76 +23,70 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const entitiesToDelete = [
-      // Profile & Points
+    const sr = base44.asServiceRole;
+    const email = user.email;
+
+    // Entities using user_email field
+    const userEmailEntities = [
       'UserProfile', 'UserPoints', 'PointsHistory',
-      // Mentor
       'Mentor', 'TeenMentor', 'MentorApplication', 'TeenMentorApplication',
       'MentorSession', 'MentorshipProgress', 'MentorshipBadge',
       'PeerMentoringCircle', 'TeenMentorTraining', 'SuccessStory',
       'MentorshipResource', 'ParentConsent', 'SessionReport',
-      // Social / Community
-      'GlowFollow', 'Notification', 'CommunityPost', 'PostReaction',
-      'PostComment', 'ShoutOut', 'CommunityMember', 'CommunityPoll',
-      'AnonymousQuestion',
-      // Teams & Squads
+      'Notification', 'CommunityPost', 'PostReaction', 'PostComment',
+      'ShoutOut', 'CommunityMember', 'CommunityPoll', 'AnonymousQuestion',
       'TeamMember', 'SquadMember',
-      // Chat
-      'ChatMessage',
-      // Polls & Votes
-      'DailyPollVote',
-      // Contests
-      'ContestEntry',
-      // Spiritual / Wellness
+      'DailyPollVote', 'ContestEntry',
       'GratitudeEntry', 'SpiritualReflection', 'SpiritualGoal',
       'SpiritualHabit', 'SpiritualProfile', 'Affirmation',
-      // Vision
       'VisionBoard', 'VisionBoardItem',
-      // Health
       'CycleLog', 'CycleSymptomLog', 'FitnessLog',
-      // Tasks & Planning
       'HomeworkTask', 'TimeTask', 'CleaningTask', 'DailyTask', 'WeeklyChallenge',
-      // Glow Up Challenges
       'GlowUpChallenge',
-      // Events & Trips
       'Trip', 'TripActivity', 'TripExpense', 'TripDocument', 'TripPackItem',
       'GlowEvent', 'GlowTask', 'GlowGuest', 'GlowBudgetItem',
-      // Personal Tools
       'CalendarEvent', 'Countdown', 'DiaryEntry', 'StickyNote',
       'Contact', 'PasswordVault', 'Appointment', 'SavedQuote',
-      // Finance
       'MoneyEntry', 'SavingsGoal',
-      // Social Feed
       'GlowUpPost', 'GlowBoard', 'GlowRoom',
-      // Book Club
       'BookClubNomination', 'BookClubVote', 'BookClubDiscussion', 'BookClubProgress',
-      // Kitchen
       'MealPlan', 'GroceryItem', 'KitchenPost', 'Recipe', 'KitchenBasic',
-      // Teams
       'TeamDiscussion', 'SquadContest', 'TeamContest', 'SquadChallenge',
-      // Career / Education
       'JobApplication', 'ScholarshipWin',
-      // Certificates & Goals
       'GlowUpCertificate',
-      // Glow Pass
-      'GlowPass',
     ];
 
-    // Run all entity deletions in parallel
-    await Promise.all(
-      entitiesToDelete.map(async (entityName) => {
+    // Run all deletions in parallel, including special cases
+    await Promise.all([
+      // Standard user_email entities
+      ...userEmailEntities.map(entityName =>
+        deleteAllByEmail(sr, entityName, email).catch(e =>
+          console.log(`Skip ${entityName}: ${e.message}`)
+        )
+      ),
+      // GlowFollow: user appears as follower OR followed
+      (async () => {
         try {
-          const records = await base44.asServiceRole.entities[entityName].filter({ user_email: user.email });
-          if (records.length > 0) {
-            await Promise.all(records.map(record =>
-              base44.asServiceRole.entities[entityName].delete(record.id)
-            ));
-          }
-        } catch (e) {
-          console.log(`Could not delete ${entityName}:`, e.message);
-        }
-      })
-    );
+          await Promise.all([
+            deleteAllByEmail(sr, 'GlowFollow', email, 'follower_email'),
+            deleteAllByEmail(sr, 'GlowFollow', email, 'followed_email'),
+          ]);
+        } catch (e) { console.log(`Skip GlowFollow: ${e.message}`); }
+      })(),
+      // ChatMessage: user appears as sender OR receiver
+      (async () => {
+        try {
+          await Promise.all([
+            deleteAllByEmail(sr, 'ChatMessage', email, 'sender_email'),
+            deleteAllByEmail(sr, 'ChatMessage', email, 'receiver_email'),
+          ]);
+        } catch (e) { console.log(`Skip ChatMessage: ${e.message}`); }
+      })(),
+      // Notification: user is recipient
+      deleteAllByEmail(sr, 'Notification', email, 'recipient_email').catch(e =>
+        console.log(`Skip Notification(recipient): ${e.message}`)
+      ),
+    ]);
 
     return Response.json({ success: true });
   } catch (error) {
