@@ -220,8 +220,14 @@ function DeleteAccountModal({ profile, onClose }) {
             <div>
               <h3 className="font-bold text-xl text-white mb-2">Account Deleted</h3>
               <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
-                Your account has been successfully deleted. We're sorry to see you go.
+                Your profile and all data have been permanently deleted.
               </p>
+              <div className="mt-3 p-3 rounded-xl text-left" style={{ background: 'rgba(241,182,16,0.08)', border: '1px solid rgba(241,182,16,0.25)' }}>
+                <p className="text-xs font-bold text-yellow-400 mb-1">⚠️ Want to create a new account?</p>
+                <p className="text-xs" style={{ color: MUTED }}>
+                  Use a <strong className="text-white">different email address</strong> to register a new account. Your previous email cannot be reused for a new sign-up.
+                </p>
+              </div>
             </div>
             <button
               onClick={() => base44.auth.logout('/')}
