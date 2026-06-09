@@ -18,11 +18,12 @@ export default function MentorLogin() {
     if (params.get("oauth") === "1") {
       base44.auth.me().then(async (user) => {
         if (!user) { window.location.href = "/mentor-login?err=noaccount"; return; }
-        if (user.account_type === "mentor" || user.account_type === "linked") {
+        const apps = await base44.entities.MentorApplication.filter({ user_email: user.email });
+        if (apps && apps.length > 0) {
           window.location.href = "/mentor-dashboard";
         } else {
           await base44.auth.logout();
-          window.location.href = "/mentor-login?err=gguaccount";
+          window.location.href = "/mentor-login?err=noaccount";
         }
       }).catch(() => {});
     }
@@ -39,27 +40,29 @@ export default function MentorLogin() {
     setError("");
     setLoading(true);
     try {
-      await base44.auth.loginViaEmailPassword(email, password);
-      const user = await base44.auth.me();
+      // First check if a MentorApplication exists for this email BEFORE attempting login
+      const apps = await base44.entities.MentorApplication.filter({ user_email: email });
+      const hasMentorApp = apps && apps.length > 0;
 
-      // Mentor or linked account — proceed to dashboard
-      if (user.account_type === "mentor" || user.account_type === "linked") {
-        window.location.href = "/mentor-dashboard";
+      if (!hasMentorApp) {
+        // Check if they have a UserProfile (GGU girl account)
+        const profiles = await base44.entities.UserProfile.filter({ user_email: email });
+        const hasGGUAccount = profiles && profiles.length > 0;
+
+        if (hasGGUAccount) {
+          setError("This email is registered as a GGU member, not a mentor. Please sign in at the main login page or apply to become a mentor.");
+        } else {
+          setError("No account found with this email. Please apply to become a mentor to create an account.");
+        }
+        setLoading(false);
         return;
       }
 
-      // Logged in but not a mentor account — this is a GGU girl account
-      // Log them out immediately so we don't leave them in the wrong session
-      await base44.auth.logout();
-      setError("This email is registered as a GGU member, not a mentor. Please sign in at the main login page or apply to become a mentor.");
+      // Has a mentor application — proceed with login
+      await base44.auth.loginViaEmailPassword(email, password);
+      window.location.href = "/mentor-dashboard";
     } catch (err) {
-      const msg = err.message || "";
-      // If login failed (wrong password or email doesn't exist at all), give a clear message
-      if (msg.toLowerCase().includes("invalid") || msg.toLowerCase().includes("credentials") || msg.toLowerCase().includes("not found") || msg.toLowerCase().includes("incorrect")) {
-        setError("No account found with this email. Please apply to become a mentor to create an account.");
-      } else {
-        setError(msg || "Sign in failed. Please try again.");
-      }
+      setError(err.message || "Invalid email or password");
     } finally {
       setLoading(false);
     }
