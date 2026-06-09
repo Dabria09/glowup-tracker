@@ -123,18 +123,22 @@ export default function MentorRegister() {
   // Step 6 — Agreement (captured from StepAgreement's onSubmit callback)
   // No local state needed — StepAgreement calls onSubmit(agreementData) directly
 
-  // Auto-detect already logged-in users and skip account creation
+  // Auto-detect already logged-in users: pre-fill their info but only skip
+  // account creation if they already have a MentorApplication in progress.
   useEffect(() => {
-    base44.auth.isAuthenticated().then(authed => {
-      if (authed) {
-        base44.auth.me().then(u => {
-          if (u) {
-            setEmail(u.email);
-            setFullName(u.full_name || "");
-            setStep(1);
-          }
-        }).catch(() => {});
-      }
+    base44.auth.isAuthenticated().then(async (authed) => {
+      if (!authed) return;
+      try {
+        const u = await base44.auth.me();
+        if (!u) return;
+        setEmail(u.email);
+        setFullName(u.full_name || "");
+        // Only skip to step 1 if they already have an application started
+        const apps = await base44.entities.MentorApplication.filter({ user_email: u.email });
+        if (apps.length > 0) {
+          setStep(1);
+        }
+      } catch {}
     }).catch(() => {});
   }, []);
 
