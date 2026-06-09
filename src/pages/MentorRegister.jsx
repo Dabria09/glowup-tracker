@@ -45,6 +45,9 @@ export default function MentorRegister() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showLoginInstead, setShowLoginInstead] = useState(false);
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
   // Step 1 — Who You Are
   const [whoYouAreData, setWhoYouAreData] = useState({
@@ -156,6 +159,26 @@ export default function MentorRegister() {
     if (!dobStr) return 0;
     const diff = Date.now() - new Date(dobStr).getTime();
     return Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
+  };
+
+  const handleInlineLogin = async () => {
+    setLoginError("");
+    setLoginLoading(true);
+    try {
+      await base44.auth.loginViaEmailPassword(email, loginPassword);
+      // Check if they already have a mentor application
+      const apps = await base44.entities.MentorApplication.filter({ user_email: email });
+      if (apps && apps.length > 0) {
+        window.location.href = "/mentor-dashboard";
+      } else {
+        // No application yet — continue the registration flow
+        setShowLoginInstead(false);
+        setStep(1);
+      }
+    } catch (err) {
+      setLoginError(err.message || "Invalid password. Please try again.");
+    }
+    setLoginLoading(false);
   };
 
   const handleGoogle = () => base44.auth.loginWithProvider("google", "/mentor-register?step=2");
@@ -397,14 +420,31 @@ export default function MentorRegister() {
               {showLoginInstead && (
                 <div className="p-4 rounded-xl bg-pink-500/10 border border-pink-500/30 text-sm space-y-3">
                   <p className="font-bold text-pink-300">An account with this email already exists.</p>
-                  <p className="text-gray-300">It looks like you already have a mentor account. Sign in to continue your application.</p>
+                  <p className="text-gray-300">Enter your password to sign in and continue your application.</p>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
+                    <Input
+                      type="password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleInlineLogin()}
+                      className="pl-10 bg-gray-800 border-gray-700 text-white"
+                      placeholder="Your password"
+                      autoFocus
+                    />
+                  </div>
+                  {loginError && <p className="text-red-400 text-xs">{loginError}</p>}
                   <Button
                     type="button"
                     className="w-full bg-pink-600 hover:bg-pink-700 text-white"
-                    onClick={() => window.location.href = `/mentor-login?prefill=${encodeURIComponent(email)}`}
+                    onClick={handleInlineLogin}
+                    disabled={loginLoading || !loginPassword}
                   >
-                    Sign In Instead
+                    {loginLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing in...</> : "Sign In"}
                   </Button>
+                  <p className="text-center text-xs text-gray-400">
+                    <Link to="/forgot-password" className="text-pink-400 hover:underline">Forgot password?</Link>
+                  </p>
                 </div>
               )}
               <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700" size="lg" disabled={loading || showLoginInstead}>
