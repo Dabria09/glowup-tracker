@@ -395,16 +395,9 @@ export default function MentorRegister() {
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
               {showLoginInstead && (
-                <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-sm space-y-2">
-                  <p className="font-bold text-yellow-400">This email already has an account.</p>
-                  <p className="text-gray-300">If you previously deleted your account, your login credentials still exist. Please sign in instead to continue your mentor application.</p>
-                  <Button
-                    type="button"
-                    className="w-full bg-pink-600 hover:bg-pink-700 mt-1"
-                    onClick={() => window.location.href = `/mentor-login`}
-                  >
-                    Sign In Instead →
-                  </Button>
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-sm space-y-2">
+                  <p className="font-bold text-red-400">An account with this email already exists.</p>
+                  <p className="text-gray-300">Please use a different email address to create a new account.</p>
                 </div>
               )}
               <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700" size="lg" disabled={loading || showLoginInstead}>

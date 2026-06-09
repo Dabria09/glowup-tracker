@@ -1,17 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-// Helper: delete all records for a user from an entity using user_email field, paginating until done
-async function deleteAllByEmail(serviceRole, entityName, email, fieldName = 'user_email') {
-  let deleted = 0;
+async function deleteAllByEmail(sr, entityName, email, fieldName = 'user_email') {
   while (true) {
-    const query = { [fieldName]: email };
-    const records = await serviceRole.entities[entityName].filter(query, '-created_date', 100);
+    const records = await sr.entities[entityName].filter({ [fieldName]: email }, '-created_date', 100);
     if (!records || records.length === 0) break;
-    await Promise.all(records.map(r => serviceRole.entities[entityName].delete(r.id)));
-    deleted += records.length;
+    await Promise.all(records.map(r => sr.entities[entityName].delete(r.id)));
     if (records.length < 100) break;
   }
-  return deleted;
 }
 
 Deno.serve(async (req) => {
@@ -25,10 +20,11 @@ Deno.serve(async (req) => {
 
     const sr = base44.asServiceRole;
     const email = user.email;
+    const userId = user.id;
 
-    // Entities using user_email field
+    // Step 1: Delete all associated data records (all errors swallowed — auth deletion must always run)
     const userEmailEntities = [
-      'UserPoints', 'PointsHistory',
+      'UserProfile', 'UserPoints', 'PointsHistory',
       'Mentor', 'TeenMentor', 'MentorApplication', 'TeenMentorApplication',
       'MentorSession', 'MentorshipProgress', 'MentorshipBadge',
       'PeerMentoringCircle', 'TeenMentorTraining', 'SuccessStory',
@@ -56,48 +52,19 @@ Deno.serve(async (req) => {
       'GlowUpCertificate',
     ];
 
-    // Run all data deletions - errors are swallowed so User deletion always runs
-    try {
-      await Promise.all([
-        ...userEmailEntities.map(entityName =>
-          deleteAllByEmail(sr, entityName, email).catch(e =>
-            console.log(`Skip ${entityName}: ${e.message}`)
-          )
-        ),
-        (async () => {
-          await Promise.all([
-            deleteAllByEmail(sr, 'GlowFollow', email, 'follower_email').catch(() => {}),
-            deleteAllByEmail(sr, 'GlowFollow', email, 'followed_email').catch(() => {}),
-          ]);
-        })(),
-        (async () => {
-          await Promise.all([
-            deleteAllByEmail(sr, 'ChatMessage', email, 'sender_email').catch(() => {}),
-            deleteAllByEmail(sr, 'ChatMessage', email, 'receiver_email').catch(() => {}),
-          ]);
-        })(),
-        deleteAllByEmail(sr, 'Notification', email, 'recipient_email').catch(() => {}),
-      ]);
-    } catch (e) {
-      console.log(`Data cleanup error (continuing): ${e.message}`);
-    }
+    await Promise.all([
+      ...userEmailEntities.map(name => deleteAllByEmail(sr, name, email).catch(() => {})),
+      deleteAllByEmail(sr, 'GlowFollow', email, 'follower_email').catch(() => {}),
+      deleteAllByEmail(sr, 'GlowFollow', email, 'followed_email').catch(() => {}),
+      deleteAllByEmail(sr, 'ChatMessage', email, 'sender_email').catch(() => {}),
+      deleteAllByEmail(sr, 'ChatMessage', email, 'receiver_email').catch(() => {}),
+      deleteAllByEmail(sr, 'Notification', email, 'recipient_email').catch(() => {}),
+    ]);
 
-    // Delete the UserProfile LAST (after all other data) and separately
-    // so the Login page's UserProfile check will block re-login even if User.delete fails
-    try {
-      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: email });
-      await Promise.all(profiles.map(p => base44.asServiceRole.entities.UserProfile.delete(p.id)));
-    } catch (e) {
-      console.log(`UserProfile delete error: ${e.message}`);
-    }
-
-    // Attempt to delete the auth/User record — may not fully remove auth credentials
-    // but the UserProfile check in Login.jsx will block re-login
-    try {
-      await base44.asServiceRole.entities.User.delete(user.id);
-    } catch (e) {
-      console.log(`User record delete error (non-fatal): ${e.message}`);
-    }
+    // Step 2: Delete the auth/User record — this permanently removes the email and password
+    // from authentication so the user can never log in again with these credentials.
+    // Per Base44 docs: base44.asServiceRole.entities.User.delete(id) is the correct method.
+    await sr.entities.User.delete(userId);
 
     return Response.json({ success: true });
   } catch (error) {

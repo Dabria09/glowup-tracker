@@ -49,14 +49,9 @@ export default function MentorLogin() {
       const user = await base44.auth.me();
       // If no mentor account type, check if they have a pending application (re-registering after delete)
       if (!user.account_type || (user.account_type !== "mentor" && user.account_type !== "linked")) {
-        const apps = await base44.entities.MentorApplication.filter({ user_email: user.email });
-        if (apps.length > 0) {
-          // Has an existing application — send to mentor dashboard
-          window.location.href = "/mentor-dashboard";
-          return;
-        }
-        // No application — send to mentor register to start fresh
-        window.location.href = "/mentor-register";
+        await base44.auth.logout();
+        setError("No mentor account found for this email. Please apply to become a mentor.");
+        setLoading(false);
         return;
       }
       routeMentor(user);

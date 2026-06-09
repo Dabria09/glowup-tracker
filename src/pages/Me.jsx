@@ -157,18 +157,15 @@ function DeleteAccountModal({ profile, onClose }) {
   const doDelete = async () => {
     if (confirmText !== 'DELETE') return;
     setDeleting(true);
-    try {
-      await base44.functions.invoke('deleteAccount', {});
-    } catch (e) {
-      // Even if the function errors, proceed with local cleanup and logout
-      console.log('deleteAccount error (proceeding with logout):', e.message);
-    }
-    // Clear ALL local storage, session storage, and cached credentials
-    try { localStorage.clear(); } catch {}
-    try { sessionStorage.clear(); } catch {}
-    // Force logout and redirect — do not wait for user to click a button
-    // This ensures the session token is invalidated immediately
-    await base44.auth.logout('/');
+    // Fire the deletion — the function deletes all data then removes the auth record server-side
+    base44.functions.invoke('deleteAccount', {}).catch(() => {});
+    // Show confirmation then clear all local session data and redirect
+    setStep(3);
+    setTimeout(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/';
+    }, 2000);
   };
 
   return (
@@ -230,22 +227,10 @@ function DeleteAccountModal({ profile, onClose }) {
             <div>
               <h3 className="font-bold text-xl text-white mb-2">Account Deleted</h3>
               <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
-                Your profile and all data have been permanently deleted.
+                Your account and all data have been permanently deleted. Redirecting you now...
               </p>
-              <div className="mt-3 p-3 rounded-xl text-left" style={{ background: 'rgba(241,182,16,0.08)', border: '1px solid rgba(241,182,16,0.25)' }}>
-                <p className="text-xs font-bold text-yellow-400 mb-1">⚠️ Want to create a new account?</p>
-                <p className="text-xs" style={{ color: MUTED }}>
-                  Use a <strong className="text-white">different email address</strong> to register a new account. Your previous email cannot be reused for a new sign-up.
-                </p>
-              </div>
             </div>
-            <button
-              onClick={() => base44.auth.logout('/')}
-              className="w-full py-3 rounded-2xl font-bold text-sm text-white"
-              style={{ background: `linear-gradient(135deg, ${PINK_DEEP}, ${PINK_HOT})`, boxShadow: '0 4px 16px rgba(232,82,109,0.3)' }}
-            >
-              Return to Landing Page
-            </button>
+            <div className="w-6 h-6 border-2 border-pink-400 border-t-transparent rounded-full animate-spin mx-auto" />
           </div>
         )}
       </div>
