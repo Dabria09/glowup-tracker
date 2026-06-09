@@ -18,27 +18,21 @@ export default function MentorLogin() {
     if (params.get("oauth") === "1") {
       base44.auth.me().then(async (user) => {
         if (!user) { window.location.href = "/mentor-login?err=noaccount"; return; }
-        routeMentor(user);
+        if (user.account_type === "mentor" || user.account_type === "linked") {
+          window.location.href = "/mentor-dashboard";
+        } else {
+          await base44.auth.logout();
+          window.location.href = "/mentor-login?err=gguaccount";
+        }
       }).catch(() => {});
     }
     if (params.get("err") === "noaccount") {
-      setError("No mentor account found. Please apply first.");
+      setError("No mentor account found. Please apply to become a mentor.");
     }
-  }, []);
-
-  const routeMentor = (user) => {
-    if (user.account_type === "mentor" || user.account_type === "linked") {
-      const status = user.mentor_status;
-      if (status === "approved") {
-        window.location.href = "/mentor-dashboard";
-      } else {
-        window.location.href = "/mentor-dashboard"; // AppModeGate handles pending screen
-      }
-    } else {
-      // Has a GGU girl account, not a mentor account
+    if (params.get("err") === "gguaccount") {
       setError("This email is registered as a GGU member, not a mentor. Please sign in at the main login page or apply to become a mentor.");
     }
-  };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,16 +41,25 @@ export default function MentorLogin() {
     try {
       await base44.auth.loginViaEmailPassword(email, password);
       const user = await base44.auth.me();
-      // If no mentor account type, check if they have a pending application (re-registering after delete)
-      if (!user.account_type || (user.account_type !== "mentor" && user.account_type !== "linked")) {
-        await base44.auth.logout();
-        setError("No mentor account found for this email. Please apply to become a mentor.");
-        setLoading(false);
+
+      // Mentor or linked account — proceed to dashboard
+      if (user.account_type === "mentor" || user.account_type === "linked") {
+        window.location.href = "/mentor-dashboard";
         return;
       }
-      routeMentor(user);
+
+      // Logged in but not a mentor account — this is a GGU girl account
+      // Log them out immediately so we don't leave them in the wrong session
+      await base44.auth.logout();
+      setError("This email is registered as a GGU member, not a mentor. Please sign in at the main login page or apply to become a mentor.");
     } catch (err) {
-      setError(err.message || "Invalid email or password");
+      const msg = err.message || "";
+      // If login failed (wrong password or email doesn't exist at all), give a clear message
+      if (msg.toLowerCase().includes("invalid") || msg.toLowerCase().includes("credentials") || msg.toLowerCase().includes("not found") || msg.toLowerCase().includes("incorrect")) {
+        setError("No account found with this email. Please apply to become a mentor to create an account.");
+      } else {
+        setError(msg || "Sign in failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
