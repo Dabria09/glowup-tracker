@@ -56,39 +56,33 @@ Deno.serve(async (req) => {
       'GlowUpCertificate',
     ];
 
-    // Run all deletions in parallel, including special cases
-    await Promise.all([
-      // Standard user_email entities
-      ...userEmailEntities.map(entityName =>
-        deleteAllByEmail(sr, entityName, email).catch(e =>
-          console.log(`Skip ${entityName}: ${e.message}`)
-        )
-      ),
-      // GlowFollow: user appears as follower OR followed
-      (async () => {
-        try {
+    // Run all data deletions - errors are swallowed so User deletion always runs
+    try {
+      await Promise.all([
+        ...userEmailEntities.map(entityName =>
+          deleteAllByEmail(sr, entityName, email).catch(e =>
+            console.log(`Skip ${entityName}: ${e.message}`)
+          )
+        ),
+        (async () => {
           await Promise.all([
-            deleteAllByEmail(sr, 'GlowFollow', email, 'follower_email'),
-            deleteAllByEmail(sr, 'GlowFollow', email, 'followed_email'),
+            deleteAllByEmail(sr, 'GlowFollow', email, 'follower_email').catch(() => {}),
+            deleteAllByEmail(sr, 'GlowFollow', email, 'followed_email').catch(() => {}),
           ]);
-        } catch (e) { console.log(`Skip GlowFollow: ${e.message}`); }
-      })(),
-      // ChatMessage: user appears as sender OR receiver
-      (async () => {
-        try {
+        })(),
+        (async () => {
           await Promise.all([
-            deleteAllByEmail(sr, 'ChatMessage', email, 'sender_email'),
-            deleteAllByEmail(sr, 'ChatMessage', email, 'receiver_email'),
+            deleteAllByEmail(sr, 'ChatMessage', email, 'sender_email').catch(() => {}),
+            deleteAllByEmail(sr, 'ChatMessage', email, 'receiver_email').catch(() => {}),
           ]);
-        } catch (e) { console.log(`Skip ChatMessage: ${e.message}`); }
-      })(),
-      // Notification: user is recipient
-      deleteAllByEmail(sr, 'Notification', email, 'recipient_email').catch(e =>
-        console.log(`Skip Notification(recipient): ${e.message}`)
-      ),
-    ]);
+        })(),
+        deleteAllByEmail(sr, 'Notification', email, 'recipient_email').catch(() => {}),
+      ]);
+    } catch (e) {
+      console.log(`Data cleanup error (continuing): ${e.message}`);
+    }
 
-    // Finally, delete the auth user account itself so they can't log back in
+    // Always delete the auth user — this frees the email for re-registration
     await base44.asServiceRole.entities.User.delete(user.id);
 
     return Response.json({ success: true });
