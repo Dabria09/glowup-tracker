@@ -40,27 +40,30 @@ export default function MentorLogin() {
     setError("");
     setLoading(true);
     try {
-      // First check if a MentorApplication exists for this email BEFORE attempting login
+      // Attempt login first
+      await base44.auth.loginViaEmailPassword(email, password);
+
+      // Now logged in — check if they have a mentor application (as themselves)
       const apps = await base44.entities.MentorApplication.filter({ user_email: email });
       const hasMentorApp = apps && apps.length > 0;
 
-      if (!hasMentorApp) {
-        // Check if they have a UserProfile (GGU girl account)
-        const profiles = await base44.entities.UserProfile.filter({ user_email: email });
-        const hasGGUAccount = profiles && profiles.length > 0;
-
-        if (hasGGUAccount) {
-          setError("This email is registered as a GGU member, not a mentor. Please sign in at the main login page or apply to become a mentor.");
-        } else {
-          setError("No account found with this email. Please apply to become a mentor to create an account.");
-        }
-        setLoading(false);
+      if (hasMentorApp) {
+        window.location.href = "/mentor-dashboard";
         return;
       }
 
-      // Has a mentor application — proceed with login
-      await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/mentor-dashboard";
+      // No mentor application — log them out and show appropriate error
+      await base44.auth.logout();
+
+      // Check if they have a UserProfile (GGU girl account)
+      const profiles = await base44.entities.UserProfile.filter({ user_email: email });
+      const hasGGUAccount = profiles && profiles.length > 0;
+
+      if (hasGGUAccount) {
+        setError("This email is registered as a GGU member, not a mentor. Please sign in at the main login page or apply to become a mentor.");
+      } else {
+        setError("No mentor account found for this email. Please apply to become a mentor to create an account.");
+      }
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
