@@ -1,10 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-async function deleteAllByEmail(sr, entityName, email, fieldName = 'user_email') {
+async function deleteAllByEmail(client, entityName, email, fieldName = 'user_email') {
   while (true) {
-    const records = await sr.entities[entityName].filter({ [fieldName]: email }, '-created_date', 100);
+    const records = await client.entities[entityName].filter({ [fieldName]: email }, '-created_date', 100);
     if (!records || records.length === 0) break;
-    await Promise.all(records.map(r => sr.entities[entityName].delete(r.id)));
+    await Promise.all(records.map(r => client.entities[entityName].delete(r.id)));
     if (records.length < 100) break;
   }
 }
@@ -18,20 +18,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const sr = base44.asServiceRole;
     const email = user.email;
-    const userId = user.id;
 
-    // Step 1: Destroy auth credentials FIRST — permanently removes email/password from authentication.
-    // App owner accounts cannot be deleted by the platform; skip gracefully for them.
-    try {
-      await sr.entities.User.delete(userId);
-    } catch (e) {
-      // If this is the app owner, the platform blocks deletion — continue with data cleanup anyway
-      if (!e.message?.includes('owner')) throw e;
-    }
-
-    // Step 2: Delete all associated data records (errors swallowed — auth already destroyed above)
+    // Step 1: Delete all associated data records using user-scoped client
     const userEmailEntities = [
       'UserProfile', 'UserPoints', 'PointsHistory',
       'Mentor', 'TeenMentor', 'MentorApplication', 'TeenMentorApplication',
@@ -62,15 +51,23 @@ Deno.serve(async (req) => {
     ];
 
     await Promise.all([
-      ...userEmailEntities.map(name => deleteAllByEmail(sr, name, email).catch(() => {})),
-      deleteAllByEmail(sr, 'GlowFollow', email, 'follower_email').catch(() => {}),
-      deleteAllByEmail(sr, 'GlowFollow', email, 'followed_email').catch(() => {}),
-      deleteAllByEmail(sr, 'ChatMessage', email, 'sender_email').catch(() => {}),
-      deleteAllByEmail(sr, 'ChatMessage', email, 'receiver_email').catch(() => {}),
-      deleteAllByEmail(sr, 'Notification', email, 'recipient_email').catch(() => {}),
+      ...userEmailEntities.map(name => deleteAllByEmail(base44, name, email).catch(() => {})),
+      deleteAllByEmail(base44, 'GlowFollow', email, 'follower_email').catch(() => {}),
+      deleteAllByEmail(base44, 'GlowFollow', email, 'followed_email').catch(() => {}),
+      deleteAllByEmail(base44, 'ChatMessage', email, 'sender_email').catch(() => {}),
+      deleteAllByEmail(base44, 'ChatMessage', email, 'receiver_email').catch(() => {}),
+      deleteAllByEmail(base44, 'Notification', email, 'recipient_email').catch(() => {}),
     ]);
 
-    return Response.json({ success: true });
+    // Step 2: Delete the auth user record (removes login credentials)
+    try {
+      await base44.auth.deleteMe();
+    } catch (e) {
+      // App owner accounts cannot be deleted by the platform — data is already cleaned up above
+      console.error('deleteMe error (may be app owner):', e.message);
+    }
+
+    return Response.json({ success: true, type: 'delete' });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
