@@ -158,20 +158,14 @@ function DeleteAccountModal({ profile, onClose }) {
     if (confirmText !== 'DELETE') return;
     setDeleting(true);
     try {
-      const user = await base44.auth.me();
-      const userId = user.id;
+      // Call the backend deleteAccount function (handles auth + all data cleanup)
+      await base44.functions.invoke('deleteAccount', {});
 
-      // Step 1 - Sign out first to invalidate current session
-      await base44.auth.logout();
-
-      // Step 2 - Delete the user record including auth credentials
-      await base44.asServiceRole.entities.User.delete(userId);
-
-      // Step 3 - Clear all local storage and session data
+      // Clear all local storage and session data
       localStorage.clear();
       sessionStorage.clear();
 
-      // Step 4 - Navigate to landing page
+      // Navigate to landing page
       window.location.href = '/';
     } catch (error) {
       console.error('Delete account failed:', error);
