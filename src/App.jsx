@@ -12,6 +12,7 @@ import MentorSignup from './pages/MentorSignup';
 import MentorRegister from './pages/MentorRegister';
 import MentorLogin from './pages/MentorLogin';
 import ParentConsent from './pages/ParentConsent';
+import GoogleSetup from './pages/GoogleSetup';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -148,6 +149,7 @@ const AuthenticatedApp = () => {
       <Route path="/mentor-register" element={<MentorRegister />} />
       <Route path="/mentor-login" element={<MentorLogin />} />
       <Route path="/parent-consent" element={<ParentConsent />} />
+      <Route path="/google-setup" element={<GoogleSetup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/onboarding" element={<Onboarding />} />
