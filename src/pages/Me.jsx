@@ -149,96 +149,97 @@ function EditProfileModal({ user, profile, onSave, onClose }) {
 }
 
 // ── Delete Account Modal ───────────────────────────────────────────────────
-function DeleteAccountModal({ profile, onClose }) {
-  const [step, setStep] = useState(1);
-  const [confirmText, setConfirmText] = useState('');
-  const [deleting, setDeleting] = useState(false);
+function DeleteAccountModal({ onClose }) {
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const doDelete = async () => {
-    if (confirmText !== 'DELETE') return;
-    setDeleting(true);
     try {
-      // Call the backend deleteAccount function (handles auth + all data cleanup)
-      await base44.functions.invoke('deleteAccount', {});
+      setIsDeleting(true);
 
-      // Clear all local storage and session data
+      // Step 1 — Get current user
+      const currentUser = await base44.auth.me();
+      const userId = currentUser.id;
+
+      // Step 2 — Mark as deleted first
+      await base44.asServiceRole.entities.User.update(userId, {
+        isDeleted: true,
+        deletedAt: new Date().toISOString(),
+      });
+
+      // Step 3 — Delete all related records simultaneously
+      await Promise.all([
+        base44.entities.UserProfile.filter({ user_email: currentUser.email })
+          .then(records => Promise.all(records.map(r => base44.entities.UserProfile.delete(r.id)))),
+        base44.entities.UserPoints.filter({ user_email: currentUser.email })
+          .then(records => Promise.all(records.map(r => base44.entities.UserPoints.delete(r.id)))),
+        base44.entities.DiaryEntry.filter({ user_email: currentUser.email })
+          .then(records => Promise.all(records.map(r => base44.entities.DiaryEntry.delete(r.id)))),
+        base44.entities.GlowUpPost.filter({ user_email: currentUser.email })
+          .then(records => Promise.all(records.map(r => base44.entities.GlowUpPost.delete(r.id)))),
+        base44.entities.PointsHistory.filter({ user_email: currentUser.email })
+          .then(records => Promise.all(records.map(r => base44.entities.PointsHistory.delete(r.id)))),
+        base44.entities.ShoutOut.filter({ user_email: currentUser.email })
+          .then(records => Promise.all(records.map(r => base44.entities.ShoutOut.delete(r.id)))),
+        base44.entities.VisionBoard.filter({ user_email: currentUser.email })
+          .then(records => Promise.all(records.map(r => base44.entities.VisionBoard.delete(r.id)))),
+      ]);
+
+      // Step 4 — Delete main user record
+      try { await base44.asServiceRole.entities.User.delete(userId); } catch {}
+
+      // Step 5 — Verify deletion (expected to fail = deletion confirmed)
+      try {
+        const check = await base44.asServiceRole.entities.User.get(userId);
+        if (check) console.warn('User record still exists — may need manual cleanup');
+      } catch {
+        // Expected — not found means deletion confirmed
+      }
+
+      // Step 6 — Logout and clear everything
+      await base44.auth.logout();
       localStorage.clear();
       sessionStorage.clear();
 
-      // Navigate to landing page
+      // Step 7 — Navigate to landing page
       window.location.href = '/';
     } catch (error) {
-      console.error('Delete account failed:', error);
-      alert('Something went wrong. Please try again.');
-      setDeleting(false);
+      alert('Deletion failed. Please try again. Error: ' + error.message);
+      setIsDeleting(false);
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}>
       <div className="w-full max-w-sm rounded-3xl p-6" style={{ background: '#1a0508', border: '1px solid rgba(220,38,38,0.4)' }}>
-        {step === 1 && (
-          <>
-            <div className="flex justify-center mb-4">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'rgba(220,38,38,0.15)' }}>
-                <AlertTriangle size={28} className="text-red-400" />
-              </div>
-            </div>
-            <h3 className="text-center font-bold text-lg text-white mb-2">Delete Account?</h3>
-            <p className="text-center text-sm mb-1" style={{ color: MUTED }}>This will permanently delete:</p>
-            <ul className="text-sm mb-5 space-y-1" style={{ color: MUTED2 }}>
-              <li>• Your profile and all settings</li>
-              <li>• All posts, diary entries, and vision boards</li>
-              <li>• Points, challenges, and certificates</li>
-              <li>• All community content you've created</li>
-            </ul>
-            <p className="text-center text-xs font-bold text-red-400 mb-4">This action CANNOT be undone.</p>
-            <div className="flex gap-3">
-              <button onClick={onClose} className="flex-1 py-3 rounded-2xl font-semibold text-sm" style={{ background: 'rgba(255,255,255,0.05)', color: MUTED }}>Cancel</button>
-              <button onClick={() => setStep(2)} className="flex-1 py-3 rounded-2xl font-bold text-sm text-white" style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>Continue</button>
-            </div>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <h3 className="text-center font-bold text-lg text-white mb-3">Confirm Deletion</h3>
-            <p className="text-sm text-center mb-4" style={{ color: MUTED }}>Type <strong className="text-red-400">DELETE</strong> to confirm</p>
-            <input
-              value={confirmText}
-              onChange={e => setConfirmText(e.target.value)}
-              placeholder="Type DELETE here"
-              className="w-full px-4 py-3 rounded-xl text-sm outline-none mb-4 text-center font-bold"
-              style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid rgba(220,38,38,0.3)`, color: '#f87171' }}
-            />
-            <div className="flex gap-3">
-              <button onClick={onClose} className="flex-1 py-3 rounded-2xl font-semibold text-sm" style={{ background: 'rgba(255,255,255,0.05)', color: MUTED }}>Cancel</button>
-              <button onClick={doDelete} disabled={confirmText !== 'DELETE' || deleting}
-                className="flex-1 py-3 rounded-2xl font-bold text-sm text-white disabled:opacity-40 flex items-center justify-center gap-2"
-                style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}>
-                {deleting && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
-                {deleting ? 'Deleting...' : 'Delete Forever'}
-              </button>
-            </div>
-          </>
-        )}
-
-        {step === 3 && (
-          <div className="text-center space-y-5">
-            <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'rgba(232,82,109,0.1)', border: '1px solid rgba(232,82,109,0.25)' }}>
-                <Check size={28} className="text-pink-400" />
-              </div>
-            </div>
-            <div>
-              <h3 className="font-bold text-xl text-white mb-2">Account Deleted</h3>
-              <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
-                Your account and all data have been permanently deleted. Redirecting you now...
-              </p>
-            </div>
-            <div className="w-6 h-6 border-2 border-pink-400 border-t-transparent rounded-full animate-spin mx-auto" />
+        <div className="flex justify-center mb-4">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'rgba(220,38,38,0.15)' }}>
+            <AlertTriangle size={28} className="text-red-400" />
           </div>
-        )}
+        </div>
+        <h3 className="text-center font-bold text-lg text-white mb-2">Are you sure?</h3>
+        <p className="text-center text-sm mb-5" style={{ color: MUTED }}>
+          Deleting your account is permanent and cannot be undone. All your Glow Score, challenges, goals, diary entries, and saved content will be removed forever.
+        </p>
+        <p className="text-center text-xs font-bold text-red-400 mb-5">This action CANNOT be undone.</p>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={isDeleting}
+            className="flex-1 py-3 rounded-2xl font-semibold text-sm"
+            style={{ background: 'rgba(255,255,255,0.05)', color: MUTED }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={doDelete}
+            disabled={isDeleting}
+            className="flex-1 py-3 rounded-2xl font-bold text-sm text-white disabled:opacity-50 flex items-center justify-center gap-2"
+            style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}
+          >
+            {isDeleting && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+            {isDeleting ? 'Deleting...' : 'Yes, Delete My Account'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -805,7 +806,7 @@ export default function Me() {
       {/* Modals */}
 
       {showDeleteModal && (
-        <DeleteAccountModal profile={profile} onClose={() => setShowDeleteModal(false)} />
+        <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />
       )}
     </div>
   );

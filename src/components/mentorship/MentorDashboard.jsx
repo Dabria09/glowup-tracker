@@ -487,41 +487,78 @@ export default function MentorDashboard() {
           <div className="w-full max-w-sm rounded-3xl p-6" style={{ background: '#1a0508', border: '1px solid rgba(239,68,68,0.3)' }}>
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
               <div style={{ fontSize: 40, marginBottom: 8 }}>⚠️</div>
-              <h2 style={{ color: '#ef4444', fontWeight: 800, fontSize: 18, marginBottom: 6 }}>Delete Account</h2>
-              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 1.5 }}>This is permanent and cannot be undone. Your profile, sessions, and all data will be deleted forever.</p>
+              <h2 style={{ color: '#ef4444', fontWeight: 800, fontSize: 18, marginBottom: 6 }}>Are you sure?</h2>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 1.5 }}>
+                Deleting your account is permanent and cannot be undone. All your mentor data, application history, and profile will be removed.
+              </p>
             </div>
-            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginBottom: 8, fontWeight: 700 }}>Type <span style={{ color: '#ef4444' }}>DELETE</span> to confirm:</p>
-            <input
-              value={deleteConfirmText}
-              onChange={e => setDeleteConfirmText(e.target.value)}
-              placeholder="Type DELETE here"
-              style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 12, padding: '12px 14px', color: '#fff', fontSize: 14, outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
-            />
-            <button
-              disabled={deleteConfirmText !== 'DELETE' || deleteLoading}
-              onClick={async () => {
-                try {
-                  setDeleteLoading(true);
-                  const result = await base44.functions.invoke('deleteAccount', {});
-                  if (result.data?.message?.includes('platform')) {
-                    alert('Mentor profile data deleted. To fully delete your account and free up this email, please go to Account Settings → Delete Account (platform feature).');
-                  } else {
-                    alert('Account deleted successfully!');
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                disabled={deleteLoading}
+                onClick={async () => {
+                  try {
+                    setDeleteLoading(true);
+
+                    // Step 1 — Get current user
+                    const currentUser = await base44.auth.me();
+                    const userId = currentUser.id;
+
+                    // Step 2 — Mark as deleted first
+                    await base44.asServiceRole.entities.User.update(userId, {
+                      isDeleted: true,
+                      deletedAt: new Date().toISOString(),
+                    });
+
+                    // Step 3 — Delete all related mentor records simultaneously
+                    await Promise.all([
+                      base44.entities.MentorApplication.filter({ user_email: currentUser.email })
+                        .then(records => Promise.all(records.map(r => base44.entities.MentorApplication.delete(r.id)))),
+                      base44.entities.Mentor.filter({ user_email: currentUser.email })
+                        .then(records => Promise.all(records.map(r => base44.entities.Mentor.delete(r.id)))),
+                      base44.entities.TeenMentor.filter({ user_email: currentUser.email })
+                        .then(records => Promise.all(records.map(r => base44.entities.TeenMentor.delete(r.id)))),
+                      base44.entities.MentorSession.filter({ mentor_email: currentUser.email })
+                        .then(records => Promise.all(records.map(r => base44.entities.MentorSession.delete(r.id)))),
+                      base44.entities.AnonymousQuestion.filter({ assigned_mentor_email: currentUser.email })
+                        .then(records => Promise.all(records.map(r => base44.entities.AnonymousQuestion.delete(r.id)))),
+                    ]);
+
+                    // Step 4 — Delete main user record
+                    try { await base44.asServiceRole.entities.User.delete(userId); } catch {}
+
+                    // Step 5 — Verify deletion (expected to fail = deletion confirmed)
+                    try {
+                      const check = await base44.asServiceRole.entities.User.get(userId);
+                      if (check) console.warn('User record still exists — may need manual cleanup');
+                    } catch {
+                      // Expected — not found means deletion confirmed
+                    }
+
+                    // Step 6 — Logout and clear everything
+                    await base44.auth.logout();
+                    localStorage.clear();
+                    sessionStorage.clear();
+
+                    // Step 7 — Navigate to landing page
+                    window.location.href = '/';
+                  } catch (err) {
+                    setDeleteLoading(false);
+                    alert('Deletion failed. Please try again. Error: ' + err.message);
                   }
-                  base44.auth.logout('/');
-                } catch (err) {
-                  console.error('Delete failed:', err);
-                  setDeleteLoading(false);
-                  alert('Failed to delete account. Please contact support for assistance.');
-                }
-              }}
-              style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: deleteConfirmText === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.2)', color: '#fff', fontSize: 14, fontWeight: 800, cursor: deleteConfirmText === 'DELETE' ? 'pointer' : 'not-allowed', marginBottom: 10, opacity: deleteConfirmText === 'DELETE' ? 1 : 0.5 }}
-            >
-              {deleteLoading ? 'Deleting...' : 'Permanently Delete My Account'}
-            </button>
-            <button onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); }} style={{ width: '100%', padding: 12, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-              Cancel
-            </button>
+                }}
+                style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: '#ef4444', color: '#fff', fontSize: 14, fontWeight: 800, cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              >
+                {deleteLoading && <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />}
+                {deleteLoading ? 'Deleting...' : 'Yes, Delete My Account'}
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleteLoading}
+                style={{ width: '100%', padding: 12, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
