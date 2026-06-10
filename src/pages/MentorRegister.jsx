@@ -164,7 +164,7 @@ export default function MentorRegister() {
 
     const birthDate = new Date(dob);
     const age = Math.floor((Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-    if (age < 13) { setError("You must be at least 13 years old to apply as a mentor"); return; }
+    if (age < 13) { setError("You must be at least 13 years old to apply as a GGU Mentor."); return; }
 
     setMentorTrack(age >= 18 ? "adult" : "teen");
     setLoading(true);

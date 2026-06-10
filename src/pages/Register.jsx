@@ -10,13 +10,12 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 
 const calculateAgeGroup = (dobStr) => {
   const birthDate = new Date(dobStr);
-  const ageDiff = Date.now() - birthDate.getTime();
-  const age = Math.floor(ageDiff / (1000 * 60 * 60 * 24 * 365.25));
+  const age = Math.floor((Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
   let ageGroup = "glow_girls";
-  if (age >= 5 && age <= 12) ageGroup = "glow_girls";
+  if (age <= 12) ageGroup = "glow_girls";
   else if (age >= 13 && age <= 15) ageGroup = "glow_tweens";
   else if (age >= 16 && age <= 18) ageGroup = "glow_teens";
-  else if (age >= 19) ageGroup = "glow_women";
+  else ageGroup = "glow_women";
   return { age, ageGroup };
 };
 
@@ -49,8 +48,7 @@ export default function Register() {
 
     const { age, ageGroup } = calculateAgeGroup(dob);
 
-    if (age < 5) { setError("You must be at least 5 years old to join GGU"); return; }
-    if (age > 26) { setError("GGU serves girls and young women ages 5 to 26"); return; }
+    if (age < 10) { setError("You must be at least 10 years old to join GGU."); return; }
 
     setPendingAge({ age, ageGroup });
     setLoading(true);
