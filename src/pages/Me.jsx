@@ -155,53 +155,14 @@ function DeleteAccountModal({ onClose }) {
   const doDelete = async () => {
     try {
       setIsDeleting(true);
-
-      // Step 1 — Get current user
-      const currentUser = await base44.auth.me();
-      const userId = currentUser.id;
-
-      // Step 2 — Mark as deleted first
-      await base44.asServiceRole.entities.User.update(userId, {
-        isDeleted: true,
-        deletedAt: new Date().toISOString(),
-      });
-
-      // Step 3 — Delete all related records simultaneously
-      await Promise.all([
-        base44.entities.UserProfile.filter({ user_email: currentUser.email })
-          .then(records => Promise.all(records.map(r => base44.entities.UserProfile.delete(r.id)))),
-        base44.entities.UserPoints.filter({ user_email: currentUser.email })
-          .then(records => Promise.all(records.map(r => base44.entities.UserPoints.delete(r.id)))),
-        base44.entities.DiaryEntry.filter({ user_email: currentUser.email })
-          .then(records => Promise.all(records.map(r => base44.entities.DiaryEntry.delete(r.id)))),
-        base44.entities.GlowUpPost.filter({ user_email: currentUser.email })
-          .then(records => Promise.all(records.map(r => base44.entities.GlowUpPost.delete(r.id)))),
-        base44.entities.PointsHistory.filter({ user_email: currentUser.email })
-          .then(records => Promise.all(records.map(r => base44.entities.PointsHistory.delete(r.id)))),
-        base44.entities.ShoutOut.filter({ user_email: currentUser.email })
-          .then(records => Promise.all(records.map(r => base44.entities.ShoutOut.delete(r.id)))),
-        base44.entities.VisionBoard.filter({ user_email: currentUser.email })
-          .then(records => Promise.all(records.map(r => base44.entities.VisionBoard.delete(r.id)))),
-      ]);
-
-      // Step 4 — Delete main user record
-      try { await base44.asServiceRole.entities.User.delete(userId); } catch {}
-
-      // Step 5 — Verify deletion (expected to fail = deletion confirmed)
-      try {
-        const check = await base44.asServiceRole.entities.User.get(userId);
-        if (check) console.warn('User record still exists — may need manual cleanup');
-      } catch {
-        // Expected — not found means deletion confirmed
+      const res = await base44.functions.invoke('deleteAccount', {});
+      if (res.data?.success) {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/';
+      } else {
+        throw new Error(res.data?.error || 'Deletion failed');
       }
-
-      // Step 6 — Logout and clear everything
-      await base44.auth.logout();
-      localStorage.clear();
-      sessionStorage.clear();
-
-      // Step 7 — Navigate to landing page
-      window.location.href = '/';
     } catch (error) {
       alert('Deletion failed. Please try again. Error: ' + error.message);
       setIsDeleting(false);
