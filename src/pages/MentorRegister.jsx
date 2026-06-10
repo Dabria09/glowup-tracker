@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,9 @@ const AVAILABILITY_OPTIONS = ["Weekday Mornings","Weekday Afternoons","Weekday E
 const AGE_GROUP_OPTIONS = ["Glow Girls 5 to 12","Glow Teens 13 to 18","Glow Women 19 to 26"];
 
 export default function MentorRegister() {
+  // Read ?step= from URL on initial render
+  const urlStep = parseInt(new URLSearchParams(window.location.search).get("step") || "0", 10);
+
   // Account creation state
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,7 +35,7 @@ export default function MentorRegister() {
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [mentorTrack, setMentorTrack] = useState("adult");
-  const [step, setStep] = useState(0); // 0=account, OTP inline, 1-10=steps, 11=confirmation
+  const [step, setStep] = useState(urlStep); // 0=account, OTP inline, 1-10=steps, 11=confirmation
 
   // Step 1 — Who You Are
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -111,6 +114,23 @@ export default function MentorRegister() {
   const tosRef = useRef(null);
   const conductRef = useRef(null);
 
+  // Pre-fill user info from Google/Apple OAuth when arriving at step >= 1
+  useEffect(() => {
+    if (urlStep >= 1) {
+      base44.auth.me().then(u => {
+        if (u) {
+          if (!fullName && u.full_name) setFullName(u.full_name);
+          if (!email && u.email) setEmail(u.email);
+          if (!dob && u.date_of_birth) {
+            setDob(u.date_of_birth);
+            const age = Math.floor((Date.now() - new Date(u.date_of_birth).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+            setMentorTrack(age >= 18 ? "adult" : "teen");
+          }
+        }
+      }).catch(() => {});
+    }
+  }, []);
+
   const toggleMulti = (val, arr, setArr) => {
     setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
   };
@@ -188,8 +208,8 @@ export default function MentorRegister() {
     }
   };
 
-  const handleGoogleSignup = () => base44.auth.loginWithProvider("google", "/mentor-register?step=1");
-  const handleAppleSignup = () => base44.auth.loginWithProvider("apple", "/mentor-register?step=1");
+  const handleGoogleSignup = () => base44.auth.loginWithProvider("google", "/google-setup?mentor=true");
+  const handleAppleSignup = () => base44.auth.loginWithProvider("apple", "/google-setup?mentor=true");
 
   const handleSendParentConsent = async () => {
     if (!parentEmail || !parentName) return;

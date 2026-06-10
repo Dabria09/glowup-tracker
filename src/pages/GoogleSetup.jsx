@@ -17,6 +17,7 @@ const calculateAgeGroup = (dobStr) => {
 };
 
 export default function GoogleSetup() {
+  const isMentor = new URLSearchParams(window.location.search).get("mentor") === "true";
   const [dob, setDob] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,18 +28,18 @@ export default function GoogleSetup() {
     const init = async () => {
       try {
         const authed = await base44.auth.isAuthenticated();
-        if (!authed) { window.location.href = "/register"; return; }
+        if (!authed) { window.location.href = isMentor ? "/mentor-register" : "/register"; return; }
 
         const u = await base44.auth.me();
         setUser(u);
 
         // If they already have a DOB set, skip this page
         if (u.date_of_birth) {
-          window.location.href = "/onboarding";
+          window.location.href = isMentor ? "/mentor-register?step=1" : "/onboarding";
           return;
         }
       } catch (e) {
-        window.location.href = "/register";
+        window.location.href = isMentor ? "/mentor-register" : "/register";
       } finally {
         setChecking(false);
       }
@@ -56,21 +57,34 @@ export default function GoogleSetup() {
 
     setLoading(true);
     try {
-      const requiresParentalConsent = age < 13;
-      await base44.auth.updateMe({
-        date_of_birth: dob,
-        age,
-        age_group: ageGroup,
-        account_type: "girl",
-        isDeleted: false,
-        requires_parental_consent: requiresParentalConsent,
-        parental_consent_confirmed: !requiresParentalConsent,
-      });
-
-      if (requiresParentalConsent) {
-        window.location.href = "/parent-consent";
+      if (isMentor) {
+        if (age < 13) { setError("You must be at least 13 to apply as a mentor."); setLoading(false); return; }
+        await base44.auth.updateMe({
+          date_of_birth: dob,
+          age,
+          age_group: ageGroup,
+          account_type: "mentor",
+          mentor_type: age >= 18 ? "adult" : "teen",
+          mentor_status: "pending",
+          isDeleted: false,
+        });
+        window.location.href = "/mentor-register?step=1";
       } else {
-        window.location.href = "/onboarding";
+        const requiresParentalConsent = age < 13;
+        await base44.auth.updateMe({
+          date_of_birth: dob,
+          age,
+          age_group: ageGroup,
+          account_type: "girl",
+          isDeleted: false,
+          requires_parental_consent: requiresParentalConsent,
+          parental_consent_confirmed: !requiresParentalConsent,
+        });
+        if (requiresParentalConsent) {
+          window.location.href = "/parent-consent";
+        } else {
+          window.location.href = "/onboarding";
+        }
       }
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
