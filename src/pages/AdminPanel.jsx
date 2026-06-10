@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2 } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 
 import OverviewTab from '@/components/admin/OverviewTab';
@@ -27,6 +27,7 @@ import PollsAdminTab from '@/components/admin/PollsAdminTab';
 import LevelsAdminTab from '@/components/admin/LevelsAdminTab';
 import PioneerNetworkTab from '@/components/admin/PioneerNetworkTab';
 import GlowPassAdminTab from '@/components/admin/GlowPassAdminTab';
+import DeleteUsersTab from '@/components/admin/DeleteUsersTab';
 
 const TABS = [
   { id: 'overview',    label: 'Overview',         icon: BarChart2 },
@@ -52,6 +53,7 @@ const TABS = [
   { id: 'levels',      label: 'Glow Levels',        icon: Crown },
   { id: 'pioneer',     label: 'Pioneer Network',    icon: Crown },
   { id: 'glowpasses',  label: 'Glow Passes',        icon: Tag },
+  { id: 'deleteusers', label: '🗑️ Delete Users',    icon: Trash2 },
 ];
 
 export default function AdminPanel() {
@@ -98,8 +100,9 @@ export default function AdminPanel() {
       case 'polls':      return <PollsAdminTab />;
       case 'levels':     return <LevelsAdminTab />;
       case 'pioneer':    return <PioneerNetworkTab />;
-      case 'glowpasses': return <GlowPassAdminTab />;
-      default:           return <OverviewTab />;
+      case 'glowpasses':   return <GlowPassAdminTab />;
+      case 'deleteusers':  return <DeleteUsersTab />;
+      default:             return <OverviewTab />;
     }
   };
 
