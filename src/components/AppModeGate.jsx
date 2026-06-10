@@ -22,14 +22,9 @@ export default function AppModeGate() {
           if (profiles.length > 0) {
             const p = profiles[0];
             u.onboarding_complete = p.onboarding_complete || false;
-            u.requires_parental_consent = u.requires_parental_consent ?? (p.parental_consent_sent && !p.parental_consent_given);
-            // If consent was granted in DB but not yet on auth record, sync it
-            if (p.parental_consent_given && !u.parental_consent_confirmed) {
-              await base44.auth.updateMe({ parental_consent_confirmed: true });
-              u.parental_consent_confirmed = true;
-            } else {
-              u.parental_consent_confirmed = u.parental_consent_confirmed ?? p.parental_consent_given ?? false;
-            }
+            // Teen requires admin consent approval before access is granted
+            u.requires_parental_consent = p.parental_consent_sent && !p.admin_consent_approved;
+            u.parental_consent_confirmed = p.admin_consent_approved || false;
           }
         } catch {}
       }
@@ -165,13 +160,13 @@ export default function AppModeGate() {
             <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{ background: 'rgba(241,182,16,0.12)', border: '1px solid rgba(241,182,16,0.3)' }}>
               <Clock className="w-10 h-10 text-yellow-400 animate-pulse" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Waiting for Parent Approval ✨</h1>
+            <h1 className="text-2xl font-bold mb-2">Awaiting Consent Verification ✨</h1>
             <p className="text-gray-400 max-w-sm mb-6 text-sm">
-              A consent email was sent to your parent or guardian. Once they approve, you'll have full access to Girls Glowing Up™.
+              A consent email was sent to your parent or guardian. Our safety team will verify and approve your account once parental consent is confirmed.
             </p>
             <div className="rounded-2xl p-4 max-w-sm mb-6 text-xs text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <span className="font-bold text-gray-200 block mb-1">What happens next?</span>
-              <p className="text-gray-400">Your parent will receive an email with instructions. Ask them to check their inbox (and spam folder). Approval is usually instant.</p>
+              <p className="text-gray-400">Ask your parent to check their email (and spam folder). Once they respond, our team will review and activate your account — usually within 24 hours.</p>
             </div>
             <Button
               onClick={handleRefreshStatus}
