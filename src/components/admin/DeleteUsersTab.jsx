@@ -37,8 +37,20 @@ export default function DeleteUsersTab() {
     <div className="space-y-6 max-w-xl">
       <div>
         <h2 className="text-white font-bold text-lg mb-1">🗑️ Bulk Delete Users</h2>
-        <p className="text-gray-400 text-sm">
+        <p className="text-gray-400 text-sm mb-3">
           Permanently deletes auth credentials + all data for each email. One per line or comma-separated.
+        </p>
+        <a
+          href="https://app.base44.com/apps/6a0e12a89992f9565c11e330/users"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
+          style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}
+        >
+          🔗 Open Base44 Dashboard → Users
+        </a>
+        <p className="text-gray-500 text-xs mt-2">
+          If a deleted account can still sign in via Google, you must also remove it from the Base44 Dashboard (link above) to fully purge the OAuth identity.
         </p>
       </div>
 
