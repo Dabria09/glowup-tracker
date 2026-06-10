@@ -15,6 +15,25 @@ export default function AppModeGate() {
     try {
       const u = await base44.auth.me();
 
+      // Sync onboarding_complete and parental consent from UserProfile into the user object
+      if (u.account_type === "girl" || (!u.account_type && u.role !== "admin")) {
+        try {
+          const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+          if (profiles.length > 0) {
+            const p = profiles[0];
+            u.onboarding_complete = p.onboarding_complete || false;
+            u.requires_parental_consent = u.requires_parental_consent ?? (p.parental_consent_sent && !p.parental_consent_given);
+            // If consent was granted in DB but not yet on auth record, sync it
+            if (p.parental_consent_given && !u.parental_consent_confirmed) {
+              await base44.auth.updateMe({ parental_consent_confirmed: true });
+              u.parental_consent_confirmed = true;
+            } else {
+              u.parental_consent_confirmed = u.parental_consent_confirmed ?? p.parental_consent_given ?? false;
+            }
+          }
+        } catch {}
+      }
+
       // If mentor is still pending, check both MentorApplication AND Mentor entity for approval
       if (u.account_type === "mentor" && u.mentor_status !== "approved") {
         try {
@@ -127,6 +146,52 @@ export default function AppModeGate() {
         </Button>
       </div>
     );
+  }
+
+  // ── Onboarding Gate ──────────────────────────────────────────────────────
+  // Girl accounts must have completed onboarding before accessing the app.
+  // Exception: minors (age < 13) who are waiting on parental consent get a
+  // dedicated waiting screen instead of being bounced to /onboarding.
+  if (user.account_type === "girl" || (!user.account_type && user.role !== "admin")) {
+    const onboardingComplete = user.onboarding_complete;
+    const requiresConsent = user.requires_parental_consent === true;
+    const consentGiven = user.parental_consent_confirmed === true;
+
+    if (!onboardingComplete) {
+      // Minor awaiting parental consent — show waiting screen
+      if (requiresConsent && !consentGiven) {
+        return (
+          <div className="min-h-screen flex flex-col items-center justify-center px-6 text-white text-center" style={{ background: '#0d0608' }}>
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{ background: 'rgba(241,182,16,0.12)', border: '1px solid rgba(241,182,16,0.3)' }}>
+              <Clock className="w-10 h-10 text-yellow-400 animate-pulse" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Waiting for Parent Approval ✨</h1>
+            <p className="text-gray-400 max-w-sm mb-6 text-sm">
+              A consent email was sent to your parent or guardian. Once they approve, you'll have full access to Girls Glowing Up™.
+            </p>
+            <div className="rounded-2xl p-4 max-w-sm mb-6 text-xs text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <span className="font-bold text-gray-200 block mb-1">What happens next?</span>
+              <p className="text-gray-400">Your parent will receive an email with instructions. Ask them to check their inbox (and spam folder). Approval is usually instant.</p>
+            </div>
+            <Button
+              onClick={handleRefreshStatus}
+              disabled={refreshing}
+              className="w-full max-w-xs h-12 rounded-xl font-bold mb-3"
+              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+            >
+              <RefreshCw size={16} className={`mr-2 ${refreshing ? "animate-spin" : ""}`} />
+              {refreshing ? "Checking..." : "Check Approval Status"}
+            </Button>
+            <Button onClick={() => base44.auth.logout("/")} variant="destructive" className="w-full max-w-xs h-12 rounded-xl font-bold">
+              <LogOut size={16} className="mr-2" /> Sign Out
+            </Button>
+          </div>
+        );
+      }
+
+      // Everyone else who hasn't completed onboarding — redirect to /onboarding
+      return <Navigate to="/onboarding" replace />;
+    }
   }
 
   // Security Routing Gates
