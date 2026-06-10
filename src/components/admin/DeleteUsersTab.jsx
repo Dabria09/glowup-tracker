@@ -49,8 +49,8 @@ export default function DeleteUsersTab() {
         >
           🔗 Open Base44 Dashboard
         </a>
-        <p className="text-gray-500 text-xs mt-2">
-          Go to <strong className="text-gray-400">your app → Users</strong> to fully remove a Google OAuth identity after deletion.
+        <p className="text-gray-400 text-xs mt-2 leading-relaxed">
+          Once on the dashboard: <strong className="text-gray-300">select your app → click "Users" in the left sidebar → find the user → click Delete</strong>. This removes their Google OAuth identity so they cannot sign back in.
         </p>
       </div>
 
