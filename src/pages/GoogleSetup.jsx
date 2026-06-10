@@ -95,19 +95,31 @@ export default function GoogleSetup() {
           <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-40 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2">Almost There! ✨</h1>
           <p className="text-sm text-gray-400">
-            Hi {user?.full_name?.split(" ")[0] || "there"}! We just need your date of birth to get you set up.
+            Hi {user?.full_name?.split(" ")[0] || "there"}! Your Google info has been pre-filled. Just confirm your date of birth.
           </p>
         </div>
 
-        <div className="rounded-3xl p-6 space-y-5"
+        <div className="rounded-3xl p-6 space-y-4"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' }}>
 
           {error && (
             <div className="p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">{error}</div>
           )}
 
+          {/* Pre-filled Google info — read only */}
+          <div className="p-3 rounded-xl space-y-1" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">From your Google account</p>
+            <div className="flex items-center gap-3">
+              {user?.avatar_url && <img src={user.avatar_url} alt="Google avatar" className="w-10 h-10 rounded-full object-cover" />}
+              <div>
+                <p className="text-sm font-semibold text-white">{user?.full_name}</p>
+                <p className="text-xs text-gray-400">{user?.email}</p>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Date of Birth</Label>
+            <Label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Date of Birth *</Label>
             <Input
               type="date"
               value={dob}
@@ -122,7 +134,7 @@ export default function GoogleSetup() {
             onClick={handleContinue}
             disabled={loading || !dob}
             style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
-            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Setting up...</> : 'Continue'}
+            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Setting up...</> : 'Complete Sign Up'}
           </Button>
         </div>
       </div>
