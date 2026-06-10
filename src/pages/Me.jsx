@@ -157,13 +157,23 @@ function DeleteAccountModal({ profile, onClose }) {
   const doDelete = async () => {
     if (confirmText !== 'DELETE') return;
     setDeleting(true);
-    // Fire the deletion — the function deletes all data then removes the auth record server-side
-    base44.functions.invoke('deleteAccount', {}).catch(() => {});
-    // Show confirmation then clear all local session data and redirect
+    // Step 1: Server-side — delete auth credentials + all database records
+    await base44.functions.invoke('deleteAccount', {});
+    // Step 2: Show confirmation screen
     setStep(3);
-    setTimeout(() => {
+    // Step 3: Sign out, clear all local state, then redirect to landing page
+    setTimeout(async () => {
+      // Clear all localStorage and sessionStorage
       localStorage.clear();
       sessionStorage.clear();
+      // Clear all cookies
+      document.cookie.split(';').forEach(cookie => {
+        const name = cookie.split('=')[0].trim();
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+      });
+      // Sign out from auth provider
+      try { await base44.auth.logout(); } catch {}
+      // Hard redirect to landing page (clears all in-memory state)
       window.location.href = '/';
     }, 2000);
   };
