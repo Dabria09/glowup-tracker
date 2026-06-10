@@ -157,25 +157,27 @@ function DeleteAccountModal({ profile, onClose }) {
   const doDelete = async () => {
     if (confirmText !== 'DELETE') return;
     setDeleting(true);
-    // Step 1: Server-side — delete auth credentials + all database records
-    await base44.functions.invoke('deleteAccount', {});
-    // Step 2: Show confirmation screen
-    setStep(3);
-    // Step 3: Sign out, clear all local state, then redirect to landing page
-    setTimeout(async () => {
-      // Clear all localStorage and sessionStorage
+    try {
+      const user = await base44.auth.me();
+      const userId = user.id;
+
+      // Step 1 - Sign out first to invalidate current session
+      await base44.auth.logout();
+
+      // Step 2 - Delete the user record including auth credentials
+      await base44.asServiceRole.entities.User.delete(userId);
+
+      // Step 3 - Clear all local storage and session data
       localStorage.clear();
       sessionStorage.clear();
-      // Clear all cookies
-      document.cookie.split(';').forEach(cookie => {
-        const name = cookie.split('=')[0].trim();
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-      });
-      // Sign out from auth provider
-      try { await base44.auth.logout(); } catch {}
-      // Hard redirect to landing page (clears all in-memory state)
+
+      // Step 4 - Navigate to landing page
       window.location.href = '/';
-    }, 2000);
+    } catch (error) {
+      console.error('Delete account failed:', error);
+      alert('Something went wrong. Please try again.');
+      setDeleting(false);
+    }
   };
 
   return (
