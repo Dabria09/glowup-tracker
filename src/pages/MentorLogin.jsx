@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -13,68 +13,38 @@ export default function MentorLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    // Pre-fill email when redirected from register page
-    if (params.get("prefill")) setEmail(decodeURIComponent(params.get("prefill")));
-    // Handle OAuth callback
-    if (params.get("oauth") === "1") {
-      base44.auth.me().then(async (user) => {
-        if (!user) { setError("No mentor account found. Please apply to become a mentor."); return; }
-        const apps = await base44.entities.MentorApplication.filter({ user_email: user.email });
-        if (apps && apps.length > 0) {
-          window.location.href = "/mentor-dashboard";
-        } else {
-          await base44.auth.logout();
-          setError("No mentor account found for this email. Please apply to become a mentor.");
-        }
-      }).catch(() => {});
-    }
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSignIn = async () => {
+    if (!email || !password) { setError("Please enter your email and password."); return; }
     setError("");
     setLoading(true);
     try {
-      // Attempt login first
+      // 1. Login
       await base44.auth.loginViaEmailPassword(email, password);
-
-      // Check if user record still exists after login
-      const user = await base44.auth.me();
-      if (!user || !user.id) {
+      // 2. Get user
+      const currentUser = await base44.auth.me();
+      if (!currentUser) throw new Error("Failed to load user session.");
+      // 3. Check user record in database
+      const users = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
+      // 4. Check MentorApplication
+      const apps = await base44.entities.MentorApplication.filter({ user_email: currentUser.email });
+      // 5. Check isDeleted
+      if (currentUser.isDeleted === true) {
         await base44.auth.logout();
-        throw new Error('Account not found');
-      }
-
-      // Check account is not marked as deleted
-      const userRecord = await base44.asServiceRole.entities.User.get(user.id);
-      if (!userRecord || userRecord.isDeleted === true) {
-        await base44.auth.logout();
-        throw new Error('This account has been deleted');
-      }
-
-      // Now logged in — check if they have a mentor application (as themselves)
-      const apps = await base44.entities.MentorApplication.filter({ user_email: email });
-      const hasMentorApp = apps && apps.length > 0;
-
-      if (hasMentorApp) {
-        window.location.href = "/mentor-dashboard";
+        localStorage.clear();
+        sessionStorage.clear();
+        setError("This account has been deleted. Please create a new account.");
+        setLoading(false);
         return;
       }
-
-      // No mentor application — log them out and show appropriate error
-      await base44.auth.logout();
-
-      // Check if they have a UserProfile (GGU girl account)
-      const profiles = await base44.entities.UserProfile.filter({ user_email: email });
-      const hasGGUAccount = profiles && profiles.length > 0;
-
-      if (hasGGUAccount) {
-        setError("This email is registered as a GGU member, not a mentor. Please sign in at the main login page or apply to become a mentor.");
-      } else {
-        setError("No mentor account found for this email. Please apply to become a mentor to create an account.");
+      // 6. Check account_type
+      if (currentUser.account_type !== "mentor" && apps.length === 0) {
+        await base44.auth.logout();
+        setError("This email is not registered as a mentor account.");
+        setLoading(false);
+        return;
       }
+      // 7. Navigate
+      window.location.href = "/mentor-dashboard";
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
@@ -82,85 +52,67 @@ export default function MentorLogin() {
     }
   };
 
-  const handleGoogle = () => base44.auth.loginWithProvider("google", "/mentor-login?oauth=1");
-  const handleApple = () => base44.auth.loginWithProvider("apple", "/mentor-login?oauth=1");
+  const handleGoogle = () => base44.auth.loginWithProvider("google", "/mentor-dashboard");
+  const handleApple = () => base44.auth.loginWithProvider("apple", "/mentor-dashboard");
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
       style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
-
-      {/* Glows */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute rounded-full" style={{ width: 500, height: 500, top: -150, left: -100, background: 'radial-gradient(circle, rgba(232,82,109,0.15), transparent 70%)', filter: 'blur(80px)' }} />
         <div className="absolute rounded-full" style={{ width: 400, height: 400, bottom: -100, right: -80, background: 'radial-gradient(circle, rgba(241,182,16,0.12), transparent 70%)', filter: 'blur(80px)' }} />
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        {/* Logo */}
         <div className="text-center mb-8">
-          <img
-            src="https://media.base44.com/images/public/6a0e12a89992f9565c11e330/845ad74b2_CD382222-BC38-4ADA-BAD6-16F4900160602.png"
-            alt="Girls Glowing Up"
-            className="w-56 mx-auto mb-5"
-            style={{ filter: 'drop-shadow(0 0 20px rgba(232,82,109,0.4))' }}
-          />
+          <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="Girls Glowing Up" className="w-44 mx-auto mb-4" style={{ filter: 'drop-shadow(0 0 20px rgba(232,82,109,0.4))' }} />
           <h1 className="text-2xl font-bold text-white mb-1">Mentor Sign In</h1>
-          <p className="text-sm text-gray-400">Welcome back to your mentor portal</p>
+          <p className="text-sm text-gray-400">Welcome back to your GGU Mentor Portal</p>
         </div>
 
-        <div className="rounded-3xl p-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' }}>
-
-          {/* Apple */}
-          <Button variant="outline" className="w-full h-12 text-sm font-medium mb-3 bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleApple}>
+        <div className="rounded-3xl p-6 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' }}>
+          <Button variant="outline" className="w-full h-12 text-sm font-medium bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleApple}>
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.56 1.4-1.32 2.79-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
             Sign in with Apple
           </Button>
-
-          {/* Google */}
-          <Button variant="outline" className="w-full h-12 text-sm font-medium mb-5 bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleGoogle}>
+          <Button variant="outline" className="w-full h-12 text-sm font-medium bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleGoogle}>
             <GoogleIcon className="w-5 h-5 mr-2" />
             Sign in with Google
           </Button>
 
-          <div className="relative mb-5">
+          <div className="relative">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-transparent px-3 text-gray-500">or</span>
-            </div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="px-3 text-gray-500" style={{ background: 'rgba(13,6,16,0.9)' }}>OR</span></div>
           </div>
 
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">{error}</div>
-          )}
+          {error && <div className="p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">{error}</div>}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+          <div className="space-y-3">
+            <div className="space-y-1">
               <Label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <Input type="email" autoFocus placeholder="you@example.com" value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-pink-500" required />
+                <Input type="email" placeholder="mentor@example.com" value={email} onChange={e => setEmail(e.target.value)}
+                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-pink-500" />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Password</Label>
-                <Link to="/forgot-password" className="text-xs text-pink-400 hover:underline">Forgot password?</Link>
+                <Link to="/forgot-password" className="text-xs text-pink-400 hover:underline">Forgot Password?</Link>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <Input type="password" placeholder="••••••••" value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-pink-500" required />
+                <Input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)}
+                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-pink-500"
+                  onKeyDown={e => e.key === 'Enter' && handleSignIn()} />
               </div>
             </div>
-
-            <Button type="submit" className="w-full h-12 font-bold text-white border-0" disabled={loading}
+            <Button className="w-full h-12 font-bold text-white border-0" onClick={handleSignIn} disabled={loading}
               style={{ background: 'linear-gradient(135deg, #e8526d, #f1b610)' }}>
-              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : 'Sign In to Mentor Portal'}
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : 'Sign In'}
             </Button>
-          </form>
+          </div>
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-6">

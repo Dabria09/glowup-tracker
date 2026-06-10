@@ -1,645 +1,861 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, Loader2, Upload, User, CheckCircle, ChevronRight, Shield } from "lucide-react";
+import { Loader2, ArrowLeft, Check, Upload, CheckCircle } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
-import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import StepWhoYouAre from "@/components/onboarding/StepWhoYouAre";
-import StepParentalConsent from "@/components/onboarding/StepParentalConsent";
-import StepProfessionalBackground from "@/components/onboarding/StepProfessionalBackground";
-import StepYourWhy from "@/components/onboarding/StepYourWhy";
-import StepSafetyConduct from "@/components/onboarding/StepSafetyConduct";
-import StepVerifyIdentity from "@/components/onboarding/StepVerifyIdentity";
-import StepBackgroundCheck from "@/components/onboarding/StepBackgroundCheck";
-import StepReferences from "@/components/onboarding/StepReferences";
-import StepAgreement from "@/components/onboarding/StepAgreement";
-import StepComplete from "@/components/onboarding/StepComplete";
 
 const EXPERTISE_OPTIONS = [
-  "Career Development", "STEM", "Business & Entrepreneurship", "Creative Arts", 
-  "Leadership", "Mental Health & Wellness", "Academic Support", "Life Skills", 
-  "Financial Literacy", "Health & Fitness", "Technology", "Communication"
+  "Career Development","Financial Literacy","College Prep and Applications",
+  "Entrepreneurship and Business","Mental Wellness and Confidence","STEM and Technology",
+  "Arts and Creative Industries","Athletics and Sports","Social Media and Content Creation",
+  "Fashion and Beauty Industry","Health and Fitness","Community Leadership and Civic Engagement",
+  "Relationships and Communication","Life Skills and Independence","Faith and Spirituality","Other"
 ];
 
-const AGE_GROUPS = ["Middle School (11-13)", "High School (14-18)", "College (18-22)", "Young Professional (23-26)"];
-
-const MENTORING_TYPES = ["One-on-One Mentoring", "Group Mentoring", "Peer Mentoring", "Career Mentoring"];
-
-const AVAILABILITY_OPTIONS = ["Weekdays (Morning)", "Weekdays (Afternoon)", "Weekdays (Evening)", "Weekends"];
-
-const SESSION_TYPES = ["Video Call", "Phone Call", "Text Chat", "In-Person"];
+const LANGUAGE_OPTIONS = ["English","Spanish","French","Mandarin","Arabic","Portuguese","Swahili","Hindi","Yoruba","Other"];
+const AVAILABILITY_OPTIONS = ["Weekday Mornings","Weekday Afternoons","Weekday Evenings","Weekend Mornings","Weekend Afternoons","Weekend Evenings"];
+const AGE_GROUP_OPTIONS = ["Glow Girls 5 to 12","Glow Teens 13 to 18","Glow Women 19 to 26"];
 
 export default function MentorRegister() {
-  const navigate = useNavigate();
-  const [step, setStep] = useState(0); // 0: Account, 1: Who You Are, 2: Professional Background, 3: Your Why, 4: Safety, 5: References, 6: Agreement, 7: Complete
-  const [email, setEmail] = useState("");
+  // Account creation state
   const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [otp, setOtp] = useState("");
-  const [isVerified, setIsVerified] = useState(false);
+  const [dob, setDob] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showLoginInstead, setShowLoginInstead] = useState(false);
-  const [loginPassword, setLoginPassword] = useState("");
-  const [loginLoading, setLoginLoading] = useState(false);
-  const [loginError, setLoginError] = useState("");
+  const [showOtp, setShowOtp] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [mentorTrack, setMentorTrack] = useState("adult");
+  const [step, setStep] = useState(0); // 0=account, OTP inline, 1-10=steps, 11=confirmation
 
   // Step 1 — Who You Are
-  const [whoYouAreData, setWhoYouAreData] = useState({
-    preferred_name: '',
-    pronouns: '',
-    bio: '',
-    phone: '',
-    city: '',
-    state: '',
-    school_or_workplace: '',
-    languages: '',
-    avatar_url: '',
-    date_of_birth: '',
-    parent_email: '',
-    parent_name: '',
-    parent_phone: '',
-    parent_relationship: '',
-  });
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [preferredName, setPreferredName] = useState("");
+  const [pronouns, setPronouns] = useState("");
+  const [bio, setBio] = useState("");
+  const [schoolOrWorkplace, setSchoolOrWorkplace] = useState("");
+  const [languages, setLanguages] = useState([]);
 
-  // Step 1.5 — Parental Consent (teen mentors only)
+  // Step 2 — Professional
+  const [occupation, setOccupation] = useState("");
+  const [employer, setEmployer] = useState("");
+  const [education, setEducation] = useState("");
+  const [fieldOfStudy, setFieldOfStudy] = useState("");
+  const [experienceYears, setExperienceYears] = useState("");
+  const [workedWithYouth, setWorkedWithYouth] = useState(null);
+  const [youthDesc, setYouthDesc] = useState("");
+
+  // Step 3 — Expertise
+  const [expertise, setExpertise] = useState([]);
+
+  // Step 4 — Mentoring prefs
+  const [ageGroups, setAgeGroups] = useState([]);
+  const [mentoringStyle, setMentoringStyle] = useState("");
+  const [menteeCount, setMenteeCount] = useState("");
+  const [hoursPerMonth, setHoursPerMonth] = useState("");
+  const [availability, setAvailability] = useState([]);
+  const [sessionPref, setSessionPref] = useState("");
+
+  // Step 5 — Your Why
+  const [whyMentor, setWhyMentor] = useState("");
+  const [wishTold, setWishTold] = useState("");
+  const [empowermentMeaning, setEmpowermentMeaning] = useState("");
+  const [challengeOvercome, setChallengeOvercome] = useState("");
+  const [styleDesc, setStyleDesc] = useState("");
+
+  // Step 6 — Safety
+  const [convictedFelony, setConvictedFelony] = useState(null);
+  const [restrainingOrder, setRestrainingOrder] = useState(null);
+  const [removedFromMinors, setRemovedFromMinors] = useState(null);
+  const [safetyExplanation, setSafetyExplanation] = useState("");
+  const [consentBgCheck, setConsentBgCheck] = useState(false);
+  const [understandHold, setUnderstandHold] = useState(false);
+  const [teenSafetyConsent, setTeenSafetyConsent] = useState(false);
+
+  // Step 7 — ID Verification
+  const [idDocUrl, setIdDocUrl] = useState("");
+  const [facePhotoUrl, setFacePhotoUrl] = useState("");
+  const [uploadingId, setUploadingId] = useState(false);
+  const [uploadingFace, setUploadingFace] = useState(false);
+
+  // Step 8 — References (adult)
+  const [ref1Name, setRef1Name] = useState("");
+  const [ref1Rel, setRef1Rel] = useState("");
+  const [ref1Email, setRef1Email] = useState("");
+  const [ref2Name, setRef2Name] = useState("");
+  const [ref2Rel, setRef2Rel] = useState("");
+  const [ref2Email, setRef2Email] = useState("");
+
+  // Step 9 — Parent Consent (teen)
+  const [parentName, setParentName] = useState("");
+  const [parentRel, setParentRel] = useState("");
+  const [parentEmail, setParentEmail] = useState("");
+  const [parentPhone, setParentPhone] = useState("");
   const [parentConsentSent, setParentConsentSent] = useState(false);
 
-  // Step 2 — Professional Background
-  const [professionalData, setProfessionalData] = useState({
-    title: '',
-    occupation: '',
-    employer: '',
-    education: '',
-    field_of_study: '',
-    experience_years: 0,
-    worked_with_youth: 'no',
-    youth_experience_description: '',
-    expertise: [],
-    age_groups: [],
-    mentoring_type: '',
-    mentee_count: '1-2',
-    hours_per_month: '5-10',
-    availability: [],
-    session_type: '',
-    categories: [],
-  });
+  // Step 10 — Final Agreement
+  const [scrolledTos, setScrolledTos] = useState(false);
+  const [scrolledConduct, setScrolledConduct] = useState(false);
+  const [acceptTos, setAcceptTos] = useState(false);
+  const [acceptConduct, setAcceptConduct] = useState(false);
+  const [certifyTruth, setCertifyTruth] = useState(false);
+  const [signature, setSignature] = useState("");
+  const [generatedAppId, setGeneratedAppId] = useState("");
 
-  // Step 3 — Your Why (short answer questions)
-  const [yourWhyData, setYourWhyData] = useState({
-    why_mentor: '',
-    wish_told_younger: '',
-    empowerment_meaning: '',
-    challenge_overcome: '',
-    mentoring_style: '',
-  });
-
-  // Step 4 — Safety & Conduct
-  const [safetyData, setSafetyData] = useState({
-    felony_conviction: undefined,
-    felony_explanation: '',
-    restraining_order: undefined,
-    restraining_explanation: '',
-    removed_from_minors_role: undefined,
-    removed_explanation: '',
-    consent_background_check: false,
-    understand_application_hold: false,
-  });
-
-  // Step 4.5 — ID Verification
-  const [idVerificationData, setIdVerificationData] = useState({
-    id_document_name: '',
-    id_document_type: '',
-    id_document_url: '',
-    face_photo_name: '',
-    face_photo_url: '',
-  });
-
-  // Step 5 — References
-  const [ref1, setRef1] = useState({ name: '', relationship: '', email: '' });
-  const [ref2, setRef2] = useState({ name: '', relationship: '', email: '' });
-
-  // Step 6 — Agreement (captured from StepAgreement's onSubmit callback)
-  // No local state needed — StepAgreement calls onSubmit(agreementData) directly
-
-  // Auto-detect already logged-in users: pre-fill their info but only skip
-  // account creation if they already have a MentorApplication in progress.
-  useEffect(() => {
-    base44.auth.isAuthenticated().then(async (authed) => {
-      if (!authed) return;
-      try {
-        const u = await base44.auth.me();
-        if (!u) return;
-        setEmail(u.email);
-        setFullName(u.full_name || "");
-        // Only skip to step 1 if they already have an application started
-        const apps = await base44.entities.MentorApplication.filter({ user_email: u.email });
-        if (apps.length > 0) {
-          setStep(1);
-        }
-      } catch {}
-    }).catch(() => {});
-  }, []);
+  const tosRef = useRef(null);
+  const conductRef = useRef(null);
 
   const toggleMulti = (val, arr, setArr) => {
-    setArr(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+    setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
   };
 
-  const updateWhoYouAre = (patch) => setWhoYouAreData(prev => ({ ...prev, ...patch }));
-  const updateYourWhy = (patch) => setYourWhyData(prev => ({ ...prev, ...patch }));
-  const updateSafety = (patch) => setSafetyData(prev => ({ ...prev, ...patch }));
-  const updateParentalConsent = (patch) => setWhoYouAreData(prev => ({ ...prev, ...patch }));
-
-  const calcAge = (dobStr) => {
-    if (!dobStr) return 0;
-    const diff = Date.now() - new Date(dobStr).getTime();
-    return Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
-  };
-
-  const handleInlineLogin = async () => {
-    setLoginError("");
-    setLoginLoading(true);
+  const handleUploadFile = async (e, setUrl, setUploading) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
     try {
-      await base44.auth.loginViaEmailPassword(email, loginPassword);
-      // Check if they already have a mentor application
-      const apps = await base44.entities.MentorApplication.filter({ user_email: email });
-      if (apps && apps.length > 0) {
-        window.location.href = "/mentor-dashboard";
-      } else {
-        // No application yet — continue the registration flow
-        setShowLoginInstead(false);
-        setStep(1);
-      }
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setUrl(file_url);
     } catch (err) {
-      setLoginError(err.message || "Invalid password. Please try again.");
+      alert("Upload failed: " + err.message);
+    } finally {
+      setUploading(false);
     }
-    setLoginLoading(false);
   };
 
-  const handleGoogle = () => base44.auth.loginWithProvider("google", "/mentor-register?step=2");
-  const handleApple = () => base44.auth.loginWithProvider("apple", "/mentor-register?step=2");
+  const handleScroll = (ref, setScrolled) => {
+    if (!ref.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = ref.current;
+    if (scrollHeight - scrollTop <= clientHeight + 20) setScrolled(true);
+  };
 
-  const handleAccountSubmit = async (e) => {
-    e.preventDefault();
+  // Account creation
+  const handleCreateAccount = async () => {
     setError("");
-    if (password !== confirmPassword) { setError("Passwords do not match"); return; }
-    if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
+    if (!fullName || !email || !password || !confirmPassword || !dob) { setError("All fields are required."); return; }
+    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
+    if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
+
+    const birthDate = new Date(dob);
+    const age = Math.floor((Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+    if (age < 13) { setError("You must be at least 13 years old to apply as a mentor"); return; }
+
+    setMentorTrack(age >= 18 ? "adult" : "teen");
     setLoading(true);
     try {
       await base44.auth.register({ email, password });
-      toast.success("Registration successful! Please check your email for the verification code.");
-      setIsVerified(false);
-      setStep(0.5); // OTP step
+      setShowOtp(true);
     } catch (err) {
-      const msg = err.message || "";
-      if (msg.toLowerCase().includes("already exists") || msg.toLowerCase().includes("already registered")) {
-        setError(""); // Clear error — show dedicated prompt below
-        setShowLoginInstead(true);
+      if (err.message?.toLowerCase().includes("already") || err.message?.toLowerCase().includes("exist")) {
+        setError("An account with this email already exists. Please sign in instead.");
       } else {
-        setError(msg || "Registration failed");
+        setError(err.message || "Registration failed");
       }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const handleVerify = async () => {
+  const handleVerifyOtp = async () => {
+    setError("");
     setLoading(true);
     try {
-      const res = await base44.auth.verifyOtp({ email, otpCode: otp });
-      if (res.access_token) {
-        base44.auth.setToken(res.access_token);
-        setIsVerified(true);
-        setStep(1);
-        toast.success("Email verified! Let's complete your mentor profile.");
-      }
-    } catch (err) {
-      setError(err.message || "Invalid code");
-    }
-    setLoading(false);
-  };
+      const result = await base44.auth.verifyOtp({ email, otpCode });
+      if (result?.access_token) base44.auth.setToken(result.access_token);
 
-  const handleResendCode = async () => {
-    try {
-      await base44.auth.resendOtp(email);
-      toast.success("Verification code resent!");
-    } catch (err) {
-      setError(err.message || "Failed to resend");
-    }
-  };
-
-  const handleNext = () => setStep(s => s + 1);
-  const handleBack = () => setStep(s => s - 1);
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const user = await base44.auth.me();
-      const age = calcAge(whoYouAreData.date_of_birth);
-      const mentorTrack = age >= 18 ? "adult" : "teen";
-      
-      // Map camelCase form state to snake_case database fields
-      const applicationData = {
-        user_email: user.email,
+      // Update user with mentor account type
+      await base44.auth.updateMe({
         full_name: fullName,
-        // Who You Are - map camelCase to snake_case
-        preferred_name: whoYouAreData.preferredName || whoYouAreData.preferred_name,
-        pronouns: whoYouAreData.pronouns,
-        bio: whoYouAreData.bio,
-        phone: whoYouAreData.phone,
-        city: whoYouAreData.city,
-        state: whoYouAreData.state,
-        school_or_workplace: whoYouAreData.schoolOrWorkplace || whoYouAreData.school_or_workplace,
-        languages: whoYouAreData.languages,
-        avatar_url: whoYouAreData.avatar_url,
-        date_of_birth: whoYouAreData.date_of_birth,
-        // Professional Background - map camelCase to snake_case
-        title: professionalData.title,
-        occupation: professionalData.occupation,
-        employer: professionalData.employer,
-        education: professionalData.education,
-        field_of_study: professionalData.fieldOfStudy || professionalData.field_of_study,
-        experience_years: professionalData.experienceYears || professionalData.experience_years,
-        worked_with_youth: professionalData.workedWithYouth || professionalData.worked_with_youth,
-        youth_experience_description: professionalData.youthExperienceDesc || professionalData.youth_experience_description,
-        // Map expertiseAreas to both expertise and categories
-        expertise: JSON.stringify(professionalData.expertiseAreas || professionalData.expertise || []),
-        categories: JSON.stringify(professionalData.expertiseAreas || professionalData.categories || []),
-        age_groups: JSON.stringify(professionalData.ageGroups || professionalData.age_groups || []),
-        mentoring_type: professionalData.mentoringType || professionalData.mentoring_type,
-        mentee_count: professionalData.menteeCount || professionalData.mentee_count,
-        hours_per_month: professionalData.hoursPerMonth || professionalData.hours_per_month,
-        availability: JSON.stringify(professionalData.availability),
-        session_type: professionalData.sessionType || professionalData.session_type,
-        // Your Why fields
-        why_mentor: yourWhyData.why_mentor,
-        wish_someone_told: yourWhyData.wish_told_younger,
-        empowerment_meaning: yourWhyData.empowerment_meaning,
-        challenge_overcome: yourWhyData.challenge_overcome,
-        mentoring_style: yourWhyData.mentoring_style,
-        // Safety data (for adult mentors)
-        felony_conviction: safetyData.felony_conviction,
-        restraining_order: safetyData.restraining_order,
-        removed_from_minors_role: safetyData.removed_from_minors_role,
-        consent_background_check: safetyData.consent_background_check,
-        understand_application_hold: safetyData.understand_application_hold,
-        // References
-        reference_1_name: ref1.name,
-        reference_1_relationship: ref1.relationship,
-        reference_1_email: ref1.email,
-        reference_2_name: ref2.name,
-        reference_2_relationship: ref2.relationship,
-        reference_2_email: ref2.email,
-        // Agreements
-        agreements_accepted: JSON.stringify(["tos", "conduct"]),
-        agreements_timestamp: new Date().toISOString(),
-        parent_name: whoYouAreData.parent_name,
-        parent_phone: whoYouAreData.parent_phone,
-        parent_relationship: whoYouAreData.parent_relationship,
-        // Required fields
+        date_of_birth: dob,
+        account_type: "mentor",
+        mentor_type: mentorTrack,
+        mentor_status: "pending",
+        isDeleted: false,
+      });
+
+      setShowOtp(false);
+      setStep(1);
+    } catch (err) {
+      setError(err.message || "Invalid verification code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = () => base44.auth.loginWithProvider("google", "/mentor-register?step=1");
+  const handleAppleSignup = () => base44.auth.loginWithProvider("apple", "/mentor-register?step=1");
+
+  const handleSendParentConsent = async () => {
+    if (!parentEmail || !parentName) return;
+    setLoading(true);
+    try {
+      await base44.integrations.Core.SendEmail({
+        to: parentEmail,
+        subject: `GGU Teen Mentor Consent Required for ${fullName}`,
+        body: `Hi ${parentName},\n\n${fullName} has applied to become a GGU Teen Mentor and listed you as their parent or guardian.\n\nPlease visit https://gguapp.com/parent-consent to review and provide consent.\n\nThank you,\nThe Girls Glowing Up Team`
+      });
+      setParentConsentSent(true);
+    } catch (err) {
+      alert("Failed to send email: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitApplication = async () => {
+    setLoading(true);
+    const appId = "MTR-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    setGeneratedAppId(appId);
+    try {
+      await base44.entities.MentorApplication.create({
+        user_email: email,
+        full_name: fullName,
+        preferred_name: preferredName,
+        pronouns,
+        bio,
+        school_or_workplace: schoolOrWorkplace,
+        languages: JSON.stringify(languages),
+        occupation,
+        employer,
+        education,
+        field_of_study: fieldOfStudy,
+        experience_years: Number(experienceYears) || 0,
+        worked_with_youth: workedWithYouth ? "yes" : "no",
+        youth_experience_description: youthDesc,
+        categories: JSON.stringify(expertise),
+        age_groups: JSON.stringify(ageGroups),
+        mentoring_type: mentoringStyle,
+        mentee_count: menteeCount,
+        hours_per_month: hoursPerMonth,
+        availability: JSON.stringify(availability),
+        session_type: sessionPref,
+        why_mentor: whyMentor,
+        wish_someone_told: wishTold,
+        empowerment_meaning: empowermentMeaning,
+        challenge_overcome: challengeOvercome,
+        mentoring_style: styleDesc,
+        avatar_url: avatarUrl,
         mentor_track: mentorTrack,
+        parent_name: parentName,
+        parent_email: parentEmail,
+        parent_phone: parentPhone,
+        parent_relationship: parentRel,
+        reference_1_name: ref1Name,
+        reference_1_relationship: ref1Rel,
+        reference_1_email: ref1Email,
+        reference_2_name: ref2Name,
+        reference_2_relationship: ref2Rel,
+        reference_2_email: ref2Email,
         status: "pending",
         submitted_date: new Date().toISOString(),
-      };
-      
-      console.log('Submitting application with data:', applicationData);
-      
-      // Create MentorApplication record
-      await base44.entities.MentorApplication.create(applicationData);
-      
-      console.log('Application created successfully');
-      toast.success("Application submitted! We'll review within 5-7 business days.");
-      setStep(7); // Complete step
-    } catch (err) {
-      console.error('Submit error details:', {
-        message: err.message,
-        code: err.code,
-        response: err.response,
-        fullError: err
+        agreements_accepted: JSON.stringify(["tos", "conduct", "truth"]),
+        agreements_timestamp: new Date().toISOString(),
       });
-      setError(`Error: ${err.message || 'Something went wrong. Please try again.'}`);
-      toast.error(`Error: ${err.message || 'Something went wrong. Please try again.'}`);
+      setStep(11);
+    } catch (err) {
+      alert("Something went wrong. Please try again.\n" + err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const renderStep = () => {
-    switch (step) {
-      case 0:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-white mb-2">Create Your Mentor Account</h2>
-              <p className="text-gray-400">Join our community of empowered mentors</p>
-            </div>
-            
-            <div className="space-y-4">
-              <Button onClick={handleGoogle} className="w-full bg-white text-gray-900 hover:bg-gray-100" size="lg">
-                <GoogleIcon className="w-5 h-5 mr-2" />
-                Continue with Google
-              </Button>
-              <Button onClick={handleApple} className="w-full bg-black text-white hover:bg-gray-800" size="lg">
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-                </svg>
-                Continue with Apple
-              </Button>
-            </div>
+  const nextStep = () => {
+    if (step === 7 && mentorTrack === "teen") setStep(9);
+    else if (step === 8 && mentorTrack === "adult") setStep(10);
+    else setStep(s => s + 1);
+  };
+  const prevStep = () => {
+    if (step === 9 && mentorTrack === "teen") setStep(7);
+    else if (step === 10 && mentorTrack === "adult") setStep(8);
+    else setStep(s => s - 1);
+  };
 
+  const totalSteps = mentorTrack === "teen" ? 9 : 10;
+
+  const bg = { background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' };
+  const cardStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' };
+
+  // OTP SCREEN
+  if (showOtp) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden" style={bg}>
+        <div className="w-full max-w-md z-10">
+          <div className="text-center mb-8">
+            <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-36 mx-auto mb-3" />
+            <h1 className="text-2xl font-bold text-white">Verify Your Email ✉️</h1>
+            <p className="text-sm text-gray-400 mt-1">6-digit code sent to <span className="text-pink-400">{email}</span></p>
+          </div>
+          <div className="rounded-3xl p-6 space-y-4" style={cardStyle}>
+            {error && <div className="p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">{error}</div>}
+            <div className="flex justify-center">
+              <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoFocus>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0}/><InputOTPSlot index={1}/><InputOTPSlot index={2}/>
+                  <InputOTPSlot index={3}/><InputOTPSlot index={4}/><InputOTPSlot index={5}/>
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            <Button className="w-full h-12 font-bold text-white" onClick={handleVerifyOtp} disabled={loading || otpCode.length < 6}
+              style={{ background: 'linear-gradient(135deg, #e8526d, #f1b610)' }}>
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Verifying...</> : 'Verify & Continue'}
+            </Button>
+            <p className="text-center text-sm text-gray-400">
+              Didn't get it?{" "}
+              <button onClick={() => base44.auth.resendOtp(email)} className="text-pink-400 hover:underline">Resend</button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ACCOUNT CREATION (step 0)
+  if (step === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-10 relative overflow-hidden" style={bg}>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute rounded-full" style={{ width:500,height:500,top:-150,left:-100,background:'radial-gradient(circle, rgba(232,82,109,0.15), transparent 70%)',filter:'blur(80px)' }}/>
+          <div className="absolute rounded-full" style={{ width:400,height:400,bottom:-100,right:-80,background:'radial-gradient(circle, rgba(241,182,16,0.12), transparent 70%)',filter:'blur(80px)' }}/>
+        </div>
+        <div className="w-full max-w-md relative z-10">
+          <div className="text-center mb-6">
+            <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-40 mx-auto mb-4" style={{ filter:'drop-shadow(0 0 20px rgba(232,82,109,0.4))' }}/>
+            <h1 className="text-2xl font-bold text-white mb-1">Create Your Mentor Account</h1>
+            <p className="text-sm text-gray-400">Join Girls Glowing Up™ as a mentor</p>
+          </div>
+          <div className="rounded-3xl p-6 space-y-4" style={cardStyle}>
+            <Button variant="outline" className="w-full h-12 text-sm font-medium bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleAppleSignup}>
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.56 1.4-1.32 2.79-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+              Sign up with Apple
+            </Button>
+            <Button variant="outline" className="w-full h-12 text-sm font-medium bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleGoogleSignup}>
+              <GoogleIcon className="w-5 h-5 mr-2"/>Sign up with Google
+            </Button>
             <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-700"></div>
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"/></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="px-3 text-gray-500" style={{ background:'rgba(13,5,30,0.9)' }}>Or register with email</span></div>
+            </div>
+            {error && <div className="p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">{error}</div>}
+            <Input placeholder="Full Legal Name" value={fullName} onChange={e=>setFullName(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+            <Input type="email" placeholder="Email Address" value={email} onChange={e=>setEmail(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+            <Input type="password" placeholder="Password (min 8 characters)" value={password} onChange={e=>setPassword(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+            <Input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+            <div className="space-y-1">
+              <Label className="text-xs text-gray-400 font-bold uppercase tracking-widest">Date of Birth</Label>
+              <Input type="date" value={dob} onChange={e=>setDob(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white"/>
+            </div>
+            <Button className="w-full h-12 font-bold text-white border-0" onClick={handleCreateAccount} disabled={loading}
+              style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }}>
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Creating Account...</> : 'Create Account'}
+            </Button>
+          </div>
+          <p className="text-center text-xs text-gray-500 mt-6">
+            Already have a mentor account?{" "}
+            <Link to="/mentor-login" className="text-pink-400 font-semibold hover:underline">Sign In</Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // CONFIRMATION (step 11)
+  if (step === 11) {
+    const firstName = preferredName || fullName.split(" ")[0];
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-10" style={bg}>
+        <div className="w-full max-w-md text-center space-y-6 z-10">
+          <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-36 mx-auto"/>
+          <div className="w-20 h-20 rounded-full bg-green-500/20 border-2 border-green-500/40 flex items-center justify-center mx-auto">
+            <CheckCircle className="w-10 h-10 text-green-400"/>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Application Submitted! 🎉</h2>
+            <p className="text-gray-400 text-sm mt-2">Thank you, {firstName}. Your GGU Mentor Application is being reviewed.</p>
+            <p className="text-pink-400 text-xs font-bold font-mono mt-2">Application ID: {generatedAppId}</p>
+          </div>
+          <div className="rounded-2xl p-4 text-left" style={cardStyle}>
+            <p className="text-xs text-gray-400 font-bold uppercase mb-3">Application Status</p>
+            <div className="flex gap-1 mb-2">
+              {[1,2,3,4,5,6].map(i => <div key={i} className={`h-2 flex-1 rounded-full ${i===1 ? 'bg-pink-500' : 'bg-white/10'}`}/>)}
+            </div>
+            <div className="flex justify-between text-xs text-gray-500">
+              <span className="text-pink-400 font-semibold">Stage 1: Applied</span>
+              <span>Stage 6: Active</span>
+            </div>
+            <div className="mt-3 space-y-1 text-xs text-gray-400">
+              <p>📋 Application Review</p>
+              <p>🔍 Background Check (Adult) / Parent Consent (Teen)</p>
+              <p>🎙️ Interview</p>
+              <p>✅ GGU Mentor Lesson</p>
+              <p>📝 Final Approval</p>
+              <p>⭐ Active Mentor</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400">We will review your application within 5 to 7 business days. Notifications will be sent to <strong className="text-gray-200">{email}</strong>.</p>
+          <Button className="w-full h-12 font-bold text-white" onClick={() => window.location.href='/mentor-dashboard'}
+            style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }}>
+            Go to My Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ONBOARDING STEPS 1-10
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={bg}>
+      <div className="w-full max-w-xl relative z-10">
+        {/* Progress */}
+        <div className="mb-6">
+          <div className="flex gap-1">
+            {Array.from({ length: totalSteps }).map((_, i) => (
+              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i + 1 <= step ? 'bg-pink-500' : 'bg-white/10'}`}/>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-1 text-right">Step {step} of {totalSteps}</p>
+        </div>
+
+        <div className="rounded-3xl p-6" style={cardStyle}>
+
+          {/* STEP 1 — Who You Are */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">Who You Are</h3>
+              <div className="flex justify-center">
+                <label className="relative w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 overflow-hidden flex items-center justify-center cursor-pointer hover:bg-white/15">
+                  {avatarUrl ? <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover"/> : <Upload size={28} className="text-gray-400"/>}
+                  <input type="file" accept="image/*" onChange={e=>handleUploadFile(e, setAvatarUrl, ()=>{})} className="hidden"/>
+                </label>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-900 text-gray-400">Or register with email</span>
+              <Input placeholder="Preferred Name *" value={preferredName} onChange={e=>setPreferredName(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              <Input placeholder="Pronouns (optional)" value={pronouns} onChange={e=>setPronouns(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-400">Short Bio * ({300 - bio.length} chars left)</Label>
+                <textarea maxLength={300} value={bio} onChange={e=>setBio(e.target.value)}
+                  className="w-full h-24 rounded-lg p-3 text-sm text-white placeholder-gray-500 resize-none bg-white/5 border border-white/10 focus:outline-none focus:border-pink-500"
+                  placeholder="Tell us about yourself..."/>
+              </div>
+              <Input placeholder="School or Workplace *" value={schoolOrWorkplace} onChange={e=>setSchoolOrWorkplace(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-400">Languages Spoken</Label>
+                <div className="flex flex-wrap gap-2">
+                  {LANGUAGE_OPTIONS.map(l=>(
+                    <div key={l} onClick={()=>toggleMulti(l,languages,setLanguages)}
+                      className={`px-3 py-1 rounded-full text-xs cursor-pointer border ${languages.includes(l)?'bg-pink-500/20 border-pink-500 text-white':'border-white/10 text-gray-400 hover:bg-white/5'}`}>
+                      {l}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-between pt-2">
+                <Button onClick={()=>setStep(0)} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                <Button onClick={nextStep} disabled={!preferredName||!bio||!schoolOrWorkplace}
+                  style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white">Next</Button>
               </div>
             </div>
+          )}
 
-            <form onSubmit={handleAccountSubmit} className="space-y-4">
-              <div>
-                <Label className="text-gray-300">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 bg-gray-800 border-gray-700 text-white"
-                    placeholder="your@email.com"
-                    required
-                  />
+          {/* STEP 2 — Professional Background */}
+          {step === 2 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">Professional Background</h3>
+              <Input placeholder="Current Occupation *" value={occupation} onChange={e=>setOccupation(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              <Input placeholder="Employer or School (optional)" value={employer} onChange={e=>setEmployer(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              <select value={education} onChange={e=>setEducation(e.target.value)} className="w-full h-12 rounded-lg px-3 text-white bg-white/5 border border-white/10">
+                <option value="">Highest Education Level *</option>
+                <option>High School / GED</option><option>Some College</option>
+                <option>Associate's Degree</option><option>Bachelor's Degree</option>
+                <option>Master's Degree</option><option>Doctorate / PhD</option>
+              </select>
+              <Input placeholder="Field of Study *" value={fieldOfStudy} onChange={e=>setFieldOfStudy(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              <select value={experienceYears} onChange={e=>setExperienceYears(e.target.value)} className="w-full h-12 rounded-lg px-3 text-white bg-white/5 border border-white/10">
+                <option value="">Years of Experience *</option>
+                <option value="0">Less than 1 year</option><option value="1">1-2 years</option>
+                <option value="3">3-4 years</option><option value="5">5-8 years</option><option value="9">9+ years</option>
+              </select>
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-400">Worked with youth before? *</Label>
+                <div className="flex gap-3">
+                  <div onClick={()=>setWorkedWithYouth(true)} className={`flex-1 p-3 rounded-xl border text-center text-sm cursor-pointer ${workedWithYouth===true?'border-pink-500 bg-pink-500/10 text-white':'border-white/10 text-gray-400'}`}>Yes</div>
+                  <div onClick={()=>setWorkedWithYouth(false)} className={`flex-1 p-3 rounded-xl border text-center text-sm cursor-pointer ${workedWithYouth===false?'border-pink-500 bg-pink-500/10 text-white':'border-white/10 text-gray-400'}`}>No</div>
                 </div>
               </div>
-              <div>
-                <Label className="text-gray-300">Full Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-                  <Input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="pl-10 bg-gray-800 border-gray-700 text-white"
-                    placeholder="Jane Doe"
-                    required
-                  />
-                </div>
+              {workedWithYouth===true && (
+                <Input placeholder="Describe your youth experience..." value={youthDesc} onChange={e=>setYouthDesc(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              )}
+              <div className="flex justify-between pt-2">
+                <Button onClick={prevStep} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                <Button onClick={nextStep} disabled={!occupation||!education||!fieldOfStudy||!experienceYears||workedWithYouth===null}
+                  style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white">Next</Button>
               </div>
-              <div>
-                <Label className="text-gray-300">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 bg-gray-800 border-gray-700 text-white"
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <Label className="text-gray-300">Confirm Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-                  <Input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 bg-gray-800 border-gray-700 text-white"
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-              </div>
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              {showLoginInstead && (
-                <div className="p-4 rounded-xl bg-pink-500/10 border border-pink-500/30 text-sm space-y-3">
-                  <p className="font-bold text-pink-300">An account with this email already exists.</p>
-                  <p className="text-gray-300">Enter your password to sign in and continue your application.</p>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-                    <Input
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleInlineLogin()}
-                      className="pl-10 bg-gray-800 border-gray-700 text-white"
-                      placeholder="Your password"
-                      autoFocus
-                    />
+            </div>
+          )}
+
+          {/* STEP 3 — Expertise */}
+          {step === 3 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">Your Expertise</h3>
+              <p className="text-xs text-gray-400">Select all that apply — minimum 1 required</p>
+              <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+                {EXPERTISE_OPTIONS.map(opt=>(
+                  <div key={opt} onClick={()=>toggleMulti(opt,expertise,setExpertise)}
+                    className={`p-3 rounded-xl border text-xs cursor-pointer text-center transition ${expertise.includes(opt)?'border-pink-500 bg-pink-500/10 text-white':'border-white/10 text-gray-400 hover:bg-white/5'}`}>
+                    {opt}
                   </div>
-                  {loginError && <p className="text-red-400 text-xs">{loginError}</p>}
-                  <Button
-                    type="button"
-                    className="w-full bg-pink-600 hover:bg-pink-700 text-white"
-                    onClick={handleInlineLogin}
-                    disabled={loginLoading || !loginPassword}
-                  >
-                    {loginLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing in...</> : "Sign In"}
-                  </Button>
-                  <p className="text-center text-xs text-gray-400">
-                    <Link to="/forgot-password" className="text-pink-400 hover:underline">Forgot password?</Link>
-                  </p>
+                ))}
+              </div>
+              <div className="flex justify-between pt-2">
+                <Button onClick={prevStep} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                <Button onClick={nextStep} disabled={expertise.length===0}
+                  style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white">Next</Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4 — Who to Mentor */}
+          {step === 4 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">Who You Want to Mentor</h3>
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-400 font-bold">Age Groups *</Label>
+                <div className="flex flex-col gap-2">
+                  {AGE_GROUP_OPTIONS.map(g=>(
+                    <div key={g} onClick={()=>toggleMulti(g,ageGroups,setAgeGroups)}
+                      className={`p-3 rounded-xl border text-sm cursor-pointer ${ageGroups.includes(g)?'border-pink-500 bg-pink-500/10 text-white':'border-white/10 text-gray-400'}`}>
+                      {g}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <select value={mentoringStyle} onChange={e=>setMentoringStyle(e.target.value)} className="w-full h-12 rounded-lg px-3 text-white bg-white/5 border border-white/10">
+                <option value="">Mentoring Style *</option>
+                <option>One on One</option><option>Group</option><option>Peer</option><option>Career Shadowing</option>
+              </select>
+              <select value={menteeCount} onChange={e=>setMenteeCount(e.target.value)} className="w-full h-12 rounded-lg px-3 text-white bg-white/5 border border-white/10">
+                <option value="">Number of Active Mentees *</option>
+                <option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option>
+              </select>
+              <select value={hoursPerMonth} onChange={e=>setHoursPerMonth(e.target.value)} className="w-full h-12 rounded-lg px-3 text-white bg-white/5 border border-white/10">
+                <option value="">Hours Per Month *</option>
+                <option>2 to 4</option><option>5 to 8</option><option>9 to 12</option><option>12+</option>
+              </select>
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-400 font-bold">Availability</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {AVAILABILITY_OPTIONS.map(a=>(
+                    <div key={a} onClick={()=>toggleMulti(a,availability,setAvailability)}
+                      className={`p-2 rounded-lg border text-xs cursor-pointer text-center ${availability.includes(a)?'border-pink-500 bg-pink-500/10 text-white':'border-white/10 text-gray-400'}`}>
+                      {a}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <select value={sessionPref} onChange={e=>setSessionPref(e.target.value)} className="w-full h-12 rounded-lg px-3 text-white bg-white/5 border border-white/10">
+                <option value="">Session Preference *</option>
+                <option>Virtual</option><option>In Person</option><option>Both</option>
+              </select>
+              <div className="flex justify-between pt-2">
+                <Button onClick={prevStep} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                <Button onClick={nextStep} disabled={ageGroups.length===0||!mentoringStyle||!menteeCount||!hoursPerMonth||!sessionPref}
+                  style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white">Next</Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5 — Your Why */}
+          {step === 5 && (
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+              <h3 className="text-xl font-bold text-white">Your Why</h3>
+              {[
+                {label:"Why do you want to be a GGU mentor? *",val:whyMentor,set:setWhyMentor},
+                {label:"One thing you wish someone told you younger? *",val:wishTold,set:setWishTold},
+                {label:"What empowerment means to you? *",val:empowermentMeaning,set:setEmpowermentMeaning},
+                {label:"A challenge you overcame that could help a girl? *",val:challengeOvercome,set:setChallengeOvercome},
+                {label:"Describe your mentoring style? *",val:styleDesc,set:setStyleDesc},
+              ].map(({label,val,set})=>(
+                <div key={label} className="space-y-1">
+                  <Label className="text-xs text-gray-400">{label} ({300-val.length} chars left)</Label>
+                  <textarea maxLength={300} value={val} onChange={e=>set(e.target.value)}
+                    className="w-full h-20 rounded-lg p-3 text-sm text-white placeholder-gray-500 resize-none bg-white/5 border border-white/10 focus:outline-none focus:border-pink-500"
+                    placeholder="Your answer..."/>
+                </div>
+              ))}
+              <div className="flex justify-between pt-2">
+                <Button onClick={prevStep} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                <Button onClick={nextStep} disabled={!whyMentor||!wishTold||!empowermentMeaning||!challengeOvercome||!styleDesc}
+                  style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white">Next</Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 6 — Safety */}
+          {step === 6 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">Safety and Conduct</h3>
+              {mentorTrack === "adult" ? (
+                <>
+                  <div className="p-4 rounded-xl bg-purple-900/30 border border-purple-500/20 text-xs text-purple-200 leading-relaxed">
+                    All adult GGU mentors are required to complete a background check before being approved to work with girls. This is mandatory and protects every girl on our platform.
+                  </div>
+                  {[
+                    {label:"Have you ever been convicted of a felony?",val:convictedFelony,set:setConvictedFelony},
+                    {label:"Have you ever had a restraining order filed against you?",val:restrainingOrder,set:setRestrainingOrder},
+                    {label:"Have you ever been removed from a role working with minors?",val:removedFromMinors,set:setRemovedFromMinors},
+                  ].map(({label,val,set})=>(
+                    <div key={label} className="space-y-2">
+                      <Label className="text-xs text-gray-300">{label}</Label>
+                      <div className="flex gap-3">
+                        <div onClick={()=>set(true)} className={`flex-1 p-2 rounded-lg border text-center text-sm cursor-pointer ${val===true?'border-pink-500 bg-pink-500/10 text-white':'border-white/10 text-gray-400'}`}>Yes</div>
+                        <div onClick={()=>set(false)} className={`flex-1 p-2 rounded-lg border text-center text-sm cursor-pointer ${val===false?'border-pink-500 bg-pink-500/10 text-white':'border-white/10 text-gray-400'}`}>No</div>
+                      </div>
+                    </div>
+                  ))}
+                  {(convictedFelony||restrainingOrder||removedFromMinors) && (
+                    <Input placeholder="Please explain..." value={safetyExplanation} onChange={e=>setSafetyExplanation(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+                  )}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex gap-3 items-start cursor-pointer" onClick={()=>setConsentBgCheck(!consentBgCheck)}>
+                      <div className={`w-5 h-5 shrink-0 rounded border border-white/30 flex items-center justify-center mt-0.5 ${consentBgCheck?'bg-pink-500 border-pink-500':''}`}>
+                        {consentBgCheck && <Check size={12} className="text-white"/>}
+                      </div>
+                      <span className="text-xs text-gray-300">I consent to a background check</span>
+                    </div>
+                    <div className="flex gap-3 items-start cursor-pointer" onClick={()=>setUnderstandHold(!understandHold)}>
+                      <div className={`w-5 h-5 shrink-0 rounded border border-white/30 flex items-center justify-center mt-0.5 ${understandHold?'bg-pink-500 border-pink-500':''}`}>
+                        {understandHold && <Check size={12} className="text-white"/>}
+                      </div>
+                      <span className="text-xs text-gray-300">I understand my application will not move forward without a cleared background check</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between pt-2">
+                    <Button onClick={prevStep} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                    <Button onClick={nextStep} disabled={convictedFelony===null||restrainingOrder===null||removedFromMinors===null||!consentBgCheck||!understandHold}
+                      style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white">Next</Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="p-4 rounded-xl bg-purple-900/30 border border-purple-500/20 text-xs text-purple-200 leading-relaxed">
+                    As a teen mentor you are a peer leader. GGU is committed to keeping our community safe. Your parent or guardian must consent before your application moves forward.
+                  </div>
+                  <div className="flex gap-3 items-start cursor-pointer pt-2" onClick={()=>setTeenSafetyConsent(!teenSafetyConsent)}>
+                    <div className={`w-5 h-5 shrink-0 rounded border border-white/30 flex items-center justify-center mt-0.5 ${teenSafetyConsent?'bg-pink-500 border-pink-500':''}`}>
+                      {teenSafetyConsent && <Check size={12} className="text-white"/>}
+                    </div>
+                    <span className="text-xs text-gray-300">I understand parent or guardian consent is required before my application can move forward</span>
+                  </div>
+                  <div className="flex justify-between pt-2">
+                    <Button onClick={prevStep} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                    <Button onClick={nextStep} disabled={!teenSafetyConsent}
+                      style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white">Next</Button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* STEP 7 — ID Verification */}
+          {step === 7 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">ID Verification</h3>
+              <p className="text-xs text-gray-400 italic">Your ID is used for verification only and never shared publicly.</p>
+              {mentorTrack === "adult" ? (
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-300 font-bold">Government Issued Photo ID *</Label>
+                    <label className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-white/20 cursor-pointer hover:bg-white/5">
+                      <Upload size={18} className="text-gray-400 shrink-0"/>
+                      <span className="text-sm text-gray-400">{idDocUrl ? '✓ Uploaded' : 'Upload JPG, PNG, or PDF (max 10MB)'}</span>
+                      <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e=>handleUploadFile(e,setIdDocUrl,setUploadingId)} className="hidden"/>
+                    </label>
+                    {uploadingId && <p className="text-xs text-pink-400 animate-pulse">Uploading...</p>}
+                    {idDocUrl && <p className="text-xs text-green-400">✓ Government ID uploaded successfully</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-300 font-bold">Professional Headshot *</Label>
+                    <label className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-white/20 cursor-pointer hover:bg-white/5">
+                      <Upload size={18} className="text-gray-400 shrink-0"/>
+                      <span className="text-sm text-gray-400">{facePhotoUrl ? '✓ Uploaded' : 'Upload clear headshot photo'}</span>
+                      <input type="file" accept="image/*" onChange={e=>handleUploadFile(e,setFacePhotoUrl,setUploadingFace)} className="hidden"/>
+                    </label>
+                    {uploadingFace && <p className="text-xs text-pink-400 animate-pulse">Uploading...</p>}
+                    {facePhotoUrl && <p className="text-xs text-green-400">✓ Headshot uploaded successfully</p>}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-300 font-bold">School Issued Student ID</Label>
+                    <label className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-white/20 cursor-pointer hover:bg-white/5">
+                      <Upload size={18} className="text-gray-400 shrink-0"/>
+                      <span className="text-sm text-gray-400">{idDocUrl ? '✓ Uploaded' : 'Upload student ID'}</span>
+                      <input type="file" accept="image/*,.pdf" onChange={e=>handleUploadFile(e,setIdDocUrl,setUploadingId)} className="hidden"/>
+                    </label>
+                    {idDocUrl && <p className="text-xs text-green-400">✓ Student ID uploaded</p>}
+                    <p className="text-xs text-gray-500">No school ID? Contact mentors@girlsglowingup.com</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-300 font-bold">Recent Clear Face Photo *</Label>
+                    <label className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-white/20 cursor-pointer hover:bg-white/5">
+                      <Upload size={18} className="text-gray-400 shrink-0"/>
+                      <span className="text-sm text-gray-400">{facePhotoUrl ? '✓ Uploaded' : 'Upload recent photo of your face'}</span>
+                      <input type="file" accept="image/*" onChange={e=>handleUploadFile(e,setFacePhotoUrl,setUploadingFace)} className="hidden"/>
+                    </label>
+                    {facePhotoUrl && <p className="text-xs text-green-400">✓ Face photo uploaded</p>}
+                  </div>
+                </>
+              )}
+              <div className="flex justify-between pt-2">
+                <Button onClick={prevStep} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                <Button onClick={nextStep} disabled={mentorTrack==="adult"?(!idDocUrl||!facePhotoUrl):!facePhotoUrl}
+                  style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white">Next</Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 8 — References (Adult only) */}
+          {step === 8 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">References</h3>
+              <p className="text-xs text-gray-400">Up to 2 references — professional or personal</p>
+              <div className="p-4 rounded-xl bg-white/5 space-y-3">
+                <Label className="text-xs font-bold text-pink-400 uppercase">Reference 1</Label>
+                <Input placeholder="Full Name" value={ref1Name} onChange={e=>setRef1Name(e.target.value)} className="bg-[#160e1d] border-white/10 text-white placeholder-gray-500"/>
+                <select value={ref1Rel} onChange={e=>setRef1Rel(e.target.value)} className="w-full h-12 rounded-lg px-3 text-white bg-[#160e1d] border border-white/10">
+                  <option value="">Relationship</option>
+                  <option>Professional</option><option>Personal</option><option>Academic</option>
+                </select>
+                <Input type="email" placeholder="Email Address" value={ref1Email} onChange={e=>setRef1Email(e.target.value)} className="bg-[#160e1d] border-white/10 text-white placeholder-gray-500"/>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 space-y-3">
+                <Label className="text-xs font-bold text-purple-400 uppercase">Reference 2 (optional)</Label>
+                <Input placeholder="Full Name" value={ref2Name} onChange={e=>setRef2Name(e.target.value)} className="bg-[#160e1d] border-white/10 text-white placeholder-gray-500"/>
+                <select value={ref2Rel} onChange={e=>setRef2Rel(e.target.value)} className="w-full h-12 rounded-lg px-3 text-white bg-[#160e1d] border border-white/10">
+                  <option value="">Relationship</option>
+                  <option>Professional</option><option>Personal</option><option>Academic</option>
+                </select>
+                <Input type="email" placeholder="Email Address" value={ref2Email} onChange={e=>setRef2Email(e.target.value)} className="bg-[#160e1d] border-white/10 text-white placeholder-gray-500"/>
+              </div>
+              <div className="flex justify-between pt-2">
+                <Button onClick={prevStep} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                <div className="flex gap-2">
+                  <Button onClick={nextStep} variant="ghost" className="text-pink-400 text-sm">Skip for now</Button>
+                  <Button onClick={nextStep} disabled={!ref1Name||!ref1Rel||!ref1Email}
+                    style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white">Next</Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 9 — Parent Consent (Teen only) */}
+          {step === 9 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">Parent / Guardian Consent</h3>
+              <p className="text-xs text-gray-400">A consent email will be sent to your parent or guardian. Next unlocks after they confirm.</p>
+              <Input placeholder="Parent / Guardian Full Name *" value={parentName} onChange={e=>setParentName(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              <select value={parentRel} onChange={e=>setParentRel(e.target.value)} className="w-full h-12 rounded-lg px-3 text-white bg-white/5 border border-white/10">
+                <option value="">Relationship *</option>
+                <option>Mother</option><option>Father</option><option>Stepparent</option>
+                <option>Grandparent</option><option>Legal Guardian</option><option>Other</option>
+              </select>
+              <Input type="email" placeholder="Parent Email *" value={parentEmail} onChange={e=>setParentEmail(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              <Input placeholder="Parent Phone Number" value={parentPhone} onChange={e=>setParentPhone(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              {!parentConsentSent ? (
+                <Button onClick={handleSendParentConsent} className="w-full h-12 font-bold text-white"
+                  disabled={!parentName||!parentRel||!parentEmail||loading}
+                  style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }}>
+                  {loading ? 'Sending...' : 'Send Consent Email'}
+                </Button>
+              ) : (
+                <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
+                  ✓ Consent email sent to {parentEmail}. Ask your parent or guardian to check their inbox and click the approval link.
                 </div>
               )}
-              <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700" size="lg" disabled={loading || showLoginInstead}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Account
-              </Button>
-            </form>
-
-            <p className="text-center text-sm text-gray-400">
-              Already have an account?{" "}
-              <Link to="/mentor-login" className="text-pink-400 hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </div>
-        );
-
-      case 0.5:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-white mb-2">Verify Your Email</h2>
-              <p className="text-gray-400">Enter the code sent to {email}</p>
+              <div className="flex justify-between pt-2">
+                <Button onClick={prevStep} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                <Button onClick={nextStep} disabled={!parentConsentSent}
+                  style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white">Next</Button>
+              </div>
             </div>
-            
-            <div className="flex justify-center">
-              <InputOTP
-                maxLength={6}
-                value={otp}
-                onChange={setOtp}
-                render={({ slots }) => (
-                  <InputOTPGroup>
-                    {slots.map((slot, idx) => (
-                      <InputOTPSlot key={idx} {...slot} className="w-12 h-14 bg-gray-800 border-gray-700 text-white text-xl" />
-                    ))}
-                  </InputOTPGroup>
-                )}
-              />
+          )}
+
+          {/* STEP 10 — Final Agreement */}
+          {step === 10 && (
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white">Final Review & Sign</h3>
+              <div className="p-3 rounded-xl bg-white/5 text-xs text-gray-300 space-y-1">
+                <p><span className="text-gray-500">Name:</span> {fullName}</p>
+                <p><span className="text-gray-500">Track:</span> {mentorTrack === "adult" ? "Adult Mentor" : "Teen Mentor"}</p>
+                <p><span className="text-gray-500">Age Groups:</span> {ageGroups.join(", ")}</p>
+                <p><span className="text-gray-500">Expertise:</span> {expertise.slice(0,3).join(", ")}{expertise.length > 3 ? ` +${expertise.length-3} more` : ''}</p>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-400 font-bold">GGU Mentor Terms of Service {!scrolledTos && <span className="text-yellow-400">(scroll to bottom to unlock)</span>}</Label>
+                <div ref={tosRef} onScroll={()=>handleScroll(tosRef,setScrolledTos)}
+                  className="h-28 overflow-y-auto rounded-lg p-3 text-[11px] text-gray-400 leading-relaxed bg-white/5 border border-white/10">
+                  <p className="font-bold text-gray-300 mb-2">GGU Mentor Terms of Service</p>
+                  <p>By applying as a GGU Mentor, you agree to uphold the values of Girls Glowing Up™ and commit to the safety, growth, and empowerment of every mentee. You agree to maintain professional boundaries at all times and to report any safety concerns immediately. You understand that your access may be revoked at any time if these terms are violated. You confirm you have provided accurate information and consent to GGU's verification and background check process. GGU reserves the right to modify, suspend, or terminate mentor access at any time. Mentors are volunteers and receive no financial compensation. All content shared on the platform must align with GGU's community guidelines. You grant GGU permission to use your name and likeness in promotional materials unless you opt out in writing. This agreement is governed by applicable laws in your state of residence.</p>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-400 font-bold">Safety and Code of Conduct {!scrolledConduct && <span className="text-yellow-400">(scroll to bottom to unlock)</span>}</Label>
+                <div ref={conductRef} onScroll={()=>handleScroll(conductRef,setScrolledConduct)}
+                  className="h-28 overflow-y-auto rounded-lg p-3 text-[11px] text-gray-400 leading-relaxed bg-white/5 border border-white/10">
+                  <p className="font-bold text-gray-300 mb-2">Safety and Code of Conduct</p>
+                  <p>As a GGU Mentor, I commit to: creating a safe and supportive environment for every mentee; never engaging in inappropriate conversations, sharing personal contact information outside the platform, or meeting mentees in unsupervised settings; reporting any concerning behavior to GGU immediately; treating all mentees with respect regardless of their background; maintaining confidentiality; never sharing a mentee's personal information with third parties; adhering to GGU's anti-discrimination and anti-harassment policies; completing all required training before working with girls; and modeling positive behavior and healthy communication at all times.</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className={`flex gap-3 items-start ${scrolledTos?'cursor-pointer':'opacity-50 cursor-not-allowed'}`}
+                  onClick={()=>scrolledTos&&setAcceptTos(!acceptTos)}>
+                  <div className={`w-5 h-5 shrink-0 rounded border border-white/30 flex items-center justify-center mt-0.5 ${acceptTos?'bg-pink-500 border-pink-500':''}`}>
+                    {acceptTos && <Check size={12} className="text-white"/>}
+                  </div>
+                  <span className="text-xs text-gray-300">I have read and accept the GGU Mentor Terms of Service</span>
+                </div>
+                <div className={`flex gap-3 items-start ${scrolledConduct?'cursor-pointer':'opacity-50 cursor-not-allowed'}`}
+                  onClick={()=>scrolledConduct&&setAcceptConduct(!acceptConduct)}>
+                  <div className={`w-5 h-5 shrink-0 rounded border border-white/30 flex items-center justify-center mt-0.5 ${acceptConduct?'bg-pink-500 border-pink-500':''}`}>
+                    {acceptConduct && <Check size={12} className="text-white"/>}
+                  </div>
+                  <span className="text-xs text-gray-300">I agree to follow the Safety and Code of Conduct at all times</span>
+                </div>
+                <div className="flex gap-3 items-start cursor-pointer" onClick={()=>setCertifyTruth(!certifyTruth)}>
+                  <div className={`w-5 h-5 shrink-0 rounded border border-white/30 flex items-center justify-center mt-0.5 ${certifyTruth?'bg-pink-500 border-pink-500':''}`}>
+                    {certifyTruth && <Check size={12} className="text-white"/>}
+                  </div>
+                  <span className="text-xs text-gray-300">I certify all information provided is truthful and accurate</span>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-400 font-bold">Electronic Signature *</Label>
+                <input type="text" placeholder="Type your full legal name" value={signature} onChange={e=>setSignature(e.target.value)}
+                  autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
+                  className="w-full h-12 rounded-lg px-3 bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-pink-500"/>
+              </div>
+
+              <div className="flex justify-between pt-2">
+                <Button onClick={prevStep} variant="ghost" className="text-gray-400"><ArrowLeft size={16}/> Back</Button>
+                <Button onClick={handleSubmitApplication}
+                  disabled={!acceptTos||!acceptConduct||!certifyTruth||signature.length<2||loading}
+                  style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }} className="text-white font-bold">
+                  {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Submitting...</> : 'Submit Application'}
+                </Button>
+              </div>
             </div>
+          )}
 
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-            <div className="space-y-3">
-              <Button onClick={handleVerify} className="w-full bg-pink-600 hover:bg-pink-700" size="lg" disabled={otp.length !== 6 || loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Verify Email
-              </Button>
-              <Button onClick={handleResendCode} variant="outline" className="w-full" disabled={loading}>
-                Resend Code
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 1:
-        return (
-          <StepWhoYouAre
-            data={whoYouAreData}
-            update={updateWhoYouAre}
-            onNext={(isTeen) => {
-              if (isTeen) {
-                setStep(1.5); // Parental consent step
-              } else {
-                setStep(2); // Professional background
-              }
-            }}
-            onBack={handleBack}
-          />
-        );
-      
-      case 1.5:
-        return (
-          <StepParentalConsent
-            data={whoYouAreData}
-            update={updateParentalConsent}
-            onNext={() => { setParentConsentSent(true); setStep(2); }}
-            onBack={handleBack}
-            parentEmail={whoYouAreData.parent_email}
-            setParentEmail={(email) => updateWhoYouAre({ parent_email: email })}
-          />
-        );
-      
-      case 2:
-        return <StepProfessionalBackground data={professionalData} update={(patch) => setProfessionalData(prev => ({ ...prev, ...patch }))} toggleMulti={toggleMulti} onNext={handleNext} onBack={handleBack} />;
-      
-      case 3:
-        return <StepYourWhy data={yourWhyData} update={updateYourWhy} onNext={handleNext} onBack={handleBack} />;
-      
-      case 4: {
-        const isAdult4 = calcAge(whoYouAreData.date_of_birth) >= 18;
-        return (
-          <StepSafetyConduct
-            data={safetyData}
-            update={updateSafety}
-            onNext={() => setStep(4.5)}
-            onBack={handleBack}
-            userAge={calcAge(whoYouAreData.date_of_birth)}
-          />
-        );
-      }
-
-      case 4.5: {
-        const isAdult45 = calcAge(whoYouAreData.date_of_birth) >= 18;
-        return (
-          <StepVerifyIdentity
-            data={idVerificationData}
-            update={(patch) => setIdVerificationData(prev => ({ ...prev, ...patch }))}
-            onNext={() => isAdult45 ? setStep(4.75) : setStep(5)}
-            onBack={() => setStep(4)}
-            isAdult={isAdult45}
-          />
-        );
-      }
-
-      case 4.75:
-        // Background Check — adult mentors only
-        return (
-          <StepBackgroundCheck
-            data={safetyData}
-            update={updateSafety}
-            onNext={() => setStep(5)}
-            onBack={() => setStep(4.5)}
-          />
-        );
-
-      case 5:
-        return (
-          <StepReferences
-            ref1={ref1} setRef1={setRef1} ref2={ref2} setRef2={setRef2}
-            onNext={handleNext}
-            onBack={() => {
-              const isAdult5 = calcAge(whoYouAreData.date_of_birth) >= 18;
-              setStep(isAdult5 ? 4.75 : 4.5);
-            }}
-          />
-        );
-      
-      case 6:
-        return (
-          <StepAgreement
-            onBack={handleBack}
-            onSubmit={handleSubmit}
-            loading={loading}
-            fullName={fullName}
-            mentorTrack={calcAge(whoYouAreData.date_of_birth) >= 18 ? 'adult' : 'teen'}
-            ageGroups={professionalData.ageGroups || professionalData.age_groups || []}
-            expertise={professionalData.expertiseAreas || professionalData.expertise || []}
-          />
-        );
-      
-      case 7:
-        return (
-          <StepComplete
-            fullName={fullName}
-            email={email}
-            mentorTrack={calcAge(whoYouAreData.date_of_birth) >= 18 ? 'adult' : 'teen'}
-            parentEmail={whoYouAreData.parent_email}
-          />
-        );
-      
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-2xl bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-gray-800">
-        {step > 0 && step < 7 && (
-          <div className="mb-8">
-            <div className="flex gap-1.5 mb-4">
-              {[1, 1.5, 2, 3, 4, 4.5, 4.75, 5, 6].map((s) => (
-                <div
-                  key={s}
-                  className={`flex-1 h-1.5 rounded-full transition-all ${
-                    s <= step ? 'bg-pink-500' : 'bg-gray-700'
-                  }`}
-                />
-              ))}
-            </div>
-            <p className="text-xs text-gray-400 text-right">
-              {step === 1 && 'Step 1 of 8 — Who You Are'}
-              {step === 1.5 && 'Step 2 of 8 — Parental Consent'}
-              {step === 2 && 'Step 3 of 8 — Professional Background'}
-              {step === 3 && 'Step 4 of 8 — Your Why'}
-              {step === 4 && 'Step 5 of 8 — Safety & Conduct'}
-              {step === 4.5 && 'Step 6 of 8 — Identity Verification'}
-              {step === 4.75 && 'Step 7 of 8 — Background Check'}
-              {step === 5 && 'Step 8 of 8 — References'}
-              {step === 6 && 'Step 9 of 9 — Review & Sign'}
-            </p>
-          </div>
-        )}
-        
-        {renderStep()}
+        </div>
       </div>
     </div>
   );
