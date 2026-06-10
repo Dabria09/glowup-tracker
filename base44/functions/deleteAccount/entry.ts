@@ -22,7 +22,11 @@ Deno.serve(async (req) => {
     const email = user.email;
     const userId = user.id;
 
-    // Step 1: Delete all associated data records (all errors swallowed — auth deletion must always run)
+    // Step 1: Destroy auth credentials FIRST — permanently removes email/password from authentication.
+    // Must happen before data cleanup so auth is always destroyed even if data cleanup fails.
+    await sr.entities.User.delete(userId);
+
+    // Step 2: Delete all associated data records (errors swallowed — auth already destroyed above)
     const userEmailEntities = [
       'UserProfile', 'UserPoints', 'PointsHistory',
       'Mentor', 'TeenMentor', 'MentorApplication', 'TeenMentorApplication',
@@ -60,11 +64,6 @@ Deno.serve(async (req) => {
       deleteAllByEmail(sr, 'ChatMessage', email, 'receiver_email').catch(() => {}),
       deleteAllByEmail(sr, 'Notification', email, 'recipient_email').catch(() => {}),
     ]);
-
-    // Step 2: Delete the auth/User record — this permanently removes the email and password
-    // from authentication so the user can never log in again with these credentials.
-    // Per Base44 docs: base44.asServiceRole.entities.User.delete(id) is the correct method.
-    await sr.entities.User.delete(userId);
 
     return Response.json({ success: true });
   } catch (error) {
