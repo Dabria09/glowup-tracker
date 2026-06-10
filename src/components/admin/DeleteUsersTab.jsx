@@ -40,18 +40,15 @@ export default function DeleteUsersTab() {
         <p className="text-gray-400 text-sm mb-3">
           Permanently deletes auth credentials + all data for each email. One per line or comma-separated.
         </p>
-        <a
-          href="https://app.base44.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
-          style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}
-        >
-          🔗 Open Base44 Dashboard
-        </a>
-        <p className="text-gray-400 text-xs mt-2 leading-relaxed">
-          Once on the dashboard: <strong className="text-gray-300">select your app → click "Users" in the left sidebar → find the user → click Delete</strong>. This removes their Google OAuth identity so they cannot sign back in.
-        </p>
+        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 text-sm text-gray-300 leading-relaxed">
+          <p className="font-semibold text-purple-300 mb-1">🔗 To fully remove a Google OAuth identity:</p>
+          <ol className="list-decimal list-inside space-y-1 text-gray-400 text-xs">
+            <li>Go to <strong className="text-gray-300">app.base44.com</strong> and open this app</li>
+            <li>Click <strong className="text-gray-300">"Users"</strong> in the left sidebar</li>
+            <li>Find the user by email and click <strong className="text-gray-300">Delete</strong></li>
+          </ol>
+          <p className="text-gray-500 text-xs mt-2">This prevents deleted users from signing back in via Google.</p>
+        </div>
       </div>
 
       <Textarea
