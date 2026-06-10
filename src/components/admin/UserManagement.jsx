@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, ShieldOff, Shield, AlertTriangle, X, RefreshCw } from 'lucide-react';
+import { Search, ShieldOff, Shield, AlertTriangle, X, RefreshCw, CheckCircle, Clock } from 'lucide-react';
 
 const AGE_GROUP_LABELS = {
   glow_girls: { label: 'Glow Girls', emoji: '🌸', color: '#ec4899' },
@@ -20,7 +20,7 @@ export default function UserManagement() {
   const [filterGroup, setFilterGroup] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [saving, setSaving] = useState(null);
-  const [banModal, setBanModal] = useState(null); // { user, profile }
+  const [banModal, setBanModal] = useState(null);
   const [banForm, setBanForm] = useState({ ban_type: 'soft', reason: '' });
   const [adminEmail, setAdminEmail] = useState('');
 
@@ -65,6 +65,66 @@ export default function UserManagement() {
     setSaving(null);
   };
 
+  const handleApproveConsent = async (email) => {
+    const profile = getProfile(email);
+    if (!profile) return;
+    setSaving(email);
+    const now = new Date().toISOString();
+
+    await base44.entities.UserProfile.update(profile.id, {
+      admin_consent_approved: true,
+      admin_consent_approved_by: adminEmail,
+      admin_consent_approved_date: now,
+      onboarding_complete: true,
+    });
+
+    await base44.entities.AdminLogs.create({
+      action_type: 'consent_approved',
+      performed_by: adminEmail,
+      target_email: email,
+      target_username: profile.username || '',
+      details: 'Parental consent manually approved by admin',
+      metadata: JSON.stringify({ approved_date: now }),
+    });
+
+    // Send activation email to the teen
+    const userName = users.find(u => u.email === email)?.full_name || profile.username || 'there';
+    await base44.integrations.Core.SendEmail({
+      to: email,
+      subject: '🌟 Your Girls Glowing Up™ Account is Active!',
+      body: `<html><body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;">
+        <div style="text-align:center;padding:30px 0 10px;">
+          <h1 style="background:linear-gradient(135deg,#e8526d,#f1b610);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:26px;margin:0;">Girls Glowing Up™</h1>
+        </div>
+        <p>Hey ${userName}! 🎉</p>
+        <p>Great news — your parental consent has been verified and your Girls Glowing Up™ account is now <strong>fully active</strong>!</p>
+        <p>You can now sign in and start exploring everything GGU has to offer:</p>
+        <ul style="line-height:2;">
+          <li>✨ Daily challenges &amp; Glow-Up check-ins</li>
+          <li>💬 Community spaces with girls your age</li>
+          <li>📚 Lessons, wellness tools &amp; more</li>
+          <li>🏆 Earn points and level up your Glow!</li>
+        </ul>
+        <div style="text-align:center;margin:30px 0;">
+          <a href="https://gguapp.com/login" style="background:linear-gradient(135deg,#e8526d,#f1b610);color:white;padding:14px 32px;text-decoration:none;border-radius:30px;font-weight:bold;display:inline-block;">
+            Sign In &amp; Start Glowing ✨
+          </a>
+        </div>
+        <p style="margin-top:30px;border-top:1px solid #eee;padding-top:20px;font-size:13px;color:#999;">
+          With love and purpose,<br/>
+          <strong>The Girls Glowing Up™ Team</strong><br/>
+          girlsglowingup.com | gguapp.com
+        </p>
+      </body></html>`,
+    });
+
+    setProfiles(prev => prev.map(p => p.user_email === email
+      ? { ...p, admin_consent_approved: true, admin_consent_approved_by: adminEmail, admin_consent_approved_date: now, onboarding_complete: true }
+      : p
+    ));
+    setSaving(null);
+  };
+
   const openBanModal = (user, profile) => {
     setBanModal({ user, profile });
     setBanForm({ ban_type: 'soft', reason: '' });
@@ -94,7 +154,6 @@ export default function UserManagement() {
     };
 
     const created = await base44.entities.BannedUser.create(banData);
-    // Log to AdminLogs
     await base44.entities.AdminLogs.create({
       action_type: banForm.ban_type === 'hard' ? 'hard_ban' : 'soft_ban',
       performed_by: adminEmail,
@@ -117,7 +176,6 @@ export default function UserManagement() {
       lifted_by: adminEmail,
       lifted_date: new Date().toISOString(),
     });
-    // Log to AdminLogs
     await base44.entities.AdminLogs.create({
       action_type: 'ban_lifted',
       performed_by: adminEmail,
@@ -138,7 +196,8 @@ export default function UserManagement() {
     const ban = getActiveBan(u.email);
     const matchStatus = filterStatus === 'all' ||
       (filterStatus === 'banned' && ban) ||
-      (filterStatus === 'active' && !ban);
+      (filterStatus === 'active' && !ban) ||
+      (filterStatus === 'pending_consent' && profile?.parental_consent_sent && !profile?.admin_consent_approved);
     return matchSearch && matchGroup && matchStatus;
   });
 
@@ -159,6 +218,8 @@ export default function UserManagement() {
     </div>
   );
 
+  const pendingConsentCount = profiles.filter(p => p.parental_consent_sent && !p.admin_consent_approved).length;
+
   return (
     <div className="space-y-4">
       {/* Stats */}
@@ -167,7 +228,7 @@ export default function UserManagement() {
           { label: 'Total', value: users.length, emoji: '👥' },
           { label: 'Admins', value: users.filter(u => u.role === 'admin').length, emoji: '🛡️' },
           { label: 'Banned', value: bans.length, emoji: '🚫' },
-          { label: 'Profiles', value: profiles.length, emoji: '✨' },
+          { label: 'Consent ⏳', value: pendingConsentCount, emoji: '🔑' },
         ].map(stat => (
           <div key={stat.label} className="rounded-2xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <p className="text-lg mb-0.5">{stat.emoji}</p>
@@ -196,6 +257,7 @@ export default function UserManagement() {
           <option value="all">All Status</option>
           <option value="active">Active</option>
           <option value="banned">Banned</option>
+          <option value="pending_consent">⏳ Pending Consent</option>
         </select>
         <button onClick={load} className="p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white">
           <RefreshCw size={14} />
@@ -213,10 +275,12 @@ export default function UserManagement() {
           const profile = getProfile(u.email);
           const ageInfo = AGE_GROUP_LABELS[profile?.age_group];
           const ban = getActiveBan(u.email);
+          const consentPending = profile?.parental_consent_sent && !profile?.admin_consent_approved;
+          const consentApproved = profile?.admin_consent_approved;
           return (
             <div key={u.id} className="rounded-2xl p-4" style={{
-              background: ban ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.05)',
-              border: ban ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(255,255,255,0.08)',
+              background: ban ? 'rgba(239,68,68,0.06)' : consentPending ? 'rgba(251,191,36,0.05)' : 'rgba(255,255,255,0.05)',
+              border: ban ? '1px solid rgba(239,68,68,0.25)' : consentPending ? '1px solid rgba(251,191,36,0.25)' : '1px solid rgba(255,255,255,0.08)',
             }}>
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-sm font-bold flex-shrink-0 overflow-hidden">
@@ -235,6 +299,31 @@ export default function UserManagement() {
                   </div>
                   <p className="text-xs text-gray-400 truncate">{u.email}</p>
                   {profile?.username && <p className="text-[10px] text-pink-400">@{profile.username}</p>}
+
+                  {/* Parental Consent Status */}
+                  {profile?.parental_consent_sent && (
+                    <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                      {consentApproved ? (
+                        <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399' }}>
+                          <CheckCircle size={10} /> Consent Approved
+                        </span>
+                      ) : (
+                        <>
+                          <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24' }}>
+                            <Clock size={10} /> Consent Pending
+                          </span>
+                          <button
+                            onClick={() => handleApproveConsent(u.email)}
+                            disabled={saving === u.email}
+                            className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full font-semibold transition disabled:opacity-50"
+                            style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.35)', color: '#34d399' }}
+                          >
+                            <CheckCircle size={10} /> {saving === u.email ? 'Approving…' : 'Approve Access'}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
 
                   {/* Ban details */}
                   {ban && (
@@ -275,9 +364,9 @@ export default function UserManagement() {
                       <option value="glow_women" style={{ background: '#1a0a2e' }}>👑 Glow Women</option>
                     </select>
 
-                    {saving === u.id || saving === u.email ? (
+                    {(saving === u.id || saving === u.email) && (
                       <span className="text-[10px] text-pink-400">Saving…</span>
-                    ) : null}
+                    )}
                   </div>
                 </div>
 
@@ -332,13 +421,12 @@ export default function UserManagement() {
               </div>
             </div>
 
-            {/* Ban Type */}
             <div>
               <p className="text-sm font-semibold text-gray-300 mb-2">Ban Type</p>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setBanForm(f => ({ ...f, ban_type: 'soft' }))}
-                  className={`p-3 rounded-2xl text-left transition ${banForm.ban_type === 'soft' ? 'border-orange-400' : 'border-white/10'}`}
+                  className="p-3 rounded-2xl text-left transition"
                   style={{ background: banForm.ban_type === 'soft' ? 'rgba(251,146,60,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${banForm.ban_type === 'soft' ? 'rgba(251,146,60,0.5)' : 'rgba(255,255,255,0.1)'}` }}
                 >
                   <p className="text-sm font-bold text-orange-400 mb-1">🟠 Soft Ban</p>
@@ -346,7 +434,7 @@ export default function UserManagement() {
                 </button>
                 <button
                   onClick={() => setBanForm(f => ({ ...f, ban_type: 'hard' }))}
-                  className={`p-3 rounded-2xl text-left transition`}
+                  className="p-3 rounded-2xl text-left transition"
                   style={{ background: banForm.ban_type === 'hard' ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${banForm.ban_type === 'hard' ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.1)'}` }}
                 >
                   <p className="text-sm font-bold text-red-400 mb-1">🔴 Hard Ban</p>
@@ -355,7 +443,6 @@ export default function UserManagement() {
               </div>
             </div>
 
-            {/* Reason */}
             <div>
               <p className="text-sm font-semibold text-gray-300 mb-2">Reason *</p>
               <textarea
