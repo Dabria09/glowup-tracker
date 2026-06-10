@@ -40,6 +40,20 @@ export default function MentorLogin() {
       // Attempt login first
       await base44.auth.loginViaEmailPassword(email, password);
 
+      // Check if user record still exists after login
+      const user = await base44.auth.me();
+      if (!user || !user.id) {
+        await base44.auth.logout();
+        throw new Error('Account not found');
+      }
+
+      // Check account is not marked as deleted
+      const userRecord = await base44.asServiceRole.entities.User.get(user.id);
+      if (!userRecord || userRecord.isDeleted === true) {
+        await base44.auth.logout();
+        throw new Error('This account has been deleted');
+      }
+
       // Now logged in — check if they have a mentor application (as themselves)
       const apps = await base44.entities.MentorApplication.filter({ user_email: email });
       const hasMentorApp = apps && apps.length > 0;
