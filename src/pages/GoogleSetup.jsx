@@ -52,8 +52,6 @@ export default function GoogleSetup() {
     if (!dob) { setError("Please enter your date of birth."); return; }
 
     const { age, ageGroup } = calculateAgeGroup(dob);
-    if (age < 5) { setError("You must be at least 5 years old to join GGU."); return; }
-    if (age > 26) { setError("GGU serves girls and young women ages 5 to 26."); return; }
 
     setLoading(true);
     try {
@@ -70,6 +68,8 @@ export default function GoogleSetup() {
         });
         window.location.href = "/mentor-register?step=1";
       } else {
+        if (age < 5) { setError("You must be at least 5 years old to join GGU."); setLoading(false); return; }
+        if (age > 26) { setError("GGU serves girls and young women ages 5 to 26."); setLoading(false); return; }
         const requiresParentalConsent = age < 13;
         await base44.auth.updateMe({
           date_of_birth: dob,
@@ -140,7 +140,7 @@ export default function GoogleSetup() {
               onChange={e => setDob(e.target.value)}
               className="h-12 bg-white/5 border-white/10 text-white"
             />
-            <p className="text-xs text-gray-500">GGU serves girls and young women ages 5 to 26.</p>
+            <p className="text-xs text-gray-500">{isMentor ? "Mentors must be at least 13 years old." : "GGU serves girls and young women ages 5 to 26."}</p>
           </div>
 
           <Button
