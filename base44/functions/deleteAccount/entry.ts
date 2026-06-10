@@ -23,8 +23,13 @@ Deno.serve(async (req) => {
     const userId = user.id;
 
     // Step 1: Destroy auth credentials FIRST — permanently removes email/password from authentication.
-    // Must happen before data cleanup so auth is always destroyed even if data cleanup fails.
-    await sr.entities.User.delete(userId);
+    // App owner accounts cannot be deleted by the platform; skip gracefully for them.
+    try {
+      await sr.entities.User.delete(userId);
+    } catch (e) {
+      // If this is the app owner, the platform blocks deletion — continue with data cleanup anyway
+      if (!e.message?.includes('owner')) throw e;
+    }
 
     // Step 2: Delete all associated data records (errors swallowed — auth already destroyed above)
     const userEmailEntities = [
