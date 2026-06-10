@@ -41,18 +41,28 @@ const WORLD_INFO = {
   },
 };
 
-// Module-level cache so we don't re-fetch on every component mount
+// Module-level cache keyed by user email so it auto-busts on account switch/login
 let _cachedAgeGroup = null;
+let _cachedEmail = null;
 
 export default function useAgeGroup() {
-  const [ageGroup, setAgeGroup] = useState(_cachedAgeGroup);
-  const [isLoading, setIsLoading] = useState(!_cachedAgeGroup);
+  const [ageGroup, setAgeGroup] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (_cachedAgeGroup) return; // already cached
     base44.auth.me().then(async (u) => {
+      // If the logged-in user changed, clear the old cache
+      if (_cachedEmail !== u.email) {
+        _cachedAgeGroup = null;
+        _cachedEmail = u.email;
+      }
+      if (_cachedAgeGroup) {
+        setAgeGroup(_cachedAgeGroup);
+        setIsLoading(false);
+        return;
+      }
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
-      const group = profiles[0]?.age_group || null;
+      const group = profiles[0]?.age_group || u.age_group || null;
       _cachedAgeGroup = group;
       setAgeGroup(group);
       setIsLoading(false);
