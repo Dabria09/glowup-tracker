@@ -22,7 +22,17 @@ export default function Login() {
         if (!user) { window.location.href = "/login?deleted=1"; return; }
         const isMentorOnly = user.account_type === "mentor";
         const isLinked = user.account_type === "linked";
-        if (!isMentorOnly && !isLinked) {
+
+        if (isMentorOnly || isLinked) {
+          // For mentor accounts, verify a MentorApplication record still exists
+          const apps = await base44.entities.MentorApplication.filter({ user_email: user.email });
+          if (apps.length === 0) {
+            await base44.auth.logout();
+            window.location.href = "/login?deleted=1";
+            return;
+          }
+        } else {
+          // For GGU member accounts, verify a UserProfile still exists
           const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
           if (profiles.length === 0) {
             await base44.auth.logout();
@@ -30,6 +40,7 @@ export default function Login() {
             return;
           }
         }
+
         if (isMentorOnly || (isLinked && user.active_mode === "mentor")) {
           window.location.href = "/mentor-dashboard";
         } else {
