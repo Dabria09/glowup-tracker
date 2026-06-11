@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserPlus, Mail, Lock, Loader2, Users, Sparkles } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
+import BrandLogo from "@/components/BrandLogo";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
@@ -180,7 +181,7 @@ export default function MentorSignup() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo & Header */}
         <div className="text-center mb-8">
-          <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="Girls Glowing Up" className="w-40 mx-auto mb-4" />
+          <BrandLogo />
           <div className="flex items-center justify-center gap-2 mb-2">
             <Users size={24} className="text-amber-400" />
             <h1 className="text-2xl font-bold text-white">Mentor Application</h1>

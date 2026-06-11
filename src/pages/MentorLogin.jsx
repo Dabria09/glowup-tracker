@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, Crown } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
+import BrandLogo from "@/components/BrandLogo";
 import { ACCOUNT_TYPES, completeEmailPasswordSignIn } from "@/lib/authRules";
 
 export default function MentorLogin() {
@@ -49,9 +50,7 @@ export default function MentorLogin() {
 
         {/* Logo + Title */}
         <div className="text-center mb-8">
-          <img
-            src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png"
-            alt="Girls Glowing Up"
+          <BrandLogo
             className="w-44 mx-auto mb-4"
             style={{ filter: 'drop-shadow(0 0 20px rgba(232,82,109,0.4))' }}
           />

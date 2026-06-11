@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import BrandLogo from "@/components/BrandLogo";
 import { calculateGirlAgeGroup, getMentorTrack, saveCurrentUserRecord } from "@/lib/authRules";
 
 export default function GoogleSetup() {
@@ -94,7 +95,7 @@ export default function GoogleSetup() {
       style={{ background: 'radial-gradient(ellipse at top, #2d0a1e 0%, #1a0a18 40%, #0d0610 100%)' }}>
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-40 mx-auto mb-4" />
+          <BrandLogo alt="GGU" />
           <h1 className="text-2xl font-bold text-white mb-2">Almost There! ✨</h1>
           <p className="text-sm text-gray-400">
             Hi {user?.full_name?.split(" ")[0] || "there"}! Your Google info has been pre-filled. Just confirm your date of birth.
