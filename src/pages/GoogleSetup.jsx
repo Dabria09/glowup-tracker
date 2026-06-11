@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { calculateGirlAgeGroup, getMentorTrack } from "@/lib/authRules";
+import { calculateGirlAgeGroup, getMentorTrack, saveCurrentUserRecord } from "@/lib/authRules";
 
 export default function GoogleSetup() {
   const isMentor = new URLSearchParams(window.location.search).get("mentor") === "true";
@@ -48,7 +48,7 @@ export default function GoogleSetup() {
       if (isMentor) {
         const mentorType = getMentorTrack(age);
         if (!mentorType) { setError("You must be at least 13 to apply as a mentor."); setLoading(false); return; }
-        await base44.auth.updateMe({
+        await saveCurrentUserRecord(user, {
           date_of_birth: dob,
           age,
           age_group: ageGroup,
@@ -62,7 +62,7 @@ export default function GoogleSetup() {
       } else {
         if (!ageGroup) { setError("You must be at least 10 years old to join GGU."); setLoading(false); return; }
         const requiresParentalConsent = age < 13;
-        await base44.auth.updateMe({
+        await saveCurrentUserRecord(user, {
           date_of_birth: dob,
           age,
           age_group: ageGroup,

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Sparkles } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { calculateGirlAgeGroup } from "@/lib/authRules";
+import { calculateGirlAgeGroup, saveCurrentUserRecord } from "@/lib/authRules";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
@@ -65,8 +65,8 @@ export default function Register() {
 
       const requiresParentalConsent = pendingAge.age < 13;
 
-      // Create user profile record
-      await base44.auth.updateMe({
+      const currentUser = await base44.auth.me();
+      const userFields = {
         full_name: fullName,
         date_of_birth: dob,
         age: pendingAge.age,
@@ -76,7 +76,9 @@ export default function Register() {
         requires_parental_consent: requiresParentalConsent,
         parental_consent_confirmed: !requiresParentalConsent,
         created_at: new Date().toISOString()
-      });
+      };
+
+      await saveCurrentUserRecord(currentUser, userFields);
 
       window.location.href = "/onboarding";
     } catch (err) {

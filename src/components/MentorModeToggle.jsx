@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { loadCurrentUserRecord } from '@/lib/authRules';
 import { Users, Sparkles } from 'lucide-react';
 
 export default function MentorModeToggle() {
@@ -13,15 +14,14 @@ export default function MentorModeToggle() {
     const checkMentorStatus = async () => {
       try {
         const user = await base44.auth.me();
-        // Check for ANY mentor record (pending or approved)
-        const mentors = await base44.entities.Mentor.filter({ user_email: user.email });
-        const teenMentors = await base44.entities.TeenMentor.filter({ user_email: user.email });
-        const hasMentorRecord = mentors.length > 0 || teenMentors.length > 0;
-        setIsMentor(hasMentorRecord);
+        const userRecord = await loadCurrentUserRecord(user);
+        const hasMentorAccess = userRecord?.account_type === 'mentor' ||
+          (userRecord?.account_type === 'linked' && userRecord?.active_mode === 'mentor');
+        setIsMentor(hasMentorAccess);
         
-        // If user has mentor record and is on dashboard, redirect to mentor dashboard
+        // If user is a mentor and is on dashboard, redirect to mentor dashboard
         // UNLESS they've explicitly set mode to 'ggu'
-        if (hasMentorRecord && location.pathname === '/dashboard') {
+        if (hasMentorAccess && location.pathname === '/dashboard') {
           const savedMode = localStorage.getItem('ggu_mentor_mode');
           // Only redirect if they haven't explicitly chosen GGU mode
           if (savedMode !== 'ggu') {

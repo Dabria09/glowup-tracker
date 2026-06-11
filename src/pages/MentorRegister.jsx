@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, ArrowLeft, Check, Upload, CheckCircle } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { calculateAge, calculateGirlAgeGroup, getMentorTrack } from "@/lib/authRules";
+import { calculateAge, calculateGirlAgeGroup, getMentorTrack, saveCurrentUserRecord } from "@/lib/authRules";
 
 const EXPERTISE_OPTIONS = [
   "Career Development","Financial Literacy","College Prep and Applications",
@@ -195,8 +195,8 @@ export default function MentorRegister() {
       const { ageGroup } = calculateGirlAgeGroup(dob);
       const track = getMentorTrack(age);
 
-      // Update user with mentor account type
-      await base44.auth.updateMe({
+      const currentUser = await base44.auth.me();
+      await saveCurrentUserRecord(currentUser, {
         full_name: fullName,
         date_of_birth: dob,
         age,
