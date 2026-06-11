@@ -53,27 +53,39 @@ export async function clearAuthSession() {
 }
 
 export async function loadCurrentUserRecord(currentUser) {
-  if (!currentUser?.id && !currentUser?.email) return null;
+  if (!currentUser?.id) return null;
 
   try {
-    if (currentUser.id) {
-      const userRecord = await base44.entities.User.get(currentUser.id);
-      if (userRecord) return userRecord;
-    }
+    const userRecord = await base44.asServiceRole.entities.User.get(currentUser.id);
+    return userRecord || null;
   } catch {
-    // Some Base44 exports restrict direct User reads. Fall back below.
+    return null;
   }
+}
+
+export async function saveCurrentUserRecord(currentUser, fields) {
+  if (!currentUser?.id) throw new Error("Missing current user ID.");
+
+  const payload = {
+    id: currentUser.id,
+    email: currentUser.email,
+    ...fields,
+  };
+
+  await base44.auth.updateMe(fields);
 
   try {
-    if (currentUser.email) {
-      const users = await base44.asServiceRole.entities.User.filter({ email: currentUser.email.toLowerCase() });
-      if (users?.length) return users[0];
+    return await base44.asServiceRole.entities.User.create(payload);
+  } catch (error) {
+    try {
+      return await base44.asServiceRole.entities.User.update(currentUser.id, {
+        email: currentUser.email,
+        ...fields,
+      });
+    } catch {
+      throw error;
     }
-  } catch {
-    // Fall back to auth.me() data so legacy exports keep working.
   }
-
-  return currentUser || null;
 }
 
 async function loadUserProfile(email) {
@@ -147,7 +159,12 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     throw new Error("This email is registered as a mentor account. Please use Mentor Sign In.");
   }
 
-  if (expectedAccountType === ACCOUNT_TYPES.MENTOR) {
+  if (accountType === ACCOUNT_TYPES.GIRL) {
+    if (expectedAccountType === ACCOUNT_TYPES.MENTOR) {
+      await clearAuthSession();
+      throw new Error("This email is registered as a GGU app account. Please use the main app sign in.");
+    }
+  } else if (expectedAccountType === ACCOUNT_TYPES.MENTOR) {
     const mentorStatus = userRecord.mentor_status || currentUser.mentor_status || "pending";
     if (mentorStatus === "suspended") {
       await clearAuthSession();
@@ -180,8 +197,13 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
   );
 
   if (requiresParentalConsent && !parentalConsentConfirmed) {
-    await clearAuthSession();
-    throw new Error("Your account is awaiting parental consent before it can be accessed.");
+    return {
+      user: currentUser,
+      userRecord,
+      age,
+      ageGroup,
+      route: "/dashboard",
+    };
   }
 
   return {

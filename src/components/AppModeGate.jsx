@@ -1,8 +1,59 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { loadCurrentUserRecord } from "@/lib/authRules";
 import { Sparkles, Crown, Loader2, LogOut, Clock, ShieldAlert, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+function PendingMentorReviewScreen({ user, refreshing, onRefreshStatus }) {
+  useEffect(() => {
+    const checkUserType = async () => {
+      const authUser = await base44.auth.me();
+      if (!authUser) {
+        window.location.href = '/';
+        return;
+      }
+      try {
+        const userRecord = await base44.asServiceRole.entities.User.get(authUser.id);
+        if (!userRecord || userRecord.account_type !== 'mentor') {
+          window.location.href = '/dashboard';
+          return;
+        }
+      } catch {
+        window.location.href = '/';
+      }
+    };
+    checkUserType();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-white text-center">
+      <div className="w-20 h-20 bg-yellow-500/15 border border-yellow-500/30 rounded-full flex items-center justify-center mb-6">
+        <Clock className="w-10 h-10 text-yellow-400 animate-pulse" />
+      </div>
+      <h1 className="text-2xl font-bold tracking-tight mb-2">Application Pending Review ✨</h1>
+      <p className="text-gray-400 max-w-sm mb-6 text-sm">
+        Welcome, {user.full_name || "Mentor"}! Our admin team is currently reviewing your ID verification and professional credentials.
+      </p>
+      <div className="rounded-2xl p-4 bg-white/5 border border-white/10 text-xs text-left max-w-sm mb-6">
+        <span className="font-bold text-gray-200 block mb-1">Estimated Vetting Time</span>
+        <p className="text-gray-400">Applications are typically vetted within 3-5 business days. You will receive an email confirmation once approved.</p>
+      </div>
+      <Button
+        onClick={onRefreshStatus}
+        disabled={refreshing}
+        className="w-full max-w-xs h-12 rounded-xl font-bold mb-3"
+        style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+      >
+        <RefreshCw size={16} className={`mr-2 ${refreshing ? "animate-spin" : ""}`} />
+        {refreshing ? "Checking..." : "Check Approval Status"}
+      </Button>
+      <Button onClick={() => base44.auth.logout("/")} variant="destructive" className="w-full max-w-xs h-12 rounded-xl font-bold">
+        <LogOut size={16} className="mr-2" /> Sign Out
+      </Button>
+    </div>
+  );
+}
 
 export default function AppModeGate() {
   const [user, setUser] = useState(null);
@@ -13,7 +64,13 @@ export default function AppModeGate() {
 
   const loadUser = useCallback(async () => {
     try {
-      const u = await base44.auth.me();
+      const authUser = await base44.auth.me();
+      const userRecord = await loadCurrentUserRecord(authUser);
+      if (!userRecord) {
+        setUser(null);
+        return;
+      }
+      const u = { ...authUser, ...userRecord };
 
       // Sync onboarding_complete and parental consent from UserProfile into the user object
       if (u.account_type === "girl" || (!u.account_type && u.role !== "admin")) {
@@ -36,7 +93,10 @@ export default function AppModeGate() {
           const apps = await base44.entities.MentorApplication.filter({ created_by_id: u.id });
           const latestApp = apps.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
           if (latestApp?.status === "approved") {
-            await base44.auth.updateMe({ mentor_status: "approved" });
+            await Promise.all([
+              base44.auth.updateMe({ mentor_status: "approved" }),
+              base44.asServiceRole.entities.User.update(u.id, { mentor_status: "approved" }),
+            ]);
             u.mentor_status = "approved";
           }
         } catch (e) {
@@ -48,7 +108,10 @@ export default function AppModeGate() {
           try {
             const mentors = await base44.entities.Mentor.filter({ user_email: u.email });
             if (mentors.length > 0 && mentors[0].is_approved === true) {
-              await base44.auth.updateMe({ mentor_status: "approved" });
+              await Promise.all([
+                base44.auth.updateMe({ mentor_status: "approved" }),
+                base44.asServiceRole.entities.User.update(u.id, { mentor_status: "approved" }),
+              ]);
               u.mentor_status = "approved";
             }
           } catch (e) {
@@ -97,31 +160,7 @@ export default function AppModeGate() {
   // Pending Mentor
   if (user.account_type === "mentor" && user.mentor_status === "pending") {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-white text-center">
-        <div className="w-20 h-20 bg-yellow-500/15 border border-yellow-500/30 rounded-full flex items-center justify-center mb-6">
-          <Clock className="w-10 h-10 text-yellow-400 animate-pulse" />
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight mb-2">Application Pending Review ✨</h1>
-        <p className="text-gray-400 max-w-sm mb-6 text-sm">
-          Welcome, {user.full_name || "Mentor"}! Our admin team is currently reviewing your ID verification and professional credentials.
-        </p>
-        <div className="rounded-2xl p-4 bg-white/5 border border-white/10 text-xs text-left max-w-sm mb-6">
-          <span className="font-bold text-gray-200 block mb-1">Estimated Vetting Time</span>
-          <p className="text-gray-400">Applications are typically vetted within 3-5 business days. You will receive an email confirmation once approved.</p>
-        </div>
-        <Button
-          onClick={handleRefreshStatus}
-          disabled={refreshing}
-          className="w-full max-w-xs h-12 rounded-xl font-bold mb-3"
-          style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
-        >
-          <RefreshCw size={16} className={`mr-2 ${refreshing ? "animate-spin" : ""}`} />
-          {refreshing ? "Checking..." : "Check Approval Status"}
-        </Button>
-        <Button onClick={() => base44.auth.logout("/")} variant="destructive" className="w-full max-w-xs h-12 rounded-xl font-bold">
-          <LogOut size={16} className="mr-2" /> Sign Out
-        </Button>
-      </div>
+      <PendingMentorReviewScreen user={user} refreshing={refreshing} onRefreshStatus={handleRefreshStatus} />
     );
   }
 
@@ -152,39 +191,37 @@ export default function AppModeGate() {
     const requiresConsent = user.requires_parental_consent === true;
     const consentGiven = user.parental_consent_confirmed === true;
 
-    if (!onboardingComplete) {
-      // Minor awaiting parental consent — show waiting screen
-      if (requiresConsent && !consentGiven) {
-        return (
-          <div className="min-h-screen flex flex-col items-center justify-center px-6 text-white text-center" style={{ background: '#0d0608' }}>
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{ background: 'rgba(241,182,16,0.12)', border: '1px solid rgba(241,182,16,0.3)' }}>
-              <Clock className="w-10 h-10 text-yellow-400 animate-pulse" />
-            </div>
-            <h1 className="text-2xl font-bold mb-2">Awaiting Consent Verification ✨</h1>
-            <p className="text-gray-400 max-w-sm mb-6 text-sm">
-              A consent email was sent to your parent or guardian. Our safety team will verify and approve your account once parental consent is confirmed.
-            </p>
-            <div className="rounded-2xl p-4 max-w-sm mb-6 text-xs text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <span className="font-bold text-gray-200 block mb-1">What happens next?</span>
-              <p className="text-gray-400">Ask your parent to check their email (and spam folder). Once they respond, our team will review and activate your account — usually within 24 hours.</p>
-            </div>
-            <Button
-              onClick={handleRefreshStatus}
-              disabled={refreshing}
-              className="w-full max-w-xs h-12 rounded-xl font-bold mb-3"
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
-            >
-              <RefreshCw size={16} className={`mr-2 ${refreshing ? "animate-spin" : ""}`} />
-              {refreshing ? "Checking..." : "Check Approval Status"}
-            </Button>
-            <Button onClick={() => base44.auth.logout("/")} variant="destructive" className="w-full max-w-xs h-12 rounded-xl font-bold">
-              <LogOut size={16} className="mr-2" /> Sign Out
-            </Button>
+    if (requiresConsent && !consentGiven) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center px-6 text-white text-center" style={{ background: '#0d0608' }}>
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6" style={{ background: 'rgba(241,182,16,0.12)', border: '1px solid rgba(241,182,16,0.3)' }}>
+            <Clock className="w-10 h-10 text-yellow-400 animate-pulse" />
           </div>
-        );
-      }
+          <h1 className="text-2xl font-bold mb-2">Awaiting Consent Verification ✨</h1>
+          <p className="text-gray-400 max-w-sm mb-6 text-sm">
+            A consent email was sent to your parent or guardian. Our safety team will verify and approve your account once parental consent is confirmed.
+          </p>
+          <div className="rounded-2xl p-4 max-w-sm mb-6 text-xs text-left" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <span className="font-bold text-gray-200 block mb-1">What happens next?</span>
+            <p className="text-gray-400">Ask your parent to check their email (and spam folder). Once they respond, our team will review and activate your account — usually within 24 hours.</p>
+          </div>
+          <Button
+            onClick={handleRefreshStatus}
+            disabled={refreshing}
+            className="w-full max-w-xs h-12 rounded-xl font-bold mb-3"
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+          >
+            <RefreshCw size={16} className={`mr-2 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Checking..." : "Check Approval Status"}
+          </Button>
+          <Button onClick={() => base44.auth.logout("/")} variant="destructive" className="w-full max-w-xs h-12 rounded-xl font-bold">
+            <LogOut size={16} className="mr-2" /> Sign Out
+          </Button>
+        </div>
+      );
+    }
 
-      // Everyone else who hasn't completed onboarding — redirect to /onboarding
+    if (!onboardingComplete) {
       return <Navigate to="/onboarding" replace />;
     }
   }

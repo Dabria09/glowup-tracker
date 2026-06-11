@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { deleteCurrentAccount } from '@/lib/accountDeletion';
+import { loadCurrentUserRecord } from '@/lib/authRules';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2 } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
@@ -38,7 +39,21 @@ export default function MentorDashboard() {
     const loadData = async () => {
       let currentUser = null;
       try {
-        currentUser = await base44.auth.me();
+        const authUser = await base44.auth.me();
+        const userRecord = await loadCurrentUserRecord(authUser);
+        if (!userRecord) {
+          window.location.href = '/';
+          return;
+        }
+
+        const isMentorAccount = userRecord.account_type === 'mentor' ||
+          (userRecord.account_type === 'linked' && userRecord.active_mode === 'mentor');
+        if (!isMentorAccount) {
+          window.location.href = '/dashboard';
+          return;
+        }
+
+        currentUser = { ...authUser, ...userRecord };
         setUser(currentUser);
       } catch (e) {
         setLoading(false);

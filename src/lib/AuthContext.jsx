@@ -3,6 +3,10 @@ import { base44 } from '@/api/base44Client';
 import { clearAuthSession, isDeletedAccount, loadCurrentUserRecord } from '@/lib/authRules';
 
 const AuthContext = createContext();
+const USER_RECORD_OPTIONAL_PATHS = new Set([
+  '/google-setup',
+  '/mentor-register',
+]);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -32,6 +36,11 @@ export const AuthProvider = ({ children }) => {
         }
 
         const userRecord = await loadCurrentUserRecord(currentUser);
+        if (!userRecord && USER_RECORD_OPTIONAL_PATHS.has(window.location.pathname)) {
+          setUser(currentUser);
+          return;
+        }
+
         if (!userRecord || isDeletedAccount(userRecord)) {
           await clearAuthSession();
           setAuthError({ type: 'auth_required', message: 'Authentication required' });
