@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, ArrowLeft, Check, Upload, CheckCircle } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
+import BrandLogo from "@/components/BrandLogo";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { calculateAge, calculateGirlAgeGroup, getMentorTrack, saveCurrentUserRecord } from "@/lib/authRules";
 
@@ -328,7 +329,7 @@ export default function MentorRegister() {
       <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden" style={bg}>
         <div className="w-full max-w-md z-10">
           <div className="text-center mb-8">
-            <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-36 mx-auto mb-3" />
+            <BrandLogo alt="GGU" className="w-36 mx-auto mb-3" />
             <h1 className="text-2xl font-bold text-white">Verify Your Email ✉️</h1>
             <p className="text-sm text-gray-400 mt-1">6-digit code sent to <span className="text-pink-400">{email}</span></p>
           </div>
@@ -366,7 +367,7 @@ export default function MentorRegister() {
         </div>
         <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-6">
-            <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-40 mx-auto mb-4" style={{ filter:'drop-shadow(0 0 20px rgba(232,82,109,0.4))' }}/>
+            <BrandLogo alt="GGU" className="w-40 mx-auto mb-4" style={{ filter:'drop-shadow(0 0 20px rgba(232,82,109,0.4))' }} />
             <h1 className="text-2xl font-bold text-white mb-1">Create Your Mentor Account</h1>
             <p className="text-sm text-gray-400">Join Girls Glowing Up™ as a mentor</p>
           </div>
@@ -411,7 +412,7 @@ export default function MentorRegister() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-10" style={bg}>
         <div className="w-full max-w-md text-center space-y-6 z-10">
-          <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="GGU" className="w-36 mx-auto"/>
+          <BrandLogo alt="GGU" className="w-36 mx-auto" />
           <div className="w-20 h-20 rounded-full bg-green-500/20 border-2 border-green-500/40 flex items-center justify-center mx-auto">
             <CheckCircle className="w-10 h-10 text-green-400"/>
           </div>

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, Crown } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
+import BrandLogo from "@/components/BrandLogo";
 import { ACCOUNT_TYPES, completeEmailPasswordSignIn } from "@/lib/authRules";
 
 export default function Login() {
@@ -46,11 +47,7 @@ export default function Login() {
 
         {/* Logo + Title */}
         <div className="text-center mb-8">
-          <img
-            src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png"
-            alt="Girls Glowing Up"
-            className="w-40 mx-auto mb-4"
-          />
+          <BrandLogo />
           <h1 className="text-2xl font-bold text-white mb-2">Welcome Back ✨</h1>
           <p className="text-sm text-gray-400">Sign in to keep glowing</p>
         </div>

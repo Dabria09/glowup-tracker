@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Sparkles } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
+import BrandLogo from "@/components/BrandLogo";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { calculateGirlAgeGroup, saveCurrentUserRecord } from "@/lib/authRules";
 
@@ -102,7 +103,7 @@ export default function Register() {
         style={{ background: 'radial-gradient(ellipse at top, #2d0a1e 0%, #1a0a18 40%, #0d0610 100%)' }}>
         <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-8">
-            <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="Girls Glowing Up" className="w-40 mx-auto mb-4" />
+            <BrandLogo />
             <h1 className="text-2xl font-bold text-white mb-2">Verify Your Email ✉️</h1>
             <p className="text-sm text-gray-400">We sent a 6-digit code to</p>
             <p className="text-sm text-pink-400 font-semibold">{email}</p>
@@ -141,7 +142,7 @@ export default function Register() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <img src="https://gguapp.com/manus-storage/ggu-logo-glow_54cb14fa.png" alt="Girls Glowing Up" className="w-40 mx-auto mb-4" />
+          <BrandLogo />
           <h1 className="text-2xl font-bold text-white mb-2">Join the Sisterhood ✨</h1>
           <p className="text-sm text-gray-400">Create your account and start glowing</p>
         </div>
