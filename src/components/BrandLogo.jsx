@@ -1,4 +1,4 @@
-import gguLogoGlow from "@/assets/ggu-logo-glow.png";
+const GGU_LOGO_SRC = "/ggu-logo-glow.png";
 
 export default function BrandLogo({
   alt = "Girls Glowing Up",
@@ -7,7 +7,7 @@ export default function BrandLogo({
 }) {
   return (
     <img
-      src={gguLogoGlow}
+      src={GGU_LOGO_SRC}
       alt={alt}
       className={className}
       style={style}
