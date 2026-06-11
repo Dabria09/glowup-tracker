@@ -11,15 +11,15 @@ function calcAge(dob) {
 
 function getAgeGroup(age) {
   if (age >= 10 && age <= 13) return 'glow_girls';
-  if (age >= 14 && age <= 19) return 'glow_teens';
-  if (age >= 20) return 'glow_women';
+  if (age >= 14 && age <= 18) return 'glow_teens';
+  if (age >= 19) return 'glow_women';
   return null;
 }
 
 const AGE_GROUP_INFO = {
   glow_girls: { label: '🌱 Glow Girl', desc: 'Ages 10–13', color: 'text-green-400' },
-  glow_teens: { label: '🌸 Glow Teen', desc: 'Ages 14–19', color: 'text-pink-400' },
-  glow_women: { label: '👑 Glow Woman', desc: 'Ages 20+', color: 'text-purple-400' },
+  glow_teens: { label: '🌸 Glow Teen', desc: 'Ages 14–18', color: 'text-pink-400' },
+  glow_women: { label: '👑 Glow Woman', desc: 'Ages 19+', color: 'text-purple-400' },
 };
 
 export default function StepDOB({ data, update, onNext }) {

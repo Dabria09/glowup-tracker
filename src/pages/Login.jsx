@@ -6,16 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, Crown } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
-
-const calculateAgeGroup = (dobStr) => {
-  if (!dobStr) return { age: 0, ageGroup: "glow_girls" };
-  const birthDate = new Date(dobStr);
-  const age = Math.floor((Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-  if (age <= 12) return { age, ageGroup: "glow_girls" };
-  if (age >= 13 && age <= 15) return { age, ageGroup: "glow_tweens" };
-  if (age >= 16 && age <= 18) return { age, ageGroup: "glow_teens" };
-  return { age, ageGroup: "glow_women" };
-};
+import { ACCOUNT_TYPES, completeEmailPasswordSignIn } from "@/lib/authRules";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -28,80 +19,12 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      // Step 1 — Login
-      await base44.auth.loginViaEmailPassword(email, password);
-
-      // Step 2 — Get current user (wait for full confirmation)
-      const currentUser = await base44.auth.me();
-      if (!currentUser) throw new Error("Failed to load user session.");
-
-      // Admin shortcut — skip extra checks
-      if (currentUser.role === 'admin') {
-        window.location.href = "/dashboard";
-        return;
-      }
-
-      // Step 3 — Fetch user record from database by user ID
-      let userRecord = null;
-      try {
-        userRecord = await base44.entities.User.get(currentUser.id);
-      } catch {
-        userRecord = null;
-      }
-
-      // Step 4 — No user record found
-      if (!userRecord) {
-        await base44.auth.logout();
-        localStorage.clear();
-        sessionStorage.clear();
-        setError("No account found with this email. Please join the sisterhood to create an account.");
-        setLoading(false);
-        return;
-      }
-
-      // Step 5 — Account is deleted
-      if (userRecord.isDeleted === true) {
-        await base44.auth.logout();
-        localStorage.clear();
-        sessionStorage.clear();
-        setError("This account has been deleted. Please create a new account.");
-        setLoading(false);
-        return;
-      }
-
-      // Step 6 — Wrong account type
-      if (userRecord.account_type === "mentor") {
-        await base44.auth.logout();
-        localStorage.clear();
-        sessionStorage.clear();
-        setError("This email is registered as a mentor account. Please use Mentor Sign In.");
-        setLoading(false);
-        return;
-      }
-
-      // Step 7 — Parental consent gate for minors
-      if (userRecord.requires_parental_consent === true && userRecord.parental_consent_confirmed !== true) {
-        await base44.auth.logout();
-        setError("Your account is awaiting parental consent before it can be accessed.");
-        setLoading(false);
-        return;
-      }
-
-      // Step 8 — Recalculate age group from DOB on every login
-      const dob = userRecord.date_of_birth || currentUser.date_of_birth;
-      let updatedAgeGroup = userRecord.age_group || currentUser.age_group || "glow_girls";
-      if (dob) {
-        const { age, ageGroup } = calculateAgeGroup(dob);
-        // Update if age group changed (birthday since last login)
-        if (ageGroup !== updatedAgeGroup) {
-          await base44.auth.updateMe({ age, age_group: ageGroup });
-        }
-        updatedAgeGroup = ageGroup;
-      }
-
-      // Step 9 — Route to correct age-group dashboard
-      window.location.href = "/dashboard";
-
+      const result = await completeEmailPasswordSignIn({
+        email,
+        password,
+        expectedAccountType: ACCOUNT_TYPES.GIRL,
+      });
+      window.location.href = result.route;
     } catch (err) {
       setError(err.message || "Invalid email or password.");
       setLoading(false);

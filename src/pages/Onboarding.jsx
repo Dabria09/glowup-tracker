@@ -8,10 +8,9 @@ import StepAgreement from '@/components/onboarding/StepAgreement';
 import StepComplete from '@/components/onboarding/StepComplete';
 import StepMentorChoice from '@/components/onboarding/StepMentorChoice';
 import NewUserTour from '@/components/NewUserTour';
+import { calculateGirlAgeGroup } from '@/lib/authRules';
 
-const STEPS_DEFAULT = ['dob', 'username', 'agreement', 'complete'];
 const STEPS_MINOR   = ['dob', 'username', 'parental', 'agreement', 'complete'];
-const STEPS_MENTOR  = ['dob', 'username', 'agreement', 'mentor'];
 
 export default function Onboarding() {
   console.log('[Onboarding Component] Rendering...');
@@ -55,6 +54,14 @@ export default function Onboarding() {
         const u = await base44.auth.me();
         console.log('[Onboarding] User:', u);
         setUser(u);
+        const calculated = calculateGirlAgeGroup(u.date_of_birth);
+        setData(prev => ({
+          ...prev,
+          full_name: u.full_name || prev.full_name,
+          date_of_birth: u.date_of_birth || prev.date_of_birth,
+          age: typeof u.age === 'number' ? u.age : (calculated.age ?? prev.age),
+          age_group: u.age_group || calculated.ageGroup || prev.age_group,
+        }));
         
         // Check hard ban on this email
         try {
@@ -114,11 +121,13 @@ export default function Onboarding() {
   const update = (patch) => setData(prev => ({ ...prev, ...patch }));
 
   // Skip mentor choice step if user is already in mentor flow
-  const steps = data.age !== null && data.age < 13
+  const hasDob = Boolean(data.date_of_birth && data.age !== null && data.age_group);
+  const computedSteps = data.age !== null && data.age < 13
     ? STEPS_MINOR
     : isMentorFlow
       ? ['dob', 'username', 'agreement', 'complete'] // Skip mentor choice for mentor flow
       : ['dob', 'username', 'mentor', 'agreement', 'complete'];
+  const steps = hasDob ? computedSteps.filter(s => s !== 'dob') : computedSteps;
   const currentStep = steps[stepIndex];
   
   // Debug: log step transitions
@@ -146,11 +155,8 @@ export default function Onboarding() {
     if (data.age < 13) {
       profileData.parent_email = data.parent_email;
       profileData.parent_name = data.parent_name;
-      await base44.integrations.Core.SendEmail({
-        to: data.parent_email,
-        subject: `Parental Consent Required – ${user.full_name || user.email} wants to join Girls Glowing Up™`,
-        body: `Hello ${data.parent_name},\n\n${user.full_name || 'Your child'} has signed up for Girls Glowing Up™ and needs your approval.\n\nGirls Glowing Up™ is a safe, moderated platform for girls ages 5–26 to grow, learn, and connect with verified mentors.\n\nTo approve their account, please reply to this email or visit:\nhttps://gguapp.com/parental-consent\n\nIf you did not expect this email, you can safely ignore it.\n\nThank you,\nThe GGU Safety Team\n\n---\nGirls Glowing Up™ | safety@girlsglowingup.com`,
-      });
+      profileData.parent_phone = data.parent_phone;
+      profileData.parent_relationship = data.relationship;
     }
 
     // UPSERT: update existing profile or create new one
@@ -161,8 +167,21 @@ export default function Onboarding() {
       } else {
         await base44.entities.UserProfile.create(profileData);
       }
+      if (data.age < 13) {
+        await base44.functions.invoke('sendParentalConsent', {
+          context: 'girl',
+          parentName: data.parent_name,
+          parentEmail: data.parent_email,
+          parentPhone: data.parent_phone,
+          relationship: data.relationship,
+          applicantName: user.full_name || data.username || user.email,
+          dateOfBirth: data.date_of_birth,
+        });
+      }
     } catch (err) {
       console.error('[Onboarding] Profile save error:', err);
+      alert('We could not finish onboarding. Please try again. ' + err.message);
+      return;
     }
 
     // If mentor flow, update user and redirect to mentor dashboard
@@ -173,6 +192,11 @@ export default function Onboarding() {
         active_mode: "mentor"
       });
       navigate('/mentor-dashboard');
+      return;
+    }
+
+    if (data.age < 13) {
+      navigate('/dashboard');
       return;
     }
 

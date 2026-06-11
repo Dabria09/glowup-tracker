@@ -4,17 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-
-const calculateAgeGroup = (dobStr) => {
-  const birthDate = new Date(dobStr);
-  const age = Math.floor((Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-  let ageGroup = "glow_girls";
-  if (age <= 12) ageGroup = "glow_girls";
-  else if (age >= 13 && age <= 15) ageGroup = "glow_tweens";
-  else if (age >= 16 && age <= 18) ageGroup = "glow_teens";
-  else ageGroup = "glow_women";
-  return { age, ageGroup };
-};
+import { calculateGirlAgeGroup, getMentorTrack } from "@/lib/authRules";
 
 export default function GoogleSetup() {
   const isMentor = new URLSearchParams(window.location.search).get("mentor") === "true";
@@ -51,24 +41,26 @@ export default function GoogleSetup() {
     setError("");
     if (!dob) { setError("Please enter your date of birth."); return; }
 
-    const { age, ageGroup } = calculateAgeGroup(dob);
+    const { age, ageGroup } = calculateGirlAgeGroup(dob);
 
     setLoading(true);
     try {
       if (isMentor) {
-        if (age < 13) { setError("You must be at least 13 to apply as a mentor."); setLoading(false); return; }
+        const mentorType = getMentorTrack(age);
+        if (!mentorType) { setError("You must be at least 13 to apply as a mentor."); setLoading(false); return; }
         await base44.auth.updateMe({
           date_of_birth: dob,
           age,
           age_group: ageGroup,
           account_type: "mentor",
-          mentor_type: age >= 18 ? "adult" : "teen",
+          mentor_type: mentorType,
           mentor_status: "pending",
           isDeleted: false,
+          created_at: new Date().toISOString(),
         });
         window.location.href = "/mentor-register?step=1";
       } else {
-        if (age < 10) { setError("You must be at least 10 years old to join GGU."); setLoading(false); return; }
+        if (!ageGroup) { setError("You must be at least 10 years old to join GGU."); setLoading(false); return; }
         const requiresParentalConsent = age < 13;
         await base44.auth.updateMe({
           date_of_birth: dob,
@@ -78,12 +70,9 @@ export default function GoogleSetup() {
           isDeleted: false,
           requires_parental_consent: requiresParentalConsent,
           parental_consent_confirmed: !requiresParentalConsent,
+          created_at: new Date().toISOString(),
         });
-        if (requiresParentalConsent) {
-          window.location.href = "/parent-consent";
-        } else {
-          window.location.href = "/onboarding";
-        }
+        window.location.href = "/onboarding";
       }
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");

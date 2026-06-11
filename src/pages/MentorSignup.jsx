@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2, Users, Sparkles, CheckCircle } from "lucide-react";
+import { UserPlus, Mail, Lock, Loader2, Users, Sparkles } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 export default function MentorSignup() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -18,7 +17,6 @@ export default function MentorSignup() {
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
-  const [registeredEmail, setRegisteredEmail] = useState("");
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Check if user is already logged in
@@ -32,7 +30,7 @@ export default function MentorSignup() {
           return;
         }
         setIsCheckingAuth(false);
-      } catch (err) {
+      } catch {
         setIsCheckingAuth(false);
       }
     };
@@ -50,8 +48,7 @@ export default function MentorSignup() {
     );
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError("");
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -64,7 +61,6 @@ export default function MentorSignup() {
     setLoading(true);
     try {
       await base44.auth.register({ email, password });
-      setRegisteredEmail(email);
       setShowOtp(true);
     } catch (err) {
       setError(err.message || "Registration failed");
@@ -214,7 +210,7 @@ export default function MentorSignup() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-xs font-bold text-gray-400 uppercase tracking-widest">Email</Label>
               <div className="relative">
@@ -262,7 +258,7 @@ export default function MentorSignup() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-12 font-bold text-white" disabled={loading}
+            <Button type="button" onClick={handleSubmit} className="w-full h-12 font-bold text-white" disabled={loading || !email || !password || !confirmPassword}
               style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
               {loading ? (
                 <>
@@ -276,7 +272,7 @@ export default function MentorSignup() {
                 </>
               )}
             </Button>
-          </form>
+          </div>
         </div>
 
         {/* Footer */}

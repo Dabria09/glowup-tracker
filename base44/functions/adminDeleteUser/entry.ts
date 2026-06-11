@@ -1,11 +1,23 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 async function deleteAllByEmail(sr, entityName, email, fieldName = 'user_email') {
+  const entity = sr.entities?.[entityName];
+  if (!entity) return;
   while (true) {
-    const records = await sr.entities[entityName].filter({ [fieldName]: email }, '-created_date', 100);
+    const records = await entity.filter({ [fieldName]: email }, '-created_date', 100);
     if (!records || records.length === 0) break;
-    await Promise.all(records.map(r => sr.entities[entityName].delete(r.id)));
+    await Promise.all(records.map(r => entity.delete(r.id)));
     if (records.length < 100) break;
+  }
+}
+
+async function ensureAuthUserDeleted(sr, userId) {
+  try {
+    const record = await sr.entities.User.get(userId);
+    if (record) throw new Error('User auth record still exists after deletion.');
+  } catch (error) {
+    const message = String(error?.message || '').toLowerCase();
+    if (message.includes('still exists')) throw error;
   }
 }
 
@@ -35,6 +47,7 @@ Deno.serve(async (req) => {
 
     // Step 1: Destroy auth credentials FIRST
     await sr.entities.User.delete(targetUserId);
+    await ensureAuthUserDeleted(sr, targetUserId);
 
     // Step 2: Delete all associated data in parallel
     const userEmailEntities = [

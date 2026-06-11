@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { deleteCurrentAccount } from '@/lib/accountDeletion';
 import BottomNav from '@/components/BottomNav';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
 import {
-  Edit3, Link2, BookOpen, Image, Quote, Briefcase, GraduationCap,
+  Edit3, BookOpen, Image, Quote, Briefcase, GraduationCap,
   MessageSquare, Heart, MessageCircle, LogOut, Trash2, ChevronRight,
   Shield, FileText, Users, Sparkles, X, Check, Copy, ExternalLink, Camera,
   AlertTriangle,
@@ -155,14 +156,7 @@ function DeleteAccountModal({ onClose }) {
   const doDelete = async () => {
     try {
       setIsDeleting(true);
-      const res = await base44.functions.invoke('deleteAccount', {});
-      if (res.data?.success) {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = '/';
-      } else {
-        throw new Error(res.data?.error || 'Deletion failed');
-      }
+      await deleteCurrentAccount();
     } catch (error) {
       alert('Deletion failed. Please try again. Error: ' + error.message);
       setIsDeleting(false);

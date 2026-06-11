@@ -1,11 +1,29 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 async function deleteAllByEmail(client, entityName, email, fieldName = 'user_email') {
+  const entity = client.entities?.[entityName];
+  if (!entity) return { entityName, deleted: 0, skipped: true };
+  let deleted = 0;
   while (true) {
-    const records = await client.entities[entityName].filter({ [fieldName]: email }, '-created_date', 100);
+    const records = await entity.filter({ [fieldName]: email }, '-created_date', 100);
     if (!records || records.length === 0) break;
-    await Promise.all(records.map(r => client.entities[entityName].delete(r.id)));
+    await Promise.all(records.map(r => entity.delete(r.id)));
+    deleted += records.length;
     if (records.length < 100) break;
+  }
+  return { entityName, deleted, fieldName };
+}
+
+async function ensureAuthUserDeleted(sr, userId) {
+  try {
+    const record = await sr.entities.User.get(userId);
+    if (record) {
+      throw new Error('User auth record still exists after deletion.');
+    }
+  } catch (error) {
+    const message = String(error?.message || '').toLowerCase();
+    if (message.includes('still exists')) throw error;
+    // Expected: Base44 throws when the record no longer exists.
   }
 }
 
@@ -19,8 +37,26 @@ Deno.serve(async (req) => {
     }
 
     const email = user.email;
+    const userId = user.id;
+    const sr = base44.asServiceRole;
 
-    // Step 1: Delete all associated data records using user-scoped client
+    // Step 1: Delete the authentication/User record. Do not continue if this fails.
+    if (typeof base44.auth.deleteMe === 'function') {
+      await base44.auth.deleteMe();
+    } else {
+      await sr.entities.User.delete(userId);
+    }
+
+    // Some Base44 exports expose the auth user as the User entity. Verify it is gone,
+    // and use the service-role deletion as a fallback if deleteMe only invalidated the session.
+    try {
+      await ensureAuthUserDeleted(sr, userId);
+    } catch {
+      await sr.entities.User.delete(userId);
+      await ensureAuthUserDeleted(sr, userId);
+    }
+
+    // Step 2: Delete all associated data records in parallel using service-role access.
     const userEmailEntities = [
       'UserProfile', 'UserPoints', 'PointsHistory',
       'Mentor', 'TeenMentor', 'MentorApplication', 'TeenMentorApplication',
@@ -50,24 +86,16 @@ Deno.serve(async (req) => {
       'GlowUpCertificate',
     ];
 
-    await Promise.all([
-      ...userEmailEntities.map(name => deleteAllByEmail(base44, name, email).catch(() => {})),
-      deleteAllByEmail(base44, 'GlowFollow', email, 'follower_email').catch(() => {}),
-      deleteAllByEmail(base44, 'GlowFollow', email, 'followed_email').catch(() => {}),
-      deleteAllByEmail(base44, 'ChatMessage', email, 'sender_email').catch(() => {}),
-      deleteAllByEmail(base44, 'ChatMessage', email, 'receiver_email').catch(() => {}),
-      deleteAllByEmail(base44, 'Notification', email, 'recipient_email').catch(() => {}),
+    const cleanupResults = await Promise.all([
+      ...userEmailEntities.map(name => deleteAllByEmail(sr, name, email).catch(error => ({ entityName: name, error: error.message }))),
+      deleteAllByEmail(sr, 'GlowFollow', email, 'follower_email').catch(error => ({ entityName: 'GlowFollow', fieldName: 'follower_email', error: error.message })),
+      deleteAllByEmail(sr, 'GlowFollow', email, 'followed_email').catch(error => ({ entityName: 'GlowFollow', fieldName: 'followed_email', error: error.message })),
+      deleteAllByEmail(sr, 'ChatMessage', email, 'sender_email').catch(error => ({ entityName: 'ChatMessage', fieldName: 'sender_email', error: error.message })),
+      deleteAllByEmail(sr, 'ChatMessage', email, 'receiver_email').catch(error => ({ entityName: 'ChatMessage', fieldName: 'receiver_email', error: error.message })),
+      deleteAllByEmail(sr, 'Notification', email, 'recipient_email').catch(error => ({ entityName: 'Notification', fieldName: 'recipient_email', error: error.message })),
     ]);
 
-    // Step 2: Delete the auth user record (removes login credentials)
-    try {
-      await base44.auth.deleteMe();
-    } catch (e) {
-      // App owner accounts cannot be deleted by the platform — data is already cleaned up above
-      console.error('deleteMe error (may be app owner):', e.message);
-    }
-
-    return Response.json({ success: true, type: 'delete' });
+    return Response.json({ success: true, type: 'delete', cleanupResults });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
