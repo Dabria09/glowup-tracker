@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
     try {
       await base44.auth.deleteMe();
     } catch (e) {
+      // App owner accounts cannot be deleted by the platform — data is already cleaned up above
       console.error('deleteMe error (may be app owner):', e.message);
     }
 
