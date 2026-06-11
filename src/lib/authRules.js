@@ -56,10 +56,10 @@ export async function loadCurrentUserRecord(currentUser) {
   if (!currentUser?.id) return null;
 
   try {
-    const userRecord = await base44.asServiceRole.entities.User.get(currentUser.id);
-    return userRecord || null;
+    const userRecord = await base44.entities.User.get(currentUser.id);
+    return userRecord || currentUser;
   } catch {
-    return null;
+    return currentUser;
   }
 }
 
@@ -72,18 +72,19 @@ export async function saveCurrentUserRecord(currentUser, fields) {
     ...fields,
   };
 
-  await base44.auth.updateMe(fields);
+  const updatedUser = await base44.auth.updateMe(fields);
 
   try {
-    return await base44.asServiceRole.entities.User.create(payload);
+    return await base44.entities.User.update(currentUser.id, {
+      email: currentUser.email,
+      ...fields,
+    });
   } catch (error) {
     try {
-      return await base44.asServiceRole.entities.User.update(currentUser.id, {
-        email: currentUser.email,
-        ...fields,
-      });
-    } catch {
-      throw error;
+      return await base44.entities.User.create(payload);
+    } catch (createError) {
+      console.warn("User entity sync skipped after auth update:", createError || error);
+      return updatedUser || { ...currentUser, ...fields };
     }
   }
 }
