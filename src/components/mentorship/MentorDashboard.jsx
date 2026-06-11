@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { deleteCurrentAccount } from '@/lib/accountDeletion';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, ChevronRight, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2 } from 'lucide-react';
+import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2 } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
 import MenteeDashboard from './MenteeDashboard';
 import ApplicationStatusTracker from './ApplicationStatusTracker';

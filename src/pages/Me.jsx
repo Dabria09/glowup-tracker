@@ -5,7 +5,7 @@ import { deleteCurrentAccount } from '@/lib/accountDeletion';
 import BottomNav from '@/components/BottomNav';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
 import {
-  Edit3, Link2, BookOpen, Image, Quote, Briefcase, GraduationCap,
+  Edit3, BookOpen, Image, Quote, Briefcase, GraduationCap,
   MessageSquare, Heart, MessageCircle, LogOut, Trash2, ChevronRight,
   Shield, FileText, Users, Sparkles, X, Check, Copy, ExternalLink, Camera,
   AlertTriangle,
