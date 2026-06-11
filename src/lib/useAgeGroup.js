@@ -8,8 +8,8 @@
  *
  * Age groups (set during onboarding via StepDOB):
  *   glow_girls  → ages 10-13
- *   glow_teens  → ages 14-19
- *   glow_women  → ages 20+
+ *   glow_teens  → ages 14-18
+ *   glow_women  → ages 19+
  */
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -25,7 +25,7 @@ const WORLD_INFO = {
   },
   glow_teens: {
     label: 'Glow Teens World',
-    desc: 'Ages 14–19',
+    desc: 'Ages 14–18',
     emoji: '🌸',
     color: '#e8526d',
     bgColor: 'rgba(232,82,109,0.12)',
@@ -33,7 +33,7 @@ const WORLD_INFO = {
   },
   glow_women: {
     label: 'Glow Women World',
-    desc: 'Ages 20+',
+    desc: 'Ages 19+',
     emoji: '👑',
     color: '#a855f7',
     bgColor: 'rgba(168,85,247,0.12)',
@@ -102,7 +102,7 @@ export function getAgeGroup(ageOrDob) {
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
   }
   if (age >= 10 && age <= 13) return 'glow_girls';
-  if (age >= 14 && age <= 19) return 'glow_teens';
-  if (age >= 20) return 'glow_women';
+  if (age >= 14 && age <= 18) return 'glow_teens';
+  if (age >= 19) return 'glow_women';
   return null;
 }

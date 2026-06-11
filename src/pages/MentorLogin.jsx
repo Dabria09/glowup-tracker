@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, Crown } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
+import { ACCOUNT_TYPES, completeEmailPasswordSignIn } from "@/lib/authRules";
 
 export default function MentorLogin() {
   const [email, setEmail] = useState("");
@@ -18,70 +19,12 @@ export default function MentorLogin() {
     setError("");
     setLoading(true);
     try {
-      // Step 1 — Login
-      await base44.auth.loginViaEmailPassword(email, password);
-
-      // Step 2 — Get current user (wait for full confirmation)
-      const currentUser = await base44.auth.me();
-      if (!currentUser) throw new Error("Failed to load user session.");
-
-      // Step 3 — Fetch user record from database by user ID
-      let userRecord = null;
-      try {
-        userRecord = await base44.entities.User.get(currentUser.id);
-      } catch {
-        userRecord = null;
-      }
-
-      // Step 4 — No user record found
-      if (!userRecord) {
-        await base44.auth.logout();
-        localStorage.clear();
-        sessionStorage.clear();
-        setError("No mentor account found with this email. Please apply to become a mentor.");
-        setLoading(false);
-        return;
-      }
-
-      // Step 5 — Account is deleted
-      if (userRecord.isDeleted === true) {
-        await base44.auth.logout();
-        localStorage.clear();
-        sessionStorage.clear();
-        setError("This account has been deleted. Please create a new account.");
-        setLoading(false);
-        return;
-      }
-
-      // Step 6 — Wrong account type
-      if (userRecord.account_type !== "mentor") {
-        await base44.auth.logout();
-        localStorage.clear();
-        sessionStorage.clear();
-        setError("This email is registered as a GGU app account. Please use the main app sign in.");
-        setLoading(false);
-        return;
-      }
-
-      // Step 7 — Check mentor_status
-      const mentorStatus = userRecord.mentor_status || currentUser.mentor_status || "pending";
-
-      if (mentorStatus === "suspended") {
-        await base44.auth.logout();
-        localStorage.clear();
-        sessionStorage.clear();
-        setError("Your mentor account has been suspended. Please contact mentors@girlsglowingup.com");
-        setLoading(false);
-        return;
-      }
-
-      if (mentorStatus === "approved") {
-        window.location.href = "/mentor-dashboard";
-      } else {
-        // pending or any other status — go to pending dashboard
-        window.location.href = "/mentor-dashboard?tab=Overview";
-      }
-
+      const result = await completeEmailPasswordSignIn({
+        email,
+        password,
+        expectedAccountType: ACCOUNT_TYPES.MENTOR,
+      });
+      window.location.href = result.route;
     } catch (err) {
       setError(err.message || "Invalid email or password.");
       setLoading(false);

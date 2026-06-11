@@ -4,14 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, Phone, User, Info, Shield } from 'lucide-react';
+import { Mail, Phone, User, Shield } from 'lucide-react';
 
-export default function StepParentalConsent({ data, update, onNext, onBack, parentEmail, setParentEmail }) {
+export default function StepParentalConsent({ data, update, onNext, onBack }) {
   const [parentName, setParentName] = useState(data.parent_name || '');
+  const [parentEmail, setParentEmail] = useState(data.parent_email || '');
   const [parentPhone, setParentPhone] = useState(data.parent_phone || '');
   const [relationship, setRelationship] = useState(data.relationship || '');
   const [errors, setErrors] = useState({});
-  const [consentSent, setConsentSent] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -38,93 +38,16 @@ export default function StepParentalConsent({ data, update, onNext, onBack, pare
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSendConsent = async () => {
+  const handleContinue = () => {
     if (!validate()) return;
-
-    try {
-      // Update parent data
-      update({
-        parent_name: parentName,
-        parent_phone: parentPhone,
-        relationship: relationship,
-      });
-
-      // Send consent email to parent
-      await fetch('/functions/sendParentalConsent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          parentName,
-          parentEmail,
-          parentPhone,
-          relationship,
-          applicantName: data.full_name,
-        }),
-      });
-
-      setConsentSent(true);
-      setParentEmail(parentEmail);
-    } catch (err) {
-      setErrors({ submit: 'Failed to send consent email. Please try again.' });
-    }
+    update({
+      parent_name: parentName.trim(),
+      parent_email: parentEmail.trim(),
+      parent_phone: parentPhone.trim(),
+      relationship: relationship.trim(),
+    });
+    onNext();
   };
-
-  if (consentSent) {
-    return (
-      <Card className="w-full max-w-2xl mx-auto glass-glow">
-        <CardHeader>
-          <CardTitle className="text-2xl font-playfair-display text-white flex items-center gap-3">
-            <Shield className="h-6 w-6 text-primary" />
-            Parental Consent Sent
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <Alert className="bg-primary/10 border-primary/20">
-            <AlertDescription className="text-white">
-              A consent email has been sent to <strong>{parentEmail}</strong>. Your parent or guardian must click the confirmation link in the email before you can continue with your application.
-            </AlertDescription>
-          </Alert>
-
-          <div className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-3">
-            <h3 className="text-sm font-semibold text-white">What happens next?</h3>
-            <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-              <li>Your parent/guardian receives the consent email</li>
-              <li>They click the confirmation link to verify their consent</li>
-              <li>Once confirmed, you'll receive an email to continue your application</li>
-              <li>Step 2 of your mentor application will unlock</li>
-            </ol>
-          </div>
-
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-accent/10 border border-accent/20">
-            <Info className="h-5 w-5 text-accent mt-0.5" />
-            <div className="text-sm text-muted-foreground">
-              <p className="text-white font-medium mb-1">Didn't receive the email?</p>
-              <p>Ask your parent/guardian to check their spam folder. You can also resend the consent email if needed.</p>
-            </div>
-          </div>
-
-          <div className="flex gap-4 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onBack}
-              className="flex-1 border-white/20 text-white hover:bg-white/10"
-            >
-              Back
-            </Button>
-            <Button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="flex-1 bg-primary hover:bg-primary/90 text-white"
-              disabled
-            >
-              Waiting for Parent Confirmation...
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto glass-glow">
@@ -134,13 +57,13 @@ export default function StepParentalConsent({ data, update, onNext, onBack, pare
           Parent or Guardian Consent
         </CardTitle>
         <p className="text-muted-foreground text-sm">
-          Since you're under 18, we need consent from a parent or guardian before you can continue.
+          Since you're under 13, we need consent from a parent or guardian before your account can be activated.
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
         <Alert className="bg-primary/10 border-primary/20">
           <AlertDescription className="text-white text-sm">
-            A parent or guardian must provide consent for you to participate as a teen mentor. They will receive an email to verify their consent.
+            A parent or guardian must provide consent before you can access Girls Glowing Up. They will receive an email after the final agreement step.
           </AlertDescription>
         </Alert>
 
@@ -170,7 +93,7 @@ export default function StepParentalConsent({ data, update, onNext, onBack, pare
             <Input
               id="parentEmail"
               type="email"
-              value={parentEmail || ''}
+              value={parentEmail}
               onChange={(e) => setParentEmail(e.target.value)}
               placeholder="jane@example.com"
               className={errors.parentEmail ? 'border-destructive' : ''}
@@ -215,14 +138,6 @@ export default function StepParentalConsent({ data, update, onNext, onBack, pare
           </div>
         </div>
 
-        {errors.submit && (
-          <Alert className="bg-destructive/10 border-destructive/20">
-            <AlertDescription className="text-destructive text-sm">
-              {errors.submit}
-            </AlertDescription>
-          </Alert>
-        )}
-
         <div className="flex gap-4 pt-4">
           <Button
             type="button"
@@ -234,10 +149,10 @@ export default function StepParentalConsent({ data, update, onNext, onBack, pare
           </Button>
           <Button
             type="button"
-            onClick={handleSendConsent}
+            onClick={handleContinue}
             className="flex-1 bg-primary hover:bg-primary/90 text-white"
           >
-            Send Consent Email
+            Continue
           </Button>
         </div>
       </CardContent>

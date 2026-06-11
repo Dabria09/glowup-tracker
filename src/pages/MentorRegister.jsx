@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, ArrowLeft, Check, Upload, CheckCircle } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { calculateAge, calculateGirlAgeGroup, getMentorTrack } from "@/lib/authRules";
 
 const EXPERTISE_OPTIONS = [
   "Career Development","Financial Literacy","College Prep and Applications",
@@ -101,6 +102,7 @@ export default function MentorRegister() {
   const [parentEmail, setParentEmail] = useState("");
   const [parentPhone, setParentPhone] = useState("");
   const [parentConsentSent, setParentConsentSent] = useState(false);
+  const [parentConsentId, setParentConsentId] = useState("");
 
   // Step 10 — Final Agreement
   const [scrolledTos, setScrolledTos] = useState(false);
@@ -162,11 +164,11 @@ export default function MentorRegister() {
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
     if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
 
-    const birthDate = new Date(dob);
-    const age = Math.floor((Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-    if (age < 13) { setError("You must be at least 13 years old to apply as a GGU Mentor."); return; }
+    const age = calculateAge(dob);
+    const track = getMentorTrack(age);
+    if (!track) { setError("You must be at least 13 years old to apply as a GGU Mentor."); return; }
 
-    setMentorTrack(age >= 18 ? "adult" : "teen");
+    setMentorTrack(track);
     setLoading(true);
     try {
       await base44.auth.register({ email, password });
@@ -189,14 +191,21 @@ export default function MentorRegister() {
       const result = await base44.auth.verifyOtp({ email, otpCode });
       if (result?.access_token) base44.auth.setToken(result.access_token);
 
+      const age = calculateAge(dob);
+      const { ageGroup } = calculateGirlAgeGroup(dob);
+      const track = getMentorTrack(age);
+
       // Update user with mentor account type
       await base44.auth.updateMe({
         full_name: fullName,
         date_of_birth: dob,
+        age,
+        age_group: ageGroup,
         account_type: "mentor",
-        mentor_type: mentorTrack,
+        mentor_type: track,
         mentor_status: "pending",
         isDeleted: false,
+        created_at: new Date().toISOString(),
       });
 
       setShowOtp(false);
@@ -215,11 +224,17 @@ export default function MentorRegister() {
     if (!parentEmail || !parentName) return;
     setLoading(true);
     try {
-      await base44.integrations.Core.SendEmail({
-        to: parentEmail,
-        subject: `GGU Teen Mentor Consent Required for ${fullName}`,
-        body: `Hi ${parentName},\n\n${fullName} has applied to become a GGU Teen Mentor and listed you as their parent or guardian.\n\nPlease visit https://gguapp.com/parent-consent to review and provide consent.\n\nThank you,\nThe Girls Glowing Up Team`
+      const result = await base44.functions.invoke('sendParentalConsent', {
+        context: 'mentor',
+        parentName,
+        parentEmail,
+        parentPhone,
+        relationship: parentRel,
+        applicantName: fullName,
+        dateOfBirth: dob,
       });
+      if (!result?.data?.success) throw new Error(result?.data?.error || 'Failed to send consent email');
+      setParentConsentId(result.data.consentId || "");
       setParentConsentSent(true);
     } catch (err) {
       alert("Failed to send email: " + err.message);
@@ -266,6 +281,8 @@ export default function MentorRegister() {
         parent_email: parentEmail,
         parent_phone: parentPhone,
         parent_relationship: parentRel,
+        parent_consent_sent: parentConsentSent,
+        parent_consent_id: parentConsentId,
         reference_1_name: ref1Name,
         reference_1_relationship: ref1Rel,
         reference_1_email: ref1Email,
@@ -296,7 +313,11 @@ export default function MentorRegister() {
     else setStep(s => s - 1);
   };
 
-  const totalSteps = mentorTrack === "teen" ? 9 : 10;
+  const visibleSteps = mentorTrack === "teen"
+    ? [1, 2, 3, 4, 5, 6, 7, 9, 10]
+    : [1, 2, 3, 4, 5, 6, 7, 8, 10];
+  const totalSteps = visibleSteps.length;
+  const currentProgressStep = Math.max(1, visibleSteps.indexOf(step) + 1);
 
   const bg = { background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' };
   const cardStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' };
@@ -435,10 +456,10 @@ export default function MentorRegister() {
         <div className="mb-6">
           <div className="flex gap-1">
             {Array.from({ length: totalSteps }).map((_, i) => (
-              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i + 1 <= step ? 'bg-pink-500' : 'bg-white/10'}`}/>
+              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i + 1 <= currentProgressStep ? 'bg-pink-500' : 'bg-white/10'}`}/>
             ))}
           </div>
-          <p className="text-xs text-gray-400 mt-1 text-right">Step {step} of {totalSteps}</p>
+          <p className="text-xs text-gray-400 mt-1 text-right">Step {currentProgressStep} of {totalSteps}</p>
         </div>
 
         <div className="rounded-3xl p-6" style={cardStyle}>

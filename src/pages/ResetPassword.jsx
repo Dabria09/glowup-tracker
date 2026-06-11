@@ -16,8 +16,7 @@ export default function ResetPassword() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError("");
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match");
@@ -64,7 +63,7 @@ export default function ResetPassword() {
           {error}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="password">New Password</Label>
           <div className="relative">
@@ -98,7 +97,7 @@ export default function ResetPassword() {
             />
           </div>
         </div>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+        <Button type="button" onClick={handleSubmit} className="w-full h-12 font-medium" disabled={loading || !newPassword || !confirmPassword}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -108,7 +107,7 @@ export default function ResetPassword() {
             "Reset password"
           )}
         </Button>
-      </form>
+      </div>
     </AuthLayout>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +32,7 @@ export default function ParentConsent() {
         const consent = consents[0];
         
         // Check if already responded
-        if (consent.consent_given !== null) {
+        if (typeof consent.consent_given === 'boolean') {
           setResponse({
             already_responded: true,
             consent_given: consent.consent_given,

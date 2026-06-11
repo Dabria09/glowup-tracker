@@ -3,6 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const sr = base44.asServiceRole;
     
     // This endpoint can be called without authentication (from email links)
     const url = new URL(req.url);
@@ -18,7 +19,7 @@ Deno.serve(async (req) => {
     }
     
     // Find the consent record
-    const consents = await base44.entities.ParentConsent.filter({ id: token });
+    const consents = await sr.entities.ParentConsent.filter({ id: token });
     
     if (consents.length === 0) {
       return Response.json({ error: 'Invalid or expired consent link' }, { status: 404 });
@@ -27,7 +28,7 @@ Deno.serve(async (req) => {
     const consent = consents[0];
     
     // Check if already responded
-    if (consent.consent_given !== null) {
+    if (typeof consent.consent_given === 'boolean') {
       return Response.json({ 
         error: 'This consent request has already been responded to',
         already_responded: true,
@@ -43,28 +44,52 @@ Deno.serve(async (req) => {
     }
     
     // Update consent record
-    await base44.entities.ParentConsent.update(token, {
+    await sr.entities.ParentConsent.update(token, {
       consent_given: action === 'approve',
       consent_response_date: new Date().toISOString(),
     });
     
-    // Update MentorApplication
-    const applications = await base44.entities.MentorApplication.filter({ 
-      user_email: consent.teen_email,
-      status: 'pending'
-    });
-    
-    if (applications.length > 0) {
-      await base44.entities.MentorApplication.update(applications[0].id, {
-        parent_consent_given: action === 'approve',
-        parent_consent_response_date: new Date().toISOString(),
-        status: action === 'approve' ? 'pending' : 'parent_declined',
-        rejection_reason: action === 'decline' ? 'Parent/guardian declined consent' : undefined,
+    const consentContext = consent.consent_context || consent.account_type || 'mentor';
+
+    if (consentContext === 'girl') {
+      const profiles = await sr.entities.UserProfile.filter({ user_email: consent.teen_email });
+      if (profiles.length > 0) {
+        await sr.entities.UserProfile.update(profiles[0].id, {
+          parental_consent_given: action === 'approve',
+          admin_consent_approved: action === 'approve',
+          parental_consent_response_date: new Date().toISOString(),
+          onboarding_complete: action === 'approve',
+          consent_status: action === 'approve' ? 'approved' : 'declined',
+        });
+      }
+
+      const users = await sr.entities.User.filter({ email: consent.teen_email });
+      if (users.length > 0) {
+        await sr.entities.User.update(users[0].id, {
+          parental_consent_confirmed: action === 'approve',
+          requires_parental_consent: action !== 'approve',
+        });
+      }
+    } else {
+      // Update MentorApplication
+      const applications = await sr.entities.MentorApplication.filter({ 
+        user_email: consent.teen_email,
+        status: 'pending'
       });
+      
+      if (applications.length > 0) {
+        await sr.entities.MentorApplication.update(applications[0].id, {
+          parent_consent_given: action === 'approve',
+          parent_consent_response_date: new Date().toISOString(),
+          status: action === 'approve' ? 'pending' : 'parent_declined',
+          rejection_reason: action === 'decline' ? 'Parent/guardian declined consent' : undefined,
+        });
+      }
     }
     
     // Send confirmation email to parent
-    await base44.integrations.Core.SendEmail({
+    const emailClient = sr.integrations?.Core?.SendEmail ? sr.integrations.Core : base44.integrations.Core;
+    await emailClient.SendEmail({
       to: consent.parent_email,
       subject: `Consent Response Confirmed - ${action === 'approve' ? 'Approved' : 'Declined'}`,
       body: `
@@ -88,7 +113,7 @@ Deno.serve(async (req) => {
     });
     
     // Send notification email to teen
-    await base44.integrations.Core.SendEmail({
+    await emailClient.SendEmail({
       to: consent.teen_email,
       subject: `Parental Consent Response - ${action === 'approve' ? 'Approved!' : 'Update Required'}`,
       body: `

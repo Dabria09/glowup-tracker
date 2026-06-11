@@ -12,8 +12,7 @@ export default function LinkAccountSetting({ onLinkComplete }) {
   const [loading, setLoading] = useState(false);
   const [linked, setLinked] = useState(false);
 
-  const handleLink = async (e) => {
-    e.preventDefault();
+  const handleLink = async () => {
     setLoading(true);
     try {
       // Verify existence & authenticity of the GGU Girl Account
@@ -61,7 +60,7 @@ export default function LinkAccountSetting({ onLinkComplete }) {
         If you are also a GGU Woman (19-26) who wants to browse posts, join challenges, or use the interactive social features, link your member account below.
       </p>
 
-      <form onSubmit={handleLink} className="space-y-3">
+      <div className="space-y-3">
         <div className="space-y-1">
           <Label className="text-xs text-gray-400 uppercase tracking-widest">GGU Girl Email</Label>
           <Input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="bg-neutral-900 border-white/10 text-white" />
@@ -70,11 +69,11 @@ export default function LinkAccountSetting({ onLinkComplete }) {
           <Label className="text-xs text-gray-400 uppercase tracking-widest">GGU Girl Password</Label>
           <Input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="bg-neutral-900 border-white/10 text-white" />
         </div>
-        <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-xs font-bold" disabled={loading}>
+        <Button type="button" onClick={handleLink} className="w-full bg-purple-600 hover:bg-purple-700 text-xs font-bold" disabled={loading || !email || !password}>
           {loading ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2" size={14} />}
           Link Account
         </Button>
-      </form>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { clearAuthSession, isDeletedAccount, loadCurrentUserRecord } from '@/lib/authRules';
 
 const AuthContext = createContext();
 
@@ -22,11 +23,24 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(isAuth);
       if (isAuth) {
         const currentUser = await base44.auth.me();
-        setUser(currentUser);
         // Check for user_not_registered scenario
         if (!currentUser) {
           setAuthError({ type: 'user_not_registered', message: 'User not registered for this app' });
+          setUser(null);
+          setIsAuthenticated(false);
+          return;
         }
+
+        const userRecord = await loadCurrentUserRecord(currentUser);
+        if (!userRecord || isDeletedAccount(userRecord)) {
+          await clearAuthSession();
+          setAuthError({ type: 'auth_required', message: 'Authentication required' });
+          setUser(null);
+          setIsAuthenticated(false);
+          return;
+        }
+
+        setUser({ ...currentUser, ...userRecord });
       }
     } catch (error) {
       console.error('User auth check failed:', error);

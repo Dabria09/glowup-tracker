@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
+import { deleteCurrentAccount } from '@/lib/accountDeletion';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, ChevronRight, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2 } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
@@ -28,7 +29,6 @@ export default function MentorDashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showGguModal, setShowGguModal] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef(null);
   const [application, setApplication] = useState(null);
@@ -498,49 +498,7 @@ export default function MentorDashboard() {
                 onClick={async () => {
                   try {
                     setDeleteLoading(true);
-
-                    // Step 1 — Get current user
-                    const currentUser = await base44.auth.me();
-                    const userId = currentUser.id;
-
-                    // Step 2 — Mark as deleted first
-                    await base44.asServiceRole.entities.User.update(userId, {
-                      isDeleted: true,
-                      deletedAt: new Date().toISOString(),
-                    });
-
-                    // Step 3 — Delete all related mentor records simultaneously
-                    await Promise.all([
-                      base44.entities.MentorApplication.filter({ user_email: currentUser.email })
-                        .then(records => Promise.all(records.map(r => base44.entities.MentorApplication.delete(r.id)))),
-                      base44.entities.Mentor.filter({ user_email: currentUser.email })
-                        .then(records => Promise.all(records.map(r => base44.entities.Mentor.delete(r.id)))),
-                      base44.entities.TeenMentor.filter({ user_email: currentUser.email })
-                        .then(records => Promise.all(records.map(r => base44.entities.TeenMentor.delete(r.id)))),
-                      base44.entities.MentorSession.filter({ mentor_email: currentUser.email })
-                        .then(records => Promise.all(records.map(r => base44.entities.MentorSession.delete(r.id)))),
-                      base44.entities.AnonymousQuestion.filter({ assigned_mentor_email: currentUser.email })
-                        .then(records => Promise.all(records.map(r => base44.entities.AnonymousQuestion.delete(r.id)))),
-                    ]);
-
-                    // Step 4 — Delete main user record
-                    try { await base44.asServiceRole.entities.User.delete(userId); } catch {}
-
-                    // Step 5 — Verify deletion (expected to fail = deletion confirmed)
-                    try {
-                      const check = await base44.asServiceRole.entities.User.get(userId);
-                      if (check) console.warn('User record still exists — may need manual cleanup');
-                    } catch {
-                      // Expected — not found means deletion confirmed
-                    }
-
-                    // Step 6 — Logout and clear everything
-                    await base44.auth.logout();
-                    localStorage.clear();
-                    sessionStorage.clear();
-
-                    // Step 7 — Navigate to landing page
-                    window.location.href = '/';
+                    await deleteCurrentAccount();
                   } catch (err) {
                     setDeleteLoading(false);
                     alert('Deletion failed. Please try again. Error: ' + err.message);

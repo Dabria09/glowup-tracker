@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Shield, FileText, CheckCircle, Loader2, User, BookOpen, Users } from 'lucide-react';
 
@@ -51,6 +51,28 @@ export default function StepAgreement({
   const scrollBoxClass = "overflow-y-auto rounded-lg text-xs leading-relaxed text-gray-300 space-y-2";
   const scrollBoxStyle = { maxHeight: 180, background: 'rgba(0,0,0,0.35)', padding: '12px', borderRadius: '8px' };
   const sectionHead = { fontWeight: '700', color: '#f3f4f6', display: 'block', marginTop: '10px', marginBottom: '4px', fontSize: '12px' };
+  const PlainCheckbox = ({ checked, disabled = false, onClick, label }) => (
+    <div
+      role="checkbox"
+      aria-checked={checked}
+      aria-disabled={disabled}
+      tabIndex={disabled ? -1 : 0}
+      onClick={disabled ? undefined : onClick}
+      onKeyDown={(event) => {
+        if (disabled) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      className={`flex items-center gap-3 mt-1 ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+    >
+      <div className={`w-5 h-5 shrink-0 rounded border flex items-center justify-center ${checked ? 'bg-pink-500 border-pink-500' : 'border-white/30'}`}>
+        {checked && <CheckCircle className="w-3 h-3 text-white" />}
+      </div>
+      <span className="text-sm text-white">{label}</span>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -159,19 +181,12 @@ export default function StepAgreement({
           <span style={sectionHead}>13. Contact</span>
           For questions about these Terms or the GGU Mentor Program please contact us at: mentors@girlsglowingup.com
         </div>
-        <div className={`flex items-center gap-3 mt-1 ${!tosScrolled ? 'opacity-40 pointer-events-none' : ''}`}>
-          <input
-            type="checkbox"
-            id="tos-cb"
-            checked={acceptTOS}
-            disabled={!tosScrolled}
-            onChange={(e) => setAcceptTOS(e.target.checked)}
-            className="w-5 h-5 cursor-pointer accent-pink-500"
-          />
-          <label htmlFor="tos-cb" className="text-sm text-white cursor-pointer">
-            I have read and agree to the GGU Mentor Terms of Service
-          </label>
-        </div>
+        <PlainCheckbox
+          checked={acceptTOS}
+          disabled={!tosScrolled}
+          onClick={() => setAcceptTOS(value => !value)}
+          label="I have read and agree to the GGU Mentor Terms of Service"
+        />
       </div>
 
       {/* Safety & Code of Conduct Scrollbox */}
@@ -210,19 +225,12 @@ export default function StepAgreement({
           <span style={sectionHead}>Acknowledgment</span>
           By accepting this agreement you confirm that you have read, understood, and agree to uphold this Safety and Code of Conduct in every interaction on the Girls Glowing Up™ platform. You understand that violations may result in suspension, permanent removal, and where applicable, referral to appropriate authorities.
         </div>
-        <div className={`flex items-center gap-3 mt-1 ${!conductScrolled ? 'opacity-40 pointer-events-none' : ''}`}>
-          <input
-            type="checkbox"
-            id="conduct-cb"
-            checked={acceptConduct}
-            disabled={!conductScrolled}
-            onChange={(e) => setAcceptConduct(e.target.checked)}
-            className="w-5 h-5 cursor-pointer accent-pink-500"
-          />
-          <label htmlFor="conduct-cb" className="text-sm text-white cursor-pointer">
-            I have read and agree to the GGU Safety and Code of Conduct
-          </label>
-        </div>
+        <PlainCheckbox
+          checked={acceptConduct}
+          disabled={!conductScrolled}
+          onClick={() => setAcceptConduct(value => !value)}
+          label="I have read and agree to the GGU Safety and Code of Conduct"
+        />
       </div>
 
       {/* Truthfulness Checkbox */}
@@ -232,18 +240,11 @@ export default function StepAgreement({
           <div className="flex-1 space-y-2">
             <p className="text-sm font-semibold text-white">Truthfulness Acknowledgment</p>
             <p className="text-xs text-gray-400">I certify that all information provided in this application is truthful, accurate, and complete. I understand that providing false or misleading information may result in rejection or removal from the platform.</p>
-            <div className="flex items-center gap-3 pt-1">
-              <input
-                type="checkbox"
-                id="accuracy-cb"
-                checked={acceptAccuracy}
-                onChange={(e) => setAcceptAccuracy(e.target.checked)}
-                className="w-5 h-5 cursor-pointer accent-pink-500"
-              />
-              <label htmlFor="accuracy-cb" className="text-sm text-white cursor-pointer">
-                I confirm that all information I have provided is truthful and accurate
-              </label>
-            </div>
+            <PlainCheckbox
+              checked={acceptAccuracy}
+              onClick={() => setAcceptAccuracy(value => !value)}
+              label="I confirm that all information I have provided is truthful and accurate"
+            />
           </div>
         </div>
       </div>

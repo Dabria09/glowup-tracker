@@ -7,17 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Sparkles } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-
-const calculateAgeGroup = (dobStr) => {
-  const birthDate = new Date(dobStr);
-  const age = Math.floor((Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-  let ageGroup = "glow_girls";
-  if (age <= 12) ageGroup = "glow_girls";
-  else if (age >= 13 && age <= 15) ageGroup = "glow_tweens";
-  else if (age >= 16 && age <= 18) ageGroup = "glow_teens";
-  else ageGroup = "glow_women";
-  return { age, ageGroup };
-};
+import { calculateGirlAgeGroup } from "@/lib/authRules";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
@@ -46,9 +36,9 @@ export default function Register() {
       return;
     }
 
-    const { age, ageGroup } = calculateAgeGroup(dob);
+    const { age, ageGroup } = calculateGirlAgeGroup(dob);
 
-    if (age < 10) { setError("You must be at least 10 years old to join GGU."); return; }
+    if (age === null || !ageGroup) { setError("You must be at least 10 years old to join GGU."); return; }
 
     setPendingAge({ age, ageGroup });
     setLoading(true);
@@ -88,11 +78,7 @@ export default function Register() {
         created_at: new Date().toISOString()
       });
 
-      if (requiresParentalConsent) {
-        window.location.href = "/parent-consent";
-      } else {
-        window.location.href = "/onboarding";
-      }
+      window.location.href = "/onboarding";
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
