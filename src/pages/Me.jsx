@@ -152,8 +152,10 @@ function EditProfileModal({ user, profile, onSave, onClose }) {
 // ── Delete Account Modal ───────────────────────────────────────────────────
 function DeleteAccountModal({ onClose }) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
 
   const doDelete = async () => {
+    if (confirmText !== 'DELETE') return;
     try {
       setIsDeleting(true);
       await deleteCurrentAccount();
@@ -172,10 +174,20 @@ function DeleteAccountModal({ onClose }) {
           </div>
         </div>
         <h3 className="text-center font-bold text-lg text-white mb-2">Are you sure?</h3>
-        <p className="text-center text-sm mb-5" style={{ color: MUTED }}>
+        <p className="text-center text-sm mb-4" style={{ color: MUTED }}>
           Deleting your account is permanent and cannot be undone. All your Glow Score, challenges, goals, diary entries, and saved content will be removed forever.
         </p>
-        <p className="text-center text-xs font-bold text-red-400 mb-5">This action CANNOT be undone.</p>
+        <p className="text-center text-xs font-bold text-red-400 mb-4">This action CANNOT be undone.</p>
+        <div className="mb-5">
+          <p className="text-xs font-semibold mb-2" style={{ color: MUTED }}>Type <span className="font-bold text-red-400">DELETE</span> to confirm:</p>
+          <input
+            value={confirmText}
+            onChange={e => setConfirmText(e.target.value)}
+            placeholder="DELETE"
+            className="w-full px-3 py-3 rounded-xl text-sm outline-none text-center font-bold tracking-widest"
+            style={{ background: 'rgba(220,38,38,0.08)', border: `1px solid ${confirmText === 'DELETE' ? '#dc2626' : 'rgba(220,38,38,0.3)'}`, color: '#fff' }}
+          />
+        </div>
         <div className="flex gap-3">
           <button
             onClick={onClose}
@@ -187,8 +199,8 @@ function DeleteAccountModal({ onClose }) {
           </button>
           <button
             onClick={doDelete}
-            disabled={isDeleting}
-            className="flex-1 py-3 rounded-2xl font-bold text-sm text-white disabled:opacity-50 flex items-center justify-center gap-2"
+            disabled={isDeleting || confirmText !== 'DELETE'}
+            className="flex-1 py-3 rounded-2xl font-bold text-sm text-white disabled:opacity-40 flex items-center justify-center gap-2"
             style={{ background: 'linear-gradient(135deg,#dc2626,#991b1b)' }}
           >
             {isDeleting && <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
