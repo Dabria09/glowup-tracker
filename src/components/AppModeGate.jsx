@@ -14,7 +14,7 @@ function PendingMentorReviewScreen({ user, refreshing, onRefreshStatus }) {
         return;
       }
       try {
-        const userRecord = await base44.asServiceRole.entities.User.get(authUser.id);
+        const userRecord = await loadCurrentUserRecord(authUser);
         if (!userRecord || userRecord.account_type !== 'mentor') {
           window.location.href = '/dashboard';
           return;
@@ -93,10 +93,10 @@ export default function AppModeGate() {
           const apps = await base44.entities.MentorApplication.filter({ created_by_id: u.id });
           const latestApp = apps.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
           if (latestApp?.status === "approved") {
-            await Promise.all([
-              base44.auth.updateMe({ mentor_status: "approved" }),
-              base44.asServiceRole.entities.User.update(u.id, { mentor_status: "approved" }),
-            ]);
+            await base44.auth.updateMe({ mentor_status: "approved" });
+            try {
+              await base44.entities.User.update(u.id, { mentor_status: "approved" });
+            } catch {}
             u.mentor_status = "approved";
           }
         } catch (e) {
@@ -108,10 +108,10 @@ export default function AppModeGate() {
           try {
             const mentors = await base44.entities.Mentor.filter({ user_email: u.email });
             if (mentors.length > 0 && mentors[0].is_approved === true) {
-              await Promise.all([
-                base44.auth.updateMe({ mentor_status: "approved" }),
-                base44.asServiceRole.entities.User.update(u.id, { mentor_status: "approved" }),
-              ]);
+              await base44.auth.updateMe({ mentor_status: "approved" });
+              try {
+                await base44.entities.User.update(u.id, { mentor_status: "approved" });
+              } catch {}
               u.mentor_status = "approved";
             }
           } catch (e) {
