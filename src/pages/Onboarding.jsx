@@ -80,19 +80,15 @@ export default function Onboarding() {
         }
 
         if (!isFromMentorSignup) {
-          const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
-          const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
-          const hasMentorMetadata = hasMentorAccount(mergedUser) || isMentorModeActive(mergedUser);
-          if (!mentorEntity && !mentorApplication && (hasMentorMetadata || await hasDeletedMentorEntityByEmail(mergedUser.email))) {
-            console.log('[Onboarding] Deleted mentor account detected, clearing session');
-            await clearAuthSession();
-            navigate('/mentor-login', { replace: true });
-            return;
-          }
-          if (mentorEntity || mentorApplication) {
-            console.log('[Onboarding] Mentor account detected, redirecting to mentor dashboard');
-            navigate('/mentor-dashboard', { replace: true });
-            return;
+          // Only redirect to mentor dashboard if the user actually has an approved mentor account
+          const isApprovedMentor = hasMentorAccount(mergedUser) && mergedUser.mentor_status === 'approved';
+          if (isApprovedMentor) {
+            const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
+            if (mentorEntity?.is_approved) {
+              console.log('[Onboarding] Approved mentor, redirecting to mentor dashboard');
+              navigate('/mentor-dashboard', { replace: true });
+              return;
+            }
           }
         }
 
