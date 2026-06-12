@@ -38,8 +38,42 @@ export function getMentorTrack(age) {
   return null;
 }
 
+const DELETED_ACCOUNT_STATUSES = new Set(["deleted", "removed"]);
+
 export function isDeletedAccount(userRecord) {
-  return userRecord?.isDeleted === true || userRecord?.is_deleted === true || Boolean(userRecord?.deletedAt || userRecord?.deleted_at);
+  if (!userRecord) return false;
+  const hasDeletedStatus = [
+    userRecord.status,
+    userRecord.account_status,
+    userRecord.application_status,
+    userRecord.mentor_status,
+  ].some(status => status && DELETED_ACCOUNT_STATUSES.has(String(status).toLowerCase()));
+
+  return userRecord.isDeleted === true ||
+    userRecord.is_deleted === true ||
+    Boolean(userRecord.deletedAt || userRecord.deleted_at) ||
+    hasDeletedStatus;
+}
+
+const INACTIVE_MENTOR_STATUSES = new Set([
+  "deleted",
+  "removed",
+  "archived",
+  "inactive",
+  "rejected",
+]);
+
+function isInactiveMentorRecord(record) {
+  if (!record || isDeletedAccount(record) || record.is_active === false || record.active === false) {
+    return true;
+  }
+
+  return [
+    record.status,
+    record.account_status,
+    record.application_status,
+    record.mentor_status,
+  ].some(status => status && INACTIVE_MENTOR_STATUSES.has(String(status).toLowerCase()));
 }
 
 export async function clearAuthSession() {
@@ -129,7 +163,7 @@ export function getAccountType(userRecord) {
 }
 
 export function hasMentorAccount(userRecord) {
-  if (!userRecord) return false;
+  if (!userRecord || isDeletedAccount(userRecord) || isInactiveMentorRecord(userRecord)) return false;
   return (
     userRecord.account_type === ACCOUNT_TYPES.MENTOR ||
     userRecord.account_type === ACCOUNT_TYPES.LINKED ||
@@ -150,15 +184,33 @@ export async function loadMentorEntityByEmail(email) {
 
   try {
     const mentors = await base44.entities.Mentor.filter({ user_email: email });
-    if (mentors?.length > 0) return mentors[0];
+    const activeMentor = mentors?.find(mentor => !isInactiveMentorRecord(mentor));
+    if (activeMentor) return activeMentor;
   } catch {}
 
   try {
     const teenMentors = await base44.entities.TeenMentor.filter({ user_email: email });
-    if (teenMentors?.length > 0) return teenMentors[0];
+    const activeTeenMentor = teenMentors?.find(mentor => !isInactiveMentorRecord(mentor));
+    if (activeTeenMentor) return activeTeenMentor;
   } catch {}
 
   return null;
+}
+
+export async function hasDeletedMentorEntityByEmail(email) {
+  if (!email) return false;
+
+  try {
+    const mentors = await base44.entities.Mentor.filter({ user_email: email });
+    if (mentors?.some(mentor => isDeletedAccount(mentor))) return true;
+  } catch {}
+
+  try {
+    const teenMentors = await base44.entities.TeenMentor.filter({ user_email: email });
+    if (teenMentors?.some(mentor => isDeletedAccount(mentor))) return true;
+  } catch {}
+
+  return false;
 }
 
 export async function completeEmailPasswordSignIn({ email, password, expectedAccountType }) {
@@ -180,7 +232,17 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     throw new Error("This account has been deleted. Please create a new account.");
   }
 
-  const accountType = getAccountType(userRecord);
+  const storedAccountType = getAccountType(userRecord);
+  const mentorEntity = await loadMentorEntityByEmail(currentUser.email);
+  const hasDeletedMentorEntity = !mentorEntity && await hasDeletedMentorEntityByEmail(currentUser.email);
+  if (hasDeletedMentorEntity && !userRecord.account_type) {
+    await clearAuthSession();
+    throw new Error("This account has been deleted. Please create a new account.");
+  }
+  const hasMentorAccess = hasMentorAccount(userRecord) || Boolean(mentorEntity);
+  const accountType = storedAccountType === ACCOUNT_TYPES.LINKED
+    ? ACCOUNT_TYPES.LINKED
+    : (hasMentorAccess ? ACCOUNT_TYPES.MENTOR : storedAccountType);
   const isLinked = accountType === ACCOUNT_TYPES.LINKED;
 
   if (expectedAccountType === ACCOUNT_TYPES.MENTOR && accountType !== ACCOUNT_TYPES.MENTOR && !isLinked) {
@@ -199,7 +261,7 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
       throw new Error("This email is registered as a GGU app account. Please use the main app sign in.");
     }
   } else if (expectedAccountType === ACCOUNT_TYPES.MENTOR) {
-    const mentorStatus = userRecord.mentor_status || currentUser.mentor_status || "pending";
+    const mentorStatus = userRecord.mentor_status || currentUser.mentor_status || (mentorEntity?.is_approved === true ? "approved" : "pending");
     if (mentorStatus === "suspended") {
       await clearAuthSession();
       throw new Error("Your mentor account has been suspended. Please contact mentors@girlsglowingup.com");

@@ -10,8 +10,11 @@ import StepMentorChoice from '@/components/onboarding/StepMentorChoice';
 import NewUserTour from '@/components/NewUserTour';
 import {
   calculateGirlAgeGroup,
+  clearAuthSession,
+  hasDeletedMentorEntityByEmail,
   hasMentorAccount,
   isMentorModeActive,
+  isDeletedAccount,
   loadCurrentUserRecord,
   loadMentorEntityByEmail,
 } from '@/lib/authRules';
@@ -62,8 +65,21 @@ export default function Onboarding() {
         const userRecord = await loadCurrentUserRecord(u);
         const mergedUser = { ...u, ...userRecord };
 
+        if (isDeletedAccount(mergedUser)) {
+          console.log('[Onboarding] Deleted account detected, clearing session');
+          await clearAuthSession();
+          navigate('/login', { replace: true });
+          return;
+        }
+
         if (!isFromMentorSignup) {
           const mentorEntity = hasMentorAccount(mergedUser) ? null : await loadMentorEntityByEmail(mergedUser.email);
+          if (!mentorEntity && !mergedUser.account_type && await hasDeletedMentorEntityByEmail(mergedUser.email)) {
+            console.log('[Onboarding] Deleted mentor account detected, clearing session');
+            await clearAuthSession();
+            navigate('/mentor-login', { replace: true });
+            return;
+          }
           if (isMentorModeActive(mergedUser) || mentorEntity) {
             console.log('[Onboarding] Mentor account detected, redirecting to mentor dashboard');
             navigate('/mentor-dashboard', { replace: true });
