@@ -80,12 +80,15 @@ export default function Onboarding() {
         }
 
         if (!isFromMentorSignup) {
-          // Only redirect to mentor dashboard if the user actually has an approved mentor account
-          const isApprovedMentor = hasMentorAccount(mergedUser) && mergedUser.mentor_status === 'approved';
-          if (isApprovedMentor) {
+          // Only redirect to mentor dashboard if account_type is explicitly mentor
+          // Never redirect based on a pending or rejected mentor application alone
+          // This prevents girl accounts with old mentor applications from being 
+          // incorrectly routed to the mentor dashboard
+          if (mergedUser.account_type === 'mentor') {
             const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
-            if (mentorEntity?.is_approved) {
-              console.log('[Onboarding] Approved mentor, redirecting to mentor dashboard');
+            const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
+            if (mentorEntity || mentorApplication) {
+              console.log('[Onboarding] Confirmed mentor account, redirecting to mentor dashboard');
               navigate('/mentor-dashboard', { replace: true });
               return;
             }
