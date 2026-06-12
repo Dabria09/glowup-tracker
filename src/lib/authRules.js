@@ -345,6 +345,11 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     throw new Error("This account has been deleted. Please create a new account.");
   }
 
+  // Admins bypass all role checks and go straight to dashboard
+  if (userRecord.role === 'admin' || currentUser.role === 'admin') {
+    return { user: currentUser, userRecord, route: '/dashboard' };
+  }
+
   const storedAccountType = getAccountType(userRecord);
   const mentorEntity = await loadMentorEntityByEmail(currentUser.email);
   const mentorApplication = await loadMentorApplicationByEmail(currentUser.email);

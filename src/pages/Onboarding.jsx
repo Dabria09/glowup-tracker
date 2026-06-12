@@ -72,6 +72,13 @@ export default function Onboarding() {
           return;
         }
 
+        // Admins always go straight to dashboard — check BEFORE mentor checks
+        if (mergedUser.role === 'admin') {
+          console.log('[Onboarding] Admin user, redirecting to dashboard');
+          navigate('/dashboard', { replace: true });
+          return;
+        }
+
         if (!isFromMentorSignup) {
           const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
           const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
@@ -87,13 +94,6 @@ export default function Onboarding() {
             navigate('/mentor-dashboard', { replace: true });
             return;
           }
-        }
-
-        // Admins always go straight to dashboard — no onboarding needed
-        if (mergedUser.role === 'admin') {
-          console.log('[Onboarding] Admin user, redirecting to dashboard');
-          navigate('/dashboard', { replace: true });
-          return;
         }
 
         // Check if user already has a complete profile FIRST — fast exit before any mentor checks

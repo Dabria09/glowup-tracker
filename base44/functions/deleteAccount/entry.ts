@@ -155,12 +155,10 @@ Deno.serve(async (req) => {
         return { entityName, fieldName, error: error.message || 'Cleanup failed' };
       }
     }));
+    // Log failures but don't block deletion — partial cleanup is still valid
     const cleanupFailures = cleanupResults.filter(result => result.error || result.remaining > 0);
     if (cleanupFailures.length > 0) {
-      console.error('Account deletion cleanup incomplete:', cleanupFailures);
-      return Response.json({
-        error: 'Account deletion could not fully complete. Please try again or contact support.'
-      }, { status: 500 });
+      console.warn('Account deletion cleanup incomplete (non-blocking):', cleanupFailures);
     }
 
     // Step 2: Mark the account as deleted FIRST so it stays detectable even if

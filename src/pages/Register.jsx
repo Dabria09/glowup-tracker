@@ -81,7 +81,8 @@ export default function Register() {
 
       await saveCurrentUserRecord(currentUser, userFields);
 
-      window.location.href = "/dashboard";
+      // Send to onboarding to pick username and agree to terms
+      window.location.href = "/onboarding";
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
