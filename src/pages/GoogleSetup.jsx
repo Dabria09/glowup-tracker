@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import { calculateGirlAgeGroup, getMentorTrack, saveCurrentUserRecord } from "@/lib/authRules";
+import { buildOAuthPrefill, saveMentorOAuthPrefill, waitForOAuthUser } from "@/lib/oauthPrefill";
 
 export default function GoogleSetup() {
   const isMentor = new URLSearchParams(window.location.search).get("mentor") === "true";
@@ -18,14 +19,19 @@ export default function GoogleSetup() {
   useEffect(() => {
     const init = async () => {
       try {
-        const authed = await base44.auth.isAuthenticated();
-        if (!authed) { window.location.href = isMentor ? "/mentor-register" : "/register"; return; }
+        const u = await waitForOAuthUser(async () => {
+          const authed = await base44.auth.isAuthenticated();
+          if (!authed) return null;
+          return base44.auth.me();
+        });
 
-        const u = await base44.auth.me();
+        if (!u) { window.location.href = isMentor ? "/mentor-register" : "/register"; return; }
         setUser(u);
+        if (isMentor) saveMentorOAuthPrefill(buildOAuthPrefill(u));
 
         // If they already have a DOB set, skip this page
         if (u.date_of_birth) {
+          if (isMentor) saveMentorOAuthPrefill(buildOAuthPrefill(u, { dateOfBirth: u.date_of_birth }));
           window.location.href = isMentor ? "/mentor-register?step=1" : "/onboarding";
           return;
         }
@@ -49,7 +55,14 @@ export default function GoogleSetup() {
       if (isMentor) {
         const mentorType = getMentorTrack(age);
         if (!mentorType) { setError("You must be at least 13 to apply as a mentor."); setLoading(false); return; }
+        const prefill = buildOAuthPrefill(user, { dateOfBirth: dob, mentorType });
+        const identityFields = {
+          ...(prefill.fullName ? { full_name: prefill.fullName } : {}),
+          ...(prefill.avatarUrl ? { avatar_url: prefill.avatarUrl } : {}),
+        };
+        saveMentorOAuthPrefill(prefill);
         await saveCurrentUserRecord(user, {
+          ...identityFields,
           date_of_birth: dob,
           age,
           age_group: ageGroup,
@@ -63,7 +76,13 @@ export default function GoogleSetup() {
       } else {
         if (!ageGroup) { setError("You must be at least 10 years old to join GGU."); setLoading(false); return; }
         const requiresParentalConsent = age < 13;
+        const prefill = buildOAuthPrefill(user, { dateOfBirth: dob });
+        const identityFields = {
+          ...(prefill.fullName ? { full_name: prefill.fullName } : {}),
+          ...(prefill.avatarUrl ? { avatar_url: prefill.avatarUrl } : {}),
+        };
         await saveCurrentUserRecord(user, {
+          ...identityFields,
           date_of_birth: dob,
           age,
           age_group: ageGroup,

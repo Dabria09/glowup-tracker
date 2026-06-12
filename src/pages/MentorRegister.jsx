@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,13 @@ import GoogleIcon from "@/components/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { calculateAge, calculateGirlAgeGroup, getMentorTrack, saveCurrentUserRecord } from "@/lib/authRules";
+import {
+  buildOAuthPrefill,
+  getFirstName,
+  readMentorOAuthPrefill,
+  saveMentorOAuthPrefill,
+  waitForOAuthUser,
+} from "@/lib/oauthPrefill";
 
 const EXPERTISE_OPTIONS = [
   "Career Development","Financial Literacy","College Prep and Applications",
@@ -25,23 +32,27 @@ const AGE_GROUP_OPTIONS = ["Glow Girls 5 to 12","Glow Teens 13 to 18","Glow Wome
 export default function MentorRegister() {
   // Read ?step= from URL on initial render
   const urlStep = parseInt(new URLSearchParams(window.location.search).get("step") || "0", 10);
+  const initialOAuthPrefill = urlStep >= 1 ? readMentorOAuthPrefill() : null;
+  const initialDob = initialOAuthPrefill?.dateOfBirth || "";
+  const initialMentorTrack = initialOAuthPrefill?.mentorType || getMentorTrack(calculateAge(initialDob)) || "adult";
 
   // Account creation state
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState(initialOAuthPrefill?.fullName || "");
+  const [email, setEmail] = useState(initialOAuthPrefill?.email || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [dob, setDob] = useState("");
+  const [dob, setDob] = useState(initialDob);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [oauthHydrating, setOauthHydrating] = useState(urlStep >= 1 && !initialOAuthPrefill);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
-  const [mentorTrack, setMentorTrack] = useState("adult");
+  const [mentorTrack, setMentorTrack] = useState(initialMentorTrack);
   const [step, setStep] = useState(urlStep); // 0=account, OTP inline, 1-10=steps, 11=confirmation
 
   // Step 1 — Who You Are
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [preferredName, setPreferredName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState(initialOAuthPrefill?.avatarUrl || "");
+  const [preferredName, setPreferredName] = useState(initialOAuthPrefill?.preferredName || getFirstName(initialOAuthPrefill?.fullName));
   const [pronouns, setPronouns] = useState("");
   const [bio, setBio] = useState("");
   const [schoolOrWorkplace, setSchoolOrWorkplace] = useState("");
@@ -117,22 +128,46 @@ export default function MentorRegister() {
   const tosRef = useRef(null);
   const conductRef = useRef(null);
 
-  // Pre-fill user info from Google/Apple OAuth when arriving at step >= 1
-  useEffect(() => {
-    if (urlStep >= 1) {
-      base44.auth.me().then(u => {
-        if (u) {
-          if (!fullName && u.full_name) setFullName(u.full_name);
-          if (!email && u.email) setEmail(u.email);
-          if (!dob && u.date_of_birth) {
-            setDob(u.date_of_birth);
-            const age = Math.floor((Date.now() - new Date(u.date_of_birth).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-            setMentorTrack(age >= 18 ? "adult" : "teen");
-          }
-        }
-      }).catch(() => {});
-    }
+  const applyMentorPrefill = useCallback((prefill) => {
+    if (!prefill) return;
+
+    setFullName(prev => prev || prefill.fullName || "");
+    setEmail(prev => prev || prefill.email || "");
+    setDob(prev => prev || prefill.dateOfBirth || "");
+    setAvatarUrl(prev => prev || prefill.avatarUrl || "");
+    setPreferredName(prev => prev || prefill.preferredName || getFirstName(prefill.fullName));
+
+    const track = prefill.mentorType || getMentorTrack(calculateAge(prefill.dateOfBirth));
+    if (track) setMentorTrack(track);
   }, []);
+
+  // Pre-fill user info from Google/Apple OAuth before rendering the application steps.
+  useEffect(() => {
+    if (urlStep < 1) return undefined;
+
+    let isMounted = true;
+    const hydrateOAuthPrefill = async () => {
+      const storedPrefill = readMentorOAuthPrefill();
+      if (storedPrefill) applyMentorPrefill(storedPrefill);
+      else setOauthHydrating(true);
+
+      try {
+        const u = await waitForOAuthUser(() => base44.auth.me());
+        if (!isMounted || !u) return;
+
+        const prefill = buildOAuthPrefill(u);
+        saveMentorOAuthPrefill(prefill);
+        applyMentorPrefill(prefill);
+      } catch {
+        // Stored prefill is enough to continue; otherwise the form remains editable.
+      } finally {
+        if (isMounted) setOauthHydrating(false);
+      }
+    };
+
+    hydrateOAuthPrefill();
+    return () => { isMounted = false; };
+  }, [urlStep, applyMentorPrefill]);
 
   const toggleMulti = (val, arr, setArr) => {
     setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
@@ -322,6 +357,17 @@ export default function MentorRegister() {
 
   const bg = { background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' };
   const cardStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' };
+
+  if (oauthHydrating) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4" style={bg}>
+        <div className="rounded-3xl p-6 text-center" style={cardStyle}>
+          <Loader2 className="w-8 h-8 animate-spin text-pink-400 mx-auto" />
+          <p className="text-sm text-gray-300 mt-4">Loading your Google info...</p>
+        </div>
+      </div>
+    );
+  }
 
   // OTP SCREEN
   if (showOtp) {
