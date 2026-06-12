@@ -34,8 +34,10 @@ export default function MentorRegister() {
   const searchParams = new URLSearchParams(window.location.search);
   const urlStep = parseInt(searchParams.get("step") || "0", 10);
   const isOAuthMentorFlow = searchParams.get("oauth") === "1";
+  const isLegacyOAuthStepLink = !isOAuthMentorFlow && searchParams.has("step") && urlStep === 1;
   const shouldHydrateOAuthPrefill = isOAuthMentorFlow || urlStep >= 1;
   const initialOAuthPrefill = shouldHydrateOAuthPrefill ? readMentorOAuthPrefill() : null;
+  const shouldShowInitialAccountReview = isOAuthMentorFlow || (isLegacyOAuthStepLink && Boolean(initialOAuthPrefill));
   const initialDob = initialOAuthPrefill?.dateOfBirth || "";
   const initialMentorTrack = initialOAuthPrefill?.mentorType || getMentorTrack(calculateAge(initialDob)) || "adult";
 
@@ -51,7 +53,8 @@ export default function MentorRegister() {
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [mentorTrack, setMentorTrack] = useState(initialMentorTrack);
-  const [step, setStep] = useState(urlStep); // 0=account, OTP inline, 1-10=steps, 11=confirmation
+  const [isOAuthAccountReview, setIsOAuthAccountReview] = useState(shouldShowInitialAccountReview);
+  const [step, setStep] = useState(shouldShowInitialAccountReview ? 0 : urlStep); // 0=account, OTP inline, 1-10=steps, 11=confirmation
 
   // Step 1 — Who You Are
   const [avatarUrl, setAvatarUrl] = useState(initialOAuthPrefill?.avatarUrl || "");
@@ -151,7 +154,13 @@ export default function MentorRegister() {
     let isMounted = true;
     const hydrateOAuthPrefill = async () => {
       const storedPrefill = readMentorOAuthPrefill();
-      if (storedPrefill) applyMentorPrefill(storedPrefill);
+      if (storedPrefill) {
+        applyMentorPrefill(storedPrefill);
+        if (isOAuthMentorFlow || isLegacyOAuthStepLink) {
+          setIsOAuthAccountReview(true);
+          setStep(0);
+        }
+      }
       else setOauthHydrating(true);
 
       try {
@@ -161,6 +170,10 @@ export default function MentorRegister() {
         const prefill = buildOAuthPrefill(u);
         saveMentorOAuthPrefill(prefill);
         applyMentorPrefill(prefill);
+        if (isOAuthMentorFlow || isLegacyOAuthStepLink) {
+          setIsOAuthAccountReview(true);
+          setStep(0);
+        }
       } catch {
         // Stored prefill is enough to continue; otherwise the form remains editable.
       } finally {
@@ -170,7 +183,7 @@ export default function MentorRegister() {
 
     hydrateOAuthPrefill();
     return () => { isMounted = false; };
-  }, [shouldHydrateOAuthPrefill, applyMentorPrefill]);
+  }, [shouldHydrateOAuthPrefill, isOAuthMentorFlow, isLegacyOAuthStepLink, applyMentorPrefill]);
 
   const toggleMulti = (val, arr, setArr) => {
     setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
@@ -458,11 +471,11 @@ export default function MentorRegister() {
         <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-6">
             <BrandLogo alt="GGU" className="w-40 mx-auto mb-4" style={{ filter:'drop-shadow(0 0 20px rgba(232,82,109,0.4))' }} />
-            <h1 className="text-2xl font-bold text-white mb-1">{isOAuthMentorFlow ? "Review Your Mentor Account" : "Create Your Mentor Account"}</h1>
-            <p className="text-sm text-gray-400">{isOAuthMentorFlow ? "Confirm your account details to continue" : "Join Girls Glowing Up™ as a mentor"}</p>
+            <h1 className="text-2xl font-bold text-white mb-1">{isOAuthAccountReview ? "Review Your Mentor Account" : "Create Your Mentor Account"}</h1>
+            <p className="text-sm text-gray-400">{isOAuthAccountReview ? "Confirm your account details to continue" : "Join Girls Glowing Up™ as a mentor"}</p>
           </div>
           <div className="rounded-3xl p-6 space-y-4" style={cardStyle}>
-            {isOAuthMentorFlow ? (
+            {isOAuthAccountReview ? (
               <div className="p-3 rounded-xl text-sm text-gray-300 border border-white/10 bg-white/5">
                 Your sign-in account is connected. Confirm these details, then continue your mentor application.
               </div>
@@ -483,8 +496,8 @@ export default function MentorRegister() {
             )}
             {error && <div className="p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">{error}</div>}
             <Input placeholder="Full Legal Name" value={fullName} onChange={e=>setFullName(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
-            <Input type="email" placeholder="Email Address" value={email} onChange={e=>setEmail(e.target.value)} readOnly={isOAuthMentorFlow} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
-            {!isOAuthMentorFlow && (
+            <Input type="email" placeholder="Email Address" value={email} onChange={e=>setEmail(e.target.value)} readOnly={isOAuthAccountReview} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+            {!isOAuthAccountReview && (
               <>
                 <Input type="password" placeholder="Password (min 8 characters)" value={password} onChange={e=>setPassword(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
                 <Input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
@@ -494,9 +507,9 @@ export default function MentorRegister() {
               <Label className="text-xs text-gray-400 font-bold uppercase tracking-widest">Date of Birth</Label>
               <Input type="date" value={dob} onChange={e=>setDob(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white"/>
             </div>
-            <Button className="w-full h-12 font-bold text-white border-0" onClick={isOAuthMentorFlow ? handleContinueOAuthAccount : handleCreateAccount} disabled={loading}
+            <Button className="w-full h-12 font-bold text-white border-0" onClick={isOAuthAccountReview ? handleContinueOAuthAccount : handleCreateAccount} disabled={loading}
               style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }}>
-              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin"/>{isOAuthMentorFlow ? 'Saving...' : 'Creating Account...'}</> : (isOAuthMentorFlow ? 'Continue to Application' : 'Create Account')}
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin"/>{isOAuthAccountReview ? 'Saving...' : 'Creating Account...'}</> : (isOAuthAccountReview ? 'Continue to Application' : 'Create Account')}
             </Button>
           </div>
           <p className="text-center text-xs text-gray-500 mt-6">
