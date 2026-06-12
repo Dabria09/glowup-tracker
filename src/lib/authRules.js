@@ -55,6 +55,26 @@ export function isDeletedAccount(userRecord) {
     hasDeletedStatus;
 }
 
+export async function loadDeletedAccountRecord(user) {
+  if (!user?.email && !user?.id) return null;
+
+  if (user.email) {
+    try {
+      const deletedAccounts = await base44.entities.DeletedAccount.filter({ email: user.email });
+      if (deletedAccounts?.length > 0) return deletedAccounts[0];
+    } catch {}
+  }
+
+  if (user.id) {
+    try {
+      const deletedAccounts = await base44.entities.DeletedAccount.filter({ user_id: user.id });
+      if (deletedAccounts?.length > 0) return deletedAccounts[0];
+    } catch {}
+  }
+
+  return null;
+}
+
 const INACTIVE_MENTOR_STATUSES = new Set([
   "deleted",
   "removed",
@@ -100,6 +120,15 @@ export async function clearAuthSession() {
 export async function loadCurrentUserRecord(currentUser) {
   if (!currentUser?.id) return null;
   if (isDeletedAccount(currentUser)) return currentUser;
+  const deletedAccount = await loadDeletedAccountRecord(currentUser);
+  if (deletedAccount) {
+    return {
+      ...currentUser,
+      isDeleted: true,
+      is_deleted: true,
+      deleted_at: deletedAccount.deleted_at || new Date().toISOString(),
+    };
+  }
 
   try {
     const userRecord = await base44.entities.User.get(currentUser.id);
@@ -123,6 +152,9 @@ export async function loadCurrentUserRecord(currentUser) {
 
 export async function saveCurrentUserRecord(currentUser, fields) {
   if (!currentUser?.id) throw new Error("Missing current user ID.");
+  if (await loadDeletedAccountRecord(currentUser)) {
+    throw new Error("This account has been deleted. Please use a different email to create a new account.");
+  }
 
   const payload = {
     id: currentUser.id,

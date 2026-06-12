@@ -9,6 +9,23 @@ async function deleteAllByEmail(client, entityName, email, fieldName = 'user_ema
   }
 }
 
+async function upsertDeletedAccount(client, user, deletedAt) {
+  const payload = {
+    email: user.email,
+    user_id: user.id,
+    deleted_at: deletedAt,
+    reason: 'user_requested',
+  };
+
+  const existingByEmail = await client.entities.DeletedAccount.filter({ email: user.email });
+  const existing = existingByEmail?.find(record => record.user_id === user.id) || existingByEmail?.[0];
+  if (existing) {
+    return client.entities.DeletedAccount.update(existing.id, payload);
+  }
+
+  return client.entities.DeletedAccount.create(payload);
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -49,6 +66,14 @@ Deno.serve(async (req) => {
       deletedAt,
       account_type: accountType,
     };
+    try {
+      await upsertDeletedAccount(sr, user, deletedAt);
+    } catch (e) {
+      console.error('Failed to persist DeletedAccount blocklist record:', e.message);
+      return Response.json({
+        error: 'Could not record account deletion. Please try again.'
+      }, { status: 500 });
+    }
     try {
       await base44.auth.updateMe({
         isDeleted: true,

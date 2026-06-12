@@ -5,6 +5,7 @@ import {
   ACCOUNT_TYPES,
   clearAuthSession,
   getAccountType,
+  isDeletedAccount,
   loadMentorApplicationByEmail,
   loadCurrentUserRecord,
   loadMentorEntityByEmail,
@@ -50,6 +51,11 @@ export default function MentorDashboard() {
         const authUser = await base44.auth.me();
         const userRecord = await loadCurrentUserRecord(authUser);
         if (!userRecord) {
+          await clearAuthSession();
+          window.location.href = '/mentor-login';
+          return;
+        }
+        if (isDeletedAccount(userRecord)) {
           await clearAuthSession();
           window.location.href = '/mentor-login';
           return;

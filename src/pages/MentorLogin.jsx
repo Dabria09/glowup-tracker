@@ -32,8 +32,8 @@ export default function MentorLogin() {
     }
   };
 
-  const handleApple = () => base44.auth.loginWithProvider("apple", "/mentor-dashboard");
-  const handleGoogle = () => base44.auth.loginWithProvider("google", "/mentor-dashboard");
+  const handleApple = () => base44.auth.loginWithProvider("apple", "/google-setup?mentor=true");
+  const handleGoogle = () => base44.auth.loginWithProvider("google", "/google-setup?mentor=true");
 
   return (
     <div
