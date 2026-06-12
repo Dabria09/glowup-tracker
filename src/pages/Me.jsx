@@ -158,7 +158,7 @@ function DeleteAccountModal({ onClose }) {
     if (confirmText !== 'DELETE') return;
     try {
       setIsDeleting(true);
-      await deleteCurrentAccount(confirmText);
+      await deleteCurrentAccount();
     } catch (error) {
       alert('Deletion failed. Please try again. Error: ' + error.message);
       setIsDeleting(false);
