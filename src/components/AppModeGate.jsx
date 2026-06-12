@@ -81,6 +81,13 @@ export default function AppModeGate() {
         return;
       }
       const u = { ...authUser, ...userRecord };
+
+      // Admins skip ALL mentor/onboarding processing — return immediately
+      if (u.role === "admin") {
+        setUser(u);
+        return;
+      }
+
       let mentorEntity = null;
       if (!hasMentorAccount(u)) {
         mentorEntity = await loadMentorEntityByEmail(u.email);
