@@ -145,6 +145,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/join" element={<JoinGGU />} />
       <Route path="/mentor-signup" element={<MentorSignup />} />
       <Route path="/mentor-register" element={<MentorRegister />} />
       <Route path="/mentor-login" element={<MentorLogin />} />
@@ -234,7 +235,6 @@ const AuthenticatedApp = () => {
           <Route path="/points-settings" element={<PointsSettings />} />
           <Route path="/points-history" element={<PointsHistory />} />
           <Route path="/monthly-summary" element={<MonthlySummary />} />
-          <Route path="/join" element={<JoinGGU />} />
           <Route path="/glow-store" element={<GlowStore />} />
           <Route path="/glowlink/:username" element={<GlowProfile />} />
           <Route path="/glowlink/:username/followers" element={<GlowFollowers />} />
