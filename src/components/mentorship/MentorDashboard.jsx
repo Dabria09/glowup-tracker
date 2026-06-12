@@ -66,7 +66,7 @@ export default function MentorDashboard() {
         inferredMentorProfile = await loadMentorEntityByEmail(authUser.email);
         const isMentorAccount = Boolean(inferredMentorProfile || mentorApplication);
         if (!isMentorAccount) {
-          if (getAccountType(userRecord) === ACCOUNT_TYPES.GIRL && userRecord.account_type === ACCOUNT_TYPES.GIRL) {
+          if (getAccountType(userRecord) === ACCOUNT_TYPES.GIRL) {
             window.location.href = '/dashboard';
             return;
           }
