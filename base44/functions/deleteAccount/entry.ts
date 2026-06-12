@@ -12,6 +12,7 @@ async function deleteAllByEmail(client, entityName, email, fieldName = 'user_ema
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const sr = base44.asServiceRole;
     const user = await base44.auth.me();
 
     if (!user) {
@@ -34,7 +35,45 @@ Deno.serve(async (req) => {
 
     const email = user.email;
 
-    // Step 1: Delete all associated data using the user-scoped client (no service token needed)
+    // Keep a tombstone in the app User table. OAuth providers can leave an
+    // authenticated browser session behind, so auth checks must have a durable
+    // app-level signal that this account was deleted.
+    const deletedAt = new Date().toISOString();
+    const accountType = ['girl', 'mentor', 'linked'].includes(user.account_type) ? user.account_type : 'girl';
+    const deletedUserFields = {
+      email,
+      role: user.role || 'user',
+      isDeleted: true,
+      is_deleted: true,
+      deleted_at: deletedAt,
+      deletedAt,
+      account_type: accountType,
+    };
+    try {
+      await base44.auth.updateMe({
+        isDeleted: true,
+        is_deleted: true,
+        deleted_at: deletedAt,
+        deletedAt,
+      });
+    } catch (e) {
+      console.error('Failed to mark auth user deleted:', e.message);
+    }
+    try {
+      await sr.entities.User.update(user.id, deletedUserFields);
+    } catch {
+      try {
+        await sr.entities.User.create({
+          id: user.id,
+          ...deletedUserFields,
+        });
+      } catch (e) {
+        console.error('Failed to persist deleted User tombstone:', e.message);
+      }
+    }
+
+    // Step 1: Delete all associated data with service-role access so records
+    // from mentor/admin-managed flows are removed consistently.
     const userEmailEntities = [
       'UserProfile', 'UserPoints', 'PointsHistory',
       'Mentor', 'TeenMentor', 'MentorApplication', 'TeenMentorApplication',
@@ -65,12 +104,12 @@ Deno.serve(async (req) => {
     ];
 
     await Promise.all([
-      ...userEmailEntities.map(name => deleteAllByEmail(base44, name, email).catch(() => {})),
-      deleteAllByEmail(base44, 'GlowFollow', email, 'follower_email').catch(() => {}),
-      deleteAllByEmail(base44, 'GlowFollow', email, 'followed_email').catch(() => {}),
-      deleteAllByEmail(base44, 'ChatMessage', email, 'sender_email').catch(() => {}),
-      deleteAllByEmail(base44, 'ChatMessage', email, 'receiver_email').catch(() => {}),
-      deleteAllByEmail(base44, 'Notification', email, 'recipient_email').catch(() => {}),
+      ...userEmailEntities.map(name => deleteAllByEmail(sr, name, email).catch(() => {})),
+      deleteAllByEmail(sr, 'GlowFollow', email, 'follower_email').catch(() => {}),
+      deleteAllByEmail(sr, 'GlowFollow', email, 'followed_email').catch(() => {}),
+      deleteAllByEmail(sr, 'ChatMessage', email, 'sender_email').catch(() => {}),
+      deleteAllByEmail(sr, 'ChatMessage', email, 'receiver_email').catch(() => {}),
+      deleteAllByEmail(sr, 'Notification', email, 'recipient_email').catch(() => {}),
     ]);
 
     // Step 2: Delete the auth user record (removes login credentials)

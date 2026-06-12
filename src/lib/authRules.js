@@ -88,13 +88,26 @@ export async function clearAuthSession() {
 
 export async function loadCurrentUserRecord(currentUser) {
   if (!currentUser?.id) return null;
+  if (isDeletedAccount(currentUser)) return currentUser;
 
   try {
     const userRecord = await base44.entities.User.get(currentUser.id);
-    return userRecord || currentUser;
+    if (userRecord) return userRecord;
   } catch {
-    return currentUser;
+    // Fall through to email lookup below. Some deleted/provider accounts can
+    // still have an auth session even after their app User row is gone.
   }
+
+  if (currentUser.email) {
+    try {
+      const users = await base44.entities.User.filter({ email: currentUser.email });
+      return users?.[0] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
 }
 
 export async function saveCurrentUserRecord(currentUser, fields) {
