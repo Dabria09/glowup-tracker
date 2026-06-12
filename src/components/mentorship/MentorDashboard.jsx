@@ -5,7 +5,7 @@ import {
   ACCOUNT_TYPES,
   clearAuthSession,
   getAccountType,
-  hasMentorAccount,
+  loadMentorApplicationByEmail,
   loadCurrentUserRecord,
   loadMentorEntityByEmail,
 } from '@/lib/authRules';
@@ -50,16 +50,15 @@ export default function MentorDashboard() {
         const authUser = await base44.auth.me();
         const userRecord = await loadCurrentUserRecord(authUser);
         if (!userRecord) {
-          window.location.href = '/';
+          await clearAuthSession();
+          window.location.href = '/mentor-login';
           return;
         }
 
         let inferredMentorProfile = null;
-        let isMentorAccount = hasMentorAccount(userRecord);
-        if (!isMentorAccount) {
-          inferredMentorProfile = await loadMentorEntityByEmail(authUser.email);
-          isMentorAccount = Boolean(inferredMentorProfile);
-        }
+        const mentorApplication = await loadMentorApplicationByEmail(authUser.email);
+        inferredMentorProfile = await loadMentorEntityByEmail(authUser.email);
+        const isMentorAccount = Boolean(inferredMentorProfile || mentorApplication);
         if (!isMentorAccount) {
           if (getAccountType(userRecord) === ACCOUNT_TYPES.GIRL && userRecord.account_type === ACCOUNT_TYPES.GIRL) {
             window.location.href = '/dashboard';
@@ -78,6 +77,10 @@ export default function MentorDashboard() {
             ? 'approved'
             : (currentUser.mentor_status || 'pending');
           currentUser.mentor_type = currentUser.mentor_type || inferredMentorProfile.mentor_type || inferredMentorProfile.type;
+        }
+        if (mentorApplication && !currentUser.account_type) {
+          currentUser.account_type = ACCOUNT_TYPES.MENTOR;
+          currentUser.mentor_status = mentorApplication.status === 'approved' ? 'approved' : 'pending';
         }
         if (currentUser.account_type === ACCOUNT_TYPES.LINKED && currentUser.active_mode !== ACCOUNT_TYPES.MENTOR) {
           await base44.auth.updateMe({ active_mode: ACCOUNT_TYPES.MENTOR });

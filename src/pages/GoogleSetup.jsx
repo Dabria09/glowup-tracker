@@ -12,6 +12,7 @@ import {
   hasMentorAccount,
   isMentorModeActive,
   isDeletedAccount,
+  loadMentorApplicationByEmail,
   loadCurrentUserRecord,
   loadMentorEntityByEmail,
   getMentorTrack,
@@ -54,8 +55,15 @@ export default function GoogleSetup() {
         }
 
         if (isMentor) {
-          const mentorEntity = hasMentorAccount(mergedUser) ? null : await loadMentorEntityByEmail(mergedUser.email);
-          if (isMentorModeActive(mergedUser) || mentorEntity) {
+          const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
+          const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
+          const hasMentorMetadata = hasMentorAccount(mergedUser) || isMentorModeActive(mergedUser);
+          if (!mentorEntity && !mentorApplication && hasMentorMetadata) {
+            await clearAuthSession();
+            window.location.href = "/mentor-login";
+            return;
+          }
+          if (mentorEntity || mentorApplication) {
             window.location.href = "/mentor-dashboard";
             return;
           }

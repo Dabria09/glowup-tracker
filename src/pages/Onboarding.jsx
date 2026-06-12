@@ -15,6 +15,7 @@ import {
   hasMentorAccount,
   isMentorModeActive,
   isDeletedAccount,
+  loadMentorApplicationByEmail,
   loadCurrentUserRecord,
   loadMentorEntityByEmail,
 } from '@/lib/authRules';
@@ -73,14 +74,16 @@ export default function Onboarding() {
         }
 
         if (!isFromMentorSignup) {
-          const mentorEntity = hasMentorAccount(mergedUser) ? null : await loadMentorEntityByEmail(mergedUser.email);
-          if (!mentorEntity && !mergedUser.account_type && await hasDeletedMentorEntityByEmail(mergedUser.email)) {
+          const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
+          const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
+          const hasMentorMetadata = hasMentorAccount(mergedUser) || isMentorModeActive(mergedUser);
+          if (!mentorEntity && !mentorApplication && (hasMentorMetadata || await hasDeletedMentorEntityByEmail(mergedUser.email))) {
             console.log('[Onboarding] Deleted mentor account detected, clearing session');
             await clearAuthSession();
             navigate('/mentor-login', { replace: true });
             return;
           }
-          if (isMentorModeActive(mergedUser) || mentorEntity) {
+          if (mentorEntity || mentorApplication) {
             console.log('[Onboarding] Mentor account detected, redirecting to mentor dashboard');
             navigate('/mentor-dashboard', { replace: true });
             return;
