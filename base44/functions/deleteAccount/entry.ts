@@ -59,15 +59,46 @@ Deno.serve(async (req) => {
       deleteAllByEmail(base44, 'Notification', email, 'recipient_email').catch(() => {}),
     ]);
 
-    // Step 2: Delete the auth user record (removes login credentials)
+    // Step 2: Mark the account as deleted FIRST so it stays detectable even if
+    // the platform refuses to remove the auth credentials below. Sign-in relies
+    // on isDeletedAccount() (isDeleted / deleted_at), so without this marker a
+    // "deleted" account whose credentials survive could log straight back in.
+    const deletionMarker = { isDeleted: true, deleted_at: new Date().toISOString() };
+    let markerSet = false;
+    try {
+      await base44.auth.updateMe(deletionMarker);
+      markerSet = true;
+    } catch (e) {
+      console.error('updateMe (soft-delete marker) error:', e.message);
+    }
+    try {
+      await base44.entities.User.update(user.id, deletionMarker);
+      markerSet = true;
+    } catch (e) {
+      console.error('User.update (soft-delete marker) error:', e.message);
+    }
+
+    // Step 3: Attempt to fully remove the auth user record (login credentials).
+    let authDeleted = false;
     try {
       await base44.auth.deleteMe();
+      authDeleted = true;
     } catch (e) {
-      // App owner accounts cannot be deleted by the platform — data is already cleaned up above
+      // App owner accounts (and some other cases) cannot be hard-deleted by the
+      // platform. The soft-delete marker from Step 2 still blocks future sign-ins.
       console.error('deleteMe error (may be app owner):', e.message);
     }
 
-    return Response.json({ success: true, type: 'delete' });
+    // Only report success if the account can no longer be signed into: either the
+    // credentials were removed, or the soft-delete marker was persisted.
+    if (!authDeleted && !markerSet) {
+      return Response.json({
+        success: false,
+        error: 'Account deletion could not be completed. Please try again or contact support.',
+      }, { status: 500 });
+    }
+
+    return Response.json({ success: true, type: authDeleted ? 'delete' : 'soft_delete' });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
