@@ -1,12 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 async function deleteAllByEmail(client, entityName, email, fieldName = 'user_email') {
+  let deletedCount = 0;
   while (true) {
     const records = await client.entities[entityName].filter({ [fieldName]: email }, '-created_date', 100);
     if (!records || records.length === 0) break;
     await Promise.all(records.map(r => client.entities[entityName].delete(r.id)));
+    deletedCount += records.length;
     if (records.length < 100) break;
   }
+  return deletedCount;
+}
+
+async function countByEmail(client, entityName, email, fieldName = 'user_email') {
+  const records = await client.entities[entityName].filter({ [fieldName]: email }, '-created_date', 100);
+  return records?.length || 0;
 }
 
 async function upsertDeletedAccount(client, user, deletedAt) {
@@ -128,14 +136,31 @@ Deno.serve(async (req) => {
       'GlowUpCertificate',
     ];
 
-    await Promise.all([
-      ...userEmailEntities.map(name => deleteAllByEmail(sr, name, email).catch(() => {})),
-      deleteAllByEmail(sr, 'GlowFollow', email, 'follower_email').catch(() => {}),
-      deleteAllByEmail(sr, 'GlowFollow', email, 'followed_email').catch(() => {}),
-      deleteAllByEmail(sr, 'ChatMessage', email, 'sender_email').catch(() => {}),
-      deleteAllByEmail(sr, 'ChatMessage', email, 'receiver_email').catch(() => {}),
-      deleteAllByEmail(sr, 'Notification', email, 'recipient_email').catch(() => {}),
-    ]);
+    const cleanupTargets = [
+      ...userEmailEntities.map(entityName => ({ entityName, fieldName: 'user_email' })),
+      { entityName: 'GlowFollow', fieldName: 'follower_email' },
+      { entityName: 'GlowFollow', fieldName: 'followed_email' },
+      { entityName: 'ChatMessage', fieldName: 'sender_email' },
+      { entityName: 'ChatMessage', fieldName: 'receiver_email' },
+      { entityName: 'Notification', fieldName: 'recipient_email' },
+    ];
+
+    const cleanupResults = await Promise.all(cleanupTargets.map(async ({ entityName, fieldName }) => {
+      try {
+        const deleted = await deleteAllByEmail(sr, entityName, email, fieldName);
+        const remaining = await countByEmail(sr, entityName, email, fieldName);
+        return { entityName, fieldName, deleted, remaining };
+      } catch (error) {
+        return { entityName, fieldName, error: error.message || 'Cleanup failed' };
+      }
+    }));
+    const cleanupFailures = cleanupResults.filter(result => result.error || result.remaining > 0);
+    if (cleanupFailures.length > 0) {
+      console.error('Account deletion cleanup incomplete:', cleanupFailures);
+      return Response.json({
+        error: 'Account deletion could not fully complete. Please try again or contact support.'
+      }, { status: 500 });
+    }
 
     // Step 2: Delete the auth user record (removes login credentials)
     try {
