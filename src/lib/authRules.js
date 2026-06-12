@@ -247,16 +247,18 @@ async function syncGirlAgeMetadata(userRecord, currentUser) {
 
 export function getAccountType(userRecord) {
   if (userRecord?.account_type) return userRecord.account_type;
-  if (userRecord?.mentor_status || userRecord?.mentor_type) return ACCOUNT_TYPES.MENTOR;
+  // Do NOT infer mentor from stale mentor_status/mentor_type — default to girl
   return ACCOUNT_TYPES.GIRL;
 }
 
 export function hasMentorAccount(userRecord) {
   if (!userRecord || isDeletedAccount(userRecord) || isInactiveMentorRecord(userRecord)) return false;
+  // Only classify as mentor if account_type is explicitly set — never infer from
+  // stale mentor_status/mentor_type fields alone, as these can be left over from
+  // a rejected or pending application on a girl account.
   return (
     userRecord.account_type === ACCOUNT_TYPES.MENTOR ||
-    userRecord.account_type === ACCOUNT_TYPES.LINKED ||
-    Boolean(userRecord.mentor_status || userRecord.mentor_type)
+    userRecord.account_type === ACCOUNT_TYPES.LINKED
   );
 }
 
