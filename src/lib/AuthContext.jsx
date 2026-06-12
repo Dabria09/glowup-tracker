@@ -5,6 +5,7 @@ import { clearAuthSession, isDeletedAccount, loadCurrentUserRecord } from '@/lib
 const AuthContext = createContext();
 const USER_RECORD_OPTIONAL_PATHS = new Set([
   '/google-setup',
+  '/mentor-signup',
   '/mentor-register',
 ]);
 
