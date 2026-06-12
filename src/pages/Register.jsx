@@ -8,7 +8,7 @@ import { Loader2, Sparkles } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { calculateGirlAgeGroup, saveCurrentUserRecord } from "@/lib/authRules";
+import { calculateGirlAgeGroup, linkGirlAccountToMentor, saveCurrentUserRecord } from "@/lib/authRules";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
@@ -21,6 +21,8 @@ export default function Register() {
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [pendingAge, setPendingAge] = useState(null);
+
+  const isLinkFlow = new URLSearchParams(window.location.search).get("link") === "true";
 
   const handleRegister = async () => {
     setError("");
@@ -79,7 +81,13 @@ export default function Register() {
         created_at: new Date().toISOString()
       };
 
-      await saveCurrentUserRecord(currentUser, userFields);
+      const savedRecord = await saveCurrentUserRecord(currentUser, userFields);
+
+      if (isLinkFlow) {
+        await linkGirlAccountToMentor(savedRecord || currentUser);
+        window.location.href = "/onboarding";
+        return;
+      }
 
       // Send to onboarding to pick username and agree to terms
       window.location.href = "/onboarding";
@@ -145,8 +153,14 @@ export default function Register() {
         <div className="text-center mb-8">
           <BrandLogo />
           <h1 className="text-2xl font-bold text-white mb-2">Join the Sisterhood ✨</h1>
-          <p className="text-sm text-gray-400">Create your account and start glowing</p>
+          <p className="text-sm text-gray-400">{isLinkFlow ? "Create your GGU member account to link with your mentor account" : "Create your account and start glowing"}</p>
         </div>
+
+        {isLinkFlow && (
+          <div className="mb-2 p-3 rounded-2xl text-xs text-purple-300 font-semibold text-center" style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}>
+            This will link your new GGU member account to your mentor account so you can switch between both worlds.
+          </div>
+        )}
 
         <div className="rounded-3xl p-6 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' }}>
           <Button variant="outline" className="w-full h-12 text-sm font-medium bg-white/5 border-white/10 hover:bg-white/10 text-white"

@@ -7,13 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, Crown } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
-import { ACCOUNT_TYPES, completeEmailPasswordSignIn } from "@/lib/authRules";
+import { ACCOUNT_TYPES, completeEmailPasswordSignIn, linkGirlAccountToMentor } from "@/lib/authRules";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const isLinkFlow = new URLSearchParams(window.location.search).get("link") === "true";
 
   const handleSignIn = async () => {
     if (!email || !password) { setError("Please enter your email and password."); return; }
@@ -25,6 +27,13 @@ export default function Login() {
         password,
         expectedAccountType: ACCOUNT_TYPES.GIRL,
       });
+
+      if (isLinkFlow) {
+        await linkGirlAccountToMentor(result.userRecord);
+        window.location.href = "/dashboard";
+        return;
+      }
+
       window.location.href = result.route;
     } catch (err) {
       setError(err.message || "Invalid email or password.");
@@ -49,8 +58,14 @@ export default function Login() {
         <div className="text-center mb-8">
           <BrandLogo />
           <h1 className="text-2xl font-bold text-white mb-2">Welcome Back ✨</h1>
-          <p className="text-sm text-gray-400">Sign in to keep glowing</p>
+          <p className="text-sm text-gray-400">{isLinkFlow ? "Sign in to your GGU account to link it with your mentor account" : "Sign in to keep glowing"}</p>
         </div>
+
+        {isLinkFlow && (
+          <div className="mb-2 p-3 rounded-2xl text-xs text-purple-300 font-semibold text-center" style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}>
+            Linking to your mentor account — sign in with your GGU member email below.
+          </div>
+        )}
 
         {/* Card */}
         <div className="rounded-3xl p-6 space-y-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(24px)' }}>

@@ -398,7 +398,7 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
       throw new Error("Your mentor account has been suspended. Please contact mentors@girlsglowingup.com");
     }
 
-    const mentorStatus = mentorEntity || mentorApplication.status === "approved" ? "approved" : "pending";
+    const mentorStatus = (mentorEntity || mentorApplication.status === "approved") ? "approved" : "pending";
     if (isLinked && userRecord.active_mode !== "mentor") {
       await base44.auth.updateMe({ active_mode: "mentor" });
     }
@@ -447,4 +447,30 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     ageGroup,
     route: "/dashboard",
   };
+}
+
+/**
+ * Links a girl account to the currently-authenticated mentor account so both
+ * share the same auth session with account_type "linked".
+ *
+ * Call this after signing in as a girl via Login.jsx when ?link=true is present.
+ * The mentor session was already active; we just update both User entities and
+ * the auth profile so isMentorModeActive / hasMentorAccount work correctly.
+ */
+export async function linkGirlAccountToMentor(girlUserRecord) {
+  if (!girlUserRecord?.id) throw new Error("Missing girl user record.");
+
+  await base44.auth.updateMe({
+    account_type: ACCOUNT_TYPES.LINKED,
+    active_mode: ACCOUNT_TYPES.GIRL,
+  });
+
+  try {
+    await base44.entities.User.update(girlUserRecord.id, {
+      account_type: ACCOUNT_TYPES.LINKED,
+      active_mode: ACCOUNT_TYPES.GIRL,
+    });
+  } catch {
+    // Non-fatal; auth profile update is the source of truth at login time.
+  }
 }
