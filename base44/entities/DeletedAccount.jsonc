@@ -1,0 +1,25 @@
+{
+  "name": "DeletedAccount",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "title": "Email"
+    },
+    "user_id": {
+      "type": "string",
+      "title": "User ID"
+    },
+    "deleted_at": {
+      "type": "string",
+      "title": "Deleted At"
+    },
+    "reason": {
+      "type": "string",
+      "title": "Reason"
+    }
+  },
+  "required": [
+    "email"
+  ]
+}
