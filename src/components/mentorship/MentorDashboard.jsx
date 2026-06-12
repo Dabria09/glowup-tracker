@@ -544,7 +544,7 @@ export default function MentorDashboard() {
                   if (deleteConfirmText !== 'DELETE') return;
                   try {
                     setDeleteLoading(true);
-                    await deleteCurrentAccount();
+                    await deleteCurrentAccount(deleteConfirmText);
                   } catch (err) {
                     setDeleteLoading(false);
                     alert('Deletion failed. Please try again. Error: ' + err.message);

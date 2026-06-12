@@ -18,6 +18,20 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    let payload = {};
+    try {
+      payload = await req.json();
+    } catch {
+      payload = {};
+    }
+
+    const confirmation = String(payload.confirmation || '').trim();
+    if (confirmation !== 'DELETE') {
+      return Response.json({
+        error: 'Type DELETE to confirm account deletion.'
+      }, { status: 400 });
+    }
+
     const email = user.email;
 
     // Step 1: Delete all associated data using the user-scoped client (no service token needed)
