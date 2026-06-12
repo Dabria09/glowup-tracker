@@ -122,10 +122,43 @@ async function syncGirlAgeMetadata(userRecord, currentUser) {
   return { age, ageGroup, profile };
 }
 
-function getAccountType(userRecord) {
+export function getAccountType(userRecord) {
   if (userRecord?.account_type) return userRecord.account_type;
   if (userRecord?.mentor_status || userRecord?.mentor_type) return ACCOUNT_TYPES.MENTOR;
   return ACCOUNT_TYPES.GIRL;
+}
+
+export function hasMentorAccount(userRecord) {
+  if (!userRecord) return false;
+  return (
+    userRecord.account_type === ACCOUNT_TYPES.MENTOR ||
+    userRecord.account_type === ACCOUNT_TYPES.LINKED ||
+    Boolean(userRecord.mentor_status || userRecord.mentor_type)
+  );
+}
+
+export function isMentorModeActive(userRecord) {
+  if (!userRecord) return false;
+  if (userRecord.account_type === ACCOUNT_TYPES.LINKED) {
+    return userRecord.active_mode === ACCOUNT_TYPES.MENTOR;
+  }
+  return hasMentorAccount(userRecord);
+}
+
+export async function loadMentorEntityByEmail(email) {
+  if (!email) return null;
+
+  try {
+    const mentors = await base44.entities.Mentor.filter({ user_email: email });
+    if (mentors?.length > 0) return mentors[0];
+  } catch {}
+
+  try {
+    const teenMentors = await base44.entities.TeenMentor.filter({ user_email: email });
+    if (teenMentors?.length > 0) return teenMentors[0];
+  } catch {}
+
+  return null;
 }
 
 export async function completeEmailPasswordSignIn({ email, password, expectedAccountType }) {

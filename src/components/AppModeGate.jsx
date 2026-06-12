@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { loadCurrentUserRecord } from "@/lib/authRules";
+import {
+  ACCOUNT_TYPES,
+  getAccountType,
+  hasMentorAccount,
+  isMentorModeActive,
+  loadCurrentUserRecord,
+  loadMentorEntityByEmail,
+} from "@/lib/authRules";
 import { Sparkles, Crown, Loader2, LogOut, Clock, ShieldAlert, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -15,7 +22,10 @@ function PendingMentorReviewScreen({ user, refreshing, onRefreshStatus }) {
       }
       try {
         const userRecord = await loadCurrentUserRecord(authUser);
-        if (!userRecord || userRecord.account_type !== 'mentor') {
+        const mentorEntity = hasMentorAccount(userRecord)
+          ? null
+          : await loadMentorEntityByEmail(userRecord?.email || authUser.email);
+        if (!userRecord || (!hasMentorAccount(userRecord) && !mentorEntity)) {
           window.location.href = '/dashboard';
           return;
         }
@@ -71,9 +81,20 @@ export default function AppModeGate() {
         return;
       }
       const u = { ...authUser, ...userRecord };
+      let mentorEntity = null;
+      if (!hasMentorAccount(u)) {
+        mentorEntity = await loadMentorEntityByEmail(u.email);
+        if (mentorEntity) {
+          u.account_type = ACCOUNT_TYPES.MENTOR;
+          u.mentor_status = mentorEntity.is_approved === true ? "approved" : (u.mentor_status || "pending");
+          u.mentor_type = u.mentor_type || mentorEntity.mentor_type || mentorEntity.type;
+        }
+      } else if (!u.account_type && (u.mentor_status || u.mentor_type)) {
+        u.account_type = ACCOUNT_TYPES.MENTOR;
+      }
 
       // Sync onboarding_complete and parental consent from UserProfile into the user object
-      if (u.account_type === "girl" || (!u.account_type && u.role !== "admin")) {
+      if (getAccountType(u) === ACCOUNT_TYPES.GIRL && u.role !== "admin") {
         try {
           const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
           if (profiles.length > 0) {
@@ -87,7 +108,7 @@ export default function AppModeGate() {
       }
 
       // If mentor is still pending, check both MentorApplication AND Mentor entity for approval
-      if (u.account_type === "mentor" && u.mentor_status !== "approved") {
+      if (isMentorModeActive(u) && u.mentor_status !== "approved") {
         try {
           // Check MentorApplication entity
           const apps = await base44.entities.MentorApplication.filter({ created_by_id: u.id });
@@ -106,8 +127,8 @@ export default function AppModeGate() {
         // Also check Mentor entity directly (admin may approve there)
         if (u.mentor_status !== "approved") {
           try {
-            const mentors = await base44.entities.Mentor.filter({ user_email: u.email });
-            if (mentors.length > 0 && mentors[0].is_approved === true) {
+            mentorEntity = mentorEntity || await loadMentorEntityByEmail(u.email);
+            if (mentorEntity?.is_approved === true) {
               await base44.auth.updateMe({ mentor_status: "approved" });
               try {
                 await base44.entities.User.update(u.id, { mentor_status: "approved" });
@@ -158,14 +179,16 @@ export default function AppModeGate() {
   }
 
   // Pending Mentor
-  if (user.account_type === "mentor" && user.mentor_status === "pending") {
+  const mentorModeActive = isMentorModeActive(user);
+
+  if (mentorModeActive && user.mentor_status === "pending") {
     return (
       <PendingMentorReviewScreen user={user} refreshing={refreshing} onRefreshStatus={handleRefreshStatus} />
     );
   }
 
   // Suspended Mentor
-  if (user.account_type === "mentor" && user.mentor_status === "suspended") {
+  if (mentorModeActive && user.mentor_status === "suspended") {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-white text-center">
         <div className="w-20 h-20 bg-red-500/15 border border-red-500/30 rounded-full flex items-center justify-center mb-6">
@@ -186,7 +209,7 @@ export default function AppModeGate() {
   // Girl accounts must have completed onboarding before accessing the app.
   // Exception: minors (age < 13) who are waiting on parental consent get a
   // dedicated waiting screen instead of being bounced to /onboarding.
-  if (user.account_type === "girl" || (!user.account_type && user.role !== "admin")) {
+  if (getAccountType(user) === ACCOUNT_TYPES.GIRL && user.role !== "admin") {
     const onboardingComplete = user.onboarding_complete;
     const requiresConsent = user.requires_parental_consent === true;
     const consentGiven = user.parental_consent_confirmed === true;
@@ -230,40 +253,38 @@ export default function AppModeGate() {
   const isMentorPath = location.pathname.startsWith("/mentor-");
   const isGirlPath = ["/dashboard", "/discover", "/glow", "/connect", "/me"].some(p => location.pathname.startsWith(p));
 
-  if (user.account_type === "mentor" && isGirlPath) return <Navigate to="/mentor-dashboard" replace />;
+  if (mentorModeActive && isGirlPath) return <Navigate to="/mentor-dashboard" replace />;
   if (user.account_type === "girl" && isMentorPath) return <Navigate to="/dashboard" replace />;
   if (user.account_type === "linked") {
     if (user.active_mode === "mentor" && isGirlPath) return <Navigate to="/mentor-dashboard" replace />;
     if (user.active_mode === "girl" && isMentorPath) return <Navigate to="/dashboard" replace />;
   }
 
-  const isMentorModeActive = user.account_type === "mentor" || (user.account_type === "linked" && user.active_mode === "mentor");
-
   return (
-    <div className={`min-h-screen transition-all duration-300 ${isMentorModeActive ? "bg-[#0c0414] text-purple-100" : "bg-[#0d0608] text-white"}`}>
-      {isMentorModeActive && (
+    <div className={`min-h-screen transition-all duration-300 ${mentorModeActive ? "bg-[#0c0414] text-purple-100" : "bg-[#0d0608] text-white"}`}>
+      {mentorModeActive && (
         <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-purple-950/20 via-transparent to-transparent pointer-events-none z-0" />
       )}
 
       {user.account_type === "linked" && (
         <div className="sticky top-0 z-50 w-full flex items-center justify-between px-5 py-3 border-b"
           style={{
-            background: isMentorModeActive ? "rgba(12, 4, 20, 0.9)" : "rgba(13, 6, 8, 0.9)",
-            borderColor: isMentorModeActive ? "rgba(168, 85, 247, 0.15)" : "rgba(255, 255, 255, 0.08)",
+            background: mentorModeActive ? "rgba(12, 4, 20, 0.9)" : "rgba(13, 6, 8, 0.9)",
+            borderColor: mentorModeActive ? "rgba(168, 85, 247, 0.15)" : "rgba(255, 255, 255, 0.08)",
             backdropFilter: "blur(20px)"
           }}>
           <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-            {isMentorModeActive ? "👑 Pro Dashboard" : "✨ Member View"}
+            {mentorModeActive ? "👑 Pro Dashboard" : "✨ Member View"}
           </span>
           <button onClick={handleToggleMode} className="relative flex items-center gap-1.5 p-1 rounded-full border transition"
             style={{
-              background: isMentorModeActive ? "rgba(168, 85, 247, 0.15)" : "rgba(236, 72, 153, 0.15)",
-              borderColor: isMentorModeActive ? "rgba(168, 85, 247, 0.4)" : "rgba(236, 72, 153, 0.4)"
+              background: mentorModeActive ? "rgba(168, 85, 247, 0.15)" : "rgba(236, 72, 153, 0.15)",
+              borderColor: mentorModeActive ? "rgba(168, 85, 247, 0.4)" : "rgba(236, 72, 153, 0.4)"
             }}>
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isMentorModeActive ? "bg-purple-600 text-white shadow" : "text-gray-400"}`}>
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${mentorModeActive ? "bg-purple-600 text-white shadow" : "text-gray-400"}`}>
               <Crown size={12} /><span>Mentor Mode</span>
             </div>
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${!isMentorModeActive ? "bg-pink-600 text-white shadow" : "text-gray-400"}`}>
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${!mentorModeActive ? "bg-pink-600 text-white shadow" : "text-gray-400"}`}>
               <Sparkles size={12} /><span>GGU Mode</span>
             </div>
           </button>
