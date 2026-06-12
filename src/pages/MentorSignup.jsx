@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,11 @@ import GoogleIcon from "@/components/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function MentorSignup() {
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoadingAuth } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,23 +25,18 @@ export default function MentorSignup() {
 
   // Check if user is already logged in
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const authed = await base44.auth.isAuthenticated();
-        if (authed) {
-          // Already logged in - go straight to mentor registration
-          window.location.href = "/mentor-register";
-          return;
-        }
-        setIsCheckingAuth(false);
-      } catch {
-        setIsCheckingAuth(false);
-      }
-    };
-    checkAuth();
-  }, []);
+    if (isLoadingAuth) return;
 
-  if (isCheckingAuth) {
+    if (isAuthenticated) {
+      // Replace this history entry so browser Back returns to the page before signup.
+      navigate("/mentor-register", { replace: true });
+      return;
+    }
+
+    setIsCheckingAuth(false);
+  }, [isAuthenticated, isLoadingAuth, navigate]);
+
+  if (isLoadingAuth || isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'radial-gradient(ellipse at top, #2d0a1e 0%, #1a0a18 40%, #0d0610 100%)' }}>
         <div className="text-center">
@@ -79,7 +77,7 @@ export default function MentorSignup() {
         base44.auth.setToken(result.access_token);
       }
       // Redirect to mentor application
-      window.location.href = "/mentor-register";
+      navigate("/mentor-register", { replace: true });
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
