@@ -89,6 +89,24 @@ export default function Onboarding() {
           }
         }
 
+        // Check if user already has a complete profile FIRST — fast exit before any mentor checks
+        let hasCompleteProfile = false;
+        try {
+          const profiles = await base44.entities.UserProfile.filter({ user_email: mergedUser.email });
+          hasCompleteProfile = profiles.length > 0 && profiles[0].onboarding_complete;
+          console.log('[Onboarding] Profile check:', { complete: hasCompleteProfile, count: profiles.length });
+        } catch (profileErr) {
+          console.log('[Onboarding] Profile check skipped:', profileErr.message);
+        }
+
+        // If the user already has a complete profile, send them straight to dashboard
+        // This prevents admin/returning users from getting stuck here
+        if (!isFromMentorSignup && hasCompleteProfile) {
+          console.log('[Onboarding] Already onboarded, redirecting to dashboard');
+          navigate('/dashboard', { replace: true });
+          return;
+        }
+
         setUser(mergedUser);
         const calculated = calculateGirlAgeGroup(mergedUser.date_of_birth);
         setData(prev => ({
@@ -111,25 +129,9 @@ export default function Onboarding() {
           console.log('[Onboarding] Ban check skipped:', banErr.message);
         }
         
-        // FORCE mentor flow if URL param exists - this is the ONLY thing that matters
         if (isFromMentorSignup) {
           console.log('[Onboarding] 🔥 FORCING mentor flow from URL param - will NOT redirect to dashboard');
           setIsMentorFlow(true);
-        }
-        
-        // Check if user already has a complete profile
-        let hasCompleteProfile = false;
-        let profileExists = false;
-        try {
-          const profiles = await base44.entities.UserProfile.filter({ user_email: mergedUser.email });
-          profileExists = profiles.length > 0;
-          hasCompleteProfile = profiles.length && profiles[0].onboarding_complete;
-          console.log('[Onboarding] Profile check:', { exists: profileExists, complete: hasCompleteProfile, count: profiles.length });
-        } catch (profileErr) {
-          console.log('[Onboarding] Profile check skipped:', profileErr.message);
-        }
-
-        if (isFromMentorSignup) {
           // If user already has a complete profile AND is already a mentor, skip to mentor dashboard
           if (hasCompleteProfile && hasMentorAccount(mergedUser)) {
             console.log('[Onboarding] Already a mentor with complete profile, redirecting to mentor dashboard');
@@ -137,11 +139,6 @@ export default function Onboarding() {
             return;
           }
           console.log('[Onboarding] ✅ MENTOR FLOW - proceeding to mentor application');
-        } else if (hasCompleteProfile) {
-          // Regular user already onboarded - redirect to dashboard
-          console.log('[Onboarding] Already onboarded, redirecting to dashboard');
-          navigate('/dashboard');
-          return;
         }
         
         console.log('[Onboarding] Initialization complete, showing onboarding');

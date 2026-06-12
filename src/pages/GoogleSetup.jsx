@@ -77,8 +77,20 @@ export default function GoogleSetup() {
 
         // If they already have a DOB set, skip this page
         if (u.date_of_birth && !isSignupIntent) {
-          if (isMentor) saveMentorOAuthPrefill(buildOAuthPrefill(u, { dateOfBirth: u.date_of_birth }));
-          window.location.href = isMentor ? "/mentor-register?oauth=1" : "/onboarding";
+          if (isMentor) {
+            saveMentorOAuthPrefill(buildOAuthPrefill(u, { dateOfBirth: u.date_of_birth }));
+            window.location.href = "/mentor-register?oauth=1";
+            return;
+          }
+          // For girls: check if they have a complete profile — send to dashboard, not onboarding
+          try {
+            const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+            if (profiles.length > 0 && profiles[0].onboarding_complete) {
+              window.location.href = "/dashboard";
+              return;
+            }
+          } catch {}
+          window.location.href = "/onboarding";
           return;
         }
       } catch (e) {
