@@ -109,18 +109,18 @@ export default function Home() {
               <span style={{ fontSize: 20 }}>🎓</span>
               <span>Apply to Be a Mentor</span>
             </button>
-            <button onClick={handleMentorSignIn} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: 'rgba(241,182,16,0.08)', border: '1.5px solid rgba(241,182,16,0.4)', color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 13, fontWeight: 700, padding: '14px 12px', borderRadius: 14, cursor: 'pointer' }}>
+            <button onClick={() => navigate('/mentor-login')} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: 'rgba(241,182,16,0.08)', border: '1.5px solid rgba(241,182,16,0.4)', color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 13, fontWeight: 700, padding: '14px 12px', borderRadius: 14, cursor: 'pointer' }}>
               <span style={{ fontSize: 20 }}>✨</span>
               <span>Mentor Sign In</span>
             </button>
             {/* Bottom Row: GGU Options */}
-            <button onClick={() => navigate('/join')} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${PINK_DEEP} 0%, ${PINK} 40%, ${PINK_HOT} 100%)`, color: 'white', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 14, fontWeight: 800, padding: '14px 12px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: `0 8px 32px rgba(232,82,109,0.5)` }}>
+            <button onClick={() => navigate('/register')} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${PINK_DEEP} 0%, ${PINK} 40%, ${PINK_HOT} 100%)`, color: 'white', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 14, fontWeight: 800, padding: '14px 12px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: `0 8px 32px rgba(232,82,109,0.5)` }}>
               <span style={{ fontSize: 20 }}>✦</span>
               <span>Join the Sisterhood</span>
             </button>
-            <button onClick={() => { if (user) navigate('/dashboard'); else base44.auth.redirectToLogin('/dashboard'); }} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: 'rgba(232,82,109,0.12)', border: '1.5px solid rgba(232,82,109,0.35)', color: PINK_HOT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 13, fontWeight: 700, padding: '14px 12px', borderRadius: 14, cursor: 'pointer' }}>
+            <button onClick={() => navigate('/login')} className="flex flex-col items-center justify-center gap-1.5 transition-all hover:-translate-y-0.5" style={{ background: 'rgba(232,82,109,0.12)', border: '1.5px solid rgba(232,82,109,0.35)', color: PINK_HOT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 13, fontWeight: 700, padding: '14px 12px', borderRadius: 14, cursor: 'pointer' }}>
               <span style={{ fontSize: 20 }}>👑</span>
-              <span>{user ? 'Go to Dashboard' : 'Sign In to GGU'}</span>
+              <span>Sign Into the Community</span>
             </button>
           </div>
 
@@ -227,7 +227,7 @@ export default function Home() {
             <button onClick={() => navigate('/mentor-signup')} className="w-full flex items-center justify-center gap-2 font-bold transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #ffe75c 100%)`, color: '#1a0a00', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 16, fontWeight: 800, padding: '17px 28px', borderRadius: 16, border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(241,182,16,0.45)' }}>
               🎓 Apply to Be a Mentor
             </button>
-            <button onClick={() => navigate('/join')} className="w-full flex items-center justify-center gap-2 font-bold transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${PINK_DEEP} 0%, ${PINK} 40%, ${PINK_HOT} 100%)`, color: 'white', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 16, fontWeight: 800, padding: '17px 28px', borderRadius: 16, border: 'none', cursor: 'pointer', boxShadow: `0 8px 32px rgba(232,82,109,0.5)` }}>
+            <button onClick={() => navigate('/register')} className="w-full flex items-center justify-center gap-2 font-bold transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${PINK_DEEP} 0%, ${PINK} 40%, ${PINK_HOT} 100%)`, color: 'white', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 16, fontWeight: 800, padding: '17px 28px', borderRadius: 16, border: 'none', cursor: 'pointer', boxShadow: `0 8px 32px rgba(232,82,109,0.5)` }}>
               ✦ Join the Sisterhood
             </button>
           </div>
