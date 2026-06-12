@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -22,11 +24,20 @@ Deno.serve(async (req) => {
     } = await req.json();
     const consentContext = context === 'girl' ? 'girl' : 'mentor';
     const childName = applicantName || user.full_name || user.email;
+    const normalizedParentName = String(parentName || '').trim();
+    const normalizedParentEmail = String(parentEmail || '').trim();
+    const normalizedParentPhone = String(parentPhone || '').trim();
+    const normalizedRelationship = String(relationship || '').trim();
 
     // Validate required fields
-    if (!parentName || !parentEmail || !relationship) {
+    if (!normalizedParentName || !normalizedParentEmail || !normalizedRelationship) {
       return Response.json({ 
         error: 'Missing required fields' 
+      }, { status: 400 });
+    }
+    if (!EMAIL_PATTERN.test(normalizedParentEmail)) {
+      return Response.json({
+        error: 'Please enter a valid parent or guardian email address'
       }, { status: 400 });
     }
 
@@ -39,10 +50,10 @@ Deno.serve(async (req) => {
       user_email: user.email,
       teen_email: user.email,
       teen_name: childName,
-      parent_name: parentName,
-      parent_email: parentEmail,
-      parent_phone: parentPhone,
-      relationship: relationship,
+      parent_name: normalizedParentName,
+      parent_email: normalizedParentEmail,
+      parent_phone: normalizedParentPhone,
+      relationship: normalizedRelationship,
       consent_context: consentContext,
       account_type: consentContext,
       consent_given: null,
@@ -67,12 +78,12 @@ Deno.serve(async (req) => {
     
     const emailClient = sr.integrations?.Core?.SendEmail ? sr.integrations.Core : base44.integrations.Core;
     await emailClient.SendEmail({
-      to: parentEmail,
+      to: normalizedParentEmail,
       subject,
       body: `
         <html>
           <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
-            <p>Dear ${parentName},</p>
+            <p>Dear ${normalizedParentName},</p>
             
             <p>${intro}</p>
             
@@ -153,10 +164,10 @@ Deno.serve(async (req) => {
 
       if (applications.length > 0) {
         await sr.entities.MentorApplication.update(applications[0].id, {
-          parent_email: parentEmail,
-          parent_name: parentName,
-          parent_phone: parentPhone,
-          parent_relationship: relationship,
+          parent_email: normalizedParentEmail,
+          parent_name: normalizedParentName,
+          parent_phone: normalizedParentPhone,
+          parent_relationship: normalizedRelationship,
           parent_consent_sent: true,
           parent_consent_id: consentRecord.id,
         });
@@ -165,10 +176,10 @@ Deno.serve(async (req) => {
       const profiles = await sr.entities.UserProfile.filter({ user_email: user.email });
       if (profiles.length > 0) {
         await sr.entities.UserProfile.update(profiles[0].id, {
-          parent_email: parentEmail,
-          parent_name: parentName,
-          parent_phone: parentPhone,
-          parent_relationship: relationship,
+          parent_email: normalizedParentEmail,
+          parent_name: normalizedParentName,
+          parent_phone: normalizedParentPhone,
+          parent_relationship: normalizedRelationship,
           parental_consent_sent: true,
           parent_consent_id: consentRecord.id,
         });

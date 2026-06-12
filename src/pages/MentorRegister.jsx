@@ -28,6 +28,7 @@ const EXPERTISE_OPTIONS = [
 const LANGUAGE_OPTIONS = ["English","Spanish","French","Mandarin","Arabic","Portuguese","Swahili","Hindi","Yoruba","Other"];
 const AVAILABILITY_OPTIONS = ["Weekday Mornings","Weekday Afternoons","Weekday Evenings","Weekend Mornings","Weekend Afternoons","Weekend Evenings"];
 const AGE_GROUP_OPTIONS = ["Glow Girls 5 to 12","Glow Teens 13 to 18","Glow Women 19 to 26"];
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function MentorRegister() {
   // Read ?step= from URL on initial render
@@ -314,15 +315,25 @@ export default function MentorRegister() {
   const handleAppleSignup = () => base44.auth.loginWithProvider("apple", "/google-setup?mentor=true");
 
   const handleSendParentConsent = async () => {
-    if (!parentEmail || !parentName) return;
+    const normalizedParentName = parentName.trim();
+    const normalizedParentEmail = parentEmail.trim();
+    const normalizedParentPhone = parentPhone.trim();
+    const normalizedRelationship = parentRel.trim();
+
+    if (!normalizedParentName || !normalizedParentEmail || !normalizedRelationship) return;
+    if (!EMAIL_PATTERN.test(normalizedParentEmail)) {
+      alert("Please enter a valid parent or guardian email address.");
+      return;
+    }
+
     setLoading(true);
     try {
       const result = await base44.functions.invoke('sendParentalConsent', {
         context: 'mentor',
-        parentName,
-        parentEmail,
-        parentPhone,
-        relationship: parentRel,
+        parentName: normalizedParentName,
+        parentEmail: normalizedParentEmail,
+        parentPhone: normalizedParentPhone,
+        relationship: normalizedRelationship,
         applicantName: fullName,
         dateOfBirth: dob,
       });
@@ -330,7 +341,8 @@ export default function MentorRegister() {
       setParentConsentId(result.data.consentId || "");
       setParentConsentSent(true);
     } catch (err) {
-      alert("Failed to send email: " + err.message);
+      const message = err?.response?.data?.error || err?.data?.error || err.message || "Failed to send consent email";
+      alert("Failed to send email: " + message);
     } finally {
       setLoading(false);
     }
