@@ -76,6 +76,17 @@ function isInactiveMentorRecord(record) {
   ].some(status => status && INACTIVE_MENTOR_STATUSES.has(String(status).toLowerCase()));
 }
 
+function isApprovedMentorEntity(record) {
+  return !isInactiveMentorRecord(record) && (
+    record.is_approved === true ||
+    record.application_status === "approved"
+  );
+}
+
+function isActiveMentorApplication(record) {
+  return !isInactiveMentorRecord(record);
+}
+
 export async function clearAuthSession() {
   try {
     await base44.auth.logout();
@@ -197,14 +208,38 @@ export async function loadMentorEntityByEmail(email) {
 
   try {
     const mentors = await base44.entities.Mentor.filter({ user_email: email });
-    const activeMentor = mentors?.find(mentor => !isInactiveMentorRecord(mentor));
-    if (activeMentor) return activeMentor;
+    const approvedMentor = mentors?.find(isApprovedMentorEntity);
+    if (approvedMentor) return approvedMentor;
   } catch {}
 
   try {
     const teenMentors = await base44.entities.TeenMentor.filter({ user_email: email });
-    const activeTeenMentor = teenMentors?.find(mentor => !isInactiveMentorRecord(mentor));
-    if (activeTeenMentor) return activeTeenMentor;
+    const approvedTeenMentor = teenMentors?.find(isApprovedMentorEntity);
+    if (approvedTeenMentor) return approvedTeenMentor;
+  } catch {}
+
+  return null;
+}
+
+export async function loadMentorApplicationByEmail(email) {
+  if (!email) return null;
+
+  const sortLatest = (records) => [...records].sort((a, b) => {
+    const bDate = new Date(b.submitted_date || b.created_date || 0).getTime();
+    const aDate = new Date(a.submitted_date || a.created_date || 0).getTime();
+    return bDate - aDate;
+  });
+
+  try {
+    const applications = await base44.entities.MentorApplication.filter({ user_email: email });
+    const activeApplication = sortLatest(applications || []).find(isActiveMentorApplication);
+    if (activeApplication) return activeApplication;
+  } catch {}
+
+  try {
+    const teenApplications = await base44.entities.TeenMentorApplication.filter({ user_email: email });
+    const activeTeenApplication = sortLatest(teenApplications || []).find(isActiveMentorApplication);
+    if (activeTeenApplication) return activeTeenApplication;
   } catch {}
 
   return null;
@@ -247,12 +282,13 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
 
   const storedAccountType = getAccountType(userRecord);
   const mentorEntity = await loadMentorEntityByEmail(currentUser.email);
+  const mentorApplication = await loadMentorApplicationByEmail(currentUser.email);
   const hasDeletedMentorEntity = !mentorEntity && await hasDeletedMentorEntityByEmail(currentUser.email);
-  if (hasDeletedMentorEntity && !userRecord.account_type) {
+  if (hasDeletedMentorEntity && !mentorApplication && !userRecord.account_type) {
     await clearAuthSession();
     throw new Error("This account has been deleted. Please create a new account.");
   }
-  const hasMentorAccess = hasMentorAccount(userRecord) || Boolean(mentorEntity);
+  const hasMentorAccess = Boolean(mentorEntity || mentorApplication);
   const accountType = storedAccountType === ACCOUNT_TYPES.LINKED
     ? ACCOUNT_TYPES.LINKED
     : (hasMentorAccess ? ACCOUNT_TYPES.MENTOR : storedAccountType);
@@ -274,11 +310,18 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
       throw new Error("This email is registered as a GGU app account. Please use the main app sign in.");
     }
   } else if (expectedAccountType === ACCOUNT_TYPES.MENTOR) {
-    const mentorStatus = userRecord.mentor_status || currentUser.mentor_status || (mentorEntity?.is_approved === true ? "approved" : "pending");
-    if (mentorStatus === "suspended") {
+    if (!mentorEntity && !mentorApplication) {
+      await clearAuthSession();
+      throw new Error("No active mentor account found with this email. Please apply to become a mentor.");
+    }
+
+    const storedMentorStatus = userRecord.mentor_status || currentUser.mentor_status;
+    if (storedMentorStatus === "suspended") {
       await clearAuthSession();
       throw new Error("Your mentor account has been suspended. Please contact mentors@girlsglowingup.com");
     }
+
+    const mentorStatus = mentorEntity || mentorApplication.status === "approved" ? "approved" : "pending";
     if (isLinked && userRecord.active_mode !== "mentor") {
       await base44.auth.updateMe({ active_mode: "mentor" });
     }
