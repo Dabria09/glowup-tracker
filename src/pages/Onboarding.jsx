@@ -6,7 +6,6 @@ import StepUsername from '@/components/onboarding/StepUsername';
 import StepParentalConsent from '@/components/onboarding/StepParentalConsent';
 import StepAgreement from '@/components/onboarding/StepAgreement';
 import StepComplete from '@/components/onboarding/StepComplete';
-import StepMentorChoice from '@/components/onboarding/StepMentorChoice';
 import NewUserTour from '@/components/NewUserTour';
 import {
   calculateGirlAgeGroup,
@@ -161,9 +160,7 @@ export default function Onboarding() {
   const hasDob = Boolean(data.date_of_birth && data.age !== null && data.age_group);
   const computedSteps = data.age !== null && data.age < 13
     ? STEPS_MINOR
-    : isMentorFlow
-      ? ['dob', 'username', 'agreement', 'complete'] // Skip mentor choice for mentor flow
-      : ['dob', 'username', 'mentor', 'agreement', 'complete'];
+    : ['dob', 'username', 'agreement', 'complete'];
   const steps = hasDob ? computedSteps.filter(s => s !== 'dob') : computedSteps;
   const currentStep = steps[stepIndex];
   
@@ -175,7 +172,7 @@ export default function Onboarding() {
   const next = () => setStepIndex(i => i + 1);
   const back = () => setStepIndex(i => i - 1);
 
-  const handleComplete = async (isMentor = false) => {
+  const handleComplete = async () => {
     if (!user) return;
     const profileData = {
       user_email: user.email,
@@ -218,17 +215,6 @@ export default function Onboarding() {
     } catch (err) {
       console.error('[Onboarding] Profile save error:', err);
       alert('We could not finish onboarding. Please try again. ' + err.message);
-      return;
-    }
-
-    // If mentor flow, update user and redirect to mentor dashboard
-    if (isMentor || isMentorFlow) {
-      await base44.auth.updateMe({
-        account_type: "mentor",
-        mentor_status: "pending",
-        active_mode: "mentor"
-      });
-      navigate('/mentor-dashboard');
       return;
     }
 
@@ -300,12 +286,9 @@ export default function Onboarding() {
         {currentStep === 'agreement' && (
           <StepAgreement
             onBack={back}
-            onSubmit={() => handleComplete(isMentorFlow)}
+            onSubmit={() => handleComplete()}
             loading={false}
           />
-        )}
-        {currentStep === 'mentor' && (
-          <StepMentorChoice data={data} user={user} isMentorFlow={isMentorFlow} onNext={(isMentor) => handleComplete(isMentor)} />
         )}
         {currentStep === 'complete' && (
           <StepComplete applicationId="PENDING" />
