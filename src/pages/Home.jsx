@@ -84,7 +84,7 @@ export default function Home() {
             {[['#features','Features'],['#safety','Safety'],['#mentors','Mentors']].map(([href, label]) => (
               <a key={label} href={href} style={{ color: MUTED, fontSize: 13, fontWeight: 500, padding: '6px 12px', borderRadius: 8, textDecoration: 'none' }}>{label}</a>
             ))}
-            <button onClick={() => navigate('/join')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(241,182,16,0.1)', border: '1.5px solid rgba(241,182,16,0.4)', color: GOLD_LT, fontSize: 13, fontWeight: 700, padding: '8px 16px', borderRadius: 10, cursor: 'pointer' }}>
+            <button onClick={() => navigate('/mentor-signup')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(241,182,16,0.1)', border: '1.5px solid rgba(241,182,16,0.4)', color: GOLD_LT, fontSize: 13, fontWeight: 700, padding: '8px 16px', borderRadius: 10, cursor: 'pointer' }}>
               🎓 Apply as Mentor
             </button>
           </div>
@@ -212,7 +212,7 @@ export default function Home() {
                 </span>
               ))}
             </div>
-            <button onClick={() => navigate('/join')} className="relative flex items-center justify-center gap-2 font-bold transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #ffe75c 100%)`, color: '#1a0a00', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 15, fontWeight: 800, padding: '15px 36px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(241,182,16,0.45)', maxWidth: 300, width: '100%' }}>
+            <button onClick={() => navigate('/mentor-signup')} className="relative flex items-center justify-center gap-2 font-bold transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${GOLD} 0%, #ffe75c 100%)`, color: '#1a0a00', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 15, fontWeight: 800, padding: '15px 36px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(241,182,16,0.45)', maxWidth: 300, width: '100%' }}>
               🎓 Apply as a Mentor
             </button>
             <p className="relative" style={{ marginTop: 11, fontSize: 11, color: MUTED2 }}>Background check required · No experience necessary</p>
