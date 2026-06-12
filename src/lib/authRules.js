@@ -354,9 +354,11 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     throw new Error("This account has been deleted. Please create a new account.");
   }
   const hasMentorAccess = Boolean(mentorEntity || mentorApplication);
+  // If hasMentorAccess is false (no real mentor entity/application), never classify as mentor
+  // even if account_type was corrupted to "mentor" by the old onboarding flow.
   const accountType = storedAccountType === ACCOUNT_TYPES.LINKED
     ? ACCOUNT_TYPES.LINKED
-    : (hasMentorAccess ? ACCOUNT_TYPES.MENTOR : storedAccountType);
+    : (hasMentorAccess ? ACCOUNT_TYPES.MENTOR : (hasMentorAccess === false && storedAccountType === ACCOUNT_TYPES.MENTOR ? ACCOUNT_TYPES.GIRL : storedAccountType));
   const isLinked = accountType === ACCOUNT_TYPES.LINKED;
 
   if (expectedAccountType === ACCOUNT_TYPES.MENTOR && accountType !== ACCOUNT_TYPES.MENTOR && !isLinked) {
@@ -364,7 +366,10 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     throw new Error("This email is registered as a GGU app account. Please use the main app sign in.");
   }
 
-  if (expectedAccountType === ACCOUNT_TYPES.GIRL && accountType === ACCOUNT_TYPES.MENTOR) {
+  // Only block girl sign-in if there is an actual mentor entity or application.
+  // If account_type was corrupted to "mentor" by the old onboarding flow but no
+  // real mentor records exist, treat them as a girl account.
+  if (expectedAccountType === ACCOUNT_TYPES.GIRL && accountType === ACCOUNT_TYPES.MENTOR && hasMentorAccess) {
     await clearAuthSession();
     throw new Error("This email is registered as a mentor account. Please use Mentor Sign In.");
   }
@@ -399,6 +404,11 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
 
   if (isLinked && userRecord.active_mode !== "girl") {
     await base44.auth.updateMe({ active_mode: "girl" });
+  }
+
+  // Self-heal: if account_type was corrupted to "mentor" but no real mentor records exist, fix it
+  if (!hasMentorAccess && storedAccountType === ACCOUNT_TYPES.MENTOR) {
+    await base44.auth.updateMe({ account_type: "girl" }).catch(() => {});
   }
 
   const { age, ageGroup, profile } = await syncGirlAgeMetadata(userRecord, currentUser);
