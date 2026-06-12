@@ -91,13 +91,13 @@ export default function AppModeGate() {
       let mentorEntity = null;
       if (!hasMentorAccount(u)) {
         mentorEntity = await loadMentorEntityByEmail(u.email);
-        if (mentorEntity) {
+        // loadMentorEntityByEmail already only returns APPROVED mentors
+        // Only promote to mentor account type if genuinely approved
+        if (mentorEntity && mentorEntity.is_approved === true) {
           u.account_type = ACCOUNT_TYPES.MENTOR;
-          u.mentor_status = mentorEntity.is_approved === true ? "approved" : (u.mentor_status || "pending");
+          u.mentor_status = "approved";
           u.mentor_type = u.mentor_type || mentorEntity.mentor_type || mentorEntity.type;
         }
-      } else if (!u.account_type && (u.mentor_status || u.mentor_type)) {
-        u.account_type = ACCOUNT_TYPES.MENTOR;
       }
 
       // Sync onboarding_complete and parental consent from UserProfile into the user object
@@ -114,38 +114,15 @@ export default function AppModeGate() {
         } catch {}
       }
 
-      // If mentor is still pending, check both MentorApplication AND Mentor entity for approval
-      if (isMentorModeActive(u) && u.mentor_status !== "approved") {
+      // If user has mentor account type but status not yet approved, sync from DB
+      if (hasMentorAccount(u) && u.mentor_status !== "approved") {
         try {
-          // Check MentorApplication entity
-          const apps = await base44.entities.MentorApplication.filter({ created_by_id: u.id });
-          const latestApp = apps.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
-          if (latestApp?.status === "approved") {
+          mentorEntity = mentorEntity || await loadMentorEntityByEmail(u.email);
+          if (mentorEntity?.is_approved === true) {
             await base44.auth.updateMe({ mentor_status: "approved" });
-            try {
-              await base44.entities.User.update(u.id, { mentor_status: "approved" });
-            } catch {}
             u.mentor_status = "approved";
           }
-        } catch (e) {
-          console.warn("Could not sync from MentorApplication:", e);
-        }
-
-        // Also check Mentor entity directly (admin may approve there)
-        if (u.mentor_status !== "approved") {
-          try {
-            mentorEntity = mentorEntity || await loadMentorEntityByEmail(u.email);
-            if (mentorEntity?.is_approved === true) {
-              await base44.auth.updateMe({ mentor_status: "approved" });
-              try {
-                await base44.entities.User.update(u.id, { mentor_status: "approved" });
-              } catch {}
-              u.mentor_status = "approved";
-            }
-          } catch (e) {
-            console.warn("Could not sync from Mentor entity:", e);
-          }
-        }
+        } catch {}
       }
 
       setUser(u);
