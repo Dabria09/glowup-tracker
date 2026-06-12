@@ -9,61 +9,9 @@ import {
   loadCurrentUserRecord,
   loadMentorEntityByEmail,
 } from "@/lib/authRules";
-import { Sparkles, Crown, Loader2, LogOut, Clock, ShieldAlert, RefreshCw } from "lucide-react";
+import { Sparkles, Crown, Loader2, LogOut, ShieldAlert, RefreshCw, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-function PendingMentorReviewScreen({ user, refreshing, onRefreshStatus }) {
-  useEffect(() => {
-    const checkUserType = async () => {
-      const authUser = await base44.auth.me();
-      if (!authUser) {
-        window.location.href = '/';
-        return;
-      }
-      try {
-        const userRecord = await loadCurrentUserRecord(authUser);
-        const mentorEntity = hasMentorAccount(userRecord)
-          ? null
-          : await loadMentorEntityByEmail(userRecord?.email || authUser.email);
-        if (!userRecord || (!hasMentorAccount(userRecord) && !mentorEntity)) {
-          window.location.href = '/dashboard';
-          return;
-        }
-      } catch {
-        window.location.href = '/';
-      }
-    };
-    checkUserType();
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-white text-center">
-      <div className="w-20 h-20 bg-yellow-500/15 border border-yellow-500/30 rounded-full flex items-center justify-center mb-6">
-        <Clock className="w-10 h-10 text-yellow-400 animate-pulse" />
-      </div>
-      <h1 className="text-2xl font-bold tracking-tight mb-2">Application Pending Review ✨</h1>
-      <p className="text-gray-400 max-w-sm mb-6 text-sm">
-        Welcome, {user.full_name || "Mentor"}! Our admin team is currently reviewing your ID verification and professional credentials.
-      </p>
-      <div className="rounded-2xl p-4 bg-white/5 border border-white/10 text-xs text-left max-w-sm mb-6">
-        <span className="font-bold text-gray-200 block mb-1">Estimated Vetting Time</span>
-        <p className="text-gray-400">Applications are typically vetted within 3-5 business days. You will receive an email confirmation once approved.</p>
-      </div>
-      <Button
-        onClick={onRefreshStatus}
-        disabled={refreshing}
-        className="w-full max-w-xs h-12 rounded-xl font-bold mb-3"
-        style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
-      >
-        <RefreshCw size={16} className={`mr-2 ${refreshing ? "animate-spin" : ""}`} />
-        {refreshing ? "Checking..." : "Check Approval Status"}
-      </Button>
-      <Button onClick={() => base44.auth.logout("/")} variant="destructive" className="w-full max-w-xs h-12 rounded-xl font-bold">
-        <LogOut size={16} className="mr-2" /> Sign Out
-      </Button>
-    </div>
-  );
-}
 
 export default function AppModeGate() {
   const [user, setUser] = useState(null);
@@ -171,14 +119,7 @@ export default function AppModeGate() {
     );
   }
 
-  // Pending Mentor
   const mentorModeActive = isMentorModeActive(user);
-
-  if (mentorModeActive && user.mentor_status === "pending") {
-    return (
-      <PendingMentorReviewScreen user={user} refreshing={refreshing} onRefreshStatus={handleRefreshStatus} />
-    );
-  }
 
   // Suspended Mentor
   if (mentorModeActive && user.mentor_status === "suspended") {
