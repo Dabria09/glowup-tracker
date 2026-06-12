@@ -89,6 +89,13 @@ export default function Onboarding() {
           }
         }
 
+        // Admins always go straight to dashboard — no onboarding needed
+        if (mergedUser.role === 'admin') {
+          console.log('[Onboarding] Admin user, redirecting to dashboard');
+          navigate('/dashboard', { replace: true });
+          return;
+        }
+
         // Check if user already has a complete profile FIRST — fast exit before any mentor checks
         let hasCompleteProfile = false;
         try {
@@ -100,7 +107,7 @@ export default function Onboarding() {
         }
 
         // If the user already has a complete profile, send them straight to dashboard
-        // This prevents admin/returning users from getting stuck here
+        // This prevents returning users from getting stuck here
         if (!isFromMentorSignup && hasCompleteProfile) {
           console.log('[Onboarding] Already onboarded, redirecting to dashboard');
           navigate('/dashboard', { replace: true });

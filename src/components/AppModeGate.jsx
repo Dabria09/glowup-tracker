@@ -209,7 +209,7 @@ export default function AppModeGate() {
   // Girl accounts must have completed onboarding before accessing the app.
   // Exception: minors (age < 13) who are waiting on parental consent get a
   // dedicated waiting screen instead of being bounced to /onboarding.
-  if (getAccountType(user) === ACCOUNT_TYPES.GIRL && user.role !== "admin") {
+  if (getAccountType(user) === ACCOUNT_TYPES.GIRL && user.role !== "admin" && !mentorModeActive) {
     const onboardingComplete = user.onboarding_complete;
     const requiresConsent = user.requires_parental_consent === true;
     const consentGiven = user.parental_consent_confirmed === true;

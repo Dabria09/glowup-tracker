@@ -45,6 +45,13 @@ export default function GoogleSetup() {
 
         const userRecord = await loadCurrentUserRecord(u);
         const mergedUser = { ...u, ...userRecord };
+
+        // Admins bypass all setup — go straight to dashboard
+        if (mergedUser.role === 'admin') {
+          window.location.href = '/dashboard';
+          return;
+        }
+
         if (isDeletedAccount(mergedUser)) {
           if (isSignupIntent) {
             setChecking(false);
