@@ -7,8 +7,11 @@ import { Loader2 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import {
   calculateGirlAgeGroup,
+  clearAuthSession,
+  hasDeletedMentorEntityByEmail,
   hasMentorAccount,
   isMentorModeActive,
+  isDeletedAccount,
   loadCurrentUserRecord,
   loadMentorEntityByEmail,
   getMentorTrack,
@@ -37,9 +40,20 @@ export default function GoogleSetup() {
         setUser(u);
         if (isMentor) saveMentorOAuthPrefill(buildOAuthPrefill(u));
 
+        const userRecord = await loadCurrentUserRecord(u);
+        const mergedUser = { ...u, ...userRecord };
+        if (isDeletedAccount(mergedUser)) {
+          await clearAuthSession();
+          window.location.href = isMentor ? "/mentor-login" : "/login";
+          return;
+        }
+        if (!mergedUser.account_type && await hasDeletedMentorEntityByEmail(mergedUser.email)) {
+          await clearAuthSession();
+          window.location.href = "/mentor-login";
+          return;
+        }
+
         if (isMentor) {
-          const userRecord = await loadCurrentUserRecord(u);
-          const mergedUser = { ...u, ...userRecord };
           const mentorEntity = hasMentorAccount(mergedUser) ? null : await loadMentorEntityByEmail(mergedUser.email);
           if (isMentorModeActive(mergedUser) || mentorEntity) {
             window.location.href = "/mentor-dashboard";

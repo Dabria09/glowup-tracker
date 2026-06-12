@@ -3,6 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { deleteCurrentAccount } from '@/lib/accountDeletion';
 import {
   ACCOUNT_TYPES,
+  clearAuthSession,
+  getAccountType,
   hasMentorAccount,
   loadCurrentUserRecord,
   loadMentorEntityByEmail,
@@ -59,7 +61,13 @@ export default function MentorDashboard() {
           isMentorAccount = Boolean(inferredMentorProfile);
         }
         if (!isMentorAccount) {
-          window.location.href = '/dashboard';
+          if (getAccountType(userRecord) === ACCOUNT_TYPES.GIRL && userRecord.account_type === ACCOUNT_TYPES.GIRL) {
+            window.location.href = '/dashboard';
+            return;
+          }
+
+          await clearAuthSession();
+          window.location.href = '/mentor-login';
           return;
         }
 
