@@ -18,14 +18,15 @@ async function countByEmail(client, entityName, email, fieldName = 'user_email')
 }
 
 async function upsertDeletedAccount(client, user, deletedAt) {
+  const normalizedEmail = String(user.email || '').trim().toLowerCase();
   const payload = {
-    email: user.email,
+    email: normalizedEmail,
     user_id: user.id,
     deleted_at: deletedAt,
     reason: 'user_requested',
   };
 
-  const existingByEmail = await client.entities.DeletedAccount.filter({ email: user.email });
+  const existingByEmail = await client.entities.DeletedAccount.filter({ email: normalizedEmail });
   const existing = existingByEmail?.find(record => record.user_id === user.id) || existingByEmail?.[0];
   if (existing) {
     return client.entities.DeletedAccount.update(existing.id, payload);

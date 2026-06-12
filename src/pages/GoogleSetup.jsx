@@ -21,7 +21,9 @@ import {
 import { buildOAuthPrefill, saveMentorOAuthPrefill, waitForOAuthUser } from "@/lib/oauthPrefill";
 
 export default function GoogleSetup() {
-  const isMentor = new URLSearchParams(window.location.search).get("mentor") === "true";
+  const searchParams = new URLSearchParams(window.location.search);
+  const isMentor = searchParams.get("mentor") === "true";
+  const isSignupIntent = searchParams.get("intent") === "signup";
   const [dob, setDob] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,6 +46,10 @@ export default function GoogleSetup() {
         const userRecord = await loadCurrentUserRecord(u);
         const mergedUser = { ...u, ...userRecord };
         if (isDeletedAccount(mergedUser)) {
+          if (isSignupIntent) {
+            setChecking(false);
+            return;
+          }
           await clearAuthSession();
           window.location.href = isMentor ? "/mentor-login" : "/login";
           return;
@@ -70,7 +76,7 @@ export default function GoogleSetup() {
         }
 
         // If they already have a DOB set, skip this page
-        if (u.date_of_birth) {
+        if (u.date_of_birth && !isSignupIntent) {
           if (isMentor) saveMentorOAuthPrefill(buildOAuthPrefill(u, { dateOfBirth: u.date_of_birth }));
           window.location.href = isMentor ? "/mentor-register?oauth=1" : "/onboarding";
           return;
@@ -110,8 +116,11 @@ export default function GoogleSetup() {
           mentor_type: mentorType,
           mentor_status: "pending",
           isDeleted: false,
+          is_deleted: false,
+          deleted_at: null,
+          deletedAt: null,
           created_at: new Date().toISOString(),
-        });
+        }, { allowDeletedAccountRecreation: isSignupIntent });
         window.location.href = "/mentor-register?oauth=1";
       } else {
         if (!ageGroup) { setError("You must be at least 10 years old to join GGU."); setLoading(false); return; }
@@ -128,10 +137,13 @@ export default function GoogleSetup() {
           age_group: ageGroup,
           account_type: "girl",
           isDeleted: false,
+          is_deleted: false,
+          deleted_at: null,
+          deletedAt: null,
           requires_parental_consent: requiresParentalConsent,
           parental_consent_confirmed: !requiresParentalConsent,
           created_at: new Date().toISOString(),
-        });
+        }, { allowDeletedAccountRecreation: isSignupIntent });
         window.location.href = "/onboarding";
       }
     } catch (err) {

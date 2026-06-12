@@ -57,8 +57,14 @@ export function isDeletedAccount(userRecord) {
 
 export async function loadDeletedAccountRecord(user) {
   if (!user?.email && !user?.id) return null;
+  const normalizedEmail = user.email ? user.email.trim().toLowerCase() : null;
 
   if (user.email) {
+    try {
+      const deletedAccounts = await base44.entities.DeletedAccount.filter({ email: normalizedEmail });
+      if (deletedAccounts?.length > 0) return deletedAccounts[0];
+    } catch {}
+
     try {
       const deletedAccounts = await base44.entities.DeletedAccount.filter({ email: user.email });
       if (deletedAccounts?.length > 0) return deletedAccounts[0];
@@ -73,6 +79,31 @@ export async function loadDeletedAccountRecord(user) {
   }
 
   return null;
+}
+
+export async function clearDeletedAccountRecord(user) {
+  if (!user?.email && !user?.id) return;
+  const recordsById = [];
+  const normalizedEmail = user.email ? user.email.trim().toLowerCase() : null;
+
+  if (normalizedEmail) {
+    try {
+      recordsById.push(...(await base44.entities.DeletedAccount.filter({ email: normalizedEmail }) || []));
+    } catch {}
+  }
+  if (user.email && user.email !== normalizedEmail) {
+    try {
+      recordsById.push(...(await base44.entities.DeletedAccount.filter({ email: user.email }) || []));
+    } catch {}
+  }
+  if (user.id) {
+    try {
+      recordsById.push(...(await base44.entities.DeletedAccount.filter({ user_id: user.id }) || []));
+    } catch {}
+  }
+
+  const uniqueRecords = [...new Map(recordsById.map(record => [record.id, record])).values()];
+  await Promise.all(uniqueRecords.map(record => base44.entities.DeletedAccount.delete(record.id).catch(() => {})));
 }
 
 const INACTIVE_MENTOR_STATUSES = new Set([
@@ -150,11 +181,13 @@ export async function loadCurrentUserRecord(currentUser) {
   return null;
 }
 
-export async function saveCurrentUserRecord(currentUser, fields) {
+export async function saveCurrentUserRecord(currentUser, fields, options = {}) {
   if (!currentUser?.id) throw new Error("Missing current user ID.");
-  if (await loadDeletedAccountRecord(currentUser)) {
+  const deletedAccountRecord = await loadDeletedAccountRecord(currentUser);
+  if (deletedAccountRecord && !options.allowDeletedAccountRecreation) {
     throw new Error("This account has been deleted. Please use a different email to create a new account.");
   }
+  if (deletedAccountRecord) await clearDeletedAccountRecord(currentUser);
 
   const payload = {
     id: currentUser.id,
