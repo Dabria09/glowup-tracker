@@ -5,7 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
-import { calculateGirlAgeGroup, getMentorTrack, saveCurrentUserRecord } from "@/lib/authRules";
+import {
+  calculateGirlAgeGroup,
+  hasMentorAccount,
+  isMentorModeActive,
+  loadCurrentUserRecord,
+  loadMentorEntityByEmail,
+  getMentorTrack,
+  saveCurrentUserRecord,
+} from "@/lib/authRules";
 import { buildOAuthPrefill, saveMentorOAuthPrefill, waitForOAuthUser } from "@/lib/oauthPrefill";
 
 export default function GoogleSetup() {
@@ -28,6 +36,16 @@ export default function GoogleSetup() {
         if (!u) { window.location.href = isMentor ? "/mentor-register" : "/register"; return; }
         setUser(u);
         if (isMentor) saveMentorOAuthPrefill(buildOAuthPrefill(u));
+
+        if (isMentor) {
+          const userRecord = await loadCurrentUserRecord(u);
+          const mergedUser = { ...u, ...userRecord };
+          const mentorEntity = hasMentorAccount(mergedUser) ? null : await loadMentorEntityByEmail(mergedUser.email);
+          if (isMentorModeActive(mergedUser) || mentorEntity) {
+            window.location.href = "/mentor-dashboard";
+            return;
+          }
+        }
 
         // If they already have a DOB set, skip this page
         if (u.date_of_birth) {

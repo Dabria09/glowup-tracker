@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { deleteCurrentAccount } from '@/lib/accountDeletion';
-import { loadCurrentUserRecord } from '@/lib/authRules';
+import {
+  ACCOUNT_TYPES,
+  hasMentorAccount,
+  loadCurrentUserRecord,
+  loadMentorEntityByEmail,
+} from '@/lib/authRules';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2 } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
@@ -47,14 +52,30 @@ export default function MentorDashboard() {
           return;
         }
 
-        const isMentorAccount = userRecord.account_type === 'mentor' ||
-          (userRecord.account_type === 'linked' && userRecord.active_mode === 'mentor');
+        let inferredMentorProfile = null;
+        let isMentorAccount = hasMentorAccount(userRecord);
+        if (!isMentorAccount) {
+          inferredMentorProfile = await loadMentorEntityByEmail(authUser.email);
+          isMentorAccount = Boolean(inferredMentorProfile);
+        }
         if (!isMentorAccount) {
           window.location.href = '/dashboard';
           return;
         }
 
         currentUser = { ...authUser, ...userRecord };
+        if (inferredMentorProfile && !currentUser.account_type) {
+          currentUser.account_type = ACCOUNT_TYPES.MENTOR;
+          currentUser.mentor_status = inferredMentorProfile.is_approved === true
+            ? 'approved'
+            : (currentUser.mentor_status || 'pending');
+          currentUser.mentor_type = currentUser.mentor_type || inferredMentorProfile.mentor_type || inferredMentorProfile.type;
+        }
+        if (currentUser.account_type === ACCOUNT_TYPES.LINKED && currentUser.active_mode !== ACCOUNT_TYPES.MENTOR) {
+          await base44.auth.updateMe({ active_mode: ACCOUNT_TYPES.MENTOR });
+          currentUser.active_mode = ACCOUNT_TYPES.MENTOR;
+        }
+        currentUser._mentorProfile = inferredMentorProfile;
         setUser(currentUser);
       } catch (e) {
         setLoading(false);
@@ -63,13 +84,7 @@ export default function MentorDashboard() {
 
       let mentorProfile = null;
       try {
-        const mentors = await base44.entities.Mentor.filter({ user_email: currentUser.email });
-        if (mentors.length > 0) {
-          mentorProfile = mentors[0];
-        } else {
-          const teenMentors = await base44.entities.TeenMentor.filter({ user_email: currentUser.email });
-          if (teenMentors.length > 0) mentorProfile = teenMentors[0];
-        }
+        mentorProfile = currentUser._mentorProfile || await loadMentorEntityByEmail(currentUser.email);
         setProfile(mentorProfile);
       } catch (e) {}
 

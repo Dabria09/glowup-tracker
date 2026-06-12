@@ -277,7 +277,7 @@ export default function MentorSignup() {
         {/* Footer */}
         <p className="text-center text-xs text-gray-500 mt-6">
           Already have an account?{" "}
-          <Link to="/login" className="text-amber-400 font-semibold hover:underline">Sign in</Link>
+          <Link to="/mentor-login" className="text-amber-400 font-semibold hover:underline">Sign in</Link>
         </p>
         <p className="text-center text-[10px] text-gray-600 mt-2">
           By signing up, you agree to our{" "}

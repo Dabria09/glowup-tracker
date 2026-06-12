@@ -8,7 +8,13 @@ import StepAgreement from '@/components/onboarding/StepAgreement';
 import StepComplete from '@/components/onboarding/StepComplete';
 import StepMentorChoice from '@/components/onboarding/StepMentorChoice';
 import NewUserTour from '@/components/NewUserTour';
-import { calculateGirlAgeGroup } from '@/lib/authRules';
+import {
+  calculateGirlAgeGroup,
+  hasMentorAccount,
+  isMentorModeActive,
+  loadCurrentUserRecord,
+  loadMentorEntityByEmail,
+} from '@/lib/authRules';
 
 const STEPS_MINOR   = ['dob', 'username', 'parental', 'agreement', 'complete'];
 
@@ -53,19 +59,31 @@ export default function Onboarding() {
         console.log('[Onboarding] Getting user info...');
         const u = await base44.auth.me();
         console.log('[Onboarding] User:', u);
-        setUser(u);
-        const calculated = calculateGirlAgeGroup(u.date_of_birth);
+        const userRecord = await loadCurrentUserRecord(u);
+        const mergedUser = { ...u, ...userRecord };
+
+        if (!isFromMentorSignup) {
+          const mentorEntity = hasMentorAccount(mergedUser) ? null : await loadMentorEntityByEmail(mergedUser.email);
+          if (isMentorModeActive(mergedUser) || mentorEntity) {
+            console.log('[Onboarding] Mentor account detected, redirecting to mentor dashboard');
+            navigate('/mentor-dashboard', { replace: true });
+            return;
+          }
+        }
+
+        setUser(mergedUser);
+        const calculated = calculateGirlAgeGroup(mergedUser.date_of_birth);
         setData(prev => ({
           ...prev,
-          full_name: u.full_name || prev.full_name,
-          date_of_birth: u.date_of_birth || prev.date_of_birth,
-          age: typeof u.age === 'number' ? u.age : (calculated.age ?? prev.age),
-          age_group: u.age_group || calculated.ageGroup || prev.age_group,
+          full_name: mergedUser.full_name || prev.full_name,
+          date_of_birth: mergedUser.date_of_birth || prev.date_of_birth,
+          age: typeof mergedUser.age === 'number' ? mergedUser.age : (calculated.age ?? prev.age),
+          age_group: mergedUser.age_group || calculated.ageGroup || prev.age_group,
         }));
         
         // Check hard ban on this email
         try {
-          const activeBans = await base44.entities.BannedUser.filter({ user_email: u.email, ban_type: 'hard', is_active: true });
+          const activeBans = await base44.entities.BannedUser.filter({ user_email: mergedUser.email, ban_type: 'hard', is_active: true });
           if (activeBans.length) { 
             console.log('[Onboarding] User is banned:', activeBans[0]);
             setHardBanned(activeBans[0]); 
@@ -85,7 +103,7 @@ export default function Onboarding() {
         let hasCompleteProfile = false;
         let profileExists = false;
         try {
-          const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+          const profiles = await base44.entities.UserProfile.filter({ user_email: mergedUser.email });
           profileExists = profiles.length > 0;
           hasCompleteProfile = profiles.length && profiles[0].onboarding_complete;
           console.log('[Onboarding] Profile check:', { exists: profileExists, complete: hasCompleteProfile, count: profiles.length });
@@ -95,9 +113,9 @@ export default function Onboarding() {
 
         if (isFromMentorSignup) {
           // If user already has a complete profile AND is already a mentor, skip to mentor dashboard
-          if (hasCompleteProfile && (u.account_type === 'mentor' || u.mentor_status)) {
+          if (hasCompleteProfile && hasMentorAccount(mergedUser)) {
             console.log('[Onboarding] Already a mentor with complete profile, redirecting to mentor dashboard');
-            navigate('/mentor-dashboard');
+            navigate('/mentor-dashboard', { replace: true });
             return;
           }
           console.log('[Onboarding] ✅ MENTOR FLOW - proceeding to mentor application');
