@@ -32,7 +32,7 @@ export default function GoogleSetup() {
         // If they already have a DOB set, skip this page
         if (u.date_of_birth) {
           if (isMentor) saveMentorOAuthPrefill(buildOAuthPrefill(u, { dateOfBirth: u.date_of_birth }));
-          window.location.href = isMentor ? "/mentor-register?step=1" : "/onboarding";
+          window.location.href = isMentor ? "/mentor-register?oauth=1" : "/onboarding";
           return;
         }
       } catch (e) {
@@ -72,7 +72,7 @@ export default function GoogleSetup() {
           isDeleted: false,
           created_at: new Date().toISOString(),
         });
-        window.location.href = "/mentor-register?step=1";
+        window.location.href = "/mentor-register?oauth=1";
       } else {
         if (!ageGroup) { setError("You must be at least 10 years old to join GGU."); setLoading(false); return; }
         const requiresParentalConsent = age < 13;
