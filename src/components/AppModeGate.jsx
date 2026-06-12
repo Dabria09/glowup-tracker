@@ -178,6 +178,15 @@ export default function AppModeGate() {
     return <Navigate to="/login" replace />;
   }
 
+  // Admins always get full access — skip ALL role/mentor/onboarding gates
+  if (user.role === "admin") {
+    return (
+      <div className="min-h-screen bg-[#0d0608] text-white relative z-10">
+        <Outlet />
+      </div>
+    );
+  }
+
   // Pending Mentor
   const mentorModeActive = isMentorModeActive(user);
 
