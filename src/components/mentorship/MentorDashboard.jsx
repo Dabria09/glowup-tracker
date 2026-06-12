@@ -29,6 +29,7 @@ export default function MentorDashboard() {
   const [showMenteeSearch, setShowMenteeSearch] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [showGguModal, setShowGguModal] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef(null);
@@ -472,7 +473,10 @@ export default function MentorDashboard() {
 
             {/* Delete Account */}
             <button
-              onClick={() => setShowDeleteModal(true)}
+              onClick={() => {
+                setDeleteConfirmText('');
+                setShowDeleteModal(true);
+              }}
               style={{ width: '100%', padding: 14, borderRadius: 14, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
               <Trash2 size={16} /> Delete Account
@@ -506,11 +510,38 @@ export default function MentorDashboard() {
               <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 1.5 }}>
                 Deleting your account is permanent and cannot be undone. All your mentor data, application history, and profile will be removed.
               </p>
+              <p style={{ color: '#ef4444', fontSize: 12, fontWeight: 800, marginTop: 12 }}>
+                Type DELETE to confirm.
+              </p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button
+              <input
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
                 disabled={deleteLoading}
+                placeholder="DELETE"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                style={{
+                  width: '100%',
+                  padding: 14,
+                  borderRadius: 14,
+                  border: `1px solid ${deleteConfirmText === 'DELETE' ? '#ef4444' : 'rgba(239,68,68,0.3)'}`,
+                  background: 'rgba(239,68,68,0.08)',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 800,
+                  letterSpacing: 2,
+                  textAlign: 'center',
+                  outline: 'none',
+                }}
+              />
+              <button
+                disabled={deleteLoading || deleteConfirmText !== 'DELETE'}
                 onClick={async () => {
+                  if (deleteConfirmText !== 'DELETE') return;
                   try {
                     setDeleteLoading(true);
                     await deleteCurrentAccount();
@@ -519,13 +550,16 @@ export default function MentorDashboard() {
                     alert('Deletion failed. Please try again. Error: ' + err.message);
                   }
                 }}
-                style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: '#ef4444', color: '#fff', fontSize: 14, fontWeight: 800, cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                style={{ width: '100%', padding: 14, borderRadius: 14, border: 'none', background: '#ef4444', color: '#fff', fontSize: 14, fontWeight: 800, cursor: deleteLoading || deleteConfirmText !== 'DELETE' ? 'not-allowed' : 'pointer', opacity: deleteLoading || deleteConfirmText !== 'DELETE' ? 0.45 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               >
                 {deleteLoading && <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />}
                 {deleteLoading ? 'Deleting...' : 'Yes, Delete My Account'}
               </button>
               <button
-                onClick={() => setShowDeleteModal(false)}
+                onClick={() => {
+                  setDeleteConfirmText('');
+                  setShowDeleteModal(false);
+                }}
                 disabled={deleteLoading}
                 style={{ width: '100%', padding: 12, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
               >
