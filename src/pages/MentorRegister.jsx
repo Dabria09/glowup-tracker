@@ -31,8 +31,13 @@ const AGE_GROUP_OPTIONS = ["Glow Girls 5 to 12","Glow Teens 13 to 18","Glow Wome
 
 export default function MentorRegister() {
   // Read ?step= from URL on initial render
-  const urlStep = parseInt(new URLSearchParams(window.location.search).get("step") || "0", 10);
-  const initialOAuthPrefill = urlStep >= 1 ? readMentorOAuthPrefill() : null;
+  const searchParams = new URLSearchParams(window.location.search);
+  const urlStep = parseInt(searchParams.get("step") || "0", 10);
+  const isOAuthMentorFlow = searchParams.get("oauth") === "1";
+  const isLegacyOAuthStepLink = !isOAuthMentorFlow && searchParams.has("step") && urlStep === 1;
+  const shouldHydrateOAuthPrefill = isOAuthMentorFlow || urlStep >= 1;
+  const initialOAuthPrefill = shouldHydrateOAuthPrefill ? readMentorOAuthPrefill() : null;
+  const shouldShowInitialAccountReview = isOAuthMentorFlow || (isLegacyOAuthStepLink && Boolean(initialOAuthPrefill));
   const initialDob = initialOAuthPrefill?.dateOfBirth || "";
   const initialMentorTrack = initialOAuthPrefill?.mentorType || getMentorTrack(calculateAge(initialDob)) || "adult";
 
@@ -44,11 +49,12 @@ export default function MentorRegister() {
   const [dob, setDob] = useState(initialDob);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [oauthHydrating, setOauthHydrating] = useState(urlStep >= 1 && !initialOAuthPrefill);
+  const [oauthHydrating, setOauthHydrating] = useState(shouldHydrateOAuthPrefill && !initialOAuthPrefill);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [mentorTrack, setMentorTrack] = useState(initialMentorTrack);
-  const [step, setStep] = useState(urlStep); // 0=account, OTP inline, 1-10=steps, 11=confirmation
+  const [isOAuthAccountReview, setIsOAuthAccountReview] = useState(shouldShowInitialAccountReview);
+  const [step, setStep] = useState(shouldShowInitialAccountReview ? 0 : urlStep); // 0=account, OTP inline, 1-10=steps, 11=confirmation
 
   // Step 1 — Who You Are
   const [avatarUrl, setAvatarUrl] = useState(initialOAuthPrefill?.avatarUrl || "");
@@ -143,12 +149,18 @@ export default function MentorRegister() {
 
   // Pre-fill user info from Google/Apple OAuth before rendering the application steps.
   useEffect(() => {
-    if (urlStep < 1) return undefined;
+    if (!shouldHydrateOAuthPrefill) return undefined;
 
     let isMounted = true;
     const hydrateOAuthPrefill = async () => {
       const storedPrefill = readMentorOAuthPrefill();
-      if (storedPrefill) applyMentorPrefill(storedPrefill);
+      if (storedPrefill) {
+        applyMentorPrefill(storedPrefill);
+        if (isOAuthMentorFlow || isLegacyOAuthStepLink) {
+          setIsOAuthAccountReview(true);
+          setStep(0);
+        }
+      }
       else setOauthHydrating(true);
 
       try {
@@ -158,6 +170,10 @@ export default function MentorRegister() {
         const prefill = buildOAuthPrefill(u);
         saveMentorOAuthPrefill(prefill);
         applyMentorPrefill(prefill);
+        if (isOAuthMentorFlow || isLegacyOAuthStepLink) {
+          setIsOAuthAccountReview(true);
+          setStep(0);
+        }
       } catch {
         // Stored prefill is enough to continue; otherwise the form remains editable.
       } finally {
@@ -167,7 +183,7 @@ export default function MentorRegister() {
 
     hydrateOAuthPrefill();
     return () => { isMounted = false; };
-  }, [urlStep, applyMentorPrefill]);
+  }, [shouldHydrateOAuthPrefill, isOAuthMentorFlow, isLegacyOAuthStepLink, applyMentorPrefill]);
 
   const toggleMulti = (val, arr, setArr) => {
     setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
@@ -215,6 +231,47 @@ export default function MentorRegister() {
       } else {
         setError(err.message || "Registration failed");
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleContinueOAuthAccount = async () => {
+    setError("");
+    if (!fullName || !email || !dob) { setError("Name, email, and date of birth are required."); return; }
+
+    const age = calculateAge(dob);
+    const { ageGroup } = calculateGirlAgeGroup(dob);
+    const track = getMentorTrack(age);
+    if (!track) { setError("You must be at least 13 years old to apply as a GGU Mentor."); return; }
+
+    setMentorTrack(track);
+    setLoading(true);
+    try {
+      const currentUser = await base44.auth.me();
+      const prefill = buildOAuthPrefill(currentUser, {
+        fullName,
+        email,
+        dateOfBirth: dob,
+        avatarUrl,
+        mentorType: track,
+      });
+      saveMentorOAuthPrefill(prefill);
+      await saveCurrentUserRecord(currentUser, {
+        full_name: fullName,
+        ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
+        date_of_birth: dob,
+        age,
+        age_group: ageGroup,
+        account_type: "mentor",
+        mentor_type: track,
+        mentor_status: "pending",
+        isDeleted: false,
+        created_at: new Date().toISOString(),
+      });
+      setStep(1);
+    } catch (err) {
+      setError(err.message || "Could not continue with your Google account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -414,33 +471,45 @@ export default function MentorRegister() {
         <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-6">
             <BrandLogo alt="GGU" className="w-40 mx-auto mb-4" style={{ filter:'drop-shadow(0 0 20px rgba(232,82,109,0.4))' }} />
-            <h1 className="text-2xl font-bold text-white mb-1">Create Your Mentor Account</h1>
-            <p className="text-sm text-gray-400">Join Girls Glowing Up™ as a mentor</p>
+            <h1 className="text-2xl font-bold text-white mb-1">{isOAuthAccountReview ? "Review Your Mentor Account" : "Create Your Mentor Account"}</h1>
+            <p className="text-sm text-gray-400">{isOAuthAccountReview ? "Confirm your account details to continue" : "Join Girls Glowing Up™ as a mentor"}</p>
           </div>
           <div className="rounded-3xl p-6 space-y-4" style={cardStyle}>
-            <Button variant="outline" className="w-full h-12 text-sm font-medium bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleAppleSignup}>
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.56 1.4-1.32 2.79-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-              Sign up with Apple
-            </Button>
-            <Button variant="outline" className="w-full h-12 text-sm font-medium bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleGoogleSignup}>
-              <GoogleIcon className="w-5 h-5 mr-2"/>Sign up with Google
-            </Button>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"/></div>
-              <div className="relative flex justify-center text-xs uppercase"><span className="px-3 text-gray-500" style={{ background:'rgba(13,5,30,0.9)' }}>Or register with email</span></div>
-            </div>
+            {isOAuthAccountReview ? (
+              <div className="p-3 rounded-xl text-sm text-gray-300 border border-white/10 bg-white/5">
+                Your sign-in account is connected. Confirm these details, then continue your mentor application.
+              </div>
+            ) : (
+              <>
+                <Button variant="outline" className="w-full h-12 text-sm font-medium bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleAppleSignup}>
+                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.56 1.4-1.32 2.79-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+                  Sign up with Apple
+                </Button>
+                <Button variant="outline" className="w-full h-12 text-sm font-medium bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleGoogleSignup}>
+                  <GoogleIcon className="w-5 h-5 mr-2"/>Sign up with Google
+                </Button>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"/></div>
+                  <div className="relative flex justify-center text-xs uppercase"><span className="px-3 text-gray-500" style={{ background:'rgba(13,5,30,0.9)' }}>Or register with email</span></div>
+                </div>
+              </>
+            )}
             {error && <div className="p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">{error}</div>}
             <Input placeholder="Full Legal Name" value={fullName} onChange={e=>setFullName(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
-            <Input type="email" placeholder="Email Address" value={email} onChange={e=>setEmail(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
-            <Input type="password" placeholder="Password (min 8 characters)" value={password} onChange={e=>setPassword(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
-            <Input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+            <Input type="email" placeholder="Email Address" value={email} onChange={e=>setEmail(e.target.value)} readOnly={isOAuthAccountReview} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+            {!isOAuthAccountReview && (
+              <>
+                <Input type="password" placeholder="Password (min 8 characters)" value={password} onChange={e=>setPassword(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+                <Input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500"/>
+              </>
+            )}
             <div className="space-y-1">
               <Label className="text-xs text-gray-400 font-bold uppercase tracking-widest">Date of Birth</Label>
               <Input type="date" value={dob} onChange={e=>setDob(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white"/>
             </div>
-            <Button className="w-full h-12 font-bold text-white border-0" onClick={handleCreateAccount} disabled={loading}
+            <Button className="w-full h-12 font-bold text-white border-0" onClick={isOAuthAccountReview ? handleContinueOAuthAccount : handleCreateAccount} disabled={loading}
               style={{ background:'linear-gradient(135deg, #e8526d, #f1b610)' }}>
-              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin"/>Creating Account...</> : 'Create Account'}
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin"/>{isOAuthAccountReview ? 'Saving...' : 'Creating Account...'}</> : (isOAuthAccountReview ? 'Continue to Application' : 'Create Account')}
             </Button>
           </div>
           <p className="text-center text-xs text-gray-500 mt-6">
