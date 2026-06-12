@@ -50,6 +50,7 @@ Deno.serve(async (req) => {
       user_email: user.email,
       teen_email: user.email,
       teen_name: childName,
+      consent_type: consentContext === 'mentor' ? 'mentorship' : 'all',
       parent_name: normalizedParentName,
       parent_email: normalizedParentEmail,
       parent_phone: normalizedParentPhone,
