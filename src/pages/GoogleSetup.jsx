@@ -23,7 +23,10 @@ import { buildOAuthPrefill, saveMentorOAuthPrefill, waitForOAuthUser } from "@/l
 
 export default function GoogleSetup() {
   const searchParams = new URLSearchParams(window.location.search);
-  const isMentor = searchParams.get("mentor") === "true";
+  // Read stored flow intent — community sign-in must never be treated as mentor
+  const storedFlow = localStorage.getItem('ggu_oauth_flow');
+  localStorage.removeItem('ggu_oauth_flow');
+  const isMentor = storedFlow === 'mentor' || (storedFlow !== 'community' && searchParams.get("mentor") === "true");
   const isSignupIntent = searchParams.get("intent") === "signup";
   const [dob, setDob] = useState("");
   const [error, setError] = useState("");

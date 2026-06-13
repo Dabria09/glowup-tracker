@@ -34,8 +34,8 @@ export default function MentorLogin() {
     }
   };
 
-  const handleApple = () => base44.auth.loginWithProvider("apple", window.location.origin + "/google-setup?mentor=true&intent=signin");
-  const handleGoogle = () => base44.auth.loginWithProvider("google", window.location.origin + "/google-setup?mentor=true&intent=signin");
+  const handleApple = () => { localStorage.setItem('ggu_oauth_flow', 'mentor'); base44.auth.loginWithProvider("apple", window.location.origin + "/google-setup?mentor=true&intent=signin"); };
+  const handleGoogle = () => { localStorage.setItem('ggu_oauth_flow', 'mentor'); base44.auth.loginWithProvider("google", window.location.origin + "/google-setup?mentor=true&intent=signin"); };
 
   return (
     <div
