@@ -360,12 +360,12 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     await clearAuthSession();
     throw new Error("This account has been deleted. Please create a new account.");
   }
-  const hasMentorAccess = Boolean(mentorEntity || mentorApplication);
-  // If hasMentorAccess is false (no real mentor entity/application), never classify as mentor
-  // even if account_type was corrupted to "mentor" by the old onboarding flow.
+  // Only count as having mentor access if there's an APPROVED mentor entity.
+  // A pending/rejected application alone does NOT grant mentor access.
+  const hasMentorAccess = Boolean(mentorEntity);
   const accountType = storedAccountType === ACCOUNT_TYPES.LINKED
     ? ACCOUNT_TYPES.LINKED
-    : (hasMentorAccess ? ACCOUNT_TYPES.MENTOR : (hasMentorAccess === false && storedAccountType === ACCOUNT_TYPES.MENTOR ? ACCOUNT_TYPES.GIRL : storedAccountType));
+    : (hasMentorAccess ? ACCOUNT_TYPES.MENTOR : (storedAccountType === ACCOUNT_TYPES.MENTOR ? ACCOUNT_TYPES.GIRL : storedAccountType));
   const isLinked = accountType === ACCOUNT_TYPES.LINKED;
 
   if (expectedAccountType === ACCOUNT_TYPES.MENTOR && accountType !== ACCOUNT_TYPES.MENTOR && !isLinked) {

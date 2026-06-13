@@ -107,10 +107,15 @@ export default function GoogleSetup() {
           if (isMentor) {
             saveMentorOAuthPrefill(buildOAuthPrefill(u, { dateOfBirth: dobSource }));
             window.location.href = "/mentor-dashboard";
-          } else if (userProfile?.onboarding_complete) {
-            window.location.href = "/dashboard";
           } else {
-            window.location.href = "/onboarding";
+            // Ensure account_type is explicitly 'girl' so AppModeGate never
+            // misclassifies this community user as a mentor.
+            if (mergedUser.account_type !== 'girl') {
+              try {
+                await base44.auth.updateMe({ account_type: 'girl' });
+              } catch {}
+            }
+            window.location.href = userProfile?.onboarding_complete ? "/dashboard" : "/onboarding";
           }
           return;
         }
