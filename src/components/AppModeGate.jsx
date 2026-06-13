@@ -6,6 +6,7 @@ import {
   getAccountType,
   hasMentorAccount,
   isMentorModeActive,
+  isDeletedAccount,
   loadCurrentUserRecord,
   loadMentorEntityByEmail,
 } from "@/lib/authRules";
@@ -24,11 +25,13 @@ export default function AppModeGate() {
     try {
       const authUser = await base44.auth.me();
       const userRecord = await loadCurrentUserRecord(authUser);
-      if (!userRecord) {
+      // Don't kick out users just because their User entity row doesn't exist yet
+      // (new OAuth signups mid-setup). Only reject explicitly deleted accounts.
+      if (userRecord && isDeletedAccount(userRecord)) {
         setUser(null);
         return;
       }
-      const u = { ...authUser, ...userRecord };
+      const u = { ...authUser, ...(userRecord || {}) };
 
       // Admins skip ALL mentor/onboarding processing — return immediately
       if (u.role === "admin") {
