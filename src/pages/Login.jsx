@@ -8,17 +8,15 @@ import { Mail, Lock, Loader2, Crown } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
 import { ACCOUNT_TYPES, completeEmailPasswordSignIn, linkGirlAccountToMentor } from "@/lib/authRules";
-import OtpVerifyStep from "@/components/OtpVerifyStep";
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [pendingRoute, setPendingRoute] = useState(null);
   const [pendingLinkFlow, setPendingLinkFlow] = useState(false);
   const [pendingUserRecord, setPendingUserRecord] = useState(null);
-  const [showOtp, setShowOtp] = useState(false);
 
   const isLinkFlow = new URLSearchParams(window.location.search).get("link") === "true";
 
@@ -32,29 +30,19 @@ export default function Login() {
         password,
         expectedAccountType: ACCOUNT_TYPES.GIRL,
       });
-      // Store destination and show OTP step
-      setPendingRoute(result.route);
       setPendingLinkFlow(isLinkFlow);
       setPendingUserRecord(result.userRecord);
-      setShowOtp(true);
+      if (isLinkFlow) {
+        await linkGirlAccountToMentor(result.userRecord);
+        window.location.href = "/dashboard";
+      } else {
+        window.location.href = result.route || "/dashboard";
+      }
     } catch (err) {
       setError(err.message || "Invalid email or password.");
       setLoading(false);
     }
   };
-
-  const handleOtpVerified = async () => {
-    if (pendingLinkFlow && pendingUserRecord) {
-      await linkGirlAccountToMentor(pendingUserRecord);
-      window.location.href = "/dashboard";
-      return;
-    }
-    window.location.href = pendingRoute || "/dashboard";
-  };
-
-  if (showOtp) {
-    return <OtpVerifyStep email={email} onVerified={handleOtpVerified} onError={setError} />;
-  }
 
   return (
     <div

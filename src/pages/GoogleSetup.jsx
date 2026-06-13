@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
-import OtpVerifyStep from "@/components/OtpVerifyStep";
+
 import {
   calculateGirlAgeGroup,
   clearAuthSession,
@@ -30,8 +30,7 @@ export default function GoogleSetup() {
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [user, setUser] = useState(null);
-  const [showOtp, setShowOtp] = useState(false);
-  const [pendingRoute, setPendingRoute] = useState(null);
+
 
   useEffect(() => {
     const init = async () => {
@@ -96,20 +95,15 @@ export default function GoogleSetup() {
 
         // If they already have a DOB set, skip this page
         if (dobSource && !isSignupIntent) {
-          // Returning user via OAuth — require OTP verification before proceeding
-          let route;
+          // Returning user via OAuth — redirect directly
           if (isMentor) {
             saveMentorOAuthPrefill(buildOAuthPrefill(u, { dateOfBirth: dobSource }));
-            route = "/mentor-dashboard";
+            window.location.href = "/mentor-dashboard";
           } else if (userProfile?.onboarding_complete) {
-            route = "/dashboard";
+            window.location.href = "/dashboard";
           } else {
-            route = "/onboarding";
+            window.location.href = "/onboarding";
           }
-          setUser(u);
-          setPendingRoute(route);
-          setShowOtp(true);
-          setChecking(false);
           return;
         }
       } catch (e) {
@@ -189,16 +183,6 @@ export default function GoogleSetup() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'radial-gradient(ellipse at top, #2d0a1e 0%, #1a0a18 40%, #0d0610 100%)' }}>
         <div className="w-8 h-8 border-4 border-pink-500/30 border-t-pink-500 rounded-full animate-spin" />
       </div>
-    );
-  }
-
-  if (showOtp && user) {
-    return (
-      <OtpVerifyStep
-        email={user.email}
-        onVerified={() => { window.location.href = pendingRoute || "/dashboard"; }}
-        onError={setError}
-      />
     );
   }
 

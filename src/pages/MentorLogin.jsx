@@ -8,15 +8,14 @@ import { Mail, Lock, Loader2, Crown } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
 import { ACCOUNT_TYPES, completeEmailPasswordSignIn } from "@/lib/authRules";
-import OtpVerifyStep from "@/components/OtpVerifyStep";
+
 
 export default function MentorLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [pendingRoute, setPendingRoute] = useState(null);
-  const [showOtp, setShowOtp] = useState(false);
+
 
   const handleSignIn = async () => {
     if (!email || !password) { setError("Please enter your email and password."); return; }
@@ -28,17 +27,12 @@ export default function MentorLogin() {
         password,
         expectedAccountType: ACCOUNT_TYPES.MENTOR,
       });
-      setPendingRoute(result.route);
-      setShowOtp(true);
+      window.location.href = result.route || "/mentor-dashboard";
     } catch (err) {
       setError(err.message || "Invalid email or password.");
       setLoading(false);
     }
   };
-
-  if (showOtp) {
-    return <OtpVerifyStep email={email} onVerified={() => { window.location.href = pendingRoute || "/mentor-dashboard"; }} onError={setError} />;
-  }
 
   const handleApple = () => base44.auth.loginWithProvider("apple", window.location.origin + "/google-setup?mentor=true&intent=signin");
   const handleGoogle = () => base44.auth.loginWithProvider("google", window.location.origin + "/google-setup?mentor=true&intent=signin");
