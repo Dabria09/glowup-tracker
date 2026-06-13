@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { deleteCurrentAccount } from '@/lib/accountDeletion';
+import { useUserContext } from '@/lib/UserContext';
 import BottomNav from '@/components/BottomNav';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
 import {
@@ -215,6 +216,7 @@ function DeleteAccountModal({ onClose }) {
 // ── Main Me Page ───────────────────────────────────────────────────────────
 export default function Me() {
   const navigate = useNavigate();
+  const { profile: ctxProfile, totalPoints: ctxPoints, username: ctxUsername, refreshProfile } = useUserContext();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [points, setPoints] = useState(null);
@@ -234,6 +236,19 @@ export default function Me() {
   const galleryFileRef = useRef();
   const [personaImages, setPersonaImages] = useState({});
   const [galleryImages, setGalleryImages] = useState([]);
+
+  // Sync context profile into local state whenever it changes
+  useEffect(() => {
+    if (ctxProfile) {
+      setProfile(ctxProfile);
+      if (ctxProfile.glow_persona_images) {
+        try { setPersonaImages(JSON.parse(ctxProfile.glow_persona_images)?.images || {}); } catch {}
+      }
+      if (ctxProfile.gallery_images) {
+        try { setGalleryImages(JSON.parse(ctxProfile.gallery_images) || []); } catch {}
+      }
+    }
+  }, [ctxProfile]);
 
   const loadProfile = async (email) => {
     const profiles = await base44.entities.UserProfile.filter({ user_email: email });
@@ -357,7 +372,7 @@ export default function Me() {
 
   // ── Glow Link ────────────────────────────────────────────────────────────
   const handleGlowLink = () => {
-    const username = profile?.username || user?.email?.split('@')[0] || '';
+    const username = ctxUsername || profile?.username || user?.email?.split('@')[0] || '';
     const url = `${window.location.origin}/glowlink/${username}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(() => {
@@ -393,7 +408,8 @@ export default function Me() {
     setPosts(prev => prev.filter(p => p.id !== postId));
   };
 
-  const tier = points?.total_points >= 500 ? 'Radiant' : points?.total_points >= 200 ? 'Glowing' : points?.total_points >= 50 ? 'Seedling' : 'Spark';
+  const displayPoints = ctxPoints ?? points?.total_points ?? 0;
+  const tier = displayPoints >= 500 ? 'Radiant' : displayPoints >= 200 ? 'Glowing' : displayPoints >= 50 ? 'Seedling' : 'Spark';
   const tierEmoji = { Radiant: '👑', Glowing: '✨', Seedling: '🌱', Spark: '⚡' }[tier];
 
   const stats = [
@@ -430,7 +446,7 @@ export default function Me() {
         {/* Points badge */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 12, paddingBottom: 4 }}>
           <button onClick={() => navigate('/glow-score')} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(241,182,16,0.1)', border: '1.5px solid rgba(241,182,16,0.35)', color: GOLD_LT, fontSize: 12, fontWeight: 700, padding: '6px 12px', borderRadius: 20, cursor: 'pointer' }}>
-            🏅 {points?.total_points?.toLocaleString() || 0} pts
+            🏅 {displayPoints.toLocaleString()} pts
           </button>
         </div>
 
@@ -442,13 +458,13 @@ export default function Me() {
             </button>
             <div style={{ flex: 1 }}>
               <p style={{ fontWeight: 700, fontSize: 20, color: WHITE, margin: 0 }}>{user?.full_name}</p>
-              <p style={{ fontSize: 13, color: MUTED, margin: '2px 0 0' }}>@{profile?.username || user?.email?.split('@')[0]}</p>
+              <p style={{ fontSize: 13, color: MUTED, margin: '2px 0 0' }}>@{ctxUsername || profile?.username || user?.email?.split('@')[0]}</p>
               {profile?.bio && <p style={{ fontSize: 12, color: MUTED2, margin: '4px 0 0', lineHeight: 1.4 }}>{profile.bio}</p>}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                 <span>{tierEmoji}</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: '#ffb2c0' }}>{tier}</span>
                 <span style={{ color: MUTED2 }}>·</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: GOLD_LT }}>{points?.total_points || 0} pts</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: GOLD_LT }}>{displayPoints.toLocaleString()} pts</span>
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { useUserContext } from '@/lib/UserContext';
 import { ChevronLeft, ChevronDown, Flame, Zap, Sparkles, Lock } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
@@ -33,8 +34,8 @@ const SEASONAL_EVENTS = [
 
 export default function GlowScore() {
   const navigate = useNavigate();
+  const { totalPoints } = useUserContext();
   const [user, setUser] = useState(null);
-  const [totalPoints, setTotalPoints] = useState(0);
   const [dayStreak, setDayStreak] = useState(0);
   const [activities, setActivities] = useState(0);
   const [expandedTier, setExpandedTier] = useState(null);
@@ -42,12 +43,7 @@ export default function GlowScore() {
   useEffect(() => {
     base44.auth.me().then(async (u) => {
       setUser(u);
-      const [pts, hist] = await Promise.all([
-        base44.entities.UserPoints.filter({ user_email: u.email }),
-        base44.entities.PointsHistory.filter({ user_email: u.email }, '-created_date', 200),
-      ]);
-      const total = pts.length > 0 ? pts[0].total_points || 0 : 0;
-      setTotalPoints(total);
+      const hist = await base44.entities.PointsHistory.filter({ user_email: u.email }, '-created_date', 200);
       setActivities(hist.length);
 
       const daySet = new Set(hist.map(e => new Date(e.created_date).toISOString().split('T')[0]));

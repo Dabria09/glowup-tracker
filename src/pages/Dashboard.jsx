@@ -3,6 +3,7 @@ import useAgeGroup from '@/lib/useAgeGroup';
 import useTranslation from '@/lib/useTranslation';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
+import { useUserContext } from '@/lib/UserContext';
 import { Search, X, Plus, Check, ChevronRight, Settings } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import CustomizeModal from '@/components/CustomizeModal';
@@ -484,6 +485,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { worldInfo } = useAgeGroup();
+  const { totalPoints, profile: ctxProfile, username: ctxUsername } = useUserContext();
   const [user, setUser] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [profileData, setProfileData] = useState(null);
@@ -494,7 +496,6 @@ export default function Dashboard() {
   const [bgPattern, setBgPattern] = useState('none');
   const [bgImage, setBgImage] = useState(null);
   const [bgImagePos, setBgImagePos] = useState({ x: 50, y: 50 });
-  const [totalPoints, setTotalPoints] = useState(0);
   const [homeAppIds, setHomeAppIds] = useState(() => {
     // One-time migration: force-clear any banned IDs from localStorage right now
     const saved = loadSaved('ggu_home_apps', DEFAULT_HOME_IDS);
@@ -595,13 +596,8 @@ export default function Dashboard() {
       {setCheckedInToday(false);}
     };
 
-    const refreshPoints = async (userEmail) => {
-      const pts = await base44.entities.UserPoints.filter({ user_email: userEmail });
-      setTotalPoints(pts.length > 0 ? pts[0].total_points || 0 : 0);
-    };
-
-    const onVisibilityChange = () => {if (email && document.visibilityState === 'visible') {checkCheckin(email);refreshPoints(email);}};
-    const onCheckinComplete = () => {if (email) {checkCheckin(email);refreshPoints(email);}};
+    const onVisibilityChange = () => {if (email && document.visibilityState === 'visible') {checkCheckin(email);}};
+    const onCheckinComplete = () => {if (email) {checkCheckin(email);}};
     document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('ggu_checkin_complete', onCheckinComplete);
 
@@ -609,7 +605,6 @@ export default function Dashboard() {
       email = u.email;
       setUser(u);
       await checkCheckin(u.email);
-      await refreshPoints(u.email);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
       if (profiles.length) {
         const profile = profiles[0];
@@ -756,7 +751,7 @@ export default function Dashboard() {
   }, [folders, setHomeAppIdsAndSave]);
 
   const firstName = user?.full_name?.split(' ')[0] || 'Gorgeous';
-  const username = user?.email?.split('@')[0] || 'user';
+  const username = ctxUsername || profileData?.username || user?.email?.split('@')[0] || 'user';
   const greetingEmoji = { greeting_morning: '🌅', greeting_afternoon: '☀️', greeting_evening: '🌙' };
   const greetingKey = getGreeting();
 

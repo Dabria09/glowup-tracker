@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AppModeGate from '@/components/AppModeGate';
+import { UserProvider } from '@/lib/UserContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MentorSignup from './pages/MentorSignup';
@@ -278,10 +279,12 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
+        <UserProvider>
+          <Router>
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+        </UserProvider>
       </QueryClientProvider>
     </AuthProvider>
   )
