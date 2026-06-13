@@ -40,7 +40,10 @@ export default function AppModeGate() {
       }
 
       let mentorEntity = null;
-      if (!hasMentorAccount(u)) {
+      // Only attempt mentor promotion if the account is not already explicitly set to 'girl'.
+      // This prevents stale Mentor entity records from overriding a legitimate community user.
+      const explicitlyGirl = u.account_type === ACCOUNT_TYPES.GIRL;
+      if (!hasMentorAccount(u) && !explicitlyGirl) {
         mentorEntity = await loadMentorEntityByEmail(u.email);
         // loadMentorEntityByEmail already only returns APPROVED mentors
         // Only promote to mentor account type if genuinely approved
@@ -66,7 +69,8 @@ export default function AppModeGate() {
       }
 
       // If user has mentor account type but status not yet approved, sync from DB
-      if (hasMentorAccount(u) && u.mentor_status !== "approved") {
+      // (skip if account was explicitly girl — we never want to re-promote them)
+      if (!explicitlyGirl && hasMentorAccount(u) && u.mentor_status !== "approved") {
         try {
           mentorEntity = mentorEntity || await loadMentorEntityByEmail(u.email);
           if (mentorEntity?.is_approved === true) {
