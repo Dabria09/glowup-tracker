@@ -49,8 +49,9 @@ export default function Register() {
       await base44.auth.register({ email, password });
       setShowOtp(true);
     } catch (err) {
-      if (err.message?.toLowerCase().includes("already") || err.message?.toLowerCase().includes("exist")) {
-        setError("An account with this email already exists. Please sign in instead.");
+      const msg = err.message?.toLowerCase() || "";
+      if (msg.includes("already") || msg.includes("exist")) {
+        setError("This email was recently used. Please try again in a few minutes or contact support.");
       } else {
         setError(err.message || "Registration failed");
       }

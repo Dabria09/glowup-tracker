@@ -183,11 +183,9 @@ export async function loadCurrentUserRecord(currentUser) {
 
 export async function saveCurrentUserRecord(currentUser, fields, options = {}) {
   if (!currentUser?.id) throw new Error("Missing current user ID.");
+  // Always clear any stale tombstone on fresh save — deletion now does a hard delete
+  // so tombstones should not exist, but clear defensively just in case.
   const deletedAccountRecord = await loadDeletedAccountRecord(currentUser);
-  if (deletedAccountRecord && !options.allowDeletedAccountRecreation) {
-    throw new Error("This account has been deleted. Please use a different email to create a new account.");
-  }
-  // Clear the deleted account tombstone so subsequent flows (Onboarding, etc.) treat this as a fresh account
   if (deletedAccountRecord) await clearDeletedAccountRecord(currentUser);
 
   const payload = {
