@@ -96,7 +96,7 @@ export default function MentorSignup() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/google-setup?mentor=true&intent=signup");
+    base44.auth.loginWithProvider("google", window.location.origin + "/google-setup?mentor=true&intent=signup");
   };
 
   if (showOtp) {
