@@ -37,12 +37,10 @@ export const AuthProvider = ({ children }) => {
         }
 
         const userRecord = await loadCurrentUserRecord(currentUser);
-        if (!userRecord && USER_RECORD_OPTIONAL_PATHS.has(window.location.pathname)) {
-          setUser(currentUser);
-          return;
-        }
 
-        if (!userRecord || isDeletedAccount(userRecord)) {
+        // Only block/logout if the account is explicitly deleted — never just because
+        // the user record hasn't been created yet (new OAuth signups land here before setup).
+        if (userRecord && isDeletedAccount(userRecord)) {
           await clearAuthSession();
           setAuthError({ type: 'auth_required', message: 'Authentication required' });
           setUser(null);
@@ -50,7 +48,8 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        setUser({ ...currentUser, ...userRecord });
+        // If no record yet (new OAuth user mid-setup), use the auth user object as-is
+        setUser(userRecord ? { ...currentUser, ...userRecord } : currentUser);
       }
     } catch (error) {
       console.error('User auth check failed:', error);
