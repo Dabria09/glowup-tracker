@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import StepDOB from '@/components/onboarding/StepDOB';
 import StepUsername from '@/components/onboarding/StepUsername';
 import StepParentalConsent from '@/components/onboarding/StepParentalConsent';
-import StepAgreement from '@/components/onboarding/StepAgreement';
+import StepCommunityAgreement from '@/components/onboarding/StepCommunityAgreement';
 import StepComplete from '@/components/onboarding/StepComplete';
 import NewUserTour from '@/components/NewUserTour';
 import {
@@ -287,7 +287,7 @@ export default function Onboarding() {
         {currentStep === 'username' && <StepUsername data={data} update={update} onNext={next} onBack={back} />}
         {currentStep === 'parental' && <StepParentalConsent data={data} update={update} onNext={next} onBack={back} />}
         {currentStep === 'agreement' && (
-          <StepAgreement
+          <StepCommunityAgreement
             onBack={back}
             onSubmit={() => handleComplete()}
             loading={false}
