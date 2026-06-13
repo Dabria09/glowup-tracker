@@ -13,7 +13,8 @@ import { ACCOUNT_TYPES, completeEmailPasswordSignIn, linkGirlAccountToMentor } f
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const urlError = new URLSearchParams(window.location.search).get("error") || "";
+  const [error, setError] = useState(urlError ? decodeURIComponent(urlError) : "");
   const [loading, setLoading] = useState(false);
   const [pendingLinkFlow, setPendingLinkFlow] = useState(false);
   const [pendingUserRecord, setPendingUserRecord] = useState(null);

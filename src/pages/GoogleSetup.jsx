@@ -68,7 +68,10 @@ export default function GoogleSetup() {
             return;
           }
           await clearAuthSession();
-          window.location.href = isMentor ? "/mentor-login" : "/login";
+          const deletedMsg = encodeURIComponent("No account found. Please sign up to join the Sisterhood.");
+          window.location.href = isMentor
+            ? "/mentor-login"
+            : `/login?error=${deletedMsg}`;
           return;
         }
         if (!mergedUser.account_type && await hasDeletedMentorEntityByEmail(mergedUser.email)) {

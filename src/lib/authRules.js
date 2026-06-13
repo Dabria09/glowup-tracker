@@ -344,7 +344,7 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
 
   if (isDeletedAccount(userRecord)) {
     await clearAuthSession();
-    throw new Error("This account has been deleted. Please create a new account.");
+    throw new Error("No account found. Please sign up to join the Sisterhood.");
   }
 
   // Admins bypass all role checks and go straight to dashboard
@@ -358,7 +358,7 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
   const hasDeletedMentorEntity = !mentorEntity && await hasDeletedMentorEntityByEmail(currentUser.email);
   if (hasDeletedMentorEntity && !mentorApplication && !userRecord.account_type) {
     await clearAuthSession();
-    throw new Error("This account has been deleted. Please create a new account.");
+    throw new Error("No account found. Please sign up to join the Sisterhood.");
   }
   // Only count as having mentor access if there's an APPROVED mentor entity.
   // A pending/rejected application alone does NOT grant mentor access.
