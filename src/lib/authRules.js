@@ -150,7 +150,11 @@ export async function clearAuthSession() {
 
 export async function loadCurrentUserRecord(currentUser) {
   if (!currentUser?.id) return null;
+
+  // If the auth token itself is marked deleted, trust it
   if (isDeletedAccount(currentUser)) return currentUser;
+
+  // Check the DeletedAccount tombstone table
   const deletedAccount = await loadDeletedAccountRecord(currentUser);
   if (deletedAccount) {
     return {
@@ -163,21 +167,24 @@ export async function loadCurrentUserRecord(currentUser) {
 
   try {
     const userRecord = await base44.entities.User.get(currentUser.id);
-    if (userRecord) return userRecord;
-  } catch {
-    // Fall through to email lookup below. Some deleted/provider accounts can
-    // still have an auth session even after their app User row is gone.
-  }
-
-  if (currentUser.email) {
-    try {
-      const users = await base44.entities.User.filter({ email: currentUser.email });
-      return users?.[0] || null;
-    } catch {
-      return null;
+    if (userRecord) {
+      // The User entity row may be a stale tombstone from a prior account that
+      // shared the same platform user ID (e.g. re-registered after hard delete).
+      // If the row is marked deleted but the live auth token is NOT deleted,
+      // treat it as a fresh/clean account and ignore the stale row.
+      if (isDeletedAccount(userRecord) && !isDeletedAccount(currentUser)) {
+        // Clear the stale row so it won't block again
+        try { await base44.entities.User.delete(userRecord.id); } catch {}
+        return null;
+      }
+      return userRecord;
     }
+  } catch {
+    // User entity row doesn't exist yet — that's fine for brand new accounts
   }
 
+  // Do NOT fall back to email lookup — that could return a stale deleted row
+  // from a previous account that happened to use the same email.
   return null;
 }
 

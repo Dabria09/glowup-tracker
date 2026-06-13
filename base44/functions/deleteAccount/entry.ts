@@ -92,20 +92,26 @@ Deno.serve(async (req) => {
       console.warn('User entity delete failed (non-blocking):', e.message);
     }
 
-    // Hard-delete the auth credentials so the email is immediately free
+    // Hard-delete the auth credentials so the email is immediately free.
+    // Do NOT call updateMe({ isDeleted: true }) as a fallback — that marker
+    // persists on the auth token and gets inherited by any new account that
+    // reuses the same email, causing a silent deleted-account loop.
     let authDeleted = false;
     try {
       await base44.auth.deleteMe();
       authDeleted = true;
     } catch (e) {
       console.error('deleteMe error (may be app owner):', e.message);
-      // Fall back: soft-delete marker so sign-in is still blocked
-      try {
-        await base44.auth.updateMe({ isDeleted: true, deleted_at: new Date().toISOString() });
-      } catch {}
     }
 
-    return Response.json({ success: true, type: authDeleted ? 'hard_delete' : 'soft_delete' });
+    if (!authDeleted) {
+      return Response.json({
+        success: false,
+        error: 'Account deletion could not be completed. Please try again or contact support.',
+      }, { status: 500 });
+    }
+
+    return Response.json({ success: true, type: 'hard_delete' });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
