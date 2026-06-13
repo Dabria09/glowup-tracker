@@ -190,30 +190,41 @@ export async function loadCurrentUserRecord(currentUser) {
 
 export async function saveCurrentUserRecord(currentUser, fields, options = {}) {
   if (!currentUser?.id) throw new Error("Missing current user ID.");
-  // Always clear any stale tombstone on fresh save — deletion now does a hard delete
-  // so tombstones should not exist, but clear defensively just in case.
+
+  // Always clear any stale tombstone records
   const deletedAccountRecord = await loadDeletedAccountRecord(currentUser);
   if (deletedAccountRecord) await clearDeletedAccountRecord(currentUser);
+
+  // Ensure stale deleted markers are wiped from the auth token before saving
+  // This covers re-registration via Google OAuth where the auth token may still
+  // carry isDeleted:true from a prior soft-delete on the same account.
+  const cleanFields = {
+    isDeleted: false,
+    is_deleted: false,
+    deleted_at: null,
+    deletedAt: null,
+    ...fields,
+  };
 
   const payload = {
     id: currentUser.id,
     email: currentUser.email,
-    ...fields,
+    ...cleanFields,
   };
 
-  const updatedUser = await base44.auth.updateMe(fields);
+  const updatedUser = await base44.auth.updateMe(cleanFields);
 
   try {
     return await base44.entities.User.update(currentUser.id, {
       email: currentUser.email,
-      ...fields,
+      ...cleanFields,
     });
   } catch (error) {
     try {
       return await base44.entities.User.create(payload);
     } catch (createError) {
       console.warn("User entity sync skipped after auth update:", createError || error);
-      return updatedUser || { ...currentUser, ...fields };
+      return updatedUser || { ...currentUser, ...cleanFields };
     }
   }
 }

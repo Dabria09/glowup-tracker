@@ -64,6 +64,12 @@ export default function GoogleSetup() {
 
         if (isDeletedAccount(mergedUser)) {
           if (isSignupIntent) {
+            // Wipe stale deleted markers from auth token immediately so subsequent
+            // saveCurrentUserRecord calls start with a clean slate
+            try {
+              await base44.auth.updateMe({ isDeleted: false, is_deleted: false, deleted_at: null, deletedAt: null });
+            } catch {}
+            setUser({ ...u, isDeleted: false, is_deleted: false, deleted_at: null, deletedAt: null });
             setChecking(false);
             return;
           }
