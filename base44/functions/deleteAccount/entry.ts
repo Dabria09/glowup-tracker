@@ -85,23 +85,30 @@ Deno.serve(async (req) => {
       }
     }));
 
-    // Also remove the User entity row entirely
-    try {
-      await sr.entities.User.delete(user.id);
-    } catch (e) {
-      console.warn('User entity delete failed (non-blocking):', e.message);
-    }
-
-    // Hard-delete the auth credentials so the email is immediately free.
-    // Do NOT call updateMe({ isDeleted: true }) as a fallback — that marker
-    // persists on the auth token and gets inherited by any new account that
-    // reuses the same email, causing a silent deleted-account loop.
+    // Delete the User entity row via service role — this is the primary deletion
+    // mechanism (mirrors adminDeleteUser which is known to work).
+    // deleteMe() is attempted first as a clean auth-layer delete, but if it
+    // fails (e.g. platform restriction), the sr.entities.User.delete is the fallback.
     let authDeleted = false;
     try {
       await base44.auth.deleteMe();
       authDeleted = true;
     } catch (e) {
-      console.error('deleteMe error (may be app owner):', e.message);
+      console.warn('deleteMe failed, falling back to sr entity delete:', e.message);
+    }
+
+    if (!authDeleted) {
+      try {
+        await sr.entities.User.delete(user.id);
+        authDeleted = true;
+      } catch (e) {
+        console.error('sr.entities.User.delete also failed:', e.message);
+      }
+    } else {
+      // deleteMe succeeded — also clean up the entity row
+      try {
+        await sr.entities.User.delete(user.id);
+      } catch {}
     }
 
     if (!authDeleted) {
