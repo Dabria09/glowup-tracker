@@ -187,6 +187,7 @@ export async function saveCurrentUserRecord(currentUser, fields, options = {}) {
   if (deletedAccountRecord && !options.allowDeletedAccountRecreation) {
     throw new Error("This account has been deleted. Please use a different email to create a new account.");
   }
+  // Clear the deleted account tombstone so subsequent flows (Onboarding, etc.) treat this as a fresh account
   if (deletedAccountRecord) await clearDeletedAccountRecord(currentUser);
 
   const payload = {

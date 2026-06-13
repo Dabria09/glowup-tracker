@@ -81,7 +81,7 @@ export default function Register() {
         created_at: new Date().toISOString()
       };
 
-      const savedRecord = await saveCurrentUserRecord(currentUser, userFields);
+      const savedRecord = await saveCurrentUserRecord(currentUser, userFields, { allowDeletedAccountRecreation: true });
 
       if (isLinkFlow) {
         await linkGirlAccountToMentor(savedRecord || currentUser);
