@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,10 +23,15 @@ import { buildOAuthPrefill, saveMentorOAuthPrefill, waitForOAuthUser } from "@/l
 
 export default function GoogleSetup() {
   const searchParams = new URLSearchParams(window.location.search);
-  // Read stored flow intent — community sign-in must never be treated as mentor
-  const storedFlow = localStorage.getItem('ggu_oauth_flow');
-  localStorage.removeItem('ggu_oauth_flow');
-  const isMentor = storedFlow === 'mentor' || (storedFlow !== 'community' && searchParams.get("mentor") === "true");
+  // Read stored flow intent once — remove immediately so it can't affect future loads.
+  // 'community' always wins; only treat as mentor if explicitly stored as 'mentor'.
+  // Never fall back to the URL param alone — that's how community users got routed to mentor.
+  const storedFlow = useMemo(() => {
+    const flow = localStorage.getItem('ggu_oauth_flow');
+    localStorage.removeItem('ggu_oauth_flow');
+    return flow;
+  }, []);
+  const isMentor = storedFlow === 'mentor';
   const isSignupIntent = searchParams.get("intent") === "signup";
   const [dob, setDob] = useState("");
   const [error, setError] = useState("");
