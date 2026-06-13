@@ -204,6 +204,10 @@ export default function Onboarding() {
       } else {
         await base44.entities.UserProfile.create(profileData);
       }
+      // Sync username to auth token so it's consistent everywhere in the app
+      if (data.username) {
+        await base44.auth.updateMe({ username: data.username }).catch(() => {});
+      }
       if (data.age < 13) {
         await base44.functions.invoke('sendParentalConsent', {
           context: 'girl',

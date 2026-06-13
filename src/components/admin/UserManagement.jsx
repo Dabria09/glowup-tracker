@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, ShieldOff, Shield, AlertTriangle, X, RefreshCw, CheckCircle, Clock } from 'lucide-react';
+import { Search, ShieldOff, Shield, AlertTriangle, X, RefreshCw, CheckCircle, Clock, Trash2 } from 'lucide-react';
 
 const AGE_GROUP_LABELS = {
   glow_girls: { label: 'Glow Girls', emoji: '🌸', color: '#ec4899' },
@@ -23,6 +23,8 @@ export default function UserManagement() {
   const [banModal, setBanModal] = useState(null);
   const [banForm, setBanForm] = useState({ ban_type: 'soft', reason: '' });
   const [adminEmail, setAdminEmail] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // email being confirmed for deletion
+  const [deleting, setDeleting] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -165,6 +167,19 @@ export default function UserManagement() {
     setBans(prev => [...prev, created]);
     setSaving(null);
     setBanModal(null);
+  };
+
+  const handleDeleteUser = async (email) => {
+    setDeleting(email);
+    try {
+      await base44.functions.invoke('adminDeleteUser', { targetEmail: email });
+      setUsers(prev => prev.filter(u => u.email !== email));
+      setProfiles(prev => prev.filter(p => p.user_email !== email));
+    } catch (err) {
+      alert('Delete failed: ' + err.message);
+    }
+    setDeleting(null);
+    setDeleteConfirm(null);
   };
 
   const liftBan = async (email) => {
@@ -389,6 +404,29 @@ export default function UserManagement() {
                     >
                       <ShieldOff size={10} /> Ban
                     </button>
+                  )}
+                  {u.email !== adminEmail && (
+                    deleteConfirm === u.email ? (
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleDeleteUser(u.email)}
+                          disabled={deleting === u.email}
+                          className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full font-bold text-white transition"
+                          style={{ background: 'rgba(239,68,68,0.7)', border: '1px solid rgba(239,68,68,0.8)' }}
+                        >
+                          {deleting === u.email ? '...' : 'Confirm'}
+                        </button>
+                        <button onClick={() => setDeleteConfirm(null)} className="text-[10px] px-2 py-1 rounded-full text-gray-400" style={{ background: 'rgba(255,255,255,0.05)' }}>✕</button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setDeleteConfirm(u.email)}
+                        className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full font-semibold text-gray-500 hover:text-red-400 transition"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                      >
+                        <Trash2 size={10} /> Delete
+                      </button>
+                    )
                   )}
                 </div>
               </div>
