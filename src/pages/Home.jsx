@@ -57,8 +57,8 @@ export default function Home() {
         const postLoginRoute = localStorage.getItem('ggu_post_login_route');
         if (postLoginRoute) {
           localStorage.removeItem('ggu_post_login_route');
-          // For mentor dashboard redirects, verify the user actually has a mentor account
-          if (postLoginRoute === '/mentor-dashboard') {
+          // For mentor dashboard redirects, verify the user actually has a mentor account (admins bypass)
+          if (postLoginRoute === '/mentor-dashboard' && u.role !== 'admin') {
             try {
               const { loadMentorEntityByEmail, loadMentorApplicationByEmail } = await import('@/lib/authRules');
               const [mentorEntity, mentorApplication] = await Promise.all([
