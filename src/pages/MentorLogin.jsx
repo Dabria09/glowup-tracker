@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, Loader2, Crown, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Loader2, Crown } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
 import { ACCOUNT_TYPES, completeEmailPasswordSignIn } from "@/lib/authRules";
@@ -15,7 +15,6 @@ export default function MentorLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
 
   const handleSignIn = async () => {
@@ -128,16 +127,13 @@ export default function MentorLogin() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <Input
-                type={showPassword ? "text" : "password"}
+                type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="pl-10 pr-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-pink-500"
+                className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-pink-500"
                 onKeyDown={e => e.key === 'Enter' && handleSignIn()}
               />
-              <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
             </div>
           </div>
 

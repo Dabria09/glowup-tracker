@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2, Users, Sparkles, Eye, EyeOff } from "lucide-react";
+import { UserPlus, Mail, Lock, Loader2, Users, Sparkles } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
 import { toast } from "sonner";
@@ -20,8 +20,6 @@ export default function MentorSignup() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
@@ -234,16 +232,13 @@ export default function MentorSignup() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-amber-500"
+                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-amber-500"
                   required
                 />
-                <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
             </div>
             <div className="space-y-2">
@@ -252,16 +247,13 @@ export default function MentorSignup() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <Input
                   id="confirm"
-                  type={showConfirmPassword ? "text" : "password"}
+                  type="password"
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 pr-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-amber-500"
+                  className="pl-10 h-12 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-amber-500"
                   required
                 />
-                <button type="button" onClick={() => setShowConfirmPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
             </div>
 

@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Sparkles, Eye, EyeOff } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -19,8 +19,6 @@ export default function Register() {
   const urlError = new URLSearchParams(window.location.search).get("error") || "";
   const [error, setError] = useState(urlError ? decodeURIComponent(urlError) : "");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [pendingAge, setPendingAge] = useState(null);
@@ -193,18 +191,8 @@ export default function Register() {
           <div className="space-y-3">
             <Input placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500" />
             <Input type="email" placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500" />
-            <div className="relative">
-              <Input type={showPassword ? "text" : "password"} placeholder="Password (min 8 characters)" value={password} onChange={e => setPassword(e.target.value)} className="h-12 pr-10 bg-white/5 border-white/10 text-white placeholder-gray-500" />
-              <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            <div className="relative">
-              <Input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="h-12 pr-10 bg-white/5 border-white/10 text-white placeholder-gray-500" />
-              <button type="button" onClick={() => setShowConfirmPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
-                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+            <Input type="password" placeholder="Password (min 8 characters)" value={password} onChange={e => setPassword(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500" />
+            <Input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500" />
             <div className="space-y-1">
               <Label className="text-xs text-gray-400 font-bold uppercase tracking-widest">Date of Birth</Label>
               <Input type="date" value={dob} onChange={e => setDob(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white" />
