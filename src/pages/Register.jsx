@@ -16,7 +16,8 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [dob, setDob] = useState("");
-  const [error, setError] = useState("");
+  const urlError = new URLSearchParams(window.location.search).get("error") || "";
+  const [error, setError] = useState(urlError ? decodeURIComponent(urlError) : "");
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
@@ -180,7 +181,12 @@ export default function Register() {
             <div className="relative flex justify-center text-xs uppercase"><span className="px-3 text-gray-500" style={{ background: 'rgba(26,10,24,0.9)' }}>Or register with email</span></div>
           </div>
 
-          {error && <div className="p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">{error}</div>}
+          {error && (
+            <div className="p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">
+              {error}
+              {urlError && <span className="block mt-1 text-xs text-gray-400">Already have an account? <Link to="/login" className="text-pink-400 font-semibold hover:underline">Sign in here</Link></span>}
+            </div>
+          )}
 
           <div className="space-y-3">
             <Input placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} className="h-12 bg-white/5 border-white/10 text-white placeholder-gray-500" />

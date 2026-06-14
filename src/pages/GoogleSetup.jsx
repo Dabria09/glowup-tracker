@@ -33,6 +33,7 @@ export default function GoogleSetup() {
   }, []);
   const isMentor = storedFlow === 'mentor';
   const isSignupIntent = searchParams.get("intent") === "signup";
+  const isSigninIntent = searchParams.get("intent") === "signin";
   const [dob, setDob] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -109,6 +110,14 @@ export default function GoogleSetup() {
         } catch {}
 
         const dobSource = u.date_of_birth || userRecord?.date_of_birth || userProfile?.date_of_birth;
+
+        // If signing in (not signing up) and no existing profile found, block them
+        if (isSigninIntent && !isMentor && !dobSource && !userProfile?.onboarding_complete) {
+          await clearAuthSession();
+          const msg = encodeURIComponent("No account found with that email. Please sign up to join the Sisterhood.");
+          window.location.href = `/register?error=${msg}`;
+          return;
+        }
 
         // If they already have a DOB set, skip this page
         if (dobSource && !isSignupIntent) {
