@@ -49,7 +49,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
+    base44.auth.me().then(async u => {
       setUser(u);
       // Honor a post-login redirect flag set before loginViaEmailPassword
       // (which always hard-redirects to "/").
@@ -57,6 +57,24 @@ export default function Home() {
         const postLoginRoute = localStorage.getItem('ggu_post_login_route');
         if (postLoginRoute) {
           localStorage.removeItem('ggu_post_login_route');
+          // For mentor dashboard redirects, verify the user actually has a mentor account
+          if (postLoginRoute === '/mentor-dashboard') {
+            try {
+              const { loadMentorEntityByEmail, loadMentorApplicationByEmail } = await import('@/lib/authRules');
+              const [mentorEntity, mentorApplication] = await Promise.all([
+                loadMentorEntityByEmail(u.email),
+                loadMentorApplicationByEmail(u.email),
+              ]);
+              if (!mentorEntity && !mentorApplication) {
+                // No mentor account — sign them out and redirect back with error
+                await base44.auth.logout();
+                window.location.href = '/mentor-login?error=no_account';
+                return;
+              }
+            } catch {
+              // If check fails, allow the redirect to proceed
+            }
+          }
           window.location.href = postLoginRoute;
         }
       }

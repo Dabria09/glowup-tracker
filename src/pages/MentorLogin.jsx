@@ -13,8 +13,12 @@ import { ACCOUNT_TYPES, completeEmailPasswordSignIn } from "@/lib/authRules";
 export default function MentorLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const isNoAccountError = new URLSearchParams(window.location.search).get('error') === 'no_account';
+  const [error, setError] = useState(
+    isNoAccountError ? "No mentor account found with this email. Don't have one yet?" : ""
+  );
 
 
   const handleSignIn = async () => {
@@ -105,6 +109,9 @@ export default function MentorLogin() {
           {error && (
             <div className="p-3 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20">
               {error}
+              {isNoAccountError && (
+                <span> <Link to="/mentor-register" className="font-bold underline text-yellow-400">Apply to become a mentor →</Link></span>
+              )}
             </div>
           )}
 
