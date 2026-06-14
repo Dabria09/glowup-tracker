@@ -9,6 +9,7 @@ import BrandLogo from "@/components/BrandLogo";
 import {
   calculateGirlAgeGroup,
   clearAuthSession,
+  clearDeletedAccountRecord,
   hasDeletedMentorEntityByEmail,
   hasMentorAccount,
   isMentorModeActive,
@@ -70,6 +71,9 @@ export default function GoogleSetup() {
             try {
               await base44.auth.updateMe({ isDeleted: false, is_deleted: false, deleted_at: null, deletedAt: null });
             } catch {}
+            // Explicitly clear the DeletedAccount tombstone entity to prevent
+            // re-registration issues for users with the same email
+            await clearDeletedAccountRecord(u);
             setUser({ ...u, isDeleted: false, is_deleted: false, deleted_at: null, deletedAt: null });
             setChecking(false);
             return;
