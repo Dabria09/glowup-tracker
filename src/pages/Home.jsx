@@ -49,7 +49,18 @@ export default function Home() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
+    base44.auth.me().then(u => {
+      setUser(u);
+      // Honor a post-login redirect flag set before loginViaEmailPassword
+      // (which always hard-redirects to "/").
+      if (u) {
+        const postLoginRoute = localStorage.getItem('ggu_post_login_route');
+        if (postLoginRoute) {
+          localStorage.removeItem('ggu_post_login_route');
+          window.location.href = postLoginRoute;
+        }
+      }
+    }).catch(() => setUser(null));
   }, []);
 
   const handleMentorSignIn = () => {

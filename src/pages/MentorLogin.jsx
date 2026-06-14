@@ -22,13 +22,18 @@ export default function MentorLogin() {
     setError("");
     setLoading(true);
     try {
+      // loginViaEmailPassword hard-redirects to "/" — persist the intended
+      // destination so Home.jsx can pick it up and forward to the right place.
+      localStorage.setItem('ggu_post_login_route', '/mentor-dashboard');
       const result = await completeEmailPasswordSignIn({
         email,
         password,
         expectedAccountType: ACCOUNT_TYPES.MENTOR,
       });
+      localStorage.removeItem('ggu_post_login_route');
       window.location.href = result.route || "/mentor-dashboard";
     } catch (err) {
+      localStorage.removeItem('ggu_post_login_route');
       setError(err.message || "Invalid email or password.");
       setLoading(false);
     }
