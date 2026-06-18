@@ -195,7 +195,7 @@ export default function AppModeGate() {
   const isGirlPath = ["/dashboard", "/discover", "/glow", "/connect", "/me"].some(p => location.pathname.startsWith(p));
 
   if (mentorModeActive && isGirlPath) return <Navigate to="/mentor-dashboard" replace />;
-  if (user.account_type === "girl" && isMentorPath) return <Navigate to="/dashboard" replace />;
+  if (user.account_type === "girl" && isMentorPath && user.role !== "admin") return <Navigate to="/dashboard" replace />;
   if (user.account_type === "linked") {
     if (user.active_mode === "mentor" && isGirlPath) return <Navigate to="/mentor-dashboard" replace />;
     if (user.active_mode === "girl" && isMentorPath) return <Navigate to="/dashboard" replace />;

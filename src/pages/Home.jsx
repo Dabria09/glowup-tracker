@@ -62,7 +62,7 @@ export default function Home() {
             try {
               const { loadMentorEntityByEmail } = await import('@/lib/authRules');
               const mentorEntity = await loadMentorEntityByEmail(u.email);
-              if (!mentorEntity) {
+              if (!mentorEntity || mentorEntity.is_approved !== true) {
                 // No approved mentor account — log out and show error on mentor login page
                 await base44.auth.logout();
                 window.location.href = '/mentor-login?error=no_mentor_account';
