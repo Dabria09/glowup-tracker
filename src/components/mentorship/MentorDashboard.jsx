@@ -61,14 +61,11 @@ export default function MentorDashboard() {
           return;
         }
 
-        // Admins can access the mentor dashboard regardless of mentor entity status
-        const isAdmin = authUser.role === 'admin' || userRecord.role === 'admin';
-
         let inferredMentorProfile = null;
         const mentorApplication = await loadMentorApplicationByEmail(authUser.email);
         inferredMentorProfile = await loadMentorEntityByEmail(authUser.email);
         const isMentorAccount = Boolean(inferredMentorProfile || mentorApplication);
-        if (!isMentorAccount && !isAdmin) {
+        if (!isMentorAccount) {
           if (getAccountType(userRecord) === ACCOUNT_TYPES.GIRL) {
             window.location.href = '/dashboard';
             return;

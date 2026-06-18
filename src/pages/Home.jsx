@@ -58,7 +58,7 @@ export default function Home() {
         if (postLoginRoute) {
           localStorage.removeItem('ggu_post_login_route');
           // For mentor dashboard redirects, verify the user actually has a mentor account (admins bypass)
-          if (postLoginRoute === '/mentor-dashboard' && u.role !== 'admin') {
+          if (postLoginRoute === '/mentor-dashboard') {
             try {
               const { loadMentorEntityByEmail } = await import('@/lib/authRules');
               const mentorEntity = await loadMentorEntityByEmail(u.email);
