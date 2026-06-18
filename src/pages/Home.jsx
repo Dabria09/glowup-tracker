@@ -60,15 +60,12 @@ export default function Home() {
           // For mentor dashboard redirects, verify the user actually has a mentor account (admins bypass)
           if (postLoginRoute === '/mentor-dashboard' && u.role !== 'admin') {
             try {
-              const { loadMentorEntityByEmail, loadMentorApplicationByEmail } = await import('@/lib/authRules');
-              const [mentorEntity, mentorApplication] = await Promise.all([
-                loadMentorEntityByEmail(u.email),
-                loadMentorApplicationByEmail(u.email),
-              ]);
-              if (!mentorEntity && !mentorApplication) {
-                // No mentor account — sign them out and redirect back with error
+              const { loadMentorEntityByEmail } = await import('@/lib/authRules');
+              const mentorEntity = await loadMentorEntityByEmail(u.email);
+              if (!mentorEntity) {
+                // No approved mentor account — log out and show error on mentor login page
                 await base44.auth.logout();
-                window.location.href = '/mentor-login?error=no_account';
+                window.location.href = '/mentor-login?error=no_mentor_account';
                 return;
               }
             } catch {

@@ -15,9 +15,12 @@ export default function MentorLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const isNoAccountError = new URLSearchParams(window.location.search).get('error') === 'no_account';
+  const errorParam = new URLSearchParams(window.location.search).get('error');
+  const isNoAccountError = errorParam === 'no_account' || errorParam === 'no_mentor_account';
   const [error, setError] = useState(
-    isNoAccountError ? "No mentor account found with this email. Don't have one yet?" : ""
+    isNoAccountError
+      ? "No mentor account found for this email address. Please apply to become a mentor or contact support."
+      : ""
   );
 
 
@@ -26,11 +29,10 @@ export default function MentorLogin() {
     setError("");
     setLoading(true);
     try {
-      // Persist intended destination before auth redirect
       localStorage.setItem('ggu_oauth_flow', 'mentor');
       localStorage.setItem('ggu_post_login_route', '/mentor-dashboard');
       await base44.auth.loginViaEmailPassword(email.trim(), password);
-      // loginViaEmailPassword hard-redirects to "/" — Home.jsx will handle redirect to mentor-dashboard
+      // loginViaEmailPassword hard-redirects to "/" — Home.jsx will handle the mentor check
     } catch (err) {
       localStorage.removeItem('ggu_oauth_flow');
       localStorage.removeItem('ggu_post_login_route');
