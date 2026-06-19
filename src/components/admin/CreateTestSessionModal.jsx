@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Calendar, Clock, Users, Video, X, CheckCircle } from 'lucide-react';
+import { Video, X, CheckCircle, Calendar, Clock, Users } from 'lucide-react';
 
-export default function SessionBookingModal({ isOpen, onClose, onSuccess, prefillData = {} }) {
+export default function CreateTestSessionModal({ isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
-    mentor_email: prefillData.mentor_email || '',
-    mentee_email: prefillData.mentee_email || '',
-    session_date: '',
+    mentor_email: '',
+    mentee_email: '',
+    session_date: new Date().toISOString().split('T')[0],
     session_time: '',
-    session_type: 'Video Call',
-    topic: '',
+    topic: 'Test Session',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,19 +20,18 @@ export default function SessionBookingModal({ isOpen, onClose, onSuccess, prefil
     setLoading(true);
 
     try {
-      if (!formData.mentor_email || !formData.mentee_email || !formData.session_date || !formData.session_time) {
+      if (!formData.mentor_email || !formData.mentee_email || !formData.session_time) {
         throw new Error('All fields are required');
       }
 
-      // Combine date and time
       const sessionDateTime = new Date(`${formData.session_date}T${formData.session_time}`).toISOString();
 
       const res = await base44.functions.invoke('createMentorSession', {
         mentor_email: formData.mentor_email,
         mentee_email: formData.mentee_email,
         session_date: sessionDateTime,
-        session_type: formData.session_type,
-        topic: formData.topic || 'Mentorship Session',
+        session_type: 'Video Call',
+        topic: formData.topic || 'Test Session',
       });
 
       if (res.data.error) {
@@ -45,6 +43,13 @@ export default function SessionBookingModal({ isOpen, onClose, onSuccess, prefil
         onSuccess?.(res.data.session);
         onClose();
         setSuccess(false);
+        setFormData({
+          mentor_email: '',
+          mentee_email: '',
+          session_date: new Date().toISOString().split('T')[0],
+          session_time: '',
+          topic: 'Test Session',
+        });
       }, 1500);
     } catch (err) {
       setError(err.message);
@@ -62,10 +67,10 @@ export default function SessionBookingModal({ isOpen, onClose, onSuccess, prefil
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Video size={18} className="text-pink-400" />
-              Book Video Session
+              <Video size={18} className="text-blue-400" />
+              Create Test Session
             </h2>
-            <p className="text-xs text-gray-400 mt-0.5">Schedule a mentorship video call</p>
+            <p className="text-xs text-gray-400 mt-0.5">Quick test session for video monitoring</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X size={20} />
@@ -77,8 +82,8 @@ export default function SessionBookingModal({ isOpen, onClose, onSuccess, prefil
             <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
               <CheckCircle size={32} className="text-green-400" />
             </div>
-            <p className="text-white font-semibold">Session Booked!</p>
-            <p className="text-xs text-gray-400 mt-1">You'll receive a reminder before the session.</p>
+            <p className="text-white font-semibold">Session Created!</p>
+            <p className="text-xs text-gray-400 mt-1">Go to Video tab to join the session.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -133,21 +138,6 @@ export default function SessionBookingModal({ isOpen, onClose, onSuccess, prefil
               </div>
             </div>
 
-            {/* Session Type */}
-            <div>
-              <label className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1.5 block">Session Type</label>
-              <select
-                value={formData.session_type}
-                onChange={e => setFormData({ ...formData, session_type: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none text-sm"
-              >
-                <option value="Video Call" style={{ background: '#1a0a2e' }}>📹 Video Call</option>
-                <option value="Phone Call" style={{ background: '#1a0a2e' }}>📞 Phone Call</option>
-                <option value="Chat" style={{ background: '#1a0a2e' }}>💬 Chat</option>
-                <option value="In-person" style={{ background: '#1a0a2e' }}>📍 In-person</option>
-              </select>
-            </div>
-
             {/* Topic */}
             <div>
               <label className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1.5 block">Topic</label>
@@ -155,7 +145,7 @@ export default function SessionBookingModal({ isOpen, onClose, onSuccess, prefil
                 type="text"
                 value={formData.topic}
                 onChange={e => setFormData({ ...formData, topic: e.target.value })}
-                placeholder="What will you discuss?"
+                placeholder="Test Session"
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 outline-none text-sm"
               />
             </div>
@@ -172,14 +162,14 @@ export default function SessionBookingModal({ isOpen, onClose, onSuccess, prefil
               type="submit"
               disabled={loading}
               className="w-full py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40"
-              style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}
+              style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)' }}
             >
-              {loading ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><CheckCircle size={16} /> Book Session</>}
+              {loading ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><CheckCircle size={16} /> Create Session</>}
             </button>
 
-            <p className="text-[10px] text-gray-500 text-center">
-              💡 Sessions are recorded automatically. You can join 15 minutes before the scheduled time.
-            </p>
+            <div className="p-3 rounded-xl text-[10px] text-gray-500" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              💡 <strong>Tip:</strong> Set the time 5-10 minutes from now to test the join functionality immediately.
+            </div>
           </form>
         )}
       </div>

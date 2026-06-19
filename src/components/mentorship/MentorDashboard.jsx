@@ -17,6 +17,7 @@ import MenteeDashboard from './MenteeDashboard';
 import ApplicationStatusTracker from './ApplicationStatusTracker';
 import MentorLesson from './MentorLesson';
 import MentorInbox from './MentorInbox';
+import MySessionsTab from './MySessionsTab';
 
 const TABS = ['Overview', 'Inbox', 'My Mentees', 'Sessions', 'Lesson', 'Profile'];
 
@@ -415,17 +416,8 @@ export default function MentorDashboard() {
         )}
 
         {/* ── SESSIONS TAB ── */}
-        {activeTab === 'Sessions' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <Section title="⏰ Upcoming" icon={<Clock size={14} />}>
-              {upcomingSessions.length === 0 ? <EmptyState emoji="📅" text="No upcoming sessions" /> :
-                upcomingSessions.map(s => <SessionRow key={s.id} session={s} accent="#e8526d" />)}
-            </Section>
-            <Section title="✅ Completed" icon={<CheckCircle size={14} />}>
-              {completedSessions.length === 0 ? <EmptyState emoji="🎉" text="No completed sessions yet" /> :
-                completedSessions.map(s => <SessionRow key={s.id} session={s} accent="rgba(255,255,255,0.3)" />)}
-            </Section>
-          </div>
+        {activeTab === 'Sessions' && user && (
+          <MySessionsTab user={user} />
         )}
 
 

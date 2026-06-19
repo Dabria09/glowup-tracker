@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Video, Play, ExternalLink, Users, AlertTriangle, X } from 'lucide-react';
+import { Video, Play, ExternalLink, Users, AlertTriangle, X, Plus } from 'lucide-react';
 import MentorVideoSession from '@/components/mentorship/MentorVideoSession';
+import CreateTestSessionModal from '@/components/admin/CreateTestSessionModal';
 
 const STATUS_META = {
   scheduled: { label: 'Scheduled', color: '#3b82f6', bg: 'rgba(59,130,246,0.2)' },
@@ -26,6 +27,7 @@ export default function VideoMonitorTab() {
   const [flagging, setFlagging] = useState(false);
   const [activeSession, setActiveSession] = useState(null);
   const [user, setUser] = useState(null);
+  const [showCreateSession, setShowCreateSession] = useState(false);
 
   const load = async () => {
     try {
@@ -63,7 +65,10 @@ export default function VideoMonitorTab() {
 
   const handleLeaveSession = () => {
     setActiveSession(null);
-    load();
+    // Reload sessions after leaving
+    base44.entities.MentorSession.list('-session_date', 50).then(s => {
+      setSessions(s);
+    });
   };
 
   const handleFlagSession = async () => {
@@ -100,9 +105,18 @@ export default function VideoMonitorTab() {
 
   return (
     <div className="space-y-4">
-      <div className="p-4 rounded-2xl" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' }}>
-        <p className="font-bold text-white text-sm flex items-center gap-2 mb-2"><Video size={16} className="text-blue-400" /> Video Session Monitor</p>
-        <p className="text-xs text-gray-400 leading-relaxed">Monitor all scheduled and live video sessions. You can join any session unannounced to ensure safety. All sessions are recorded automatically.</p>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex-1 p-4 rounded-2xl" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' }}>
+          <p className="font-bold text-white text-sm flex items-center gap-2 mb-1"><Video size={16} className="text-blue-400" /> Video Session Monitor</p>
+          <p className="text-xs text-gray-400 leading-relaxed">Monitor all sessions. Join unannounced to ensure safety.</p>
+        </div>
+        <button
+          onClick={() => setShowCreateSession(true)}
+          className="px-4 py-3 rounded-2xl font-bold text-white text-sm flex items-center gap-2"
+          style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)' }}
+        >
+          <Plus size={16} /> Create Test
+        </button>
       </div>
 
       <p className="text-sm font-semibold text-gray-300">All Video Sessions</p>
@@ -178,6 +192,15 @@ export default function VideoMonitorTab() {
       {/* Active Video Session */}
       {activeSession && user && (
         <MentorVideoSession session={activeSession} user={user} onLeave={handleLeaveSession} />
+      )}
+
+      {/* Create Test Session Modal */}
+      {showCreateSession && (
+        <CreateTestSessionModal
+          isOpen={showCreateSession}
+          onClose={() => setShowCreateSession(false)}
+          onSuccess={() => load()}
+        />
       )}
 
       {/* Flag Session Modal */}

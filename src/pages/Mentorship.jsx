@@ -303,7 +303,7 @@ export default function Mentorship() {
       <SessionBookingModal
         isOpen={showBookingModal}
         onClose={() => setShowBookingModal(false)}
-        mentor={selectedMentor}
+        prefillData={selectedMentor ? { mentor_email: selectedMentor.user_email } : {}}
         user={user}
         onBooked={() => {
           loadData();
