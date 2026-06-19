@@ -91,19 +91,28 @@ export default function GoogleSetup() {
           return;
         }
 
-        if (isMentor) {
-          const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
-          const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
-          const hasMentorMetadata = hasMentorAccount(mergedUser) || isMentorModeActive(mergedUser);
-          if (!mentorEntity && !mentorApplication && hasMentorMetadata) {
-            await clearAuthSession();
-            window.location.href = "/mentor-login";
-            return;
-          }
-          if (mentorEntity || mentorApplication) {
-            window.location.href = "/mentor-dashboard";
-            return;
-          }
+        // Check for mentor account FIRST - before any other routing logic
+        const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
+        const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
+        
+        if (mentorEntity && mentorEntity.is_approved === true) {
+          // Approved mentor - go straight to mentor dashboard
+          window.location.href = "/mentor-dashboard";
+          return;
+        }
+        
+        if (mentorApplication && mentorApplication.status !== 'rejected') {
+          // Pending mentor application - go to mentor dashboard (will show pending status)
+          window.location.href = "/mentor-dashboard";
+          return;
+        }
+        
+        // If user has mentor metadata but no entity/application, they may have used wrong portal
+        const hasMentorMetadata = hasMentorAccount(mergedUser) || isMentorModeActive(mergedUser);
+        if (hasMentorMetadata && !mentorEntity && !mentorApplication) {
+          await clearAuthSession();
+          window.location.href = "/mentor-login?error=no_mentor_account";
+          return;
         }
 
         // Check UserProfile for DOB + onboarding status (more reliable than auth me() for OAuth users)
@@ -116,6 +125,7 @@ export default function GoogleSetup() {
         const dobSource = u.date_of_birth || userRecord?.date_of_birth || userProfile?.date_of_birth;
 
         // If signing in (not signing up) and no existing profile found, block them
+        // BUT skip this check for mentors - they don't need community profiles
         if (isSigninIntent && !isMentor && !dobSource && !userProfile?.onboarding_complete) {
           await clearAuthSession();
           const msg = encodeURIComponent("No account found with that email. Please sign up to join the Sisterhood.");
@@ -126,6 +136,12 @@ export default function GoogleSetup() {
         // If they already have a DOB set, skip this page
         if (dobSource && !isSignupIntent) {
           // Returning user via OAuth — redirect directly
+          // ALWAYS check mentor status first, regardless of isMentor flag
+          if (mentorEntity && mentorEntity.is_approved === true) {
+            window.location.href = "/mentor-dashboard";
+            return;
+          }
+          
           if (isMentor) {
             saveMentorOAuthPrefill(buildOAuthPrefill(u, { dateOfBirth: dobSource }));
             window.location.href = "/mentor-dashboard";
