@@ -398,6 +398,8 @@ export default function MentorRegister() {
         submitted_date: new Date().toISOString(),
         agreements_accepted: JSON.stringify(["tos", "conduct", "truth"]),
         agreements_timestamp: new Date().toISOString(),
+        id_document_url: idDocUrl,
+        face_photo_url: facePhotoUrl,
       });
       setStep(11);
     } catch (err) {

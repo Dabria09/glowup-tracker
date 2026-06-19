@@ -40,7 +40,7 @@
     },
     "languages": {
       "type": "string",
-      "title": "Languages"
+      "title": "Languages (JSON array)"
     },
     "title": {
       "type": "string",
@@ -335,6 +335,14 @@
     "in_person_approved_by": {
       "type": "string",
       "title": "In-Person Approved By (Email)"
+    },
+    "id_document_url": {
+      "type": "string",
+      "title": "ID Document URL (Government/School ID)"
+    },
+    "face_photo_url": {
+      "type": "string",
+      "title": "Face Photo URL (Headshot)"
     }
   },
   "required": [

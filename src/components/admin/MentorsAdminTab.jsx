@@ -495,6 +495,33 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
                   </div>
                 )}
 
+                {/* ID Verification */}
+                {(app.id_document_url || app.face_photo_url) && (
+                  <div className="rounded-xl p-3" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
+                    <p className="text-[10px] font-bold text-purple-400 mb-3">🆔 ID VERIFICATION DOCUMENTS</p>
+                    <div className="space-y-3">
+                      {app.id_document_url && (
+                        <div>
+                          <p className="text-[10px] text-gray-400 mb-1">{isTeenTrack ? 'School ID' : 'Government ID'}:</p>
+                          <a href={app.id_document_url} target="_blank" rel="noopener noreferrer" className="block rounded-lg overflow-hidden border border-white/10 hover:border-purple-400 transition">
+                            <img src={app.id_document_url} alt="ID Document" className="w-full h-auto" />
+                          </a>
+                          <a href={app.id_document_url} target="_blank" rel="noopener noreferrer" className="text-xs text-purple-400 hover:underline mt-1 inline-block">Open full size →</a>
+                        </div>
+                      )}
+                      {app.face_photo_url && (
+                        <div>
+                          <p className="text-[10px] text-gray-400 mb-1">Headshot / Face Photo:</p>
+                          <a href={app.face_photo_url} target="_blank" rel="noopener noreferrer" className="block rounded-lg overflow-hidden border border-white/10 hover:border-purple-400 transition">
+                            <img src={app.face_photo_url} alt="Face Photo" className="w-full h-auto max-w-xs mx-auto" />
+                          </a>
+                          <a href={app.face_photo_url} target="_blank" rel="noopener noreferrer" className="text-xs text-purple-400 hover:underline mt-1 inline-block">Open full size →</a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Agreements */}
                 {agreements.length > 0 && (
                   <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
