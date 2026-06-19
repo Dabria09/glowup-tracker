@@ -183,5 +183,17 @@
       "title": "Custom Profile Background URL"
     }
   },
-  "required": []
+  "required": [],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

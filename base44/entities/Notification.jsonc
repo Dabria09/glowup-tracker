@@ -63,5 +63,17 @@
   "required": [
     "recipient_email",
     "type"
-  ]
+  ],
+  "rls": {
+    "create": null,
+    "read": {
+      "data.recipient_email": "{{user.email}}"
+    },
+    "update": {
+      "data.recipient_email": "{{user.email}}"
+    },
+    "delete": {
+      "data.recipient_email": "{{user.email}}"
+    }
+  }
 }

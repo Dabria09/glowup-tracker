@@ -32,5 +32,17 @@
     "user_email",
     "name",
     "target_amount"
-  ]
+  ],
+  "rls": {
+    "create": null,
+    "read": {
+      "data.user_email": "{{user.email}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
 }
