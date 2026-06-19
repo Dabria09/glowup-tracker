@@ -119,6 +119,8 @@ import SavedCareers from './pages/SavedCareers';
 import AdminQAChecklist from './pages/AdminQAChecklist';
 import DirectMessages from './pages/DirectMessages';
 import GlowPass from './pages/GlowPass';
+import GlowPassRedeem from './pages/GlowPassRedeem';
+import GlowPassSuccess from './pages/GlowPassSuccess';
 import PioneerNetwork from './pages/PioneerNetwork';
 import AffiliatePartner from './pages/AffiliatePartner';
 
@@ -257,6 +259,8 @@ const AuthenticatedApp = () => {
           <Route path="/admin-qa" element={<AdminQAChecklist />} />
           <Route path="/messages" element={<DirectMessages />} />
           <Route path="/glow-pass" element={<GlowPass />} />
+          <Route path="/glow-pass-redeem" element={<GlowPassRedeem />} />
+          <Route path="/glow-pass-success" element={<GlowPassSuccess />} />
           <Route path="/pioneer-network" element={<PioneerNetwork />} />
           <Route path="/affiliate-partner" element={<AffiliatePartner />} />
         </Route>

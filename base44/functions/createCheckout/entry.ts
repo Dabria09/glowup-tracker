@@ -100,13 +100,20 @@ Deno.serve(async (req) => {
     }
     
     // Create checkout session with Wix Payments
+    const apiKey = Deno.env.get('WIX_PAYMENTS_API_KEY');
+    const siteId = Deno.env.get('WIX_PAYMENTS_SITE_ID');
+    
+    if (!apiKey || !siteId) {
+      return Response.json({ error: 'Payment configuration missing' }, { status: 500 });
+    }
+    
     const wixApiUrl = 'https://www.wixapis.com/payments-checkout/v1/sessions';
     const response = await fetch(wixApiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': body.WIX_PAYMENTS_API_KEY,
-        'wix-site-id': body.WIX_PAYMENTS_SITE_ID
+        'Authorization': apiKey,
+        'wix-site-id': siteId
       },
       body: JSON.stringify({
         lineItems: lineItems,

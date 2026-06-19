@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 
-const VALID_PASSES = ['5H3CC4ER55', 'HPZJ686XK5', 'GLOWUP2025', 'PIONEER001', 'SISTERHOOD'];
-
 const AGE_GROUPS = [
   { id: 'glow-girl', emoji: '🌸', name: 'Tween World', ages: 'Ages 10–13', color: '#e8526d', desc: 'Build confidence, discover your gifts, and learn to love who you\'re becoming. Age-appropriate content with full safety protections.', feats: ['Daily Challenges', 'Confidence', 'Wellness Basics'], consent: true },
   { id: 'glow-up', emoji: '⚡', name: 'Teen World', ages: 'Ages 14–17', color: '#f1b610', desc: 'Navigate high school and your future — build real skills, career clarity, find mentors, and own your story.', feats: ['Career Explorer', 'Money Moves', 'Mentorship'], consent: false },
@@ -39,12 +37,19 @@ export default function JoinGGU() {
 
   const group = AGE_GROUPS.find(g => g.id === selectedGroup);
 
-  const handlePassInput = (val) => {
+  const handlePassInput = async (val) => {
     const v = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
     setPassCode(v);
     if (!v) return setPassValid(null);
-    if (v.length < 8) return setPassValid(null);
-    setPassValid(VALID_PASSES.includes(v));
+    if (v.length < 6) return setPassValid(null);
+    // Validate against JoinCode entity
+    try {
+      const codes = await base44.entities.JoinCode.filter({ code: v, code_type: 'promo', is_active: true });
+      setPassValid(codes && codes.length > 0);
+    } catch (err) {
+      console.error('Pass validation error:', err);
+      setPassValid(false);
+    }
   };
 
   const signIn = () => base44.auth.redirectToLogin('/dashboard');

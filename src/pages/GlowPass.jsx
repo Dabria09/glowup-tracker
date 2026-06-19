@@ -6,9 +6,6 @@ import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, Copy, Share2, CheckCircle2, Users, Gift, Zap, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Hardcoded valid pass codes — in production these would come from JoinCode entity
-const VALID_PASSES = ['5H3CC4ER55', 'HPZJ686XK5', 'GLOWUP2025', 'PIONEER001', 'SISTERHOOD'];
-
 export default function GlowPass() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -32,20 +29,14 @@ export default function GlowPass() {
     const v = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
     setRedeemCode(v);
     if (v.length < 6) { setRedeemStatus(null); return; }
-    setRedeemStatus(VALID_PASSES.includes(v) ? 'valid' : 'invalid');
+    // Quick validation - full validation happens on redeem
+    setRedeemStatus('valid');
   };
 
   const handleRedeem = async () => {
     if (redeemStatus !== 'valid') return;
-    // Mark the code as used
-    const codes = await base44.entities.JoinCode.filter({ code: redeemCode });
-    if (codes.length > 0) {
-      await base44.entities.JoinCode.update(codes[0].id, {
-        current_uses: (codes[0].current_uses || 0) + 1,
-      });
-    }
-    setRedeemStatus('success');
-    toast.success('🎉 Glow Pass redeemed! Welcome to the sisterhood.');
+    // Redirect to the full redemption flow with checkout
+    navigate(`/glow-pass-redeem?code=${redeemCode}`);
   };
 
   const copyToClipboard = (text) => {
@@ -199,50 +190,50 @@ export default function GlowPass() {
             <div className="rounded-2xl p-5"
               style={{ background: 'rgba(241,182,16,0.08)', border: '1px solid rgba(241,182,16,0.25)' }}>
               <p className="font-bold text-yellow-300 mb-1">👑 Have a Glow Pass?</p>
-              <p className="text-sm text-gray-300 leading-relaxed mb-4">Enter the code a GGU member shared with you to unlock access and be recognized as a founding sisterhood member.</p>
+              <p className="text-sm text-gray-300 leading-relaxed mb-4">Enter the code a GGU member shared with you to unlock exclusive discounts on memberships, events, and more.</p>
 
-              {redeemStatus === 'success' ? (
-                <div className="text-center py-6">
-                  <CheckCircle2 size={48} className="text-green-400 mx-auto mb-3" />
-                  <p className="font-bold text-white text-lg">Pass Redeemed! 🎉</p>
-                  <p className="text-sm text-gray-400 mt-1">Welcome to the GGU sisterhood. You're officially in.</p>
-                </div>
-              ) : (
-                <>
-                  <div className="relative mb-3">
-                    <input
-                      type="text"
-                      value={redeemCode}
-                      onChange={e => handleRedeemInput(e.target.value)}
-                      placeholder="Enter pass code (e.g. GLOWUP2025)"
-                      maxLength={12}
-                      className="w-full text-center font-mono font-bold text-lg tracking-widest px-4 py-4 rounded-xl outline-none uppercase"
-                      style={{
-                        background: 'rgba(0,0,0,0.3)',
-                        border: `1px solid ${redeemStatus === 'valid' ? '#f1b610' : redeemStatus === 'invalid' ? '#f87171' : 'rgba(241,182,16,0.3)'}`,
-                        color: '#fff',
-                      }}
-                    />
-                    {redeemStatus && (
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-lg">
-                        {redeemStatus === 'valid' ? '✅' : '❌'}
-                      </span>
-                    )}
-                  </div>
-                  {redeemStatus === 'valid' && (
-                    <p className="text-xs text-yellow-300 text-center mb-3">✓ Valid Glow Pass! Tap below to redeem.</p>
-                  )}
-                  {redeemStatus === 'invalid' && (
-                    <p className="text-xs text-red-400 text-center mb-3">That code isn't recognized. Check with the girl who invited you.</p>
-                  )}
-                  <button
-                    onClick={handleRedeem}
-                    disabled={redeemStatus !== 'valid'}
-                    className="w-full py-3 rounded-xl font-bold text-sm text-white disabled:opacity-40"
-                    style={{ background: redeemStatus === 'valid' ? 'linear-gradient(135deg, #e8526d, #f1b610)' : 'rgba(232,82,109,0.2)' }}>
-                    Redeem Pass ✨
-                  </button>
-                </>
+              <button
+                onClick={() => navigate('/glow-pass-redeem')}
+                className="w-full py-4 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #e8526d, #f1b610)' }}>
+                <Gift size={16} />
+                Redeem Your Glow Pass
+              </button>
+              
+              <p className="text-xs text-gray-400 text-center mt-3">
+                Or enter code manually below
+              </p>
+
+              <div className="relative mt-4">
+                <input
+                  type="text"
+                  value={redeemCode}
+                  onChange={e => handleRedeemInput(e.target.value)}
+                  placeholder="Enter pass code"
+                  maxLength={12}
+                  className="w-full text-center font-mono font-bold text-sm tracking-widest px-4 py-3 rounded-xl outline-none uppercase"
+                  style={{
+                    background: 'rgba(0,0,0,0.3)',
+                    border: `1px solid ${redeemStatus === 'valid' ? '#f1b610' : redeemStatus === 'invalid' ? '#f87171' : 'rgba(241,182,16,0.3)'}`,
+                    color: '#fff',
+                  }}
+                />
+                {redeemStatus && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-base">
+                    {redeemStatus === 'valid' ? '✅' : '❌'}
+                  </span>
+                )}
+              </div>
+              {redeemStatus === 'valid' && (
+                <button
+                  onClick={handleRedeem}
+                  className="w-full py-3 mt-3 rounded-xl font-bold text-sm text-white"
+                  style={{ background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                  Continue with {redeemCode} →
+                </button>
+              )}
+              {redeemStatus === 'invalid' && (
+                <p className="text-xs text-red-400 text-center mt-2">That code isn't recognized.</p>
               )}
             </div>
           </div>
