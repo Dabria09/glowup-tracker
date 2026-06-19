@@ -13,6 +13,7 @@ const ROLES = ['user', 'admin'];
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
   const [profiles, setProfiles] = useState([]);
+  const [pointsMap, setPointsMap] = useState({});
   const [bans, setBans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,15 +31,19 @@ export default function UserManagement() {
     setLoading(true);
     setError(null);
     try {
-      const [usersRes, p, b, me] = await Promise.all([
+      const [usersRes, p, b, pts, me] = await Promise.all([
         base44.functions.invoke('getAdminUsers', {}),
         base44.entities.UserProfile.list('-created_date', 200),
         base44.entities.BannedUser.filter({ is_active: true }),
+        base44.entities.UserPoints.list('-total_points', 500),
         base44.auth.me(),
       ]);
       setUsers(usersRes.data?.users || []);
       setProfiles(p);
       setBans(b);
+      const pm = {};
+      pts.forEach(pt => { pm[pt.user_email] = pt.total_points || 0; });
+      setPointsMap(pm);
       setAdminEmail(me.email);
     } catch (e) {
       setError(e.message || 'Failed to load users');
@@ -364,11 +369,6 @@ export default function UserManagement() {
                       {ROLES.map(r => <option key={r} value={r} style={{ background: '#1a0a2e' }}>{r}</option>)}
                     </select>
 
-                    {effectiveAgeGroup === 'glow_women' && (
-                      <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#f59e0b20', border: '1px solid #f59e0b50', color: '#f59e0b' }}>
-                        <img src="https://media.base44.com/images/public/6a0e12a89992f9565c11e330/68085ba5f_generated_image.png" alt="Glow Women" className="w-3.5 h-3.5 rounded-full object-cover" /> Glow Women
-                      </span>
-                    )}
                     {isMentor && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', color: '#a5b4fc' }}>
                         🎓 Mentor{u.mentor_type === 'teen' ? ' (Teen)' : ''}
@@ -387,6 +387,11 @@ export default function UserManagement() {
                       <option value="glow_women" style={{ background: '#1a0a2e' }}>👑 Glow Women</option>
                     </select>
 
+                    {pointsMap[u.email] !== undefined && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24' }}>
+                        ⭐ {pointsMap[u.email].toLocaleString()} pts
+                      </span>
+                    )}
                     {(saving === u.id || saving === u.email) && (
                       <span className="text-[10px] text-pink-400">Saving…</span>
                     )}
