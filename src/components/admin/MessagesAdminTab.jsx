@@ -224,8 +224,8 @@ export default function MessagesAdminTab() {
           {filteredConvos.slice(0, 50).map((convo, i) => (
             <button
               key={convo.id || i}
-              onClick={() => loadConversation(convo)}
-              className="w-full rounded-2xl p-4 text-left transition hover:bg-white/5"
+              onClick={() => { console.log('Opening convo:', convo.id); loadConversation(convo); }}
+              className="w-full rounded-2xl p-4 text-left transition hover:bg-white/5 cursor-pointer"
               style={{ background: 'rgba(255,255,255,0.05)', border: convo.flagged ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.1)' }}
             >
               <div className="flex items-start justify-between gap-3">
