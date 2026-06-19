@@ -39,6 +39,7 @@
       "title": "Status",
       "enum": [
         "scheduled",
+        "live",
         "completed",
         "cancelled"
       ],
@@ -51,6 +52,10 @@
     "recording_duration": {
       "type": "number",
       "title": "Recording Duration (seconds)"
+    },
+    "agora_channel_id": {
+      "type": "string",
+      "title": "Agora Channel ID"
     }
   },
   "required": [
