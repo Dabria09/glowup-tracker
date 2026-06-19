@@ -2,29 +2,79 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { MessageCircle, AlertTriangle, Search, Eye, Shield, User, Clock, ChevronRight, ThumbsUp, Ban, Mail, CheckCircle, XCircle, Flag } from 'lucide-react';
 
-// Weighted keywords by severity level
+const FLAGGED_KEYWORDS = [
+  'address', 'meet', 'location', 'phone', 'snapchat', 'instagram', 'discord',
+  'secret', 'don\'t tell', 'parents', 'alone', 'come over', 'pick up',
+];
+
+// Weighted risk scoring system
 const KEYWORD_WEIGHTS = {
-  // HIGH RISK (3 points) - secrecy, isolation, meeting requests
-  'secret': 3, 'don\'t tell': 3, 'alone': 3, 'come over': 3, 'meet': 3,
-  // MEDIUM RISK (2 points) - contact info, platforms for private chat
-  'address': 2, 'phone': 2, 'location': 2, 'snapchat': 2, 'instagram': 2, 'discord': 2,
-  // LOWER RISK (1 point) - potentially innocent
-  'parents': 1, 'pick up': 1,
+  // HIGH RISK (weight: 3) - Grooming/secrecy indicators
+  'secret': 3,
+  'don\'t tell': 3,
+  'alone': 3,
+  'come over': 3,
+  
+  // MEDIUM RISK (weight: 2) - Contact information/meetup
+  'address': 2,
+  'meet': 2,
+  'location': 2,
+  'pick up': 2,
+  
+  // LOWER RISK (weight: 1) - Social platforms/contact
+  'phone': 1,
+  'snapchat': 1,
+  'instagram': 1,
+  'discord': 1,
+  'parents': 1,
 };
 
-// High-risk combinations that indicate grooming behavior
-const HIGH_RISK_COMBOS = [
+// Dangerous combinations that boost risk score
+const DANGEROUS_COMBOS = [
   ['secret', 'alone'],
   ['don\'t tell', 'parents'],
   ['come over', 'alone'],
-  ['meet', 'secret'],
-  ['address', 'meet'],
-  ['phone', 'snapchat'],
-  ['phone', 'instagram'],
-  ['discord', 'secret'],
+  ['meet', 'location'],
+  ['address', 'pick up'],
 ];
 
-const FLAGGED_KEYWORDS = Object.keys(KEYWORD_WEIGHTS);
+function calculateRiskScore(messages) {
+  let score = 0;
+  const foundKeywords = new Set();
+  
+  messages.forEach(msg => {
+    const content = msg.content.toLowerCase();
+    Object.keys(KEYWORD_WEIGHTS).forEach(kw => {
+      if (content.includes(kw)) {
+        score += KEYWORD_WEIGHTS[kw];
+        foundKeywords.add(kw);
+      }
+    });
+  });
+  
+  // Boost score for dangerous combinations
+  DANGEROUS_COMBOS.forEach(combo => {
+    if (combo.every(kw => foundKeywords.has(kw))) {
+      score += 5; // Significant boost for dangerous combos
+    }
+  });
+  
+  return score;
+}
+
+function getAlertLevel(score) {
+  if (score >= 10) return 'urgent';    // Red - Immediate action needed
+  if (score >= 5) return 'high';       // Orange - Review soon
+  if (score >= 2) return 'medium';     // Yellow - Monitor
+  return 'low';                        // Gray - Low priority
+}
+
+const ALERT_LEVEL_META = {
+  urgent: { label: '🚨 URGENT', color: '#ef4444', bg: 'rgba(239,68,68,0.2)', border: 'rgba(239,68,68,0.4)' },
+  high: { label: '⚠️ HIGH', color: '#f97316', bg: 'rgba(249,115,22,0.2)', border: 'rgba(249,115,22,0.4)' },
+  medium: { label: '⚡ MEDIUM', color: '#eab308', bg: 'rgba(234,179,8,0.2)', border: 'rgba(234,179,8,0.4)' },
+  low: { label: '✓ LOW', color: '#6b7280', bg: 'rgba(107,113,128,0.2)', border: 'rgba(107,113,128,0.4)' },
+};
 
 export default function MessagesAdminTab() {
   const [messages, setMessages] = useState([]);
@@ -72,60 +122,67 @@ export default function MessagesAdminTab() {
       });
 
       // Analyze conversations for flags with risk scoring
+      const HIGH_RISK_COMBOS = [
+        ['secret', 'alone'], ['secret', 'come over'],
+        ['don\'t tell', 'alone'], ['don\'t tell', 'come over'],
+        ['don\'t tell', 'meet'], ['alone', 'come over'],
+        ['alone', 'meet'], ['come over', 'pick up'],
+      ];
+
+      const KEYWORD_SEVERITY = {
+        'come over': 3, 'alone': 3, 'don\'t tell': 3, 'secret': 3, 'meet': 3, 'pick up': 3,
+        'address': 2, 'location': 2, 'phone': 2,
+        'snapchat': 1, 'instagram': 1, 'discord': 1, 'parents': 1,
+      };
+
       const convos = Object.values(convoMap).map(convo => {
         let riskScore = 0;
-        const flaggedKeywords = [];
+        let hasHighRiskCombo = false;
         const flaggedMessages = [];
 
         convo.messages.forEach(m => {
           const contentLower = m.content.toLowerCase();
-          let msgScore = 0;
-          const msgKeywords = [];
-
-          // Score individual keywords
-          FLAGGED_KEYWORDS.forEach(kw => {
-            if (contentLower.includes(kw)) {
-              msgScore += KEYWORD_WEIGHTS[kw];
-              msgKeywords.push({ keyword: kw, weight: KEYWORD_WEIGHTS[kw] });
+          
+          // Check for high-risk combinations
+          for (const combo of HIGH_RISK_COMBOS) {
+            if (combo.every(kw => contentLower.includes(kw))) {
+              hasHighRiskCombo = true;
+              break;
             }
-          });
+          }
 
+          // Calculate risk score
+          let msgScore = 0;
+          const foundKeywords = [];
+          for (const [keyword, severity] of Object.entries(KEYWORD_SEVERITY)) {
+            if (contentLower.includes(keyword)) {
+              msgScore += severity;
+              foundKeywords.push(keyword);
+            }
+          }
+          
+          if (hasHighRiskCombo) msgScore += 5; // Add combo bonus
+          
           if (msgScore > 0) {
-            flaggedMessages.push({ ...m, score: msgScore, keywords: msgKeywords });
-          }
-          riskScore += msgScore;
-          flaggedKeywords.push(...msgKeywords);
-        });
-
-        // Bonus points for high-risk combinations
-        const allKeywords = flaggedKeywords.map(k => k.keyword);
-        HIGH_RISK_COMBOS.forEach(combo => {
-          if (combo.every(kw => allKeywords.includes(kw))) {
-            riskScore += 5; // Significant boost for dangerous combinations
+            riskScore += msgScore;
+            flaggedMessages.push({ message: m, score: msgScore, keywords: foundKeywords });
           }
         });
-
-        // Determine severity level
-        let severity = 'low';
-        if (riskScore >= 10) severity = 'critical';
-        else if (riskScore >= 6) severity = 'high';
-        else if (riskScore >= 3) severity = 'medium';
 
         const flagged = riskScore > 0;
-        const mentorMsgs = convo.messages.filter(m => mentorEmails.includes(m.sender_email)).length;
+        const flagged = riskScore > 0;
+        const alertLevel = getAlertLevel(riskScore);
 
         return {
           ...convo,
           flagged,
           riskScore,
-          severity,
-          mentorMessageCount: mentorMsgs,
+          alertLevel,
+          hasHighRiskCombo,
           flaggedMessages,
+          mentorMessageCount: convo.messages.filter(m => mentorEmails.includes(m.sender_email)).length,
         };
       });
-
-      // Sort by risk score (highest first)
-      convos.sort((a, b) => b.riskScore - a.riskScore);
 
       setConversations(convos);
       setMessages(allMessages);
@@ -227,15 +284,26 @@ export default function MessagesAdminTab() {
     return profiles[0] || null;
   };
 
-  const filteredConvos = conversations.filter(convo => {
-    if (filter === 'flagged' && !convo.flagged) return false;
-    if (filter === 'mentor' && !convo.isMentorConvo) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      return convo.messages.some(m => m.content.toLowerCase().includes(q));
-    }
-    return true;
-  });
+  const filteredConvos = conversations
+    .filter(convo => {
+      if (filter === 'urgent' && convo.alertLevel !== 'urgent') return false;
+      if (filter === 'high' && convo.alertLevel !== 'high') return false;
+      if (filter === 'flagged' && !convo.flagged) return false;
+      if (filter === 'mentor' && !convo.isMentorConvo) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        return convo.messages.some(m => m.content.toLowerCase().includes(q));
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // Sort by alert level urgency first, then by most recent
+      const levelOrder = { urgent: 0, high: 1, medium: 2, low: 3, none: 4 };
+      if (levelOrder[a.alertLevel] !== levelOrder[b.alertLevel]) {
+        return levelOrder[a.alertLevel] - levelOrder[b.alertLevel];
+      }
+      return new Date(b.lastMsg.timestamp) - new Date(a.lastMsg.timestamp);
+    });
 
   const timeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -267,7 +335,7 @@ export default function MessagesAdminTab() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
           <p className="text-lg font-bold text-white">{conversations.length}</p>
           <p className="text-[10px] text-gray-500">Total Convos</p>
@@ -277,8 +345,12 @@ export default function MessagesAdminTab() {
           <p className="text-[10px] text-gray-400">Flagged</p>
         </div>
         <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)' }}>
-          <p className="text-lg font-bold text-red-300">{conversations.filter(c => c.severity === 'critical' || c.severity === 'high').length}</p>
-          <p className="text-[10px] text-gray-400">High Risk</p>
+          <p className="text-lg font-bold" style={{ color: '#f87171' }}>{conversations.filter(c => c.alertLevel === 'urgent').length}</p>
+          <p className="text-[10px] text-gray-400">🚨 Urgent</p>
+        </div>
+        <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)' }}>
+          <p className="text-lg font-bold text-orange-400">{conversations.filter(c => c.alertLevel === 'high').length}</p>
+          <p className="text-[10px] text-gray-400">⚠️ High</p>
         </div>
         <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)' }}>
           <p className="text-lg font-bold text-purple-400">{conversations.filter(c => c.isMentorConvo).length}</p>
@@ -286,46 +358,26 @@ export default function MessagesAdminTab() {
         </div>
       </div>
 
-      {/* Risk Level Legend */}
-      {conversations.filter(c => c.flagged).length > 0 && (
-        <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <p className="text-[10px] font-bold text-gray-400 mb-2">🎯 RISK SCORING</p>
-          <div className="flex gap-3 flex-wrap">
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ background: '#ef4444' }} />
-              <span className="text-[10px] text-gray-400">Critical (10+)</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ background: '#f97316' }} />
-              <span className="text-[10px] text-gray-400">High (6-9)</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ background: '#eab308' }} />
-              <span className="text-[10px] text-gray-400">Medium (3-5)</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full" style={{ background: '#84cc16' }} />
-              <span className="text-[10px] text-gray-400">Low (1-2)</span>
-            </div>
-          </div>
-          <p className="text-[9px] text-gray-500 mt-2">
-            💡 Scores boost +5 for dangerous combos like "secret + alone" or "come over + alone"
-          </p>
-        </div>
-      )}
-
       {/* Filters */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 overflow-x-auto">
         {[
           { id: 'all', label: 'All', icon: MessageCircle },
-          { id: 'flagged', label: '🚨 Flagged', icon: AlertTriangle },
+          { id: 'urgent', label: '🚨 Urgent', icon: AlertTriangle },
+          { id: 'high', label: '⚠️ High', icon: AlertTriangle },
+          { id: 'flagged', label: 'All Flagged', icon: Shield },
           { id: 'mentor', label: '👑 Mentor', icon: User },
         ].map(f => (
           <button
             key={f.id}
             onClick={() => { setFilter(f.id); setSelectedConvo(null); }}
-            className={`flex-1 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition ${filter === f.id ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-            style={filter === f.id ? { background: f.id === 'flagged' ? 'linear-gradient(135deg,#ef4444,#dc2626)' : f.id === 'mentor' ? 'linear-gradient(135deg,#a855f7,#ec4899)' : 'linear-gradient(135deg,#3b82f6,#a855f7)' } : {}}
+            className={`flex-shrink-0 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition ${filter === f.id ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+            style={filter === f.id ? { 
+              background: f.id === 'urgent' ? 'linear-gradient(135deg,#ef4444,#dc2626)' :
+                        f.id === 'high' ? 'linear-gradient(135deg,#f97316,#ea580c)' :
+                        f.id === 'flagged' ? 'linear-gradient(135deg,#eab308,#ca8a04)' :
+                        f.id === 'mentor' ? 'linear-gradient(135deg,#a855f7,#ec4899)' :
+                        'linear-gradient(135deg,#3b82f6,#a855f7)'
+            } : {}}
           >
             <f.icon size={12} /> {f.label}
           </button>
@@ -365,11 +417,18 @@ export default function MessagesAdminTab() {
                 {selectedConvo.participants[0]?.split('@')[0]} ↔️ {selectedConvo.participants[1]?.split('@')[0]}
               </p>
             </div>
-            {selectedConvo.flagged && (
-              <span className="text-[10px] px-2 py-1 rounded-full font-bold" style={{ background: 'rgba(239,68,68,0.2)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
-                🚨 Flagged
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {selectedConvo.flagged && (
+                <span className="text-[10px] px-2 py-1 rounded-full font-bold" style={{ background: ALERT_LEVEL_META[selectedConvo.alertLevel]?.bg, color: ALERT_LEVEL_META[selectedConvo.alertLevel]?.color, border: `1px solid ${ALERT_LEVEL_META[selectedConvo.alertLevel]?.border}` }}>
+                  {ALERT_LEVEL_META[selectedConvo.alertLevel]?.label}
+                </span>
+              )}
+              {selectedConvo.riskScore > 0 && (
+                <span className="text-[10px] px-2 py-1 rounded-full font-bold" style={{ background: 'rgba(255,255,255,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)' }}>
+                  Risk Score: {selectedConvo.riskScore}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Moderation Actions */}
@@ -458,8 +517,8 @@ export default function MessagesAdminTab() {
                       {convo.participants[0]?.split('@')[0]} ↔️ {convo.participants[1]?.split('@')[0]}
                     </p>
                     {convo.flagged && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'rgba(239,68,68,0.2)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
-                        🚨
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: ALERT_LEVEL_META[convo.alertLevel]?.bg, color: ALERT_LEVEL_META[convo.alertLevel]?.color, border: `1px solid ${ALERT_LEVEL_META[convo.alertLevel]?.border}` }}>
+                        {convo.alertLevel === 'urgent' ? '🚨' : convo.alertLevel === 'high' ? '⚠️' : '⚡'}
                       </span>
                     )}
                     {convo.isMentorConvo && (

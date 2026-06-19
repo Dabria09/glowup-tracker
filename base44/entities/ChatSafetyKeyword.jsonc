@@ -1,0 +1,51 @@
+{
+  "name": "ChatSafetyKeyword",
+  "type": "object",
+  "properties": {
+    "keyword": {
+      "type": "string",
+      "title": "Keyword/Phrase"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "safety_concern",
+        "personal_info",
+        "external_platform",
+        "meetup_request",
+        "secrecy",
+        "other"
+      ],
+      "default": "safety_concern"
+    },
+    "severity": {
+      "type": "number",
+      "title": "Severity Level (1-3)",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 3
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    },
+    "description": {
+      "type": "string",
+      "title": "Description/Context"
+    },
+    "added_by": {
+      "type": "string",
+      "title": "Added By (Admin Email)"
+    },
+    "added_date": {
+      "type": "string",
+      "title": "Added Date"
+    }
+  },
+  "required": [
+    "keyword",
+    "severity"
+  ]
+}

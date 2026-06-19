@@ -23,25 +23,14 @@ Deno.serve(async (req) => {
       ['come over', 'pick up'],
     ];
 
-    // Individual keyword severity levels
-    const KEYWORD_SEVERITY = {
-      // HIGH severity (immediate concern)
-      'come over': 3,
-      'alone': 3,
-      'don\'t tell': 3,
-      'secret': 3,
-      'meet': 3,
-      'pick up': 3,
-      // MEDIUM severity (monitor closely)
-      'address': 2,
-      'location': 2,
-      'phone': 2,
-      // LOWER severity (still track)
-      'snapchat': 1,
-      'instagram': 1,
-      'discord': 1,
-      'parents': 1,
-    };
+    // Fetch active chat safety keywords from database
+    const keywords = await base44.entities.ChatSafetyKeyword.filter({ is_active: true });
+    
+    // Build severity map from database
+    const KEYWORD_SEVERITY = {};
+    keywords.forEach(kw => {
+      KEYWORD_SEVERITY[kw.keyword.toLowerCase()] = kw.severity || 1;
+    });
 
     const contentLower = data.content.toLowerCase();
     
