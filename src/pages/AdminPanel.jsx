@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell, Inbox } from 'lucide-react';
+import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell, Inbox, X, ChevronRight, FileWarning, Mail, UserPlus } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 
 import OverviewTab from '@/components/admin/OverviewTab';
@@ -75,6 +75,8 @@ export default function AdminPanel() {
     mentorApplications: 0,
     total: 0,
   });
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  const [pendingItems, setPendingItems] = useState({ reports: [], messages: [], applications: [] });
 
   useEffect(() => {
     const load = async () => {
@@ -85,9 +87,9 @@ export default function AdminPanel() {
         
         // Count all notification sources
         const [reports, messages, applications] = await Promise.all([
-          base44.entities.ContentReport.filter({ status: 'pending' }),
-          base44.entities.MentorMessage.filter({ is_admin_message: true, status: 'pending' }),
-          base44.entities.MentorApplication.filter({ status: 'pending' }),
+          base44.entities.ContentReport.filter({ status: 'pending' }, '-created_date', 20),
+          base44.entities.MentorMessage.filter({ is_admin_message: true, status: 'pending' }, '-created_date', 20),
+          base44.entities.MentorApplication.filter({ status: 'pending' }, '-created_date', 20),
         ]);
         
         setNotificationCounts({
@@ -96,6 +98,7 @@ export default function AdminPanel() {
           mentorApplications: applications.length,
           total: reports.length + messages.length + applications.length,
         });
+        setPendingItems({ reports, messages, applications });
         
         setLoading(false);
       } catch (e) {
@@ -159,7 +162,7 @@ export default function AdminPanel() {
               <h1 className="text-base font-bold leading-tight">GGU Admin Dashboard</h1>
               <p className="text-[10px] text-gray-400">Girls Glowing Up™</p>
             </div>
-            <button onClick={() => setActiveTab('moderation')} className="relative w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+            <button onClick={() => setShowNotificationPanel(true)} className="relative w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
               <Bell size={16} className="text-white" />
               {notificationCounts.total > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-[#080810]">
@@ -193,6 +196,118 @@ export default function AdminPanel() {
           {renderTab()}
         </div>
       </div>
+
+      {/* Notification Panel Modal */}
+      {showNotificationPanel && (
+        <div className="fixed inset-0 z-50 flex items-start justify-end pt-16 pr-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowNotificationPanel(false)}>
+          <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Bell size={18} className="text-pink-400" />
+                  Notifications
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">{notificationCounts.total} pending items requiring attention</p>
+              </div>
+              <button onClick={() => setShowNotificationPanel(false)} className="text-gray-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="max-h-[70vh] overflow-y-auto p-4 space-y-4">
+              {/* Content Reports */}
+              {pendingItems.reports.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                      <FileWarning size={16} className="text-red-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-white">Content Reports</p>
+                      <p className="text-xs text-gray-400">{pendingItems.reports.length} flagged posts/comments</p>
+                    </div>
+                    <button onClick={() => { setShowNotificationPanel(false); setActiveTab('moderation'); }} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1">
+                      View All <ChevronRight size={12} />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {pendingItems.reports.slice(0, 3).map(report => (
+                      <div key={report.id} className="p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                        <p className="text-xs text-white font-semibold capitalize">{report.content_type.replace('_', ' ')}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">Reported by: {report.reported_by?.split('@')[0]}</p>
+                        <p className="text-[10px] text-red-400 mt-1">Reason: {report.reason}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mentor Messages */}
+              {pendingItems.messages.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.2)', border: '1px solid rgba(168,85,247,0.3)' }}>
+                      <Mail size={16} className="text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-white">Mentor Messages</p>
+                      <p className="text-xs text-gray-400">{pendingItems.messages.length} messages from mentors</p>
+                    </div>
+                    <button onClick={() => { setShowNotificationPanel(false); setActiveTab('mentor_inbox'); }} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1">
+                      View All <ChevronRight size={12} />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {pendingItems.messages.slice(0, 3).map(msg => (
+                      <div key={msg.id} className="p-3 rounded-xl" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}>
+                        <p className="text-xs text-white font-semibold">{msg.subject}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">From: {msg.sender_email?.split('@')[0]}</p>
+                        <p className="text-[10px] text-purple-400 mt-1 capitalize">{msg.category.replace('_', ' ')}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mentor Applications */}
+              {pendingItems.applications.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(74,222,128,0.2)', border: '1px solid rgba(74,222,128,0.3)' }}>
+                      <UserPlus size={16} className="text-green-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-white">Mentor Applications</p>
+                      <p className="text-xs text-gray-400">{pendingItems.applications.length} pending approvals</p>
+                    </div>
+                    <button onClick={() => { setShowNotificationPanel(false); setActiveTab('mentors'); }} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1">
+                      View All <ChevronRight size={12} />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {pendingItems.applications.slice(0, 3).map(app => (
+                      <div key={app.id} className="p-3 rounded-xl" style={{ background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)' }}>
+                        <p className="text-xs text-white font-semibold">{app.full_name}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{app.user_email?.split('@')[0]}</p>
+                        <p className="text-[10px] text-green-400 mt-1 capitalize">{app.mentor_track} track</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {notificationCounts.total === 0 && (
+                <div className="text-center py-8">
+                  <Bell size={48} className="text-gray-600 mx-auto mb-3" />
+                  <p className="text-sm text-gray-400">No pending notifications</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

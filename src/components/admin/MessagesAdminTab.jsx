@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { MessageCircle, AlertTriangle, Search, Eye, Shield, User, Clock, ChevronRight } from 'lucide-react';
+import { MessageCircle, AlertTriangle, Search, Eye, Shield, User, Clock, ChevronRight, Ban, CheckCircle, XCircle, Send, Flag, FileText } from 'lucide-react';
 
 const FLAGGED_KEYWORDS = [
   'address', 'meet', 'location', 'phone', 'snapchat', 'instagram', 'discord',
@@ -16,6 +16,10 @@ export default function MessagesAdminTab() {
   const [filter, setFilter] = useState('all'); // 'all' | 'flagged' | 'mentor'
   const [searchQuery, setSearchQuery] = useState('');
   const [mentors, setMentors] = useState([]);
+  const [showActionModal, setShowActionModal] = useState(null);
+  const [actionType, setActionType] = useState(null); // 'warn', 'escalate', 'ban', 'clear', 'report'
+  const [actionForm, setActionForm] = useState({ reason: '', banType: 'soft', targetEmail: '' });
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -78,6 +82,118 @@ export default function MessagesAdminTab() {
   const getUserInfo = async (email) => {
     const profiles = await base44.entities.UserProfile.filter({ user_email: email });
     return profiles[0] || null;
+  };
+
+  const handleModerationAction = async () => {
+    if (!showActionModal) return;
+    setActionLoading(true);
+    try {
+      const me = await base44.auth.me();
+      const convo = showActionModal;
+      
+      if (actionType === 'clear') {
+        // Mark as reviewed in AdminLogs
+        await base44.entities.AdminLogs.create({
+          action_type: 'other',
+          performed_by: me.email,
+          target_email: convo.participants.join(', '),
+          details: `Marked conversation ${convo.id} as reviewed/cleared`,
+          metadata: JSON.stringify({ conversation_id: convo.id, action: 'cleared' }),
+        });
+        alert('✅ Conversation marked as reviewed');
+      } else if (actionType === 'warn') {
+        // Send warning email to user(s)
+        const targets = actionForm.targetEmail ? [actionForm.targetEmail] : convo.participants;
+        for (const email of targets) {
+          await base44.integrations.Core.SendEmail({
+            to: email,
+            subject: '⚠️ GGU Safety Warning',
+            body: `Dear GGU Member,\n\nThis is a safety warning regarding your recent messages on the platform. Our monitoring system detected content that may violate our Community Guidelines.\n\nReason: ${actionForm.reason || 'Safety policy violation'}\n\nPlease review our guidelines and ensure all communications remain appropriate. Continued violations may result in account suspension.\n\nStay safe,\nGGU Safety Team`,
+          });
+        }
+        await base44.entities.AdminLogs.create({
+          action_type: 'other',
+          performed_by: me.email,
+          target_email: targets.join(', '),
+          details: `Sent safety warning: ${actionForm.reason}`,
+          metadata: JSON.stringify({ conversation_id: convo.id, action: 'warn', reason: actionForm.reason }),
+        });
+        alert(`✅ Warning sent to ${targets.length} user(s)`);
+      } else if (actionType === 'escalate') {
+        // Create high-priority admin message
+        await base44.entities.MentorMessage.create({
+          sender_email: me.email,
+          receiver_email: 'admin-escalation@ggu.com',
+          subject: '🚨 ESCALATED: Flagged Conversation',
+          content: `Conversation ${convo.id} escalated for review.\n\nParticipants: ${convo.participants.join(', ')}\n\nReason: ${actionForm.reason}\n\nPlease review in Messages tab.`,
+          category: 'safety_concern',
+          is_admin_message: true,
+        });
+        await base44.entities.AdminLogs.create({
+          action_type: 'other',
+          performed_by: me.email,
+          target_email: convo.participants.join(', '),
+          details: `Escalated to senior admin: ${actionForm.reason}`,
+          metadata: JSON.stringify({ conversation_id: convo.id, action: 'escalate' }),
+        });
+        alert('✅ Escalated to senior admin team');
+      } else if (actionType === 'ban') {
+        // Ban user(s)
+        const targets = actionForm.targetEmail ? [actionForm.targetEmail] : convo.participants;
+        for (const email of targets) {
+          await base44.entities.BannedUser.create({
+            user_email: email,
+            username: email.split('@')[0],
+            user_name: email.split('@')[0],
+            ban_type: actionForm.banType,
+            reason: actionForm.reason || 'Safety violation from flagged conversation',
+            banned_by: me.email,
+            banned_date: new Date().toISOString(),
+            is_active: true,
+          });
+          await base44.entities.AdminLogs.create({
+            action_type: actionForm.banType === 'hard' ? 'hard_ban' : 'soft_ban',
+            performed_by: me.email,
+            target_email: email,
+            details: actionForm.reason || 'Safety violation',
+          });
+        }
+        alert(`✅ ${actionForm.banType === 'hard' ? 'Hard' : 'Soft'} ban applied to ${targets.length} user(s)`);
+      } else if (actionType === 'report') {
+        // Create ContentReport for formal tracking
+        await base44.entities.ContentReport.create({
+          reported_content_id: convo.id,
+          content_type: 'chat_message',
+          content_snapshot: JSON.stringify({
+            participants: convo.participants,
+            messageCount: convo.messages.length,
+            flaggedMessages: convo.messages.filter(m => 
+              ['address', 'meet', 'location', 'phone', 'snapchat', 'instagram', 'discord', 'secret', 'don\'t tell', 'parents', 'alone', 'come over', 'pick up'].some(kw => m.content.toLowerCase().includes(kw))
+            ).map(m => m.content),
+          }),
+          reported_by: me.email,
+          reason: 'other',
+          description: actionForm.reason || 'Flagged conversation requiring review',
+          status: 'pending',
+        });
+        await base44.entities.AdminLogs.create({
+          action_type: 'other',
+          performed_by: me.email,
+          target_email: convo.participants.join(', '),
+          details: `Created content report: ${actionForm.reason}`,
+          metadata: JSON.stringify({ conversation_id: convo.id, action: 'report' }),
+        });
+        alert('✅ Content report created for moderation queue');
+      }
+      
+      setShowActionModal(null);
+      setActionForm({ reason: '', banType: 'soft', targetEmail: '' });
+      load();
+    } catch (e) {
+      console.error('Moderation action failed:', e);
+      alert('Failed: ' + e.message);
+    }
+    setActionLoading(false);
   };
 
   const filteredConvos = conversations.filter(convo => {
@@ -186,11 +302,22 @@ export default function MessagesAdminTab() {
                 {selectedConvo.participants[0]?.split('@')[0]} ↔️ {selectedConvo.participants[1]?.split('@')[0]}
               </p>
             </div>
-            {selectedConvo.flagged && (
-              <span className="text-[10px] px-2 py-1 rounded-full font-bold" style={{ background: 'rgba(239,68,68,0.2)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
-                🚨 Flagged
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {selectedConvo.flagged && (
+                <span className="text-[10px] px-2 py-1 rounded-full font-bold" style={{ background: 'rgba(239,68,68,0.2)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                  🚨 Flagged
+                </span>
+              )}
+              {selectedConvo.flagged && (
+                <button
+                  onClick={() => { setShowActionModal(selectedConvo); setActionType(null); }}
+                  className="px-3 py-1.5 rounded-full text-xs font-bold text-white flex items-center gap-1.5 transition hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}
+                >
+                  <Shield size={12} /> Take Action
+                </button>
+              )}
+            </div>
           </div>
           <div className="max-h-[500px] overflow-y-auto p-4 space-y-2">
             {chatMessages.map((msg, i) => {
@@ -257,6 +384,246 @@ export default function MessagesAdminTab() {
               </div>
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Moderation Action Modal */}
+      {showActionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="w-full max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }}>
+            {/* Header */}
+            <div className="p-4 border-b flex items-center justify-between sticky top-0" style={{ background: '#1a0a2e', borderColor: 'rgba(255,255,255,0.1)' }}>
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Shield size={18} className="text-orange-400" />
+                  Moderation Actions
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Participants: {showActionModal.participants.map(p => p.split('@')[0]).join(' ↔ ')}
+                </p>
+              </div>
+              <button onClick={() => { setShowActionModal(null); setActionType(null); }} className="text-gray-400 hover:text-white">
+                <XCircle size={20} />
+              </button>
+            </div>
+
+            {!actionType ? (
+              // Action Selection
+              <div className="p-4 space-y-3">
+                <p className="text-xs text-gray-400 mb-2">Select an action for this flagged conversation:</p>
+                
+                <button
+                  onClick={() => setActionType('clear')}
+                  className="w-full p-4 rounded-xl text-left flex items-center gap-3 transition hover:bg-white/5"
+                  style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)' }}
+                >
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.2)' }}>
+                    <CheckCircle size={18} className="text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-green-400">Mark as Reviewed</p>
+                    <p className="text-[10px] text-gray-400">Clear the flag and mark as reviewed</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActionType('warn')}
+                  className="w-full p-4 rounded-xl text-left flex items-center gap-3 transition hover:bg-white/5"
+                  style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}
+                >
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(245,158,11,0.2)' }}>
+                    <Send size={18} className="text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-amber-400">Send Warning</p>
+                    <p className="text-[10px] text-gray-400">Email safety warning to user(s)</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActionType('escalate')}
+                  className="w-full p-4 rounded-xl text-left flex items-center gap-3 transition hover:bg-white/5"
+                  style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)' }}
+                >
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.2)' }}>
+                    <Flag size={18} className="text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-purple-400">Escalate to Senior Admin</p>
+                    <p className="text-[10px] text-gray-400">Forward to leadership team</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActionType('ban')}
+                  className="w-full p-4 rounded-xl text-left flex items-center gap-3 transition hover:bg-white/5"
+                  style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}
+                >
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.2)' }}>
+                    <Ban size={18} className="text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-red-400">Ban User</p>
+                    <p className="text-[10px] text-gray-400">Soft or hard ban from platform</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActionType('report')}
+                  className="w-full p-4 rounded-xl text-left flex items-center gap-3 transition hover:bg-white/5"
+                  style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' }}
+                >
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.2)' }}>
+                    <FileText size={18} className="text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-blue-400">Create Content Report</p>
+                    <p className="text-[10px] text-gray-400">Add to formal moderation queue</p>
+                  </div>
+                </button>
+              </div>
+            ) : (
+              // Action Form
+              <div className="p-4 space-y-4">
+                {actionType === 'clear' && (
+                  <div className="text-center py-8">
+                    <CheckCircle size={48} className="text-green-400 mx-auto mb-3" />
+                    <p className="text-white font-semibold mb-2">Mark as Reviewed?</p>
+                    <p className="text-xs text-gray-400 mb-4">This will clear the flag and log the review action.</p>
+                    <div className="flex gap-3">
+                      <button onClick={() => setActionType(null)} className="flex-1 py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'rgba(255,255,255,0.1)' }}>Cancel</button>
+                      <button onClick={handleModerationAction} disabled={actionLoading} className="flex-1 py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40" style={{ background: 'linear-gradient(135deg,#10b981,#059669)' }}>{actionLoading ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><CheckCircle size={16} /> Confirm</>}</button>
+                    </div>
+                  </div>
+                )}
+
+                {actionType === 'warn' && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold text-amber-400">Send Safety Warning</p>
+                    <div>
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5 block">Target</label>
+                      <select
+                        value={actionForm.targetEmail}
+                        onChange={e => setActionForm({ ...actionForm, targetEmail: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none text-sm"
+                      >
+                        <option value="">All Participants</option>
+                        {showActionModal.participants.map(p => (
+                          <option key={p} value={p} style={{ background: '#1a0a2e' }}>{p}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5 block">Reason *</label>
+                      <textarea
+                        value={actionForm.reason}
+                        onChange={e => setActionForm({ ...actionForm, reason: e.target.value })}
+                        placeholder="Describe the safety concern..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 outline-none text-sm resize-none"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <button onClick={() => setActionType(null)} className="flex-1 py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'rgba(255,255,255,0.1)' }}>Cancel</button>
+                      <button onClick={handleModerationAction} disabled={actionLoading || !actionForm.reason.trim()} className="flex-1 py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40" style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>{actionLoading ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Send size={16} /> Send Warning</>}</button>
+                    </div>
+                  </div>
+                )}
+
+                {actionType === 'escalate' && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold text-purple-400">Escalate to Senior Admin</p>
+                    <div>
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5 block">Reason for Escalation *</label>
+                      <textarea
+                        value={actionForm.reason}
+                        onChange={e => setActionForm({ ...actionForm, reason: e.target.value })}
+                        placeholder="Why does this need senior review?"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 outline-none text-sm resize-none"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <button onClick={() => setActionType(null)} className="flex-1 py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'rgba(255,255,255,0.1)' }}>Cancel</button>
+                      <button onClick={handleModerationAction} disabled={actionLoading || !actionForm.reason.trim()} className="flex-1 py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40" style={{ background: 'linear-gradient(135deg,#a855f7,#ec4899)' }}>{actionLoading ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Flag size={16} /> Escalate</>}</button>
+                    </div>
+                  </div>
+                )}
+
+                {actionType === 'ban' && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold text-red-400">Ban User</p>
+                    <div>
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5 block">Target</label>
+                      <select
+                        value={actionForm.targetEmail}
+                        onChange={e => setActionForm({ ...actionForm, targetEmail: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none text-sm"
+                      >
+                        <option value="">All Participants</option>
+                        {showActionModal.participants.map(p => (
+                          <option key={p} value={p} style={{ background: '#1a0a2e' }}>{p}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5 block">Ban Type *</label>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setActionForm({ ...actionForm, banType: 'soft' })}
+                          className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition ${actionForm.banType === 'soft' ? 'text-white' : 'text-gray-400'}`}
+                          style={actionForm.banType === 'soft' ? { background: 'rgba(239,68,68,0.3)', borderColor: 'rgba(239,68,68,0.5)' } : { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+                        >
+                          🟡 Soft Ban (can view)
+                        </button>
+                        <button
+                          onClick={() => setActionForm({ ...actionForm, banType: 'hard' })}
+                          className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition ${actionForm.banType === 'hard' ? 'text-white' : 'text-gray-400'}`}
+                          style={actionForm.banType === 'hard' ? { background: 'rgba(239,68,68,0.5)', borderColor: 'rgba(239,68,68,0.7)' } : { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
+                        >
+                          🔴 Hard Ban (full block)
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5 block">Reason *</label>
+                      <textarea
+                        value={actionForm.reason}
+                        onChange={e => setActionForm({ ...actionForm, reason: e.target.value })}
+                        placeholder="Violation details..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 outline-none text-sm resize-none"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <button onClick={() => setActionType(null)} className="flex-1 py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'rgba(255,255,255,0.1)' }}>Cancel</button>
+                      <button onClick={handleModerationAction} disabled={actionLoading || !actionForm.reason.trim()} className="flex-1 py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40" style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)' }}>{actionLoading ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Ban size={16} /> Apply Ban</>}</button>
+                    </div>
+                  </div>
+                )}
+
+                {actionType === 'report' && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold text-blue-400">Create Content Report</p>
+                    <div>
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5 block">Description *</label>
+                      <textarea
+                        value={actionForm.reason}
+                        onChange={e => setActionForm({ ...actionForm, reason: e.target.value })}
+                        placeholder="Details for moderation team..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 outline-none text-sm resize-none"
+                        rows={4}
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <button onClick={() => setActionType(null)} className="flex-1 py-3 rounded-xl font-bold text-white text-sm" style={{ background: 'rgba(255,255,255,0.1)' }}>Cancel</button>
+                      <button onClick={handleModerationAction} disabled={actionLoading || !actionForm.reason.trim()} className="flex-1 py-3 rounded-xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)' }}>{actionLoading ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><FileText size={16} /> Create Report</>}</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
