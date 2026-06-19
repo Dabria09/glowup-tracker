@@ -574,42 +574,6 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
                   </div>
                 )}
 
-                {/* In-Person Approval Toggle (Approved mentors only) */}
-                {app.status === 'approved' && (
-                  <div className="mt-4 pt-3 rounded-xl p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)', background: app.in_person_approved ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.03)' }}>
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-white flex items-center gap-1">
-                          📍 In-Person Mentoring Approval
-                        </p>
-                        <p className="text-[10px] text-gray-400 mt-0.5">
-                          {app.in_person_approved 
-                            ? `Approved ${app.in_person_approval_date ? new Date(app.in_person_approval_date).toLocaleDateString() : ''}`
-                            : 'Not yet approved for in-person sessions'}
-                        </p>
-                      </div>
-                      <button
-                        onClick={toggleInPersonApproval}
-                        disabled={saving}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition disabled:opacity-40 ${
-                          app.in_person_approved 
-                            ? 'text-emerald-400' 
-                            : 'text-gray-400'
-                        }`}
-                        style={app.in_person_approved 
-                          ? { background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.4)' }
-                          : { background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
-                      >
-                        {app.in_person_approved ? '✓ Approved' : 'Grant Approval'}
-                      </button>
-                    </div>
-                    {app.in_person_approved && app.in_person_approved_by && (
-                      <p className="text-[10px] text-gray-500">
-                        By: {app.in_person_approved_by.split('@')[0]}
-                      </p>
-                    )}
-                  </div>
-                )}
                 {!isTeenTrack && !bgCleared && app.status === 'pending' && (
                   <p className="text-[10px] text-red-400 text-center mt-2 flex items-center justify-center gap-1">
                     <span>⚠️</span>
@@ -626,30 +590,6 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
                         style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}
                       >
                         <Link2 size={11} /> Assign
-                      </button>
-                    </div>
-                    
-                    {/* In-Person Approval Toggle */}
-                    <div className="mt-2 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-gray-400">📍 In-Person Approved:</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${app.in_person_approved ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                          {app.in_person_approved ? 'Yes ✓' : 'No'}
-                        </span>
-                      </div>
-                      <button
-                        onClick={async () => {
-                          const newVal = !app.in_person_approved;
-                          await base44.entities.MentorApplication.update(app.id, {
-                            in_person_approved: newVal,
-                            in_person_approval_date: newVal ? new Date().toISOString() : null,
-                            in_person_approved_by: newVal ? (await base44.auth.me()).email : null,
-                          });
-                          onUpdate();
-                        }}
-                        className={`text-[10px] px-2 py-1 rounded-full font-bold transition ${app.in_person_approved ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}
-                      >
-                        {app.in_person_approved ? '✕ Remove' : '+ Add'}
                       </button>
                     </div>
                     {mentorMatches.length === 0 ? <p className="text-[10px] text-gray-500">No assignments yet</p> : (
