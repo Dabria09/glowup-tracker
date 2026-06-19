@@ -18,13 +18,15 @@ const prettyAction = (a) => a.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpper
 
 export default function AnalyticsTab() {
   const [range, setRange] = useState('30d');
+  const [selectedGroup, setSelectedGroup] = useState('all');
+  const [groups, setGroups] = useState([]);
   const [dailyUsers, setDailyUsers] = useState([]);
   const [featureData, setFeatureData] = useState([]);
   const [topPages, setTopPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trendData, setTrendData] = useState({ dauTrend: 0, engagementTrend: 0 });
 
-  useEffect(() => { load(); }, [range]);
+  useEffect(() => { load(); }, [range, selectedGroup]);
 
   const load = async () => {
     setLoading(true);
@@ -34,18 +36,35 @@ export default function AnalyticsTab() {
       const currentSince = now - days * 86400000;
       const previousSince = currentSince - days * 86400000;
       
+      // Fetch groups for filter dropdown
+      const groupsList = await base44.entities.ClassGroup.list('-created_date', 100);
+      setGroups(groupsList);
+      
       // Use PointsHistory as the single source of truth for all activity metrics
       const [pointsHistory, usersRes] = await Promise.all([
         base44.entities.PointsHistory.list('-created_date', 2000),
         base44.functions.invoke('getAdminUsers', {}),
       ]);
       
-      const currentPoints = pointsHistory.filter(p => p.created_date && new Date(p.created_date).getTime() >= currentSince);
-      const previousPoints = pointsHistory.filter(p => 
+      // If group filter is selected, get group members to filter metrics
+      let groupMemberEmails = null;
+      if (selectedGroup !== 'all') {
+        const groupMembers = await base44.entities.GroupMember.filter({ group_id: selectedGroup });
+        groupMemberEmails = new Set(groupMembers.map(m => m.user_email));
+      }
+      
+      // Filter points by group membership if a group is selected
+      const filterByGroup = (points) => {
+        if (!groupMemberEmails) return points;
+        return points.filter(p => groupMemberEmails.has(p.user_email));
+      };
+      
+      const currentPoints = filterByGroup(pointsHistory.filter(p => p.created_date && new Date(p.created_date).getTime() >= currentSince));
+      const previousPoints = filterByGroup(pointsHistory.filter(p => 
         p.created_date && 
         new Date(p.created_date).getTime() >= previousSince && 
         new Date(p.created_date).getTime() < currentSince
-      );
+      ));
       
       // Daily active users from PointsHistory (consistent with OverviewTab)
       const dayMap = {};
@@ -109,15 +128,29 @@ export default function AnalyticsTab() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <div className="flex gap-2">
-          {TIME_RANGES.map(r => (
-            <button key={r} onClick={() => setRange(r)}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${range === r ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-              style={range === r ? { background: 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}>
-              {r}
-            </button>
-          ))}
+      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={selectedGroup}
+            onChange={e => setSelectedGroup(e.target.value)}
+            className="bg-gray-900 border border-white/10 rounded-full px-3 py-1.5 text-xs text-white outline-none"
+          >
+            <option value="all" className="bg-gray-900">📊 All Groups (App-wide)</option>
+            {groups.map(g => (
+              <option key={g.id} value={g.id} className="bg-gray-900">
+                🏫 {g.name} ({g.member_count || 0} members)
+              </option>
+            ))}
+          </select>
+          <div className="flex gap-2">
+            {TIME_RANGES.map(r => (
+              <button key={r} onClick={() => setRange(r)}
+                className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${range === r ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+                style={range === r ? { background: 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}>
+                {r}
+              </button>
+            ))}
+          </div>
         </div>
         <button onClick={exportCSV}
           className="px-3 py-1.5 rounded-full text-xs font-semibold text-white flex items-center gap-1.5"
@@ -125,12 +158,24 @@ export default function AnalyticsTab() {
           <Download size={14} /> Export CSV
         </button>
       </div>
-      <p className="text-xs text-gray-400 mb-2">Data for last {range} vs previous {range}</p>
+      <p className="text-xs text-gray-400 mb-2">
+        {selectedGroup !== 'all' ? `🏫 ${groups.find(g => g.id === selectedGroup)?.name || 'Group'} · ` : ''}
+        Data for last {range} vs previous {range}
+      </p>
 
       {loading ? <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" /></div> : (
         <>
           <div className="p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <p className="text-sm font-bold text-white mb-3 flex items-center gap-2"><BarChart2 size={14} className="text-pink-400" /> Most Visited Pages</p>
+            <div className="flex items-start gap-2 mb-3">
+              <BarChart2 size={14} className="text-pink-400 mt-0.5" />
+              <div>
+                <p className="text-sm font-bold text-white">Most Visited Pages</p>
+                <p className="text-[10px] text-gray-500 mt-0.5">
+                  Tracks in-app screens: Dashboard, Discover, Glow, Connect, Me, plus detail pages (e.g., Trip Detail, Community Detail). 
+                  Requires page_view tracking calls in each page component.
+                </p>
+              </div>
+            </div>
             {topPages.length === 0 ? (
               <p className="text-xs text-gray-500">No page views recorded yet. Pages will appear here once users start visiting.</p>
             ) : (
