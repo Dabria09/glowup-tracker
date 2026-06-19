@@ -238,9 +238,13 @@ export async function awardPoints(userEmail, action) {
         emoji: ACTION_META[action]?.emoji || '✨',
         points: pts, total_after: newTotal,
       });
-      // Sync Glow Level after points update
+      // Sync Glow Level after points update and check for level-up
       try {
-        await base44.functions.invoke('syncGlowLevel', {});
+        const levelResult = await base44.functions.invoke('syncGlowLevel', {});
+        // If leveled up, dispatch custom event for celebration
+        if (levelResult?.data?.leveledUp) {
+          window.dispatchEvent(new CustomEvent('ggu_level_up', { detail: levelResult.data }));
+        }
       } catch (levelErr) {
         console.warn('Failed to sync glow level:', levelErr);
       }
@@ -258,9 +262,13 @@ export async function awardPoints(userEmail, action) {
         emoji: ACTION_META[action]?.emoji || '✨',
         points: pts, total_after: newTotal,
       });
-      // Sync Glow Level after points update
+      // Sync Glow Level after points update and check for level-up
       try {
-        await base44.functions.invoke('syncGlowLevel', {});
+        const levelResult = await base44.functions.invoke('syncGlowLevel', {});
+        // If leveled up, dispatch custom event for celebration
+        if (levelResult?.data?.leveledUp) {
+          window.dispatchEvent(new CustomEvent('ggu_level_up', { detail: levelResult.data }));
+        }
       } catch (levelErr) {
         console.warn('Failed to sync glow level:', levelErr);
       }

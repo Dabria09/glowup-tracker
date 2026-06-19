@@ -10,6 +10,7 @@ import CustomizeModal from '@/components/CustomizeModal';
 import AvatarPreview from '@/components/avatar/AvatarPreview';
 import UserAvatarDisplay from '@/components/UserAvatarDisplay';
 import MentorModeToggle from '@/components/MentorModeToggle';
+import LevelUpCelebration from '@/components/celebration/LevelUpCelebration';
 
 const MANUS = 'https://gguapp-wdww94kr.manus.space/manus-storage/';
 const G = 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/';
@@ -529,6 +530,7 @@ export default function Dashboard() {
     return cleaned;
   });
   const [sizingId, setSizingId] = useState(null);
+  const [levelUpData, setLevelUpData] = useState(null);
 
   useEffect(() => {localStorage.setItem('ggu_home_apps', JSON.stringify(homeAppIds));}, [homeAppIds]);
   useEffect(() => {localStorage.setItem('ggu_quick_access', JSON.stringify(quickIds));}, [quickIds]);
@@ -603,8 +605,14 @@ export default function Dashboard() {
 
     const onVisibilityChange = () => {if (email && document.visibilityState === 'visible') {checkCheckin(email);}};
     const onCheckinComplete = () => {if (email) {checkCheckin(email);}};
+    const onLevelUpDetected = (e) => {
+      if (e.detail && e.detail.leveledUp) {
+        setLevelUpData(e.detail);
+      }
+    };
     document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('ggu_checkin_complete', onCheckinComplete);
+    window.addEventListener('ggu_level_up', onLevelUpDetected);
 
     base44.auth.me().then(async (u) => {
       email = u.email;
@@ -649,6 +657,7 @@ export default function Dashboard() {
     return () => {
       document.removeEventListener('visibilitychange', onVisibilityChange);
       window.removeEventListener('ggu_checkin_complete', onCheckinComplete);
+      window.removeEventListener('ggu_level_up', onLevelUpDetected);
     };
   }, []);
 
@@ -1055,6 +1064,18 @@ export default function Dashboard() {
         onSelect={(size) => setWidgetSizesAndSave((prev) => ({ ...prev, [sizingId]: size }))}
         onClose={() => setSizingId(null)} /> :
         null;})()}
+      
+      {/* Level Up Celebration */}
+      {levelUpData && (
+        <LevelUpCelebration 
+          levelData={levelUpData} 
+          onClose={() => {
+            setLevelUpData(null);
+            // Clear from localStorage too
+            localStorage.removeItem('ggu_level_up_pending');
+          }} 
+        />
+      )}
     </div>);
 
 }

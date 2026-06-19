@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return Response.json({
+    const responseData = {
       leveledUp: hasLeveledUp,
       currentLevel: {
         name: currentLevel.name,
@@ -100,7 +100,33 @@ Deno.serve(async (req) => {
         unlock_type: currentLevel.unlock_type,
       },
       previousLevel: previousLevel > 0 ? previousLevelName : null,
-    });
+    };
+
+    // If leveled up, also create a notification entity for in-app bell
+    if (hasLeveledUp) {
+      try {
+        await base44.entities.Notification.create({
+          user_email: user.email,
+          type: 'level_up',
+          title: `🎉 You Leveled Up!`,
+          message: `Welcome to ${currentLevel.emoji} ${currentLevel.name}! Unlocked: ${currentLevel.unlock_emoji} ${currentLevel.unlock_reward}`,
+          icon: currentLevel.emoji,
+          is_read: false,
+          priority: 'high',
+          metadata: JSON.stringify({
+            previous_level: previousLevelName,
+            new_level: currentLevel.name,
+            level_number: currentLevelNum,
+            unlock_reward: currentLevel.unlock_reward,
+            unlock_type: currentLevel.unlock_type,
+          }),
+        });
+      } catch (notifErr) {
+        console.warn('Failed to create level-up notification:', notifErr);
+      }
+    }
+
+    return Response.json(responseData);
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
