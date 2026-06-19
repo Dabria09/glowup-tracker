@@ -152,6 +152,9 @@ export default function ContentModeration() {
           await base44.entities.ShoutOut.delete(report.reported_content_id);
         } else if (report.content_type === 'community_post') {
           await base44.entities.CommunityPost.delete(report.reported_content_id);
+        } else if (report.content_type === 'video_session') {
+          // Can't delete session records, just mark as reviewed
+          toast.success('Video session flagged for admin review');
         }
       }
       await base44.entities.ContentReport.update(report.id, {
@@ -278,7 +281,7 @@ export default function ContentModeration() {
                     <AlertTriangle size={12} className="text-red-400 flex-shrink-0" />
                     <p className="text-xs font-bold text-red-400">REPORTED</p>
                     <span className="text-[10px] px-2 py-0.5 rounded-full capitalize" style={{ background: 'rgba(168,85,247,0.2)', color: '#a855f7' }}>{report.reason.replace('_', ' ')}</span>
-                    <span className="text-[10px] text-gray-500">{report.content_type === 'shoutout' ? '📢 Shout Out' : '💬 Community'}</span>
+                    <span className="text-[10px] text-gray-500">{report.content_label || (report.content_type === 'video_session' ? '🎥 Video Session' : report.content_type === 'shoutout' ? '📢 Shout Out' : '💬 Community')}</span>
                   </div>
                   <p className="text-sm text-gray-200 leading-relaxed">{report.content_text}</p>
                   <p className="text-[10px] text-gray-500 mt-1">Reported by {report.reported_by?.split('@')[0]} · {timeAgo(report.created_date)}</p>

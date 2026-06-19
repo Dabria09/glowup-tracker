@@ -12,7 +12,8 @@
       "enum": [
         "shoutout",
         "community_post",
-        "comment"
+        "comment",
+        "video_session"
       ]
     },
     "content_snapshot": {
