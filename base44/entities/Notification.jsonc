@@ -14,9 +14,16 @@
         "reaction",
         "profile_view",
         "shoutout",
-        "moderation_alert",
         "level_up",
-        "system"
+        "moderation_alert",
+        "system",
+        "comment",
+        "challenge",
+        "mentorship",
+        "community",
+        "team",
+        "squad",
+        "announcement"
       ],
       "default": "follow"
     },
