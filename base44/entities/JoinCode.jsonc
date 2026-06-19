@@ -60,6 +60,20 @@
     "notes": {
       "type": "string",
       "title": "Notes"
+    },
+    "discount_type": {
+      "type": "string",
+      "title": "Discount Type",
+      "enum": [
+        "percentage",
+        "fixed"
+      ],
+      "default": "percentage"
+    },
+    "discount_value": {
+      "type": "number",
+      "title": "Discount Value (% or $)",
+      "default": 0
     }
   },
   "required": [

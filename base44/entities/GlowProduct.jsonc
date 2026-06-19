@@ -1,0 +1,70 @@
+{
+  "name": "GlowProduct",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Product Name"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "price": {
+      "type": "number",
+      "title": "Price (USD)"
+    },
+    "product_type": {
+      "type": "string",
+      "title": "Product Type",
+      "enum": [
+        "subscription",
+        "one_time",
+        "event",
+        "merchandise"
+      ]
+    },
+    "billing_interval": {
+      "type": "string",
+      "title": "Billing Interval",
+      "enum": [
+        "monthly",
+        "yearly",
+        "weekly"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "membership",
+        "event",
+        "course",
+        "coaching",
+        "physical"
+      ]
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Product Image URL"
+    },
+    "features": {
+      "type": "string",
+      "title": "Features (JSON array)"
+    },
+    "wix_product_id": {
+      "type": "string",
+      "title": "Wix Product ID"
+    }
+  },
+  "required": [
+    "name",
+    "price",
+    "product_type"
+  ]
+}

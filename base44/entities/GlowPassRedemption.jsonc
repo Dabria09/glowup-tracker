@@ -1,0 +1,64 @@
+{
+  "name": "GlowPassRedemption",
+  "type": "object",
+  "properties": {
+    "pass_code": {
+      "type": "string",
+      "title": "Pass Code"
+    },
+    "pass_id": {
+      "type": "string",
+      "title": "Pass ID"
+    },
+    "product_id": {
+      "type": "string",
+      "title": "Product ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "session_id": {
+      "type": "string",
+      "title": "Checkout Session ID"
+    },
+    "amount_paid": {
+      "type": "number",
+      "title": "Amount Paid (USD)"
+    },
+    "currency": {
+      "type": "string",
+      "title": "Currency",
+      "default": "USD"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "redeemed_date": {
+      "type": "string",
+      "title": "Redeemed Date"
+    },
+    "refund_date": {
+      "type": "string",
+      "title": "Refund Date"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "pass_code",
+    "pass_id",
+    "product_id",
+    "session_id"
+  ]
+}
