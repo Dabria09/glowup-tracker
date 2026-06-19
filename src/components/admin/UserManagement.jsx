@@ -207,7 +207,8 @@ export default function UserManagement() {
     const matchSearch = u.email?.toLowerCase().includes(search.toLowerCase()) ||
       u.full_name?.toLowerCase().includes(search.toLowerCase());
     const profile = getProfile(u.email);
-    const matchGroup = filterGroup === 'all' || profile?.age_group === filterGroup;
+    const effectiveGroup = profile?.age_group || u.age_group || '';
+    const matchGroup = filterGroup === 'all' || effectiveGroup === filterGroup;
     const ban = getActiveBan(u.email);
     const matchStatus = filterStatus === 'all' ||
       (filterStatus === 'banned' && ban) ||
@@ -288,7 +289,9 @@ export default function UserManagement() {
         )}
         {filtered.map(u => {
           const profile = getProfile(u.email);
-          const ageInfo = AGE_GROUP_LABELS[profile?.age_group];
+          const effectiveAgeGroup = profile?.age_group || u.age_group || '';
+          const ageInfo = AGE_GROUP_LABELS[effectiveAgeGroup];
+          const isMentor = !!u.mentor_status;
           const ban = getActiveBan(u.email);
           const consentPending = profile?.parental_consent_sent && !profile?.admin_consent_approved;
           const consentApproved = profile?.admin_consent_approved;
@@ -361,13 +364,18 @@ export default function UserManagement() {
                       {ROLES.map(r => <option key={r} value={r} style={{ background: '#1a0a2e' }}>{r}</option>)}
                     </select>
 
-                    {profile?.age_group === 'glow_women' && (
+                    {effectiveAgeGroup === 'glow_women' && (
                       <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#f59e0b20', border: '1px solid #f59e0b50', color: '#f59e0b' }}>
                         <img src="https://media.base44.com/images/public/6a0e12a89992f9565c11e330/68085ba5f_generated_image.png" alt="Glow Women" className="w-3.5 h-3.5 rounded-full object-cover" /> Glow Women
                       </span>
                     )}
+                    {isMentor && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', color: '#a5b4fc' }}>
+                        🎓 Mentor{u.mentor_type === 'teen' ? ' (Teen)' : ''}
+                      </span>
+                    )}
                     <select
-                      value={profile?.age_group || ''}
+                      value={effectiveAgeGroup}
                       onChange={e => handleAgeGroupChange(u.email, e.target.value)}
                       disabled={saving === u.email}
                       className="text-[10px] font-bold px-2 py-0.5 rounded-full outline-none cursor-pointer"
