@@ -240,11 +240,21 @@ export default function AdminPanel() {
                   </div>
                   <div className="space-y-2">
                     {pendingItems.reports.slice(0, 3).map(report => (
-                      <div key={report.id} className="p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                      <button 
+                        key={report.id} 
+                        className="w-full text-left p-3 rounded-xl transition-colors hover:bg-white/5" 
+                        style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+                        onClick={() => {
+                          const destination = `/admin?tab=moderation&highlight=${report.id}`;
+                          navigate(destination);
+                          setShowNotificationPanel(false);
+                          setActiveTab('moderation');
+                        }}
+                      >
                         <p className="text-xs text-white font-semibold capitalize">{report.content_type.replace('_', ' ')}</p>
                         <p className="text-[10px] text-gray-400 mt-0.5">Reported by: {report.reported_by?.split('@')[0]}</p>
                         <p className="text-[10px] text-red-400 mt-1">Reason: {report.reason}</p>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>

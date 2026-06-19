@@ -28,8 +28,16 @@ export default function ContentModeration() {
   const [addingWord, setAddingWord] = useState(false);
   const [loading, setLoading] = useState(true);
   const [flaggedPosts, setFlaggedPosts] = useState([]);
+  const [highlightId, setHighlightId] = useState(null);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('highlight');
+    if (id) {
+      setHighlightId(id);
+      setActiveTab('reported');
+    }
+
     const load = async () => {
       const [so, cp, bw] = await Promise.all([
         base44.entities.ShoutOut.list('-created_date', 50),
@@ -37,7 +45,6 @@ export default function ContentModeration() {
         base44.entities.BannedWord.list('-created_date', 200),
       ]);
 
-      // Fetch reported posts via backend function
       let rep = [];
       try {
         const res = await base44.functions.invoke('getReportedPosts', {});
@@ -49,7 +56,6 @@ export default function ContentModeration() {
       setReported(rep);
       setBannedWords(bw);
 
-      // Auto-flag: find posts containing any active banned word
       const activeWords = bw.filter(w => w.is_active !== false).map(w => w.word.toLowerCase());
       const checkContent = (text) => {
         if (!text) return null;
@@ -71,6 +77,17 @@ export default function ContentModeration() {
     };
     load();
   }, []);
+
+  useEffect(() => {
+    if (highlightId && reported.length > 0) {
+      const el = document.getElementById(`report-${highlightId}`);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 200);
+      }
+    }
+  }, [highlightId, reported]);
 
   const deleteShoutout = async (id) => {
     await base44.entities.ShoutOut.delete(id);
@@ -153,7 +170,6 @@ export default function ContentModeration() {
         } else if (report.content_type === 'community_post') {
           await base44.entities.CommunityPost.delete(report.reported_content_id);
         } else if (report.content_type === 'video_session') {
-          // Can't delete session records, just mark as reviewed
           toast.success('Video session flagged for admin review');
         }
       }
@@ -273,57 +289,65 @@ export default function ContentModeration() {
               <p className="text-gray-400 text-sm">No reported posts.</p>
             </div>
           )}
-          {reported.map((report, i) => (
-            <div key={report.id || i} className="rounded-2xl p-4" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <AlertTriangle size={12} className="text-red-400 flex-shrink-0" />
-                    <p className="text-xs font-bold text-red-400">REPORTED</p>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full capitalize" style={{ background: 'rgba(168,85,247,0.2)', color: '#a855f7' }}>{report.reason.replace('_', ' ')}</span>
-                    <span className="text-[10px] text-gray-500">{report.content_label || (report.content_type === 'video_session' ? '🎥 Video Session' : report.content_type === 'shoutout' ? '📢 Shout Out' : '💬 Community')}</span>
-                  </div>
-                  <p className="text-sm text-gray-200 leading-relaxed">{report.content_text}</p>
-                  <p className="text-[10px] text-gray-500 mt-1">Reported by {report.reported_by?.split('@')[0]} · {timeAgo(report.created_date)}</p>
-                  {report.description && <p className="text-[10px] text-gray-400 mt-1 italic">"{report.description}"</p>}
-                  {report.status !== 'pending' && (
-                    <p className="text-[10px] text-gray-500 mt-1">Status: <span className="capitalize">{report.status}</span>{report.reviewed_by ? ` · Reviewed by ${report.reviewed_by.split('@')[0]}` : ''}</p>
-                  )}
-                  {report.reported_content_id && (
-                    <p className="text-[10px] text-gray-600 mt-0.5">Content ID: {report.reported_content_id}</p>
-                  )}
-                </div>
-                {report.status === 'pending' && (
-                  <div className="flex flex-col gap-1.5 flex-shrink-0">
-                    <button onClick={() => resolveReport(report, false)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition"
-                      style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)' }}>
-                      <CheckCircle size={11} /> Resolve
-                    </button>
-                    <button onClick={() => dismissReport(report)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-gray-400 hover:text-gray-200 transition"
-                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                      <X size={11} /> Dismiss
-                    </button>
+          {reported.map((report, i) => {
+            const isHighlighted = report.id === highlightId;
+            return (
+              <div 
+                key={report.id || i} 
+                id={`report-${report.id}`}
+                className={`rounded-2xl p-4 transition-all ${isHighlighted ? 'ring-2 ring-pink-500 shadow-lg' : ''}`}
+                style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <AlertTriangle size={12} className="text-red-400 flex-shrink-0" />
+                      <p className="text-xs font-bold text-red-400">REPORTED</p>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full capitalize" style={{ background: 'rgba(168,85,247,0.2)', color: '#a855f7' }}>{report.reason.replace('_', ' ')}</span>
+                      <span className="text-[10px] text-gray-500">{report.content_label || (report.content_type === 'video_session' ? '🎥 Video Session' : report.content_type === 'shoutout' ? '📢 Shout Out' : '💬 Community')}</span>
+                    </div>
+                    <p className="text-sm text-gray-200 leading-relaxed">{report.content_text}</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Reported by {report.reported_by?.split('@')[0]} · {timeAgo(report.created_date)}</p>
+                    {report.description && <p className="text-[10px] text-gray-400 mt-1 italic">"{report.description}"</p>}
+                    {report.status !== 'pending' && (
+                      <p className="text-[10px] text-gray-500 mt-1">Status: <span className="capitalize">{report.status}</span>{report.reviewed_by ? ` · Reviewed by ${report.reviewed_by.split('@')[0]}` : ''}</p>
+                    )}
                     {report.reported_content_id && (
-                      <>
-                        <button onClick={() => resolveReport(report, true)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-red-400 hover:text-red-300 transition"
-                          style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
-                          <Trash2 size={11} /> Remove + Resolve
-                        </button>
-                        <button onClick={() => banUser(report.reported_by || '', report.reported_by?.split('@')[0] || 'User')}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-amber-400 hover:text-amber-300 transition"
-                          style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)' }}>
-                          <AlertTriangle size={11} /> Ban User
-                        </button>
-                      </>
+                      <p className="text-[10px] text-gray-600 mt-0.5">Content ID: {report.reported_content_id}</p>
                     )}
                   </div>
-                )}
+                  {report.status === 'pending' && (
+                    <div className="flex flex-col gap-1.5 flex-shrink-0">
+                      <button onClick={() => resolveReport(report, false)}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition"
+                        style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                        <CheckCircle size={11} /> Resolve
+                      </button>
+                      <button onClick={() => dismissReport(report)}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-gray-400 hover:text-gray-200 transition"
+                        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <X size={11} /> Dismiss
+                      </button>
+                      {report.reported_content_id && (
+                        <>
+                          <button onClick={() => resolveReport(report, true)}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-red-400 hover:text-red-300 transition"
+                            style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                            <Trash2 size={11} /> Remove + Resolve
+                          </button>
+                          <button onClick={() => banUser(report.reported_by || '', report.reported_by?.split('@')[0] || 'User')}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-amber-400 hover:text-amber-300 transition"
+                            style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)' }}>
+                            <AlertTriangle size={11} /> Ban User
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )}
+          )}
         </div>
       )}
 
