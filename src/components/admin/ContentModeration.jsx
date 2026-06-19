@@ -393,29 +393,31 @@ export default function ContentModeration() {
           {/* Add word */}
           <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(168,85,247,0.3)' }}>
             <p className="text-sm font-bold text-white">Add Banned Word / Phrase</p>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2">
               <input
                 value={newWord}
                 onChange={e => setNewWord(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addBannedWord()}
                 placeholder="Type word or phrase…"
-                className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none"
+                className="w-full bg-white/5 border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none"
               />
-              <select
-                value={newWordCategory}
-                onChange={e => setNewWordCategory(e.target.value)}
-                className="bg-gray-900 border border-white/10 rounded-full px-3 py-2 text-xs text-white outline-none"
-              >
-                {WORD_CATEGORIES.map(c => <option key={c} value={c} className="bg-gray-900">{CAT_LABELS[c]}</option>)}
-              </select>
-              <button
-                onClick={addBannedWord}
-                disabled={!newWord.trim() || addingWord}
-                className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-bold text-white disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}
-              >
-                <Plus size={14} /> Add
-              </button>
+              <div className="flex gap-2">
+                <select
+                  value={newWordCategory}
+                  onChange={e => setNewWordCategory(e.target.value)}
+                  className="flex-1 bg-gray-900 border border-white/10 rounded-full px-3 py-2 text-xs text-white outline-none"
+                >
+                  {WORD_CATEGORIES.map(c => <option key={c} value={c} className="bg-gray-900">{CAT_LABELS[c]}</option>)}
+                </select>
+                <button
+                  onClick={addBannedWord}
+                  disabled={!newWord.trim() || addingWord}
+                  className="flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-bold text-white disabled:opacity-40 flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}
+                >
+                  <Plus size={14} /> Add
+                </button>
+              </div>
             </div>
           </div>
 
