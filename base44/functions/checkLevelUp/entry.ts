@@ -54,40 +54,20 @@ Deno.serve(async (req) => {
     const currentLevelNum = currentLevel.level_number || 0;
     const hasLeveledUp = currentLevelNum > previousLevel && previousLevel > 0;
 
-    // If leveled up, create notification and log
+    // Log the level-up event
     if (hasLeveledUp) {
-      // Create celebration notification
-      await base44.entities.Notification.create({
-        user_email: user.email,
-        type: 'level_up',
-        title: `🎉 You Leveled Up!`,
-        message: `Welcome to ${currentLevel.emoji} ${currentLevel.name}! You've unlocked: ${currentLevel.unlock_emoji} ${currentLevel.unlock_reward}`,
-        icon: currentLevel.emoji,
-        is_read: false,
-        priority: 'high',
-        metadata: JSON.stringify({
-          previous_level: previousLevelName,
-          new_level: currentLevel.name,
-          level_number: currentLevelNum,
-          unlock_reward: currentLevel.unlock_reward,
-          unlock_type: currentLevel.unlock_type,
-        }),
-      });
-
-      // Log the level-up event
-      await base44.entities.PointsHistory.create({
-        user_email: user.email,
-        action: 'level_up',
-        label: `Leveled Up to ${currentLevel.name}`,
-        emoji: currentLevel.emoji,
-        points: 0,
-        total_after: totalPoints,
-        metadata: JSON.stringify({
-          from_level: previousLevelName,
-          to_level: currentLevel.name,
-          level_number: currentLevelNum,
-        }),
-      });
+      try {
+        await base44.entities.PointsHistory.create({
+          user_email: user.email,
+          action: 'level_up',
+          label: `Leveled Up to ${currentLevel.name}`,
+          emoji: currentLevel.emoji,
+          points: 0,
+          total_after: totalPoints,
+        });
+      } catch (logErr) {
+        console.warn('Failed to log level-up:', logErr);
+      }
     }
 
     const responseData = {
@@ -102,15 +82,17 @@ Deno.serve(async (req) => {
       previousLevel: previousLevel > 0 ? previousLevelName : null,
     };
 
-    // If leveled up, also create a notification entity for in-app bell
+    // If leveled up, create in-app notification for bell
     if (hasLeveledUp) {
       try {
         await base44.entities.Notification.create({
-          user_email: user.email,
+          recipient_email: user.email,
           type: 'level_up',
-          title: `🎉 You Leveled Up!`,
-          message: `Welcome to ${currentLevel.emoji} ${currentLevel.name}! Unlocked: ${currentLevel.unlock_emoji} ${currentLevel.unlock_reward}`,
-          icon: currentLevel.emoji,
+          message: `🎉 Congratulations! You've reached ${currentLevel.emoji} ${currentLevel.name}! Unlocked: ${currentLevel.unlock_emoji} ${currentLevel.unlock_reward}`,
+          actor_email: 'system@ggu.app',
+          actor_username: 'GGU Team',
+          actor_avatar: null,
+          link: '/glow-score',
           is_read: false,
           priority: 'high',
           metadata: JSON.stringify({
@@ -119,10 +101,12 @@ Deno.serve(async (req) => {
             level_number: currentLevelNum,
             unlock_reward: currentLevel.unlock_reward,
             unlock_type: currentLevel.unlock_type,
+            emoji: currentLevel.emoji,
           }),
         });
+        console.log('[checkLevelUp] Created level-up notification for', user.email);
       } catch (notifErr) {
-        console.warn('Failed to create level-up notification:', notifErr);
+        console.error('Failed to create level-up notification:', notifErr);
       }
     }
 
