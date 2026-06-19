@@ -14,7 +14,9 @@
         "reaction",
         "profile_view",
         "shoutout",
-        "moderation_alert"
+        "moderation_alert",
+        "level_up",
+        "system"
       ],
       "default": "follow"
     },

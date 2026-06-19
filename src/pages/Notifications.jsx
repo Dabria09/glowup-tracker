@@ -70,7 +70,10 @@ export default function Notifications() {
     localStorage.setItem('ggu_notif_prefs', JSON.stringify(updated));
   };
 
-  const filteredNotifications = notifications.filter(n => prefs[n.type] !== false);
+  const filteredNotifications = notifications.filter(n => {
+    const prefValue = prefs[n.type];
+    return prefValue !== false && prefValue !== undefined;
+  });
 
   useEffect(() => {
     base44.auth.me().then(async (u) => {
@@ -82,8 +85,10 @@ export default function Notifications() {
       );
       setNotifications(notifs);
 
-      // Fetch actor profiles for avatars
-      const uniqueEmails = [...new Set(notifs.map(n => n.actor_email).filter(Boolean))];
+      // Fetch actor profiles for avatars (skip system notifications)
+      const uniqueEmails = [...new Set(notifs
+        .filter(n => n.actor_email && n.type !== 'system' && n.type !== 'level_up')
+        .map(n => n.actor_email))];
       if (uniqueEmails.length) {
         const profiles = await Promise.all(
           uniqueEmails.map(email =>
@@ -95,9 +100,6 @@ export default function Notifications() {
         setActorProfiles(map);
       }
 
-      // Mark all as read
-      const unread = notifs.filter(n => !n.is_read);
-      unread.forEach(n => base44.entities.Notification.update(n.id, { is_read: true }));
       setLoading(false);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
