@@ -170,7 +170,6 @@ export default function MessagesAdminTab() {
         });
 
         const flagged = riskScore > 0;
-        const flagged = riskScore > 0;
         const alertLevel = getAlertLevel(riskScore);
 
         return {
