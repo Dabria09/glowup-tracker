@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Copy, Users, Pencil, Trash2, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Copy, Users, Pencil, Trash2, Check, X, ChevronDown, ChevronUp, Archive, ArchiveRestore } from 'lucide-react';
 
 function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -21,8 +21,9 @@ export default function GroupsTab() {
   const [bulkText, setBulkText] = useState('');
   const [bulkOrg, setBulkOrg] = useState('');
   const [expandedId, setExpandedId] = useState(null);
-  const [members, setMembers] = useState({}); // { [groupId]: [...] }
+  const [members, setMembers] = useState({});
   const [membersLoading, setMembersLoading] = useState({});
+  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -77,8 +78,18 @@ export default function GroupsTab() {
     setTimeout(() => setCopied({}), 2000);
   };
 
+  const archiveGroup = async (id) => {
+    await base44.entities.ClassGroup.update(id, { is_active: false });
+    load();
+  };
+
+  const restoreGroup = async (id) => {
+    await base44.entities.ClassGroup.update(id, { is_active: true });
+    load();
+  };
+
   const deleteGroup = async (id) => {
-    if (!confirm('Delete this group? This cannot be undone.')) return;
+    if (!confirm('Permanently delete this group? All data will be lost and cannot be recovered.')) return;
     await base44.entities.ClassGroup.delete(id);
     load();
   };
@@ -208,10 +219,23 @@ export default function GroupsTab() {
         </div>
       )}
 
+      {/* Active / Archived toggle */}
+      <div className="flex gap-2">
+        {[false, true].map(archived => (
+          <button key={String(archived)} onClick={() => setShowArchived(archived)}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition"
+            style={showArchived === archived ? { background: archived ? 'rgba(251,191,36,0.2)' : 'linear-gradient(135deg,#3b82f6,#a855f7)', color: archived ? '#fbbf24' : '#fff', border: archived ? '1px solid rgba(251,191,36,0.4)' : 'none' } : { background: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.1)' }}>
+            {archived ? <><Archive size={11} /> Archived ({groups.filter(g => g.is_active === false).length})</> : <>Active ({groups.filter(g => g.is_active !== false).length})</>}
+          </button>
+        ))}
+      </div>
+
       {loading ? <div className="flex justify-center py-4"><div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" /></div> :
-        groups.length === 0 ? <p className="text-center text-sm text-gray-500 py-4">No groups yet. Create one above.</p> : (
+        groups.filter(g => showArchived ? g.is_active === false : g.is_active !== false).length === 0
+          ? <p className="text-center text-sm text-gray-500 py-4">{showArchived ? 'No archived groups.' : 'No active groups. Create one above.'}</p>
+          : (
           <div className="space-y-3">
-            {groups.map(g => (
+            {groups.filter(g => showArchived ? g.is_active === false : g.is_active !== false).map(g => (
               <div key={g.id} className="p-4 rounded-2xl" style={{ background: editingId === g.id ? 'rgba(59,130,246,0.08)' : 'rgba(255,255,255,0.05)', border: `1px solid ${editingId === g.id ? 'rgba(59,130,246,0.35)' : 'rgba(255,255,255,0.1)'}` }}>
                 {editingId === g.id ? (
                   <div className="space-y-2">
@@ -236,8 +260,14 @@ export default function GroupsTab() {
                           {g.join_code}
                         </span>
                         <button onClick={() => navigator.clipboard.writeText(g.join_code)} className="text-gray-400 hover:text-white"><Copy size={14} /></button>
-                        <button onClick={() => startEdit(g)} className="text-blue-400 hover:text-blue-300"><Pencil size={14} /></button>
-                        <button onClick={() => deleteGroup(g.id)} className="text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
+                        {!showArchived && <button onClick={() => startEdit(g)} className="text-blue-400 hover:text-blue-300" title="Edit"><Pencil size={14} /></button>}
+                        {showArchived
+                          ? <>
+                              <button onClick={() => restoreGroup(g.id)} className="text-emerald-400 hover:text-emerald-300" title="Restore group"><ArchiveRestore size={14} /></button>
+                              <button onClick={() => deleteGroup(g.id)} className="text-red-400 hover:text-red-300" title="Permanently delete"><Trash2 size={14} /></button>
+                            </>
+                          : <button onClick={() => archiveGroup(g.id)} className="text-yellow-400 hover:text-yellow-300" title="Archive group"><Archive size={14} /></button>
+                        }
                       </div>
                     </div>
                     <div className="flex items-center justify-between mt-2">
