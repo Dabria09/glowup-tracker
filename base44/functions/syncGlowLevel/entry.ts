@@ -64,6 +64,13 @@ Deno.serve(async (req) => {
     const currentIdx = levels.findIndex(lvl => lvl.id === currentLevel.id);
     const nextLevel = levels[currentIdx + 1] || null;
 
+    // Check for level-up and trigger celebration
+    try {
+      await base44.functions.invoke('checkLevelUp', {});
+    } catch (levelUpErr) {
+      console.warn('Failed to check level up:', levelUpErr);
+    }
+
     return Response.json({
       success: true,
       level: {
