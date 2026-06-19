@@ -53,6 +53,22 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
     );
   };
 
+  const RankBadge = ({ tier }) => {
+    const RANK_META = {
+      seed: { label: 'Seed', color: '#9ca3af', bg: 'rgba(156,163,175,0.15)', border: 'rgba(156,163,175,0.3)' },
+      sprout: { label: 'Sprout', color: '#86efac', bg: 'rgba(134,239,172,0.15)', border: 'rgba(134,239,172,0.3)' },
+      bloom: { label: 'Bloom', color: '#f472b6', bg: 'rgba(244,114,182,0.15)', border: 'rgba(244,114,182,0.3)' },
+      radiant: { label: 'Radiant', color: '#fbbf24', bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.3)' },
+      luminary: { label: 'Luminary', color: '#a855f7', bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)' },
+    };
+    const meta = RANK_META[tier] || RANK_META.seed;
+    return (
+      <span className="text-[10px] px-2 py-1 rounded-full font-bold" style={{ background: meta.bg, color: meta.color, border: `1px solid ${meta.border}` }}>
+        🌟 {meta.label}
+      </span>
+    );
+  };
+
   const toggleChecklistItem = async (key, currentValue) => {
     setSaving(true);
     const updates = { [key]: !currentValue };
@@ -139,6 +155,7 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
               app.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
               'bg-yellow-500/20 text-yellow-400'
             }`}>{app.status}</span>
+            {app.status === 'approved' && <RankBadge tier={app.mentor_tier || 'seed'} />}
             <button onClick={() => setExpanded(e => !e)} className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5">
               {expanded ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
             </button>
