@@ -310,6 +310,18 @@
     "approved_by": {
       "type": "string",
       "title": "Approved By (Email)"
+    },
+    "mentor_tier": {
+      "type": "string",
+      "title": "Mentor Rank/Tier",
+      "enum": [
+        "seed",
+        "sprout",
+        "bloom",
+        "radiant",
+        "luminary"
+      ],
+      "default": "seed"
     }
   },
   "required": [

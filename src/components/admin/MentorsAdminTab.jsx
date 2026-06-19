@@ -69,6 +69,43 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
     );
   };
 
+  const RankProgress = ({ tier, sessionsCount, avgRating }) => {
+    const RANK_CRITERIA = [
+      { tier: 'seed', label: 'Seed', minSessions: 0, minRating: 0, desc: 'New mentor' },
+      { tier: 'sprout', label: 'Sprout', minSessions: 3, minRating: 0, desc: '3+ sessions' },
+      { tier: 'bloom', label: 'Bloom', minSessions: 6, minRating: 0, desc: '6+ sessions' },
+      { tier: 'radiant', label: 'Radiant', minSessions: 16, minRating: 4.5, desc: '16+ sessions, 4.5★' },
+      { tier: 'luminary', label: 'Luminary', minSessions: 31, minRating: 4.8, desc: '31+ sessions, 4.8★' },
+    ];
+    const currentIndex = RANK_CRITERIA.findIndex(r => r.tier === tier);
+    const nextRank = RANK_CRITERIA[currentIndex + 1];
+    const progress = nextRank
+      ? Math.min(100, (sessionsCount / nextRank.minSessions) * 100)
+      : 100;
+
+    return (
+      <div className="rounded-xl p-3 mt-3" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[10px] font-bold text-purple-400">📈 Rank Progress</p>
+          <span className="text-[10px] text-gray-400">{sessionsCount} sessions · {avgRating > 0 ? `${avgRating.toFixed(1)}★` : 'No ratings'}</span>
+        </div>
+        {nextRank ? (
+          <>
+            <p className="text-[10px] text-gray-300 mb-1">
+              Next: <span className="font-semibold text-purple-300">{nextRank.label}</span> — {nextRank.desc}
+            </p>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+              <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all" style={{ width: `${progress}%` }} />
+            </div>
+            <p className="text-[9px] text-gray-500 mt-1">{Math.round(progress)}% to {nextRank.label}</p>
+          </>
+        ) : (
+          <p className="text-[10px] text-emerald-400">✅ Maximum rank achieved!</p>
+        )}
+      </div>
+    );
+  };
+
   const toggleChecklistItem = async (key, currentValue) => {
     setSaving(true);
     const updates = { [key]: !currentValue };
@@ -297,6 +334,11 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
                     <p className="text-[10px] text-gray-500">Hours/Month</p>
                   </div>
                 </div>
+
+                {/* Rank Progression - Approved Mentors Only */}
+                {app.status === 'approved' && (
+                  <RankProgress tier={app.mentor_tier || 'seed'} sessionsCount={0} avgRating={0} />
+                )}
 
 
               </div>
