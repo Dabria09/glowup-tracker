@@ -15,8 +15,11 @@ export default function GroupsTab() {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
-  const [newlyCreated, setNewlyCreated] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const [newlyCreated, setNewlyCreated] = useState(null); // single: { group_name, join_code } | bulk: [...]
+  const [copied, setCopied] = useState({});
+  const [mode, setMode] = useState('single'); // 'single' | 'bulk'
+  const [bulkText, setBulkText] = useState('');
+  const [bulkOrg, setBulkOrg] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [members, setMembers] = useState({}); // { [groupId]: [...] }
   const [membersLoading, setMembersLoading] = useState({});
@@ -34,18 +37,44 @@ export default function GroupsTab() {
 
   const create = async () => {
     if (!form.group_name.trim()) { setSaveError('Group name is required.'); return; }
-    setSaving(true); setSaveError(''); setSaveSuccess('');
+    setSaving(true); setSaveError('');
     try {
       const code = generateCode();
       await base44.entities.ClassGroup.create({ ...form, join_code: code });
       setNewlyCreated({ group_name: form.group_name, join_code: code });
-      setCopied(false);
+      setCopied({});
       setForm({ group_name: '', organization: '', description: '' });
       load();
     } catch (e) {
       setSaveError(e.message || 'Failed to create group. Please try again.');
     }
     setSaving(false);
+  };
+
+  const createBulk = async () => {
+    const names = bulkText.split('\n').map(n => n.trim()).filter(Boolean);
+    if (!names.length) { setSaveError('Enter at least one group name.'); return; }
+    setSaving(true); setSaveError('');
+    try {
+      const records = names.map(name => ({ group_name: name, organization: bulkOrg.trim(), join_code: generateCode() }));
+      await base44.entities.ClassGroup.bulkCreate(records);
+      setNewlyCreated(records); // array signals bulk result
+      setCopied({});
+      setBulkText('');
+      load();
+    } catch (e) {
+      setSaveError(e.message || 'Bulk creation failed. Please try again.');
+    }
+    setSaving(false);
+  };
+
+  const copyAll = () => {
+    const lines = newlyCreated.map(r => `${r.group_name}: ${r.join_code}`).join('\n');
+    navigator.clipboard.writeText(lines);
+    const all = {};
+    newlyCreated.forEach((_, i) => all[i] = true);
+    setCopied(all);
+    setTimeout(() => setCopied({}), 2000);
   };
 
   const deleteGroup = async (id) => {
@@ -86,17 +115,48 @@ export default function GroupsTab() {
   return (
     <div className="space-y-5">
       <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-        <p className="font-bold text-white text-sm flex items-center gap-2">🏫 Create New Group / Class</p>
-        <input value={form.group_name} onChange={e => setForm({ ...form, group_name: e.target.value })} placeholder="Group name (e.g. Lincoln Middle — Period 3)" className={inputCls} />
-        <input value={form.organization} onChange={e => setForm({ ...form, organization: e.target.value })} placeholder="School or organization name" className={inputCls} />
-        <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description (optional)" className={inputCls} />
-        {saveError && <p className="text-xs text-red-400">{saveError}</p>}
-        <button onClick={create} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}>
-          {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Create Group &amp; Generate Code</>}
-        </button>
+        <div className="flex items-center justify-between">
+          <p className="font-bold text-white text-sm">🏫 Create Group / Class</p>
+          <div className="flex gap-1 p-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+            {['single', 'bulk'].map(m => (
+              <button key={m} onClick={() => { setMode(m); setSaveError(''); }} className="px-3 py-1 rounded-full text-xs font-semibold transition" style={mode === m ? { background: 'linear-gradient(135deg,#3b82f6,#a855f7)', color: '#fff' } : { color: '#9ca3af' }}>
+                {m === 'single' ? 'Single' : 'Bulk'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {mode === 'single' ? (
+          <>
+            <input value={form.group_name} onChange={e => setForm({ ...form, group_name: e.target.value })} placeholder="Group name (e.g. BCS — Period 3)" className={inputCls} />
+            <input value={form.organization} onChange={e => setForm({ ...form, organization: e.target.value })} placeholder="School or organization name" className={inputCls} />
+            <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description (optional)" className={inputCls} />
+            {saveError && <p className="text-xs text-red-400">{saveError}</p>}
+            <button onClick={create} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}>
+              {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Create Group &amp; Generate Code</>}
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-xs text-gray-400">Enter one group name per line — a unique join code will be generated for each.</p>
+            <textarea
+              value={bulkText}
+              onChange={e => setBulkText(e.target.value)}
+              placeholder={"BCS — Period 1\nBCS — Period 2\nBCS — Period 3\nBCS — Period 4"}
+              className={inputCls}
+              rows={5}
+            />
+            <input value={bulkOrg} onChange={e => setBulkOrg(e.target.value)} placeholder="School or organization (applies to all)" className={inputCls} />
+            {saveError && <p className="text-xs text-red-400">{saveError}</p>}
+            <button onClick={createBulk} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}>
+              {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Create All &amp; Generate Codes</>}
+            </button>
+          </>
+        )}
       </div>
 
-      {newlyCreated && (
+      {/* Success banners */}
+      {newlyCreated && !Array.isArray(newlyCreated) && (
         <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(16,185,129,0.12)', border: '2px solid rgba(16,185,129,0.45)' }}>
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold text-emerald-400 tracking-wider">✅ GROUP CREATED — SHARE THIS CODE</p>
@@ -106,13 +166,45 @@ export default function GroupsTab() {
           <div className="flex items-center gap-3">
             <span className="text-3xl font-black tracking-widest text-emerald-300" style={{ fontFamily: 'monospace' }}>{newlyCreated.join_code}</span>
             <button
-              onClick={() => { navigator.clipboard.writeText(newlyCreated.join_code); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+              onClick={() => { navigator.clipboard.writeText(newlyCreated.join_code); setCopied({ 0: true }); setTimeout(() => setCopied({}), 2000); }}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition"
-              style={{ background: copied ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: copied ? '#34d399' : '#fff' }}>
-              {copied ? <><Check size={13} /> Copied!</> : <><Copy size={13} /> Copy Code</>}
+              style={{ background: copied[0] ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: copied[0] ? '#34d399' : '#fff' }}>
+              {copied[0] ? <><Check size={13} /> Copied!</> : <><Copy size={13} /> Copy Code</>}
             </button>
           </div>
-          <p className="text-xs text-gray-400">Share this code with the teacher so students can join the group.</p>
+          <p className="text-xs text-gray-400">Share this code with the teacher so students can join.</p>
+        </div>
+      )}
+
+      {newlyCreated && Array.isArray(newlyCreated) && (
+        <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(16,185,129,0.12)', border: '2px solid rgba(16,185,129,0.45)' }}>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-emerald-400 tracking-wider">✅ {newlyCreated.length} GROUPS CREATED</p>
+            <div className="flex items-center gap-2">
+              <button onClick={copyAll} className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition" style={{ background: 'rgba(16,185,129,0.25)', color: '#34d399', border: '1px solid rgba(16,185,129,0.4)' }}>
+                <Copy size={11} /> Copy All
+              </button>
+              <button onClick={() => setNewlyCreated(null)} className="text-gray-500 hover:text-gray-300"><X size={14} /></button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {newlyCreated.map((r, i) => (
+              <div key={i} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                <div>
+                  <p className="text-xs font-semibold text-white">{r.group_name}</p>
+                  {r.organization && <p className="text-[10px] text-gray-500">{r.organization}</p>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-black text-emerald-300" style={{ fontFamily: 'monospace', letterSpacing: '0.15em' }}>{r.join_code}</span>
+                  <button onClick={() => { navigator.clipboard.writeText(r.join_code); setCopied(prev => ({ ...prev, [i]: true })); setTimeout(() => setCopied(prev => ({ ...prev, [i]: false })), 2000); }}
+                    className="p-1 rounded" style={{ color: copied[i] ? '#34d399' : '#9ca3af' }}>
+                    {copied[i] ? <Check size={13} /> : <Copy size={13} />}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400">Share each code with the corresponding teacher. All codes are also saved in the list below.</p>
         </div>
       )}
 
