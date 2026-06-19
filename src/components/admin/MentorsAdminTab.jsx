@@ -34,6 +34,7 @@ function ApplicationCard({ app, onUpdate }) {
   const ageGroups = JSON.parse(app.age_groups || '[]');
   const availability = JSON.parse(app.availability || '[]');
   const agreements = JSON.parse(app.agreements_accepted || '[]');
+  const bgCleared = app.checklist_background_cleared === true || app.background_check_status === 'cleared';
 
   const InfoRow = ({ icon: Icon, label, value, color = '#9ca3af' }) => {
     if (!value) return null;
@@ -89,6 +90,18 @@ function ApplicationCard({ app, onUpdate }) {
       {emoji} {label}
     </button>
   );
+
+  // Background check status helpers
+  const bgStatus = app.background_check_status || 'not_started';
+  const bgDate = app.background_check_date ? new Date(app.background_check_date).toLocaleDateString() : null;
+  const bgNotes = app.background_check_notes;
+
+  const BG_STATUS_META = {
+    not_started: { label: 'Not Started', color: '#6b7280', bg: 'rgba(107,113,128,0.15)', border: 'rgba(107,113,128,0.3)' },
+    in_progress: { label: 'In Progress', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)' },
+    cleared: { label: 'Cleared ✅', color: '#4ade80', bg: 'rgba(74,222,128,0.15)', border: 'rgba(74,222,128,0.3)' },
+    failed: { label: 'Failed ❌', color: '#f87171', bg: 'rgba(248,113,113,0.15)', border: 'rgba(248,113,113,0.3)' },
+  };
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -168,6 +181,49 @@ function ApplicationCard({ app, onUpdate }) {
                     <p className="text-sm font-semibold text-white">{isTeenTrack ? '🌱 Teen Mentor' : '✅ Adult Mentor'}</p>
                   </div>
                 </div>
+
+                {/* BACKGROUND CHECK STATUS - ADULT MENTORS ONLY */}
+                {!isTeenTrack && (
+                  <div className="rounded-2xl p-4 border-2" style={{
+                    background: bgCleared ? 'rgba(74,222,128,0.08)' : bgStatus === 'failed' ? 'rgba(248,113,113,0.08)' : 'rgba(251,191,36,0.08)',
+                    border: `2px solid ${bgCleared ? 'rgba(74,222,128,0.4)' : bgStatus === 'failed' ? 'rgba(248,113,113,0.4)' : 'rgba(251,191,36,0.3)'}`,
+                  }}>
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: BG_STATUS_META[bgStatus].bg, border: `1px solid ${BG_STATUS_META[bgStatus].border}` }}>
+                          {bgStatus === 'cleared' ? '✅' : bgStatus === 'failed' ? '❌' : bgStatus === 'in_progress' ? '⏳' : '📋'}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-white">Background Check (Adult Mentor)</p>
+                          <p className={`text-[10px] font-semibold`} style={{ color: BG_STATUS_META[bgStatus].color }}>
+                            {BG_STATUS_META[bgStatus].label}
+                          </p>
+                        </div>
+                      </div>
+                      {!bgCleared && app.status === 'pending' && (
+                        <span className="text-[10px] px-2 py-1 rounded-full font-bold" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171' }}>
+                          ⚠️ REQUIRED BEFORE APPROVAL
+                        </span>
+                      )}
+                    </div>
+                    {bgDate && (
+                      <p className="text-[10px] text-gray-400 mb-1">Completed: <span className="text-gray-300">{bgDate}</span></p>
+                    )}
+                    {bgNotes && (
+                      <div className="mt-2 p-2 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                        <p className="text-[10px] text-gray-500 mb-0.5">Admin Notes:</p>
+                        <p className="text-xs text-gray-300">{bgNotes}</p>
+                      </div>
+                    )}
+                    {!bgCleared && app.status === 'pending' && (
+                      <div className="mt-3 p-2 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
+                        <p className="text-[10px] text-red-400 font-semibold">
+                          ⚠️ This adult mentor applicant CANNOT be approved until background check is marked as cleared in the Checklist tab.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Bio */}
                 {app.bio && (
@@ -408,9 +464,9 @@ function ApplicationCard({ app, onUpdate }) {
                   <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
                     <button
                       onClick={() => setFinalStatus('approved')}
-                      disabled={saving}
-                      className="flex-1 py-2 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1"
-                      style={{ background: 'rgba(16,185,129,0.3)', border: '1px solid rgba(16,185,129,0.4)' }}
+                      disabled={saving || (!isTeenTrack && !bgCleared)}
+                      className="flex-1 py-2 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                      style={{ background: (!isTeenTrack && !bgCleared) ? 'rgba(107,113,128,0.3)' : 'rgba(16,185,129,0.3)', border: (!isTeenTrack && !bgCleared) ? '1px solid rgba(107,113,128,0.4)' : '1px solid rgba(16,185,129,0.4)' }}
                     >
                       <CheckCircle size={12} /> Approve
                     </button>
@@ -423,6 +479,12 @@ function ApplicationCard({ app, onUpdate }) {
                       <XCircle size={12} /> Reject
                     </button>
                   </div>
+                )}
+                {!isTeenTrack && !bgCleared && app.status === 'pending' && (
+                  <p className="text-[10px] text-red-400 text-center mt-2 flex items-center justify-center gap-1">
+                    <span>⚠️</span>
+                    <span>Background check must be cleared before approving adult mentors</span>
+                  </p>
                 )}
                 {app.status === 'approved' && (
                   <div className="mt-3 pt-3 text-xs text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.07)', color: '#4ade80' }}>
