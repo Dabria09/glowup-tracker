@@ -111,6 +111,48 @@ export default function ContentTab() {
     setSaving(false);
   };
 
+  const importQuotesCSV = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSaving(true);
+    setSaveError('');
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: 'object',
+          properties: {
+            items: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  quote_text: { type: 'string' },
+                  author: { type: 'string' },
+                  category: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+      });
+      const rows = (result.output?.items || result.output || []).filter(r => r.quote_text?.trim());
+      if (!rows.length) { setSaveError('No valid quotes found in file. Ensure columns: quote_text, author, category'); setSaving(false); return; }
+      const valid = rows.map(r => ({
+        quote_text: r.quote_text.trim(),
+        author: r.author?.trim() || '',
+        category: QUOTE_CATS.includes(r.category) ? r.category : 'general',
+      }));
+      await base44.entities.AdminQuote.bulkCreate(valid);
+      loadAll();
+    } catch (err) {
+      setSaveError(err.message || 'Import failed. Check your CSV format.');
+    }
+    setSaving(false);
+    e.target.value = '';
+  };
+
   const addQuote = () => withSave(async () => {
     if (!newQuote.quote_text.trim()) { setSaveError('Quote text is required.'); return; }
     await base44.entities.AdminQuote.create(newQuote);
@@ -175,9 +217,16 @@ export default function ContentTab() {
               </select>
             </div>
             {saveError && sub === 'Quotes' && <p className="text-xs text-red-400">{saveError}</p>}
-            <button onClick={addQuote} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
-              {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Add Quote</>}
-            </button>
+            <div className="flex gap-2">
+              <button onClick={addQuote} disabled={saving} className="flex-1 py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Add Quote</>}
+              </button>
+              <label className={`py-3 px-4 rounded-2xl font-bold text-white text-sm flex items-center gap-2 cursor-pointer ${saving ? 'opacity-60 pointer-events-none' : ''}`} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                📥 CSV
+                <input type="file" accept=".csv" className="hidden" onChange={importQuotesCSV} disabled={saving} />
+              </label>
+            </div>
+            <p className="text-[10px] text-gray-600">CSV columns: <span className="text-gray-500">quote_text, author (optional), category (optional)</span></p>
           </div>
           {quotes.length === 0 ? <p className="text-center text-sm text-gray-500 py-4">No custom quotes yet.</p> : (
             <div className="space-y-2">
