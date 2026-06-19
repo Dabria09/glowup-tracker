@@ -6,115 +6,7 @@ const STATUS_FILTERS = ['Pending', 'Approved', 'Rejected', 'All'];
 const RANK_FILTERS = ['All', 'Luminary', 'Radiant', 'Bloom', 'Sprout', 'Seed'];
 const SESSION_TYPE_FILTERS = ['All', 'In-person', 'Video Call', 'Phone Call', 'Chat'];
 const IN_PERSON_FILTERS = ['All', 'In-Person Approved'];
-
-// Kitchen Mentors sub-tab component
-function KitchenMentorsSubTab() {
-  const [subTab, setSubTab] = useState('applications');
-  const [applications, setApplications] = useState([]);
-  const [sessions, setSessions] = useState([]);
-  const [filter, setFilter] = useState('Pending');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => { load(); }, []);
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const [apps, sess] = await Promise.all([
-        base44.entities.TeenMentorApplication.list('-created_date'),
-        base44.entities.MentorSession.list('-created_date', 50),
-      ]);
-      setApplications(apps);
-      setSessions(sess);
-    } catch (e) { console.error(e); }
-    setLoading(false);
-  };
-
-  const updateStatus = async (id, status) => {
-    await base44.entities.TeenMentorApplication.update(id, { status });
-    load();
-  };
-
-  const filtered = filter === 'All' ? applications : applications.filter(a => a.status?.toLowerCase() === filter.toLowerCase());
-  const inputCls = "w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-600 outline-none text-sm";
-
-  return (
-    <div className="space-y-4">
-      <div className="flex gap-2">
-        {[{ id: 'applications', label: '🍳 Applications' }, { id: 'sessions', label: '📋 Sessions' }].map(t => (
-          <button key={t.id} onClick={() => setSubTab(t.id)}
-            className={`flex-1 py-2 rounded-full text-xs font-semibold transition ${subTab === t.id ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-            style={subTab === t.id ? { background: 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {subTab === 'applications' && (
-        <>
-          <div className="flex gap-2 overflow-x-auto">
-            {STATUS_FILTERS.map(f => (
-              <button key={f} onClick={() => setFilter(f)}
-                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition ${filter === f ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-                style={filter === f ? { background: 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}>
-                {f}
-              </button>
-            ))}
-          </div>
-          {loading ? <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" /></div> :
-            filtered.length === 0 ? (
-              <div className="p-8 rounded-2xl text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <p className="text-sm text-gray-400">No pending applications yet</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filtered.map(app => (
-                  <div key={app.id} className="p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div>
-                        <p className="font-semibold text-white text-sm">{app.full_name || app.user_email}</p>
-                        <p className="text-xs text-gray-400">{app.user_email}</p>
-                      </div>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${app.status === 'approved' ? 'bg-green-500/20 text-green-400' : app.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{app.status || 'pending'}</span>
-                    </div>
-                    {(!app.status || app.status === 'pending') && (
-                      <div className="flex gap-2 mt-2">
-                        <button onClick={() => updateStatus(app.id, 'approved')} className="flex-1 py-2 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-1" style={{ background: 'rgba(16,185,129,0.3)', border: '1px solid rgba(16,185,129,0.4)' }}>
-                          <CheckCircle size={12} /> Approve
-                        </button>
-                        <button onClick={() => updateStatus(app.id, 'rejected')} className="flex-1 py-2 rounded-xl text-xs font-bold text-orange-400 flex items-center justify-center gap-1" style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}>
-                          <XCircle size={12} /> Reject
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )
-          }
-        </>
-      )}
-
-      {subTab === 'sessions' && (
-        sessions.length === 0 ? (
-          <div className="p-8 rounded-2xl text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <p className="text-sm text-gray-400">No session requests yet.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {sessions.map(s => (
-              <div key={s.id} className="p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <p className="font-semibold text-white text-sm">{s.session_topic || 'Session'}</p>
-                <p className="text-xs text-gray-400">{s.mentor_email} → {s.mentee_email}</p>
-                <p className="text-xs text-gray-500 mt-1">{s.session_date ? new Date(s.session_date).toLocaleDateString() : 'No date set'}</p>
-              </div>
-            ))}
-          </div>
-        )
-      )}
-    </div>
-  );
-}
+const MENTOR_TYPE_FILTERS = ['All', 'Teen', 'Adult', 'Kitchen'];
 
 const ADULT_CHECKLIST_KEYS = [
   { key: 'checklist_identity_verified', label: 'Identity Verified' },
@@ -790,6 +682,7 @@ export default function MentorsAdminTab() {
   const [rankFilter, setRankFilter] = useState('All');
   const [sessionTypeFilter, setSessionTypeFilter] = useState('All');
   const [inPersonFilter, setInPersonFilter] = useState('All');
+  const [mentorTypeFilter, setMentorTypeFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
   const [newsletter, setNewsletter] = useState({ subject: '', body: '' });
@@ -902,10 +795,21 @@ export default function MentorsAdminTab() {
     }
     if (sessionTypeFilter !== 'All' && a.session_type !== sessionTypeFilter) return false;
     if (inPersonFilter === 'In-Person Approved' && !a.in_person_approved) return false;
+    // Mentor type filter
+    if (mentorTypeFilter === 'Teen' && a.mentor_track !== 'teen') return false;
+    if (mentorTypeFilter === 'Adult' && a.mentor_track !== 'adult') return false;
+    if (mentorTypeFilter === 'Kitchen') {
+      const categories = JSON.parse(a.categories || '[]');
+      if (!categories.some(c => c.toLowerCase().includes('kitchen') || c.toLowerCase().includes('culinary') || c.toLowerCase().includes('cooking') || c.toLowerCase().includes('food'))) return false;
+    }
     return true;
   });
   const teenCount = applications.filter(a => a.mentor_track === 'teen').length;
   const adultCount = applications.filter(a => a.mentor_track !== 'teen').length;
+  const kitchenCount = applications.filter(a => {
+    const categories = JSON.parse(a.categories || '[]');
+    return categories.some(c => c.toLowerCase().includes('kitchen') || c.toLowerCase().includes('culinary') || c.toLowerCase().includes('cooking') || c.toLowerCase().includes('food'));
+  }).length;
 
   const inputCls = "w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-600 outline-none text-sm";
 
@@ -977,6 +881,10 @@ export default function MentorsAdminTab() {
         <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(232,82,109,0.08)', border: '1px solid rgba(232,82,109,0.2)' }}>
           <div className="text-lg font-black" style={{ color: '#f48fb1' }}>{adultCount}</div>
           <div className="text-[10px] font-bold" style={{ color: 'rgba(244,143,177,0.7)' }}>Adult Mentors ✅</div>
+        </div>
+        <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+          <div className="text-lg font-black" style={{ color: '#f59e0b' }}>{kitchenCount}</div>
+          <div className="text-[10px] font-bold" style={{ color: 'rgba(245,158,11,0.7)' }}>Kitchen Mentors 🍳</div>
         </div>
         <button
           onClick={async () => {
@@ -1091,24 +999,6 @@ export default function MentorsAdminTab() {
 
       {/* In-Person Approval Filter */}
       <div className="flex gap-2 overflow-x-auto">
-        {IN_PERSON_FILTERS.map(f => (
-          <button key={f} onClick={() => setInPersonFilter(f)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${inPersonFilter === f ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-            style={inPersonFilter === f ? { background: 'linear-gradient(135deg,#10b981,#059669)' } : {}}>
-            {f === 'All' ? 'All Mentors' : '📍 In-Person Approved Only'}
-          </button>
-        ))}
-      </div>
-      {inPersonFilter === 'In-Person Approved' && (
-        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)' }}>
-          <p className="text-xs text-emerald-400 font-semibold">
-            📍 Showing {filtered.length} in-person approved mentor{filtered.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-      )}
-
-      {/* In-Person Approval Filter */}
-      <div className="flex gap-2 overflow-x-auto">
         {['All', 'In-Person Approved'].map(f => (
           <button key={f} onClick={() => setInPersonFilter(f)}
             className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${inPersonFilter === f ? 'text-white' : 'text-gray-400 bg-white/5'}`}
@@ -1121,6 +1011,24 @@ export default function MentorsAdminTab() {
         <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)' }}>
           <p className="text-xs text-emerald-400 font-semibold">
             📍 Showing {filtered.length} in-person approved mentor{filtered.length !== 1 ? 's' : ''} — cleared for face-to-face meetings
+          </p>
+        </div>
+      )}
+
+      {/* Mentor Type Filter */}
+      <div className="flex gap-2 overflow-x-auto">
+        {MENTOR_TYPE_FILTERS.map(t => (
+          <button key={t} onClick={() => setMentorTypeFilter(t)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${mentorTypeFilter === t ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+            style={mentorTypeFilter === t ? { background: t === 'Kitchen' ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#3b82f6,#a855f7)' } : {}}>
+            {t === 'Kitchen' ? '🍳 ' : t === 'Teen' ? '🌱 ' : t === 'Adult' ? '✅ ' : ''}{t === 'All' ? 'All Types' : t}
+          </button>
+        ))}
+      </div>
+      {mentorTypeFilter === 'Kitchen' && (
+        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}>
+          <p className="text-xs text-amber-400 font-semibold">
+            🍳 Showing {filtered.length} kitchen/culinary mentor{filtered.length !== 1 ? 's' : ''}
           </p>
         </div>
       )}
