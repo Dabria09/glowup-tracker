@@ -58,7 +58,7 @@
         "rejected",
         "flagged"
       ],
-      "default": "approved"
+      "default": "pending"
     },
     "approved_by": {
       "type": "string",
