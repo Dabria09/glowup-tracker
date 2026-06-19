@@ -95,6 +95,7 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
   };
 
   const RankProgress = ({ tier, sessionsCount, avgRating }) => {
+    if (!rankConfigs || rankConfigs.length === 0) return null;
     const sortedConfigs = [...rankConfigs].sort((a, b) => a.min_sessions - b.min_sessions);
     const currentIndex = sortedConfigs.findIndex(r => r.rank_tier === tier);
     const nextRank = sortedConfigs[currentIndex + 1];
@@ -931,41 +932,7 @@ export default function MentorsAdminTab() {
         </button>
       </div>
 
-      {/* Rank Criteria Info */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
-        <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(168,85,247,0.2)' }}>
-          <div>
-            <p className="font-bold text-white text-sm flex items-center gap-2">🌟 Mentor Rank Progression</p>
-            <p className="text-xs text-gray-400 mt-0.5">Configure tier requirements and thresholds</p>
-          </div>
-          <button
-            onClick={() => setShowRankSettings(true)}
-            className="px-3 py-1.5 rounded-full text-xs font-bold text-white flex items-center gap-1.5 transition hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg,#a855f7,#ec4899)', border: '1px solid rgba(168,85,247,0.4)' }}
-          >
-            <Settings size={12} /> Configure
-          </button>
-        </div>
-        <div className="p-4">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            {rankConfigs.length > 0 ? rankConfigs.sort((a, b) => a.min_sessions - b.min_sessions).map(cfg => {
-              const meta = RANK_COLORS[cfg.rank_tier] || { color: '#9ca3af' };
-              const icon = RANK_ICONS[cfg.rank_tier] || '🌱';
-              return (
-                <div key={cfg.id} className="text-center rounded-xl p-2" style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${meta.color}40` }}>
-                  <p className="text-xs font-bold" style={{ color: meta.color }}>{icon} {cfg.rank_tier.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
-                  <p className="text-[9px] text-gray-400 mt-0.5">{cfg.min_sessions}+ sessions{cfg.min_rating > 0 ? ` + ${cfg.min_rating}★` : ''}</p>
-                </div>
-              );
-            }) : (
-              <div className="col-span-5 text-center py-4 text-gray-500 text-xs">Loading rank configs...</div>
-            )}
-          </div>
-          <p className="text-[10px] text-gray-400 mt-3">
-            💡 Ranks update automatically based on completed sessions and average ratings. Tap Configure to adjust thresholds.
-          </p>
-        </div>
-      </div>
+
 
       {/* Newsletter */}
       <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(251,191,36,0.3)' }}>
