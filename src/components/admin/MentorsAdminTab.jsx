@@ -745,14 +745,26 @@ export default function MentorsAdminTab() {
   };
 
   const sendNewsletter = async () => {
-    if (!newsletter.subject.trim()) return;
-    const approved = applications.filter(a => a.status === 'approved');
-    for (const mentor of approved) {
-      await base44.integrations.Core.SendEmail({ to: mentor.user_email, subject: newsletter.subject, body: newsletter.body });
-    }
-    setComposing(false);
-    setNewsletter({ subject: '', body: '' });
-    alert(`Newsletter sent to ${approved.length} mentors!`);
+  if (!newsletter.subject.trim()) return;
+  const approved = applications.filter(a => a.status === 'approved');
+  let successCount = 0;
+  let failCount = 0;
+  for (const mentor of approved) {
+  try {
+    await base44.integrations.Core.SendEmail({ to: mentor.user_email, subject: newsletter.subject, body: newsletter.body });
+    successCount++;
+  } catch (e) {
+    console.error('Failed to send to', mentor.user_email, ':', e.message);
+    failCount++;
+  }
+  }
+  setComposing(false);
+  setNewsletter({ subject: '', body: '' });
+  if (failCount > 0) {
+  alert(`Newsletter: ${successCount} sent successfully, ${failCount} failed. Note: Emails can only be sent to registered app users.`);
+  } else {
+  alert(`Newsletter sent to ${successCount} mentors!`);
+  }
   };
 
   const assignMentor = async (appId) => {
