@@ -1,0 +1,39 @@
+{
+  "name": "GlowBoardSettings",
+  "type": "object",
+  "properties": {
+    "feature_enabled": {
+      "type": "boolean",
+      "title": "Glow Board Feature Enabled",
+      "default": true
+    },
+    "accepting_submissions": {
+      "type": "boolean",
+      "title": "Accepting New Submissions",
+      "default": true
+    },
+    "disabled_message": {
+      "type": "string",
+      "title": "Message Shown When Disabled",
+      "default": "Glow Board is temporarily unavailable. Please check back later!"
+    },
+    "require_approval": {
+      "type": "boolean",
+      "title": "Require Admin Approval Before Publishing",
+      "default": true
+    },
+    "last_updated_by": {
+      "type": "string",
+      "title": "Last Updated By (Admin Email)"
+    },
+    "last_updated_date": {
+      "type": "string",
+      "title": "Last Updated Date"
+    }
+  },
+  "required": [
+    "feature_enabled",
+    "accepting_submissions",
+    "require_approval"
+  ]
+}

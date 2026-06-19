@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle, XCircle, X, Maximize2 } from 'lucide-react';
+import { CheckCircle, XCircle, X, Maximize2, AlertTriangle, Flag } from 'lucide-react';
 
 const STATUS_FILTERS = ['Pending', 'Approved', 'Rejected', 'All'];
 
@@ -9,6 +9,9 @@ export default function GlowBoardAdminTab() {
   const [filter, setFilter] = useState('Pending');
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -21,19 +24,62 @@ export default function GlowBoardAdminTab() {
     setLoading(false);
   };
 
-  const updatePost = async (id, status) => {
-    await base44.entities.GlowBoard.update(id, { status });
+  const updatePost = async (id, status, reason = '') => {
+    const me = await base44.auth.me();
+    const updates = { 
+      status,
+      [status === 'approved' ? 'approved_by' : 'rejected_by']: me.email,
+      [status === 'approved' ? 'approved_date' : 'rejected_date']: new Date().toISOString(),
+    };
+    if (status === 'rejected' && reason) updates.rejection_reason = reason;
+    await base44.entities.GlowBoard.update(id, updates);
     load();
   };
 
-  const filtered = filter === 'All' ? posts : posts.filter(p => p.status?.toLowerCase() === filter.toLowerCase() || (!p.status && filter === 'Pending'));
-  const total = posts.length;
+  const reportToModeration = async (post, reason) => {
+    setProcessing(true);
+    try {
+      const me = await base44.auth.me();
+      // Create ContentReport
+      const report = await base44.entities.ContentReport.create({
+        reported_content_id: post.id,
+        content_type: 'glow_board',
+        content_snapshot: JSON.stringify({
+          title: post.title,
+          user: post.user_email,
+          image_url: post.image_url,
+        }),
+        reported_by: me.email,
+        reason: 'inappropriate',
+        description: `GlowBoard safety violation: ${reason}`,
+        status: 'pending',
+      });
+      // Update post
+      await base44.entities.GlowBoard.update(post.id, {
+        flagged_for_moderation: true,
+        linked_content_report_id: report.id,
+        status: 'flagged',
+      });
+      alert('✅ Reported to Moderation. ContentReport created.');
+      load();
+    } catch (e) {
+      alert('Failed to report: ' + e.message);
+    }
+    setProcessing(false);
+  };
+
+  const filtered = filter === 'All' ? posts : posts.filter(p => {
+    const s = p.status || 'pending';
+    return filter === 'Pending' ? s === 'pending' : s === filter.toLowerCase();
+  });
+
+  const inputCls = "w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-600 outline-none text-sm resize-none";
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-white flex items-center gap-2">📸 Glow Board Submissions</p>
-        <span className="text-xs text-gray-400">{total} total</span>
+        <span className="text-xs text-gray-400">{posts.length} total</span>
       </div>
 
       <div className="flex gap-2 overflow-x-auto">
@@ -71,6 +117,7 @@ export default function GlowBoardAdminTab() {
                     <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
                       (post.status || 'pending') === 'approved' ? 'bg-green-500/20 text-green-400' :
                       (post.status || 'pending') === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                      (post.status || 'pending') === 'flagged' ? 'bg-purple-500/20 text-purple-400' :
                       'bg-yellow-500/20 text-yellow-400'
                     }`}>{post.status || 'pending'}</span>
                     {(!post.status || post.status === 'pending') && (
@@ -96,7 +143,7 @@ export default function GlowBoardAdminTab() {
               <div>
                 <h3 className="text-lg font-bold text-white">{selectedPost.title || 'Untitled'}</h3>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {selectedPost.user_email?.split('@')[0] || 'User'} • {selectedPost.category} • {selectedPost.created_date ? new Date(selectedPost.created_date).toLocaleDateString() : 'Unknown'}
+                  {selectedPost.user_email?.split('@')[0]} • {selectedPost.category} • {selectedPost.created_date ? new Date(selectedPost.created_date).toLocaleDateString() : 'Unknown'}
                 </p>
               </div>
               <button onClick={() => setSelectedPost(null)} className="text-gray-400 hover:text-white">
@@ -113,7 +160,7 @@ export default function GlowBoardAdminTab() {
               )}
             </div>
 
-            {/* Description (if exists) */}
+            {/* Description */}
             {selectedPost.description && (
               <div className="p-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
                 <p className="text-sm text-gray-300">{selectedPost.description}</p>
@@ -131,11 +178,18 @@ export default function GlowBoardAdminTab() {
                   <CheckCircle size={16} /> Approve
                 </button>
                 <button
-                  onClick={() => { updatePost(selectedPost.id, 'rejected'); setSelectedPost(null); }}
+                  onClick={() => { updatePost(selectedPost.id, 'rejected', 'Does not meet community guidelines'); setSelectedPost(null); }}
                   className="flex-1 py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2"
                   style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)' }}
                 >
                   <XCircle size={16} /> Reject
+                </button>
+                <button
+                  onClick={() => { setShowReportModal(true); setSelectedPost(null); }}
+                  className="flex-1 py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(135deg,#a855f7,#ec4899)' }}
+                >
+                  <Flag size={16} /> Report
                 </button>
               </div>
             )}
@@ -143,12 +197,66 @@ export default function GlowBoardAdminTab() {
             {selectedPost.status && selectedPost.status !== 'pending' && (
               <div className="p-4 border-t text-center" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
                 <span className={`text-xs px-3 py-1 rounded-full font-bold ${
-                  selectedPost.status === 'approved' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                  selectedPost.status === 'approved' ? 'bg-green-500/20 text-green-400' : 
+                  selectedPost.status === 'flagged' ? 'bg-purple-500/20 text-purple-400' : 'bg-red-500/20 text-red-400'
                 }`}>
                   {selectedPost.status.toUpperCase()}
                 </span>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Report to Moderation Modal */}
+      {showReportModal && selectedPost && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="w-full max-w-md rounded-2xl p-4" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-white text-sm flex items-center gap-2">
+                <Flag size={16} className="text-red-400" />
+                Report to Moderation
+              </p>
+              <button onClick={() => { setShowReportModal(false); setReportReason(''); }} className="text-gray-400 hover:text-white">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="mb-4 p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+              <p className="text-xs text-red-400 font-semibold flex items-center gap-1">
+                <AlertTriangle size={12} /> This will escalate to the safety moderation team
+              </p>
+              <p className="text-[10px] text-gray-400 mt-1">
+                Creates a ContentReport for review. User will be notified their submission violated guidelines.
+              </p>
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-2 block">Safety Concern *</label>
+              <textarea
+                value={reportReason}
+                onChange={e => setReportReason(e.target.value)}
+                placeholder="Describe the violation (e.g., 'Inappropriate attire', 'Suggestive pose', etc.)..."
+                className={inputCls}
+                rows={4}
+              />
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => { setShowReportModal(false); setReportReason(''); }}
+                disabled={processing}
+                className="flex-1 py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-40"
+                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { reportToModeration(selectedPost, reportReason); setShowReportModal(false); setReportReason(''); }}
+                disabled={!reportReason.trim() || processing}
+                className="flex-1 py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)' }}
+              >
+                {processing ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Flag size={16} /> Escalate</>}
+              </button>
+            </div>
           </div>
         </div>
       )}
