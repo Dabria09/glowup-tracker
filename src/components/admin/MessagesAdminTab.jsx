@@ -2,10 +2,29 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { MessageCircle, AlertTriangle, Search, Eye, Shield, User, Clock, ChevronRight, ThumbsUp, Ban, Mail, CheckCircle, XCircle, Flag } from 'lucide-react';
 
-const FLAGGED_KEYWORDS = [
-  'address', 'meet', 'location', 'phone', 'snapchat', 'instagram', 'discord',
-  'secret', 'don\'t tell', 'parents', 'alone', 'come over', 'pick up',
+// Weighted keywords by severity level
+const KEYWORD_WEIGHTS = {
+  // HIGH RISK (3 points) - secrecy, isolation, meeting requests
+  'secret': 3, 'don\'t tell': 3, 'alone': 3, 'come over': 3, 'meet': 3,
+  // MEDIUM RISK (2 points) - contact info, platforms for private chat
+  'address': 2, 'phone': 2, 'location': 2, 'snapchat': 2, 'instagram': 2, 'discord': 2,
+  // LOWER RISK (1 point) - potentially innocent
+  'parents': 1, 'pick up': 1,
+};
+
+// High-risk combinations that indicate grooming behavior
+const HIGH_RISK_COMBOS = [
+  ['secret', 'alone'],
+  ['don\'t tell', 'parents'],
+  ['come over', 'alone'],
+  ['meet', 'secret'],
+  ['address', 'meet'],
+  ['phone', 'snapchat'],
+  ['phone', 'instagram'],
+  ['discord', 'secret'],
 ];
+
+const FLAGGED_KEYWORDS = Object.keys(KEYWORD_WEIGHTS);
 
 export default function MessagesAdminTab() {
   const [messages, setMessages] = useState([]);
@@ -52,18 +71,61 @@ export default function MessagesAdminTab() {
         }
       });
 
-      // Analyze conversations for flags
+      // Analyze conversations for flags with risk scoring
       const convos = Object.values(convoMap).map(convo => {
-        const flagged = convo.messages.some(m => 
-          FLAGGED_KEYWORDS.some(kw => m.content.toLowerCase().includes(kw))
-        );
+        let riskScore = 0;
+        const flaggedKeywords = [];
+        const flaggedMessages = [];
+
+        convo.messages.forEach(m => {
+          const contentLower = m.content.toLowerCase();
+          let msgScore = 0;
+          const msgKeywords = [];
+
+          // Score individual keywords
+          FLAGGED_KEYWORDS.forEach(kw => {
+            if (contentLower.includes(kw)) {
+              msgScore += KEYWORD_WEIGHTS[kw];
+              msgKeywords.push({ keyword: kw, weight: KEYWORD_WEIGHTS[kw] });
+            }
+          });
+
+          if (msgScore > 0) {
+            flaggedMessages.push({ ...m, score: msgScore, keywords: msgKeywords });
+          }
+          riskScore += msgScore;
+          flaggedKeywords.push(...msgKeywords);
+        });
+
+        // Bonus points for high-risk combinations
+        const allKeywords = flaggedKeywords.map(k => k.keyword);
+        HIGH_RISK_COMBOS.forEach(combo => {
+          if (combo.every(kw => allKeywords.includes(kw))) {
+            riskScore += 5; // Significant boost for dangerous combinations
+          }
+        });
+
+        // Determine severity level
+        let severity = 'low';
+        if (riskScore >= 10) severity = 'critical';
+        else if (riskScore >= 6) severity = 'high';
+        else if (riskScore >= 3) severity = 'medium';
+
+        const flagged = riskScore > 0;
         const mentorMsgs = convo.messages.filter(m => mentorEmails.includes(m.sender_email)).length;
+
         return {
           ...convo,
           flagged,
+          riskScore,
+          severity,
           mentorMessageCount: mentorMsgs,
+          flaggedMessages,
         };
       });
+
+      // Sort by risk score (highest first)
+      convos.sort((a, b) => b.riskScore - a.riskScore);
 
       setConversations(convos);
       setMessages(allMessages);
@@ -205,7 +267,7 @@ export default function MessagesAdminTab() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
           <p className="text-lg font-bold text-white">{conversations.length}</p>
           <p className="text-[10px] text-gray-500">Total Convos</p>
@@ -214,11 +276,43 @@ export default function MessagesAdminTab() {
           <p className="text-lg font-bold text-red-400">{conversations.filter(c => c.flagged).length}</p>
           <p className="text-[10px] text-gray-400">Flagged</p>
         </div>
+        <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)' }}>
+          <p className="text-lg font-bold text-red-300">{conversations.filter(c => c.severity === 'critical' || c.severity === 'high').length}</p>
+          <p className="text-[10px] text-gray-400">High Risk</p>
+        </div>
         <div className="rounded-2xl p-3 text-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)' }}>
           <p className="text-lg font-bold text-purple-400">{conversations.filter(c => c.isMentorConvo).length}</p>
           <p className="text-[10px] text-gray-400">Mentor Involved</p>
         </div>
       </div>
+
+      {/* Risk Level Legend */}
+      {conversations.filter(c => c.flagged).length > 0 && (
+        <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <p className="text-[10px] font-bold text-gray-400 mb-2">🎯 RISK SCORING</p>
+          <div className="flex gap-3 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ background: '#ef4444' }} />
+              <span className="text-[10px] text-gray-400">Critical (10+)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ background: '#f97316' }} />
+              <span className="text-[10px] text-gray-400">High (6-9)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ background: '#eab308' }} />
+              <span className="text-[10px] text-gray-400">Medium (3-5)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ background: '#84cc16' }} />
+              <span className="text-[10px] text-gray-400">Low (1-2)</span>
+            </div>
+          </div>
+          <p className="text-[9px] text-gray-500 mt-2">
+            💡 Scores boost +5 for dangerous combos like "secret + alone" or "come over + alone"
+          </p>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex gap-2">
