@@ -322,6 +322,19 @@
         "luminary"
       ],
       "default": "seed"
+    },
+    "in_person_approved": {
+      "type": "boolean",
+      "title": "Approved for In-Person Mentoring",
+      "default": false
+    },
+    "in_person_approval_date": {
+      "type": "string",
+      "title": "In-Person Approval Date"
+    },
+    "in_person_approved_by": {
+      "type": "string",
+      "title": "In-Person Approved By (Email)"
     }
   },
   "required": [

@@ -5,6 +5,7 @@ import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Mail, Phone
 const STATUS_FILTERS = ['Pending', 'Approved', 'Rejected', 'All'];
 const RANK_FILTERS = ['All', 'Luminary', 'Radiant', 'Bloom', 'Sprout', 'Seed'];
 const SESSION_TYPE_FILTERS = ['All', 'In-person', 'Video Call', 'Phone Call', 'Chat'];
+const IN_PERSON_FILTERS = ['All', 'In-Person Approved'];
 
 const ADULT_CHECKLIST_KEYS = [
   { key: 'checklist_identity_verified', label: 'Identity Verified' },
@@ -128,6 +129,19 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
     onUpdate();
   };
 
+  const toggleInPersonApproval = async () => {
+    setSaving(true);
+    const me = await base44.auth.me();
+    const updates = {
+      in_person_approved: !app.in_person_approved,
+      in_person_approval_date: !app.in_person_approved ? new Date().toISOString() : null,
+      in_person_approved_by: !app.in_person_approved ? me.email : null,
+    };
+    await base44.entities.MentorApplication.update(app.id, updates);
+    setSaving(false);
+    onUpdate();
+  };
+
   const setFinalStatus = async (status) => {
     setSaving(true);
     await base44.entities.MentorApplication.update(app.id, {
@@ -199,6 +213,11 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
               'bg-yellow-500/20 text-yellow-400'
             }`}>{app.status}</span>
             {app.status === 'approved' && <RankBadge tier={app.mentor_tier || 'seed'} />}
+            {app.status === 'approved' && app.in_person_approved && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(16,185,129,0.2)', color: '#10b981', border: '1px solid rgba(16,185,129,0.4)' }}>
+                📍 In-Person
+              </span>
+            )}
             <button onClick={() => setExpanded(e => !e)} className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5">
               {expanded ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
             </button>
@@ -553,6 +572,43 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
                     </button>
                   </div>
                 )}
+
+                {/* In-Person Approval Toggle (Approved mentors only) */}
+                {app.status === 'approved' && (
+                  <div className="mt-4 pt-3 rounded-xl p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)', background: app.in_person_approved ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.03)' }}>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-white flex items-center gap-1">
+                          📍 In-Person Mentoring Approval
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          {app.in_person_approved 
+                            ? `Approved ${app.in_person_approval_date ? new Date(app.in_person_approval_date).toLocaleDateString() : ''}`
+                            : 'Not yet approved for in-person sessions'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={toggleInPersonApproval}
+                        disabled={saving}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition disabled:opacity-40 ${
+                          app.in_person_approved 
+                            ? 'text-emerald-400' 
+                            : 'text-gray-400'
+                        }`}
+                        style={app.in_person_approved 
+                          ? { background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.4)' }
+                          : { background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
+                      >
+                        {app.in_person_approved ? '✓ Approved' : 'Grant Approval'}
+                      </button>
+                    </div>
+                    {app.in_person_approved && app.in_person_approved_by && (
+                      <p className="text-[10px] text-gray-500">
+                        By: {app.in_person_approved_by.split('@')[0]}
+                      </p>
+                    )}
+                  </div>
+                )}
                 {!isTeenTrack && !bgCleared && app.status === 'pending' && (
                   <p className="text-[10px] text-red-400 text-center mt-2 flex items-center justify-center gap-1">
                     <span>⚠️</span>
@@ -569,6 +625,30 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
                         style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}
                       >
                         <Link2 size={11} /> Assign
+                      </button>
+                    </div>
+                    
+                    {/* In-Person Approval Toggle */}
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-gray-400">📍 In-Person Approved:</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${app.in_person_approved ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                          {app.in_person_approved ? 'Yes ✓' : 'No'}
+                        </span>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          const newVal = !app.in_person_approved;
+                          await base44.entities.MentorApplication.update(app.id, {
+                            in_person_approved: newVal,
+                            in_person_approval_date: newVal ? new Date().toISOString() : null,
+                            in_person_approved_by: newVal ? (await base44.auth.me()).email : null,
+                          });
+                          onUpdate();
+                        }}
+                        className={`text-[10px] px-2 py-1 rounded-full font-bold transition ${app.in_person_approved ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}
+                      >
+                        {app.in_person_approved ? '✕ Remove' : '+ Add'}
                       </button>
                     </div>
                     {mentorMatches.length === 0 ? <p className="text-[10px] text-gray-500">No assignments yet</p> : (
@@ -600,6 +680,7 @@ export default function MentorsAdminTab() {
   const [statusFilter, setStatusFilter] = useState('Pending');
   const [rankFilter, setRankFilter] = useState('All');
   const [sessionTypeFilter, setSessionTypeFilter] = useState('All');
+  const [inPersonFilter, setInPersonFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
   const [newsletter, setNewsletter] = useState({ subject: '', body: '' });
@@ -699,6 +780,7 @@ export default function MentorsAdminTab() {
       if (mentorTier !== rankFilter.toLowerCase()) return false;
     }
     if (sessionTypeFilter !== 'All' && a.session_type !== sessionTypeFilter) return false;
+    if (inPersonFilter === 'In-Person Approved' && !a.in_person_approved) return false;
     return true;
   });
   const teenCount = applications.filter(a => a.mentor_track === 'teen').length;
@@ -882,6 +964,42 @@ export default function MentorsAdminTab() {
         <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)' }}>
           <p className="text-xs text-emerald-400 font-semibold">
             📍 Showing {filtered.length} in-person mentor{filtered.length !== 1 ? 's' : ''} — perfect for events &amp; community tables
+          </p>
+        </div>
+      )}
+
+      {/* In-Person Approval Filter */}
+      <div className="flex gap-2 overflow-x-auto">
+        {IN_PERSON_FILTERS.map(f => (
+          <button key={f} onClick={() => setInPersonFilter(f)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${inPersonFilter === f ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+            style={inPersonFilter === f ? { background: 'linear-gradient(135deg,#10b981,#059669)' } : {}}>
+            {f === 'All' ? 'All Mentors' : '📍 In-Person Approved Only'}
+          </button>
+        ))}
+      </div>
+      {inPersonFilter === 'In-Person Approved' && (
+        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)' }}>
+          <p className="text-xs text-emerald-400 font-semibold">
+            📍 Showing {filtered.length} in-person approved mentor{filtered.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+      )}
+
+      {/* In-Person Approval Filter */}
+      <div className="flex gap-2 overflow-x-auto">
+        {['All', 'In-Person Approved'].map(f => (
+          <button key={f} onClick={() => setInPersonFilter(f)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${inPersonFilter === f ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+            style={inPersonFilter === f ? { background: 'linear-gradient(135deg,#10b981,#059669)', border: '1px solid rgba(16,185,129,0.4)' } : {}}>
+            {f === 'All' ? 'All Mentors' : '📍 In-Person Approved Only'}
+          </button>
+        ))}
+      </div>
+      {inPersonFilter === 'In-Person Approved' && (
+        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)' }}>
+          <p className="text-xs text-emerald-400 font-semibold">
+            📍 Showing {filtered.length} in-person approved mentor{filtered.length !== 1 ? 's' : ''} — cleared for face-to-face meetings
           </p>
         </div>
       )}
