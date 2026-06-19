@@ -39,7 +39,9 @@ export default function ShoutOuts() {
         base44.entities.ShoutOut.list('-created_date', 100),
         base44.entities.UserPoints.filter({ user_email: u.email }),
       ]);
-      setPosts(filterForWorld(data));
+      // Only show approved posts (or user's own pending posts)
+      const visiblePosts = data.filter(p => p.status === 'approved' || (p.status === 'pending' && p.user_email === u.email));
+      setPosts(filterForWorld(visiblePosts));
       if (pts.length) setRealPoints(pts[0].total_points || 0);
     }).catch(() => base44.auth.redirectToLogin());
   }, []);
@@ -66,6 +68,18 @@ export default function ShoutOuts() {
       media_url = res.file_url;
     }
     const displayName = user.full_name?.split(' ')[0] || 'Glow Girl';
+    
+    // Check if moderation is enabled
+    let status = 'approved'; // Default to auto-approve for backwards compatibility
+    try {
+      const modSettings = await base44.entities.ContentModerationSettings.list();
+      if (modSettings.length > 0 && modSettings[0].shoutout_require_approval) {
+        status = 'pending';
+      }
+    } catch (e) {
+      console.error('Failed to check moderation settings:', e);
+    }
+    
     const post = await base44.entities.ShoutOut.create({
       user_email: user.email,
       username: displayName,
@@ -73,13 +87,20 @@ export default function ShoutOuts() {
       likes: 0,
       liked_by: '[]',
       age_group: ageGroup || undefined,
+      status: status,
       ...(media_url && { media_url, media_type: mediaType }),
     });
+    
     setPosts(prev => [post, ...prev]);
     setDraft('');
     clearMedia();
     setPosting(false);
-    toast.success('Shout out posted! 👑✨');
+    
+    if (status === 'pending') {
+      toast.info('Shout out submitted for review! 👑✨');
+    } else {
+      toast.success('Shout out posted! 👑✨');
+    }
   };
 
   const handleLike = async (post) => {

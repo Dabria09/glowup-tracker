@@ -1,0 +1,28 @@
+{
+  "name": "ContentModerationSettings",
+  "type": "object",
+  "properties": {
+    "shoutout_require_approval": {
+      "type": "boolean",
+      "title": "Shout Out Posts Require Approval",
+      "default": true
+    },
+    "community_require_approval": {
+      "type": "boolean",
+      "title": "Community Posts Require Approval",
+      "default": true
+    },
+    "last_updated_by": {
+      "type": "string",
+      "title": "Last Updated By (Admin Email)"
+    },
+    "last_updated_date": {
+      "type": "string",
+      "title": "Last Updated Date"
+    }
+  },
+  "required": [
+    "shoutout_require_approval",
+    "community_require_approval"
+  ]
+}

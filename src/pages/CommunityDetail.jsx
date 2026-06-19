@@ -77,7 +77,9 @@ export default function CommunityDetail() {
 
       // Load posts (feed only - exclude chat messages)
       const communityPosts = await base44.entities.CommunityPost.filter({ community_id: id }, '-created_date');
-      setPosts(communityPosts.filter(p => p.post_type !== 'chat'));
+      // Only show approved posts (or user's own pending posts)
+      const visiblePosts = communityPosts.filter(p => p.status === 'approved' || (p.status === 'pending' && p.user_email === user.email));
+      setPosts(visiblePosts.filter(p => p.post_type !== 'chat'));
 
       // Load members
       const communityMembers = await base44.entities.CommunityMember.filter({ community_id: id });
@@ -159,6 +161,18 @@ export default function CommunityDetail() {
       const res = await base44.integrations.Core.UploadFile({ file: mediaFile });
       media_url = res.file_url;
     }
+    
+    // Check if moderation is enabled
+    let status = 'approved'; // Default to auto-approve for backwards compatibility
+    try {
+      const modSettings = await base44.entities.ContentModerationSettings.list();
+      if (modSettings.length > 0 && modSettings[0].community_require_approval) {
+        status = 'pending';
+      }
+    } catch (e) {
+      console.error('Failed to check moderation settings:', e);
+    }
+    
     await base44.entities.CommunityPost.create({
       community_id: id,
       user_email: user.email,
@@ -167,6 +181,7 @@ export default function CommunityDetail() {
       likes: 0,
       liked_by: '[]',
       post_type: 'feed',
+      status: status,
       ...(media_url && { media_url, media_type: mediaType }),
     });
     setNewPost('');

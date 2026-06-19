@@ -15,18 +15,72 @@ const SOCIAL_PLACEHOLDERS = [
 export default function SettingsTab() {
   const [teamApproval, setTeamApproval] = useState(false);
   const [glowBoardMod, setGlowBoardMod] = useState(false);
+  const [shoutoutMod, setShoutoutMod] = useState(false);
+  const [communityMod, setCommunityMod] = useState(false);
   const [social, setSocial] = useState({});
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const ta = localStorage.getItem('ggu_admin_team_approval') === 'true';
-    const gm = localStorage.getItem('ggu_admin_glowboard_mod') === 'true';
-    setTeamApproval(ta);
-    setGlowBoardMod(gm);
-    const s = {};
-    SOCIAL_KEYS.forEach(k => { s[k] = localStorage.getItem(`ggu_social_${k}`) || ''; });
-    setSocial(s);
+    const loadSettings = async () => {
+      // Load legacy localStorage settings
+      const ta = localStorage.getItem('ggu_admin_team_approval') === 'true';
+      const gm = localStorage.getItem('ggu_admin_glowboard_mod') === 'true';
+      setTeamApproval(ta);
+      setGlowBoardMod(gm);
+      
+      // Load new ContentModerationSettings from database
+      try {
+        const modSettings = await base44.entities.ContentModerationSettings.list();
+        if (modSettings.length > 0) {
+          const ms = modSettings[0];
+          setShoutoutMod(ms.shoutout_require_approval);
+          setCommunityMod(ms.community_post_require_approval);
+        } else {
+          // Default to ON if no settings exist
+          setShoutoutMod(true);
+          setCommunityMod(true);
+        }
+      } catch (e) {
+        console.error('Failed to load moderation settings:', e);
+        setShoutoutMod(true);
+        setCommunityMod(true);
+      }
+      
+      const s = {};
+      SOCIAL_KEYS.forEach(k => { s[k] = localStorage.getItem(`ggu_social_${k}`) || ''; });
+      setSocial(s);
+      setLoading(false);
+    };
+    loadSettings();
   }, []);
+
+  const saveModerationSettings = async () => {
+    setSaving(true);
+    try {
+      const me = await base44.auth.me();
+      const modSettings = await base44.entities.ContentModerationSettings.list();
+      if (modSettings.length > 0) {
+        await base44.entities.ContentModerationSettings.update(modSettings[0].id, {
+          shoutout_require_approval: shoutoutMod,
+          community_post_require_approval: communityMod,
+          last_updated_by: me.email,
+          last_updated_date: new Date().toISOString(),
+        });
+      } else {
+        await base44.entities.ContentModerationSettings.create({
+          shoutout_require_approval: shoutoutMod,
+          community_post_require_approval: communityMod,
+          last_updated_by: me.email,
+          last_updated_date: new Date().toISOString(),
+        });
+      }
+      alert('✅ Moderation settings saved! Shout Outs and Community posts now require approval.');
+    } catch (e) {
+      alert('Failed to save: ' + e.message);
+    }
+    setSaving(false);
+  };
 
   const saveLinks = async () => {
     setSaving(true);
@@ -78,9 +132,26 @@ export default function SettingsTab() {
             value={glowBoardMod}
             onChange={setGlowBoardMod}
           />
+          <ToggleRow
+            label="📢 Shout Out Moderation"
+            desc={'When ON — Shout Out posts go into a review queue and must be approved before appearing publicly.\nWhen OFF — posts are published immediately without review.'}
+            offLabel="Publish"
+            value={shoutoutMod}
+            onChange={setShoutoutMod}
+          />
+          <ToggleRow
+            label="💬 Community Post Moderation"
+            desc={'When ON — Community posts go into a review queue and must be approved before appearing publicly.\nWhen OFF — posts are published immediately without review.'}
+            offLabel="Publish"
+            value={communityMod}
+            onChange={setCommunityMod}
+          />
         </div>
+        <button onClick={saveModerationSettings} disabled={saving || loading} className="w-full mt-3 py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-50" style={{ background: 'linear-gradient(135deg,#10b981,#059669)' }}>
+          {loading ? 'Loading...' : saving ? 'Saving...' : 'Save Moderation Settings ✅'}
+        </button>
         <div className="mt-3 p-3 rounded-xl" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)' }}>
-          <p className="text-xs text-yellow-300 leading-relaxed">⚠️ Safety note: Keeping moderation ON is recommended while your audience includes minors. You can review pending items in the Teams and Glow Board tabs.</p>
+          <p className="text-xs text-yellow-300 leading-relaxed">⚠️ Safety note: Keeping moderation ON is recommended while your audience includes minors. You can review pending items in the Teams, Glow Board, and Content Moderation tabs.</p>
         </div>
       </div>
 

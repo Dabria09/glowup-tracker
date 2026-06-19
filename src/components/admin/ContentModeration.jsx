@@ -331,24 +331,55 @@ export default function ContentModeration() {
       {activeTab === 'shoutouts' && (
         <div className="space-y-2">
           {shoutouts.length === 0 && <p className="text-center py-10 text-gray-500 text-sm">No shout-outs yet.</p>}
-          {shoutouts.map(post => (
-            <div key={post.id} className="rounded-2xl p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <div className="flex items-start gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <p className="text-xs font-semibold text-white">{post.username || 'Anonymous'}</p>
-                    <p className="text-[10px] text-gray-500">· {timeAgo(post.created_date)}</p>
+          {shoutouts.map(post => {
+            const needsApproval = post.status === 'pending';
+            return (
+              <div key={post.id} className={`rounded-2xl p-3 ${needsApproval ? 'border-2 border-yellow-500/30' : ''}`} style={{ background: 'rgba(255,255,255,0.05)', border: needsApproval ? '2px solid rgba(251,191,36,0.3)' : '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                      <p className="text-xs font-semibold text-white">{post.username || 'Anonymous'}</p>
+                      <p className="text-[10px] text-gray-500">· {timeAgo(post.created_date)}</p>
+                      {needsApproval && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)' }}>
+                          ⏳ Pending Approval
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-300 leading-relaxed">{post.content}</p>
+                    <p className="text-[10px] text-gray-600 mt-0.5">❤️ {post.likes || 0} · {post.user_email}</p>
                   </div>
-                  <p className="text-xs text-gray-300 leading-relaxed">{post.content}</p>
-                  <p className="text-[10px] text-gray-600 mt-0.5">❤️ {post.likes || 0} · {post.user_email}</p>
+                  <div className="flex flex-col gap-1 flex-shrink-0">
+                    {needsApproval && (
+                      <>
+                        <button onClick={async () => {
+                          const me = await base44.auth.me();
+                          await base44.entities.ShoutOut.update(post.id, { status: 'approved', approved_by: me.email, approved_date: new Date().toISOString() });
+                          setShoutouts(prev => prev.map(p => p.id === post.id ? { ...p, status: 'approved' } : p));
+                          toast.success('Shout-out approved!');
+                        }} className="p-1.5 rounded-full bg-green-500/20 text-green-400 hover:text-green-300 transition">
+                          <CheckCircle size={14} />
+                        </button>
+                        <button onClick={async () => {
+                          const reason = prompt('Rejection reason (optional):');
+                          const me = await base44.auth.me();
+                          await base44.entities.ShoutOut.update(post.id, { status: 'rejected', rejected_by: me.email, rejected_date: new Date().toISOString(), rejection_reason: reason || '' });
+                          setShoutouts(prev => prev.filter(p => p.id !== post.id));
+                          toast.success('Shout-out rejected');
+                        }} className="p-1.5 rounded-full bg-red-500/20 text-red-400 hover:text-red-300 transition">
+                          <X size={14} />
+                        </button>
+                      </>
+                    )}
+                    <button onClick={() => deleteShoutout(post.id)}
+                      className="p-1.5 rounded-full hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition flex-shrink-0">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-                <button onClick={() => deleteShoutout(post.id)}
-                  className="p-1.5 rounded-full hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition flex-shrink-0">
-                  <Trash2 size={14} />
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -356,23 +387,54 @@ export default function ContentModeration() {
       {activeTab === 'community' && (
         <div className="space-y-2">
           {communityPosts.length === 0 && <p className="text-center py-10 text-gray-500 text-sm">No community posts yet.</p>}
-          {communityPosts.map(post => (
-            <div key={post.id} className="rounded-2xl p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <div className="flex items-start gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <p className="text-xs font-semibold text-white">{post.author_name || post.user_email?.split('@')[0] || 'User'}</p>
-                    <p className="text-[10px] text-gray-500">· {timeAgo(post.created_date)}</p>
+          {communityPosts.map(post => {
+            const needsApproval = post.status === 'pending';
+            return (
+              <div key={post.id} className={`rounded-2xl p-3 ${needsApproval ? 'border-2 border-yellow-500/30' : ''}`} style={{ background: 'rgba(255,255,255,0.05)', border: needsApproval ? '2px solid rgba(251,191,36,0.3)' : '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                      <p className="text-xs font-semibold text-white">{post.author_name || post.user_email?.split('@')[0] || 'User'}</p>
+                      <p className="text-[10px] text-gray-500">· {timeAgo(post.created_date)}</p>
+                      {needsApproval && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)' }}>
+                          ⏳ Pending Approval
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-300 leading-relaxed">{post.content}</p>
                   </div>
-                  <p className="text-xs text-gray-300 leading-relaxed">{post.content}</p>
+                  <div className="flex flex-col gap-1 flex-shrink-0">
+                    {needsApproval && (
+                      <>
+                        <button onClick={async () => {
+                          const me = await base44.auth.me();
+                          await base44.entities.CommunityPost.update(post.id, { status: 'approved', approved_by: me.email, approved_date: new Date().toISOString() });
+                          setCommunityPosts(prev => prev.map(p => p.id === post.id ? { ...p, status: 'approved' } : p));
+                          toast.success('Post approved!');
+                        }} className="p-1.5 rounded-full bg-green-500/20 text-green-400 hover:text-green-300 transition">
+                          <CheckCircle size={14} />
+                        </button>
+                        <button onClick={async () => {
+                          const reason = prompt('Rejection reason (optional):');
+                          const me = await base44.auth.me();
+                          await base44.entities.CommunityPost.update(post.id, { status: 'rejected', rejected_by: me.email, rejected_date: new Date().toISOString(), rejection_reason: reason || '' });
+                          setCommunityPosts(prev => prev.filter(p => p.id !== post.id));
+                          toast.success('Post rejected');
+                        }} className="p-1.5 rounded-full bg-red-500/20 text-red-400 hover:text-red-300 transition">
+                          <X size={14} />
+                        </button>
+                      </>
+                    )}
+                    <button onClick={() => deleteCommunityPost(post.id)}
+                      className="p-1.5 rounded-full hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition flex-shrink-0">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-                <button onClick={() => deleteCommunityPost(post.id)}
-                  className="p-1.5 rounded-full hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition flex-shrink-0">
-                  <Trash2 size={14} />
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

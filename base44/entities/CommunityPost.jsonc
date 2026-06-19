@@ -48,6 +48,37 @@
         "chat"
       ],
       "default": "feed"
+    },
+    "status": {
+      "type": "string",
+      "title": "Moderation Status",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "flagged"
+      ],
+      "default": "approved"
+    },
+    "approved_by": {
+      "type": "string",
+      "title": "Approved By (Admin Email)"
+    },
+    "approved_date": {
+      "type": "string",
+      "title": "Approved Date"
+    },
+    "rejected_by": {
+      "type": "string",
+      "title": "Rejected By (Admin Email)"
+    },
+    "rejected_date": {
+      "type": "string",
+      "title": "Rejected Date"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "title": "Rejection Reason"
     }
   },
   "required": [
