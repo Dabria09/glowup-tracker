@@ -26,6 +26,7 @@
         "account",
         "content",
         "billing",
+        "safety_concern",
         "other"
       ],
       "default": "other"
@@ -36,7 +37,8 @@
       "enum": [
         "low",
         "medium",
-        "high"
+        "high",
+        "urgent"
       ],
       "default": "medium"
     },
@@ -58,6 +60,20 @@
     "resolved_date": {
       "type": "string",
       "title": "Resolved Date"
+    },
+    "escalated_to_moderation": {
+      "type": "boolean",
+      "title": "Escalated to Moderation",
+      "default": false
+    },
+    "linked_content_report_id": {
+      "type": "string",
+      "title": "Linked Content Report ID"
+    },
+    "safety_keywords_detected": {
+      "type": "string",
+      "title": "Safety Keywords Detected (JSON array)",
+      "default": "[]"
     }
   },
   "required": [
