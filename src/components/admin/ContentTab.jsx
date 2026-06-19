@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Trash2, Send, Eye, EyeOff, Star } from 'lucide-react';
+import { Plus, Trash2, Send, Eye, EyeOff, Star, Upload, Mic, Video, X } from 'lucide-react';
 
 const QUOTE_MAX = 280;
 
@@ -81,6 +81,10 @@ export default function ContentTab() {
   const [newTip, setNewTip] = useState({ tip_text: '', category: 'confidence', age_group: 'all', is_featured: false, scheduled_date: '' });
   const [editingTip, setEditingTip] = useState(null);
   const [newMsg, setNewMsg] = useState({ title: '', content: '', message_type: 'written' });
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaUploading, setMediaUploading] = useState(false);
+  const videoInputRef = useRef(null);
+  const audioInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -192,10 +196,44 @@ export default function ContentTab() {
     loadAll();
   });
 
+  const handleMediaSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setMediaFile(file);
+  };
+
+  const clearMedia = () => {
+    setMediaFile(null);
+    if (videoInputRef.current) videoInputRef.current.value = '';
+    if (audioInputRef.current) audioInputRef.current.value = '';
+  };
+
   const addMsg = () => withSave(async () => {
-    if (!newMsg.title.trim() || !newMsg.content.trim()) throw new Error('Title and message are required.');
-    await base44.entities.MsGlowMessage.create(newMsg);
+    if (!newMsg.title.trim()) throw new Error('Title is required.');
+    if (newMsg.message_type === 'written' && !newMsg.content.trim()) throw new Error('Message content is required.');
+    if (newMsg.message_type !== 'written' && !mediaFile) throw new Error('Please select a file to upload.');
+
+    let media_url = null;
+    let media_type = null;
+
+    if (mediaFile) {
+      setMediaUploading(true);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: mediaFile });
+      media_url = file_url;
+      media_type = mediaFile.type;
+      setMediaUploading(false);
+    }
+
+    await base44.entities.MsGlowMessage.create({
+      title: newMsg.title,
+      content: newMsg.content || '',
+      message_type: newMsg.message_type,
+      media_url,
+      media_type,
+      is_active: true,
+    });
     setNewMsg({ title: '', content: '', message_type: 'written' });
+    setMediaFile(null);
     loadAll();
   });
 
@@ -416,7 +454,7 @@ export default function ContentTab() {
             <p className="font-bold text-white text-sm">Post a Ms. Glow Live Message</p>
             <div className="flex gap-2">
               {MSG_TYPES.map(type => (
-                <button key={type} onClick={() => setNewMsg({ ...newMsg, message_type: type })}
+                <button key={type} onClick={() => { setNewMsg({ ...newMsg, message_type: type }); clearMedia(); }}
                   className={`flex-1 py-2 rounded-full text-sm font-semibold capitalize transition ${newMsg.message_type === type ? 'text-white' : 'text-gray-400 bg-white/5'}`}
                   style={newMsg.message_type === type ? { background: 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}>
                   {type}
@@ -424,11 +462,64 @@ export default function ContentTab() {
               ))}
             </div>
             <input value={newMsg.title} onChange={e => setNewMsg({ ...newMsg, title: e.target.value })} placeholder="Message title..." className={inputCls} />
-            <textarea value={newMsg.content} onChange={e => setNewMsg({ ...newMsg, content: e.target.value })} placeholder="Your message to the girls..." className={inputCls} rows={4} />
+
+            {/* Written: text area */}
+            {newMsg.message_type === 'written' && (
+              <textarea value={newMsg.content} onChange={e => setNewMsg({ ...newMsg, content: e.target.value })} placeholder="Your message to the girls..." className={inputCls} rows={4} />
+            )}
+
+            {/* Video: file picker */}
+            {newMsg.message_type === 'video' && (
+              <div>
+                {!mediaFile ? (
+                  <label className="flex flex-col items-center justify-center gap-2 py-8 rounded-2xl cursor-pointer transition hover:border-pink-500/50"
+                    style={{ border: '2px dashed rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.03)' }}>
+                    <Video size={28} className="text-pink-400" />
+                    <p className="text-sm text-gray-300 font-semibold">Click to select a video file</p>
+                    <p className="text-xs text-gray-500">MP4, MOV, WebM — max ~50MB</p>
+                    <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={handleMediaSelect} />
+                  </label>
+                ) : (
+                  <div className="rounded-2xl p-3 flex items-center gap-3" style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.3)' }}>
+                    <Video size={18} className="text-pink-400 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white font-semibold truncate">{mediaFile.name}</p>
+                      <p className="text-xs text-gray-400">{(mediaFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                    </div>
+                    <button onClick={clearMedia} className="text-gray-500 hover:text-red-400"><X size={16} /></button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Voice: audio file picker */}
+            {newMsg.message_type === 'voice' && (
+              <div>
+                {!mediaFile ? (
+                  <label className="flex flex-col items-center justify-center gap-2 py-8 rounded-2xl cursor-pointer transition hover:border-purple-500/50"
+                    style={{ border: '2px dashed rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.03)' }}>
+                    <Mic size={28} className="text-purple-400" />
+                    <p className="text-sm text-gray-300 font-semibold">Click to select a voice/audio file</p>
+                    <p className="text-xs text-gray-500">MP3, M4A, WAV, OGG</p>
+                    <input ref={audioInputRef} type="file" accept="audio/*" className="hidden" onChange={handleMediaSelect} />
+                  </label>
+                ) : (
+                  <div className="rounded-2xl p-3 flex items-center gap-3" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)' }}>
+                    <Mic size={18} className="text-purple-400 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white font-semibold truncate">{mediaFile.name}</p>
+                      <p className="text-xs text-gray-400">{(mediaFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                    </div>
+                    <button onClick={clearMedia} className="text-gray-500 hover:text-red-400"><X size={16} /></button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {saveError && <p className="text-xs text-red-400">{saveError}</p>}
             {saveSuccess && <p className="text-xs text-emerald-400 font-semibold">{saveSuccess}</p>}
-            <button onClick={addMsg} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
-              {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Send size={16} /> Post Message</>}
+            <button onClick={addMsg} disabled={saving || mediaUploading} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+              {mediaUploading ? <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Uploading…</> : saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Send size={16} /> Post Message</>}
             </button>
           </div>
           {messages.length === 0 ? <p className="text-center text-sm text-gray-500 py-4">No messages yet.</p> : (
@@ -436,12 +527,18 @@ export default function ContentTab() {
               {messages.map(m => (
                 <div key={m.id} className="p-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
                   <div className="flex items-start justify-between gap-2">
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-white">{m.title}</p>
-                      <p className="text-xs text-gray-400 mt-1">{m.content}</p>
+                      {m.content && <p className="text-xs text-gray-400 mt-1">{m.content}</p>}
                       <span className="text-[10px] text-pink-400 capitalize">{m.message_type}</span>
+                      {m.media_url && m.message_type === 'video' && (
+                        <video src={m.media_url} controls className="mt-2 w-full rounded-xl max-h-40" style={{ background: '#000' }} />
+                      )}
+                      {m.media_url && m.message_type === 'voice' && (
+                        <audio src={m.media_url} controls className="mt-2 w-full" />
+                      )}
                     </div>
-                    <button onClick={() => base44.entities.MsGlowMessage.delete(m.id).then(loadAll)} className="text-red-400 hover:text-red-300 flex-shrink-0"><Trash2 size={14} /></button>
+                    <button onClick={() => base44.entities.MsGlowMessage.delete(m.id).then(loadAll)} className="text-red-400 hover:text-red-300 flex-shrink-0 ml-2"><Trash2 size={14} /></button>
                   </div>
                 </div>
               ))}

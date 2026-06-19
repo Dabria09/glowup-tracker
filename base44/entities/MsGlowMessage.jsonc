@@ -4,15 +4,15 @@
   "properties": {
     "title": {
       "type": "string",
-      "title": "Message Title"
+      "title": "Title"
     },
     "content": {
       "type": "string",
-      "title": "Message Content"
+      "title": "Written Content"
     },
     "message_type": {
       "type": "string",
-      "title": "Type",
+      "title": "Message Type",
       "enum": [
         "written",
         "video",
@@ -22,7 +22,11 @@
     },
     "media_url": {
       "type": "string",
-      "title": "Media URL (video/voice)"
+      "title": "Media URL (video or audio)"
+    },
+    "media_type": {
+      "type": "string",
+      "title": "Media MIME Type"
     },
     "is_active": {
       "type": "boolean",
@@ -32,7 +36,6 @@
   },
   "required": [
     "title",
-    "content",
     "message_type"
   ]
 }
