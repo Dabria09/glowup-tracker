@@ -4,32 +4,52 @@ import { AlertTriangle, TrendingUp, FileText, RefreshCw } from 'lucide-react';
 
 export default function FlaggedReportTab() {
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState(30); // days
   const [wordStats, setWordStats] = useState([]);
   const [totalFlagged, setTotalFlagged] = useState(0);
   const [bySource, setBySource] = useState({ shoutout: 0, community: 0 });
+  const [byCategory, setByCategory] = useState({});
   const [recentFlags, setRecentFlags] = useState([]);
 
   const load = async () => {
     setLoading(true);
     const [bannedWords, shoutouts, communityPosts] = await Promise.all([
       base44.entities.BannedWord.filter({ is_active: true }),
-      base44.entities.ShoutOut.list('-created_date', 200),
-      base44.entities.CommunityPost.list('-created_date', 200),
+      base44.entities.ShoutOut.list('-created_date', 500),
+      base44.entities.CommunityPost.list('-created_date', 500),
     ]);
 
-    const activeWords = bannedWords.map(w => ({ ...w, wordLower: w.word.toLowerCase() }));
+    // Calculate cutoff date based on time range
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - timeRange);
+    
+    const activeWords = bannedWords.map(w => ({ ...w, wordLower: w.word.toLowerCase(), category: w.category }));
     const hitCounts = {};
     activeWords.forEach(w => { hitCounts[w.word] = { count: 0, category: w.category, word: w.word }; });
 
     const flaggedItems = [];
+    const categoryCounts = {};
 
     const scanContent = (text, source, post) => {
       if (!text) return;
+      const postDate = new Date(post.created_date);
+      // Filter by time range
+      if (postDate < cutoffDate) return;
+      
       const lower = text.toLowerCase();
       activeWords.forEach(w => {
         if (lower.includes(w.wordLower)) {
           hitCounts[w.word].count += 1;
-          flaggedItems.push({ content: text, source, email: post.user_email || post.username, date: post.created_date, triggeredWord: w.word });
+          // Track category breakdown
+          categoryCounts[w.category] = (categoryCounts[w.category] || 0) + 1;
+          flaggedItems.push({ 
+            content: text, 
+            source, 
+            email: post.user_email || post.username, 
+            date: post.created_date, 
+            triggeredWord: w.word,
+            category: w.category 
+          });
         }
       });
     };
@@ -45,6 +65,7 @@ export default function FlaggedReportTab() {
     const communityFlags = flaggedItems.filter(f => f.source === 'community').length;
     setTotalFlagged(flaggedItems.length);
     setBySource({ shoutout: shoutoutFlags, community: communityFlags });
+    setByCategory(categoryCounts);
 
     // Dedup flagged items (one entry per post per word), show recent 20
     flaggedItems.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -52,7 +73,7 @@ export default function FlaggedReportTab() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [timeRange]);
 
   const CAT_COLORS = { profanity: '#ef4444', hate_speech: '#dc2626', harassment: '#f97316', spam: '#a855f7', other: '#6b7280' };
 
@@ -83,17 +104,32 @@ export default function FlaggedReportTab() {
           <h2 className="text-base font-bold text-white">Flagged Content Report</h2>
           <p className="text-xs text-gray-400">Based on active banned words list</p>
         </div>
-        <button onClick={load} className="p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white transition">
-          <RefreshCw size={14} />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Time range selector */}
+          <div className="flex gap-1 bg-white/5 rounded-full p-1">
+            {[7, 14, 30, 90].map(days => (
+              <button
+                key={days}
+                onClick={() => setTimeRange(days)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${timeRange === days ? 'bg-white/15 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                {days}d
+              </button>
+            ))}
+          </div>
+          <button onClick={load} className="p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white transition">
+            <RefreshCw size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2 mb-3">
         {[
           { label: 'Total Flags', value: totalFlagged, emoji: '🚨' },
           { label: 'Shout Outs', value: bySource.shoutout, emoji: '📢' },
           { label: 'Community', value: bySource.community, emoji: '💬' },
+          { label: 'Time Range', value: `${timeRange}d`, emoji: '📅' },
         ].map(s => (
           <div key={s.label} className="rounded-2xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <p className="text-lg mb-0.5">{s.emoji}</p>
@@ -101,6 +137,48 @@ export default function FlaggedReportTab() {
             <p className="text-[10px] text-gray-400">{s.label}</p>
           </div>
         ))}
+      </div>
+
+      {/* Category breakdown */}
+      <div className="rounded-2xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(239,68,68,0.25)' }}>
+        <div className="flex items-center gap-2">
+          <AlertTriangle size={14} className="text-red-400" />
+          <p className="text-sm font-bold text-white">Flags by Severity Category</p>
+        </div>
+        {Object.keys(byCategory).length === 0 ? (
+          <p className="text-xs text-gray-500 text-center py-4">No flags in this time period.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {Object.entries(byCategory)
+              .sort((a, b) => b[1] - a[1])
+              .map(([cat, count]) => {
+                const catConfig = {
+                  profanity: { label: 'Profanity', color: '#ef4444', emoji: '🔞' },
+                  hate_speech: { label: 'Hate Speech', color: '#dc2626', emoji: '⚠️' },
+                  bullying: { label: 'Bullying', color: '#f97316', emoji: '😢' },
+                  personal_info: { label: 'Personal Info', color: '#3b82f6', emoji: '🔒' },
+                  spam: { label: 'Spam', color: '#a855f7', emoji: '📧' },
+                  other: { label: 'Sexual/Other', color: '#ec4899', emoji: '🚫' },
+                };
+                const config = catConfig[cat] || { label: cat, color: '#6b7280', emoji: '📍' };
+                const maxCount = Math.max(...Object.values(byCategory));
+                return (
+                  <div key={cat} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${config.color}40` }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-lg">{config.emoji}</span>
+                        <span className="text-xs font-bold text-white">{config.label}</span>
+                      </div>
+                      <span className="text-sm font-bold text-white">{count}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${(count / maxCount) * 100}%`, background: config.color }} />
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        )}
       </div>
 
       {/* Most triggered words */}
