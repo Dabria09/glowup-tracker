@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Mail, Phone, MapPin, BookOpen, Briefcase, GraduationCap, Star, Users, Heart, MessageSquare } from 'lucide-react';
+import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Mail, Phone, MapPin, BookOpen, Briefcase, GraduationCap, Star, Users, Heart, MessageSquare, Plus, Link2 } from 'lucide-react';
 
 const STATUS_FILTERS = ['Pending', 'Approved', 'Rejected', 'All'];
 
@@ -22,7 +22,7 @@ const TEEN_CHECKLIST_KEYS = [
   { key: 'checklist_final_approved', label: 'Final Approval by Admin' },
 ];
 
-function ApplicationCard({ app, onUpdate }) {
+function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAssignForm }) {
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('overview'); // 'overview' | 'details' | 'checklist'
@@ -35,6 +35,12 @@ function ApplicationCard({ app, onUpdate }) {
   const availability = JSON.parse(app.availability || '[]');
   const agreements = JSON.parse(app.agreements_accepted || '[]');
   const bgCleared = app.checklist_background_cleared === true || app.background_check_status === 'cleared';
+
+  const mentorMatches = matches?.filter(m => m.mentor_email === app.user_email) || [];
+  const getGroupName = (groupId) => {
+    const g = groups?.find(x => x.id === groupId);
+    return g ? g.group_name : null;
+  };
 
   const InfoRow = ({ icon: Icon, label, value, color = '#9ca3af' }) => {
     if (!value) return null;
@@ -274,6 +280,8 @@ function ApplicationCard({ app, onUpdate }) {
                     <p className="text-[10px] text-gray-500">Hours/Month</p>
                   </div>
                 </div>
+
+
               </div>
             )}
 
@@ -487,8 +495,30 @@ function ApplicationCard({ app, onUpdate }) {
                   </p>
                 )}
                 {app.status === 'approved' && (
-                  <div className="mt-3 pt-3 text-xs text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.07)', color: '#4ade80' }}>
-                    ✅ Approved on {app.approved_date ? new Date(app.approved_date).toLocaleDateString() : '—'}
+                  <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-xs text-emerald-400 font-semibold">✅ Approved {app.approved_date ? new Date(app.approved_date).toLocaleDateString() : ''}</span>
+                      <button
+                        onClick={() => { setShowAssign(app.id); setAssignForm({ mentee_email: '', group_id: '', goal: '' }); }}
+                        className="text-xs px-3 py-1.5 rounded-full font-bold text-white flex items-center gap-1"
+                        style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}
+                      >
+                        <Link2 size={11} /> Assign
+                      </button>
+                    </div>
+                    {mentorMatches.length === 0 ? <p className="text-[10px] text-gray-500">No assignments yet</p> : (
+                      <div className="space-y-1 mt-2">
+                        <p className="text-[10px] text-gray-500 font-semibold">{mentorMatches.length} mentee{mentorMatches.length !== 1 ? 's' : ''}:</p>
+                        {mentorMatches.slice(0, 3).map(m => (
+                          <div key={m.id} className="text-[10px] text-gray-300 flex items-center gap-1">
+                            <span>•</span>
+                            <span>{m.mentee_email?.split('@')[0]}</span>
+                            {m.goal && <span className="text-gray-500"> — {m.goal}</span>}
+                          </div>
+                        ))}
+                        {mentorMatches.length > 3 && <p className="text-[10px] text-gray-500">+ {mentorMatches.length - 3} more</p>}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -507,6 +537,7 @@ export default function MentorsAdminTab() {
   const [composing, setComposing] = useState(false);
   const [newsletter, setNewsletter] = useState({ subject: '', body: '' });
   const [matches, setMatches] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [showAssign, setShowAssign] = useState(null); // app.id if assigning
   const [assignForm, setAssignForm] = useState({ mentee_email: '', group_id: '', goal: '' });
 
@@ -515,12 +546,14 @@ export default function MentorsAdminTab() {
   const load = async () => {
     setLoading(true);
     try {
-      const [apps, m] = await Promise.all([
+      const [apps, m, g] = await Promise.all([
         base44.entities.MentorApplication.list('-created_date'),
         base44.entities.MentorshipProgress.list('-created_date'),
+        base44.entities.ClassGroup.filter({ is_active: true }, '-created_date'),
       ]);
       setApplications(apps);
       setMatches(m);
+      setGroups(g);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -552,9 +585,7 @@ export default function MentorsAdminTab() {
     load();
   };
 
-  const getMentorMatches = (mentorEmail) => {
-    return matches.filter(m => m.mentor_email === mentorEmail);
-  };
+
 
   const filtered = filter === 'All' ? applications : applications.filter(a => a.status === filter.toLowerCase());
   const teenCount = applications.filter(a => a.mentor_track === 'teen').length;
@@ -622,8 +653,55 @@ export default function MentorsAdminTab() {
       ) : (
         <div className="space-y-3">
           {filtered.map(app => (
-            <ApplicationCard key={app.id} app={app} onUpdate={load} />
+            <ApplicationCard key={app.id} app={app} onUpdate={load} matches={matches} groups={groups} setShowAssign={setShowAssign} setAssignForm={setAssignForm} />
           ))}
+        </div>
+      )}
+
+      {/* Assignment Modal */}
+      {showAssign && applications.find(a => a.id === showAssign) && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="w-full max-w-md rounded-2xl p-4" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-white text-sm">Assign Mentor</p>
+              <button onClick={() => { setShowAssign(null); setAssignForm({ mentee_email: '', group_id: '', goal: '' }); }} className="text-gray-400 hover:text-white"><XCircle size={18} /></button>
+            </div>
+            <p className="text-xs text-gray-400 mb-4">
+              Assign <span className="text-white font-semibold">{applications.find(a => a.id === showAssign)?.full_name}</span> to a mentee or group
+            </p>
+            <div className="space-y-3">
+              <input
+                value={assignForm.mentee_email}
+                onChange={e => setAssignForm({ ...assignForm, mentee_email: e.target.value })}
+                placeholder="Mentee email..."
+                className={inputCls}
+              />
+              <select
+                value={assignForm.group_id}
+                onChange={e => setAssignForm({ ...assignForm, group_id: e.target.value })}
+                className={inputCls}
+              >
+                <option value="">No group (1-on-1)</option>
+                {groups.map(g => (
+                  <option key={g.id} value={g.id} style={{ background: '#1a0a2e' }}>{g.group_name}</option>
+                ))}
+              </select>
+              <input
+                value={assignForm.goal}
+                onChange={e => setAssignForm({ ...assignForm, goal: e.target.value })}
+                placeholder="Program goal (optional)..."
+                className={inputCls}
+              />
+              <button
+                onClick={() => assignMentor(showAssign)}
+                disabled={!assignForm.mentee_email.trim()}
+                className="w-full py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}
+              >
+                Create Assignment
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
