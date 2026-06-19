@@ -91,27 +91,22 @@ export default function GoogleSetup() {
           return;
         }
 
-        // Check for mentor account FIRST - before any other routing logic
+        // CRITICAL: ALWAYS check for mentor account FIRST - regardless of isMentor flag
+        // This prevents mentors from accidentally entering the community app
         const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
         const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
         
         if (mentorEntity && mentorEntity.is_approved === true) {
-          // Approved mentor - go straight to mentor dashboard
+          // Approved mentor - ALWAYS go to mentor dashboard, even if they used community login
+          console.log('[GoogleSetup] Approved mentor detected, redirecting to mentor-dashboard');
           window.location.href = "/mentor-dashboard";
           return;
         }
         
         if (mentorApplication && mentorApplication.status !== 'rejected') {
           // Pending mentor application - go to mentor dashboard (will show pending status)
+          console.log('[GoogleSetup] Mentor application detected, redirecting to mentor-dashboard');
           window.location.href = "/mentor-dashboard";
-          return;
-        }
-        
-        // If user has mentor metadata but no entity/application, they may have used wrong portal
-        const hasMentorMetadata = hasMentorAccount(mergedUser) || isMentorModeActive(mergedUser);
-        if (hasMentorMetadata && !mentorEntity && !mentorApplication) {
-          await clearAuthSession();
-          window.location.href = "/mentor-login?error=no_mentor_account";
           return;
         }
 
@@ -135,9 +130,9 @@ export default function GoogleSetup() {
 
         // If they already have a DOB set, skip this page
         if (dobSource && !isSignupIntent) {
-          // Returning user via OAuth — redirect directly
-          // ALWAYS check mentor status first, regardless of isMentor flag
+          // Returning user via OAuth — ALWAYS check mentor status FIRST
           if (mentorEntity && mentorEntity.is_approved === true) {
+            console.log('[GoogleSetup] Returning mentor detected, redirecting to mentor-dashboard');
             window.location.href = "/mentor-dashboard";
             return;
           }
