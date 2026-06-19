@@ -1,0 +1,80 @@
+{
+  "name": "Prize",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Prize Name"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "image_url": {
+      "type": "string",
+      "title": "Image URL"
+    },
+    "points_cost": {
+      "type": "number",
+      "title": "Points Cost",
+      "default": 0
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "digital",
+        "gift_card",
+        "physical",
+        "experience"
+      ],
+      "title": "Category",
+      "default": "digital"
+    },
+    "stock_quantity": {
+      "type": "number",
+      "title": "Stock Quantity",
+      "default": 999
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    },
+    "fulfillment_instructions": {
+      "type": "string",
+      "title": "Fulfillment Instructions (Admin Notes)"
+    },
+    "shipping_required": {
+      "type": "boolean",
+      "title": "Shipping Required",
+      "default": false
+    },
+    "age_group": {
+      "type": "string",
+      "enum": [
+        "girls",
+        "women",
+        "both"
+      ],
+      "title": "Age Group",
+      "default": "both"
+    },
+    "retail_value": {
+      "type": "string",
+      "title": "Retail Value (e.g., '$10', '$25 Gift Card')"
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Created By (Admin Email)"
+    },
+    "created_date": {
+      "type": "string",
+      "title": "Created Date"
+    }
+  },
+  "required": [
+    "name",
+    "points_cost",
+    "category"
+  ]
+}

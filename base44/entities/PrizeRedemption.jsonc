@@ -1,0 +1,87 @@
+{
+  "name": "PrizeRedemption",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "user_age_group": {
+      "type": "string",
+      "enum": [
+        "girls_10_20",
+        "women_21_plus"
+      ],
+      "title": "User Age Group"
+    },
+    "prize_id": {
+      "type": "string",
+      "title": "Prize ID"
+    },
+    "prize_name": {
+      "type": "string",
+      "title": "Prize Name"
+    },
+    "prize_image": {
+      "type": "string",
+      "title": "Prize Image URL"
+    },
+    "points_deducted": {
+      "type": "number",
+      "title": "Points Deducted"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "parent_approval_required",
+        "parent_approved",
+        "parent_denied",
+        "approved",
+        "denied",
+        "fulfilled",
+        "cancelled"
+      ],
+      "title": "Status",
+      "default": "pending"
+    },
+    "shipping_address": {
+      "type": "string",
+      "title": "Shipping Address (JSON)"
+    },
+    "parent_email": {
+      "type": "string",
+      "title": "Parent/Guardian Email"
+    },
+    "parent_approval_date": {
+      "type": "string",
+      "title": "Parent Approval Date"
+    },
+    "admin_notes": {
+      "type": "string",
+      "title": "Admin Notes"
+    },
+    "requested_date": {
+      "type": "string",
+      "title": "Requested Date"
+    },
+    "approved_date": {
+      "type": "string",
+      "title": "Approved Date"
+    },
+    "fulfilled_date": {
+      "type": "string",
+      "title": "Fulfilled Date"
+    },
+    "denied_reason": {
+      "type": "string",
+      "title": "Denied Reason"
+    }
+  },
+  "required": [
+    "user_email",
+    "prize_id",
+    "prize_name",
+    "points_deducted"
+  ]
+}

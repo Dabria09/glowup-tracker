@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-import { Zap, Trophy, Plus, Minus } from 'lucide-react';
+import { Zap, Trophy, Plus, Minus, Gift, Package } from 'lucide-react';
+import PrizesTab from '@/components/admin/PrizesTab';
+import RedemptionsTab from '@/components/admin/RedemptionsTab';
 
 const DEFAULT_CONFIG = {
   // Daily Engagement
@@ -201,14 +203,30 @@ export default function PointsRewards() {
   return (
     <div className="space-y-4">
       {/* Sub-tabs */}
-      <div className="flex gap-1 bg-white/5 rounded-2xl p-1">
-        {[{ id: 'config', label: 'Point Config' }, { id: 'award', label: 'Award Points' }, { id: 'leaderboard', label: 'Leaderboard' }].map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)}
-            className={`flex-1 py-2 rounded-xl text-xs font-semibold transition ${activeTab === t.id ? 'bg-white/15 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-            {t.label}
-          </button>
-        ))}
+      <div className="flex gap-1 bg-white/5 rounded-2xl p-1 overflow-x-auto">
+        {[
+          { id: 'config', label: 'Point Config' },
+          { id: 'prizes', label: 'Prizes', icon: Gift },
+          { id: 'redemptions', label: 'Redemptions', icon: Package },
+          { id: 'award', label: 'Award Points' },
+          { id: 'leaderboard', label: 'Leaderboard' }
+        ].map(t => {
+          const Icon = t.icon;
+          return (
+            <button key={t.id} onClick={() => setActiveTab(t.id)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${activeTab === t.id ? 'bg-white/15 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+              {Icon && <Icon size={12} />}
+              {t.label}
+            </button>
+          );
+        })}
       </div>
+
+      {/* Prizes */}
+      {activeTab === 'prizes' && <PrizesTab />}
+
+      {/* Redemptions */}
+      {activeTab === 'redemptions' && <RedemptionsTab />}
 
       {/* Config */}
       {activeTab === 'config' && (
