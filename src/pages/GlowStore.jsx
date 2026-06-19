@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, ShoppingBag, Check, Lock, Sparkles, Gift } from 'lucide-react';
+import { ChevronLeft, ShoppingBag, Check, Lock, Sparkles, Gift, Truck, AlertCircle } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import useAgeGroup from '@/lib/useAgeGroup';
 
 const STORE_ITEMS = [
   // Profile Frames
@@ -33,7 +34,7 @@ const STORE_ITEMS = [
 ];
 
 const CATEGORIES = ['All', 'Profile Frames', 'Profile Titles', 'App Themes', 'Special Badges'];
-const TABS = ['Store', 'My Collection'];
+const TABS = ['Store', 'My Collection', 'Redeem'];
 
 const PINK = '#e8526d';
 const GOLD = '#f1b610';
@@ -91,6 +92,7 @@ function ItemPreviewWidget({ item }) {
 
 export default function GlowStore() {
   const navigate = useNavigate();
+  const { ageGroup } = useAgeGroup();
   const [user, setUser] = useState(null);
   const [totalPoints, setTotalPoints] = useState(0);
   const [pointsRecord, setPointsRecord] = useState(null);
@@ -101,13 +103,26 @@ export default function GlowStore() {
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [equippedItems, setEquippedItems] = useState([]);
+  const [prizes, setPrizes] = useState([]);
+  const [redemptions, setRedemptions] = useState([]);
+  const [redeeming, setRedeeming] = useState(null);
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
+  const [selectedPrize, setSelectedPrize] = useState(null);
+  const [shippingAddress, setShippingAddress] = useState('');
 
   useEffect(() => {
-    base44.auth.me().then(async (u) => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const u = await base44.auth.me();
       setUser(u);
-      const [pts, profile] = await Promise.all([
+      const [pts, profile, prizesData, redemptionsData] = await Promise.all([
         base44.entities.UserPoints.filter({ user_email: u.email }),
         base44.entities.UserProfile.filter({ user_email: u.email }),
+        base44.entities.Prize.filter({ is_active: true }),
+        base44.entities.PrizeRedemption.filter({ user_email: u.email }),
       ]);
       if (pts.length > 0) {
         setTotalPoints(pts[0].total_points || 0);
@@ -117,9 +132,22 @@ export default function GlowStore() {
         try { setOwnedItems(JSON.parse(profile[0].owned_store_items || '[]')); } catch { setOwnedItems([]); }
         try { setEquippedItems(JSON.parse(profile[0].equipped_store_items || '[]')); } catch { setEquippedItems([]); }
       }
+      // Filter prizes by age group
+      const filteredPrizes = prizesData.filter(p => {
+        if (!p.is_active) return false;
+        if (p.age_group === 'both') return true;
+        if (ageGroup === 'girls' && (p.age_group === 'girls' || p.age_group === 'both')) return true;
+        if (ageGroup === 'women' && (p.age_group === 'women' || p.age_group === 'both')) return true;
+        return false;
+      });
+      setPrizes(filteredPrizes);
+      setRedemptions(redemptionsData);
       setLoading(false);
-    }).catch(() => navigate('/'));
-  }, []);
+    } catch (err) {
+      console.error('Error loading store data:', err);
+      navigate('/');
+    }
+  };
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -155,6 +183,82 @@ export default function GlowStore() {
     setOwnedItems(newOwned);
     setPurchasing(null);
     showToast(`${item.emoji} "${item.name}" is now yours!`);
+  };
+
+  const getPrizePoints = (prize) => {
+    return ageGroup === 'women' ? (prize.points_cost_women || prize.points_cost_girls || 0) : (prize.points_cost_girls || 0);
+  };
+
+  const handleRedeemClick = (prize) => {
+    const pointsNeeded = getPrizePoints(prize);
+    if (totalPoints < pointsNeeded) {
+      showToast("Not enough points! Keep glowing to earn more. ✨", 'error');
+      return;
+    }
+    if (prize.stock_quantity <= 0) {
+      showToast("Sorry, this prize is out of stock!", 'error');
+      return;
+    }
+    setSelectedPrize(prize);
+    setShowRedeemModal(true);
+  };
+
+  const handleRedeemConfirm = async () => {
+    if (!selectedPrize) return;
+    setRedeeming(selectedPrize.id);
+    try {
+      const pointsNeeded = getPrizePoints(selectedPrize);
+      const newTotal = totalPoints - pointsNeeded;
+      
+      // Deduct points
+      if (pointsRecord) {
+        await base44.entities.UserPoints.update(pointsRecord.id, { total_points: newTotal });
+      } else {
+        const rec = await base44.entities.UserPoints.create({ user_email: user.email, total_points: newTotal });
+        setPointsRecord(rec);
+      }
+      
+      // Record in history
+      await base44.entities.PointsHistory.create({
+        user_email: user.email,
+        action: 'prize_redemption',
+        label: `Redeemed: ${selectedPrize.name}`,
+        emoji: '🎁',
+        points: -pointsNeeded,
+        total_after: newTotal,
+      });
+      
+      // Create redemption request
+      await base44.entities.PrizeRedemption.create({
+        prize_id: selectedPrize.id,
+        prize_name: selectedPrize.name,
+        prize_description: selectedPrize.description,
+        prize_category: selectedPrize.category,
+        user_email: user.email,
+        points_deducted: pointsNeeded,
+        status: 'pending',
+        requested_date: new Date().toISOString(),
+        shipping_address: selectedPrize.shipping_required ? shippingAddress : null,
+        user_world: ageGroup === 'women' ? 'Women (21+)' : 'Girls (10-20)',
+        requires_parent_approval: ageGroup === 'girls' && pointsNeeded >= 1000,
+      });
+      
+      // Update stock
+      if (selectedPrize.stock_quantity < 999) {
+        await base44.entities.Prize.update(selectedPrize.id, { stock_quantity: selectedPrize.stock_quantity - 1 });
+      }
+      
+      setTotalPoints(newTotal);
+      setShowRedeemModal(false);
+      setSelectedPrize(null);
+      setShippingAddress('');
+      showToast('Redemption request submitted! Admin will review soon. 🎁');
+      loadData();
+    } catch (err) {
+      console.error('Error redeeming prize:', err);
+      showToast('Failed to redeem. Please try again.', 'error');
+    }
+    setRedeeming(null);
   };
 
   const handleEquip = async (item) => {
@@ -226,11 +330,11 @@ export default function GlowStore() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-5 p-1 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex gap-2 mb-5 p-1 rounded-2xl overflow-x-auto" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
           {TABS.map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className="flex-1 py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+            <button key={tab} onClick={() => setActiveTab(tab)} className="flex-shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all"
               style={{ background: activeTab === tab ? `linear-gradient(135deg,${PINK},#ff6a75)` : 'transparent', color: activeTab === tab ? 'white' : MUTED, boxShadow: activeTab === tab ? '0 4px 12px rgba(232,82,109,0.4)' : 'none' }}>
-              {tab === 'Store' ? <><Sparkles size={13} /> Store</> : <><Gift size={13} /> My Collection {collectionItems.length > 0 && <span className="ml-0.5 text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }}>{collectionItems.length}</span>}</>}
+              {tab === 'Store' ? <><Sparkles size={13} /> Store</> : tab === 'My Collection' ? <><Gift size={13} /> My Collection {collectionItems.length > 0 && <span className="ml-0.5 text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }}>{collectionItems.length}</span>}</> : <><Truck size={13} /> Redeem {redemptions.filter(r => r.status === 'pending').length > 0 && <span className="ml-0.5 text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.3)', color: '#f59e0b' }}>{redemptions.filter(r => r.status === 'pending').length}</span>}</>}
             </button>
           ))}
         </div>
@@ -281,9 +385,93 @@ export default function GlowStore() {
               })}
             </div>
           )
+        ) : activeTab === 'Redeem' ? (
+        /* ── REDEEM TAB ── */
+        <div className="space-y-4">
+          <p className="text-xs font-bold tracking-widest mb-3" style={{ color: MUTED2 }}>REAL-WORLD PRIZES & REWARDS</p>
+          {prizes.length === 0 ? (
+            <div className="text-center py-16">
+              <div style={{ fontSize: 52 }}>🎁</div>
+              <p className="font-bold text-lg mt-4" style={{ color: WHITE }}>No prizes available yet</p>
+              <p className="text-sm mt-2" style={{ color: MUTED }}>Check back soon for exciting rewards!</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {prizes.map(prize => {
+                const pointsNeeded = getPrizePoints(prize);
+                const canAfford = totalPoints >= pointsNeeded;
+                const inStock = prize.stock_quantity > 0;
+                const CategoryIcon = prize.category === 'digital' ? Sparkles : prize.category === 'gift_card' ? ShoppingBag : prize.category === 'physical' ? Truck : Gift;
+
+                return (
+                  <div key={prize.id} className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${inStock && canAfford ? 'rgba(232,82,109,0.25)' : 'rgba(255,255,255,0.08)'}`, opacity: !inStock ? 0.6 : 1 }}>
+                    <div className="flex items-start gap-3">
+                      {prize.image_url ? (
+                        <img src={prize.image_url} alt={prize.name} className="w-20 h-20 rounded-xl object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-20 h-20 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          <CategoryIcon size={32} className="text-gray-600" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h3 className="font-bold text-white text-sm">{prize.name}</h3>
+                            {prize.retail_value && <p className="text-xs text-gray-400 mt-0.5">{prize.retail_value}</p>}
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0`} style={{ background: prize.category === 'digital' ? 'rgba(59,130,246,0.2)' : prize.category === 'gift_card' ? 'rgba(16,185,129,0.2)' : prize.category === 'physical' ? 'rgba(245,158,11,0.2)' : 'rgba(236,72,153,0.2)', color: prize.category === 'digital' ? '#60a5fa' : prize.category === 'gift_card' ? '#10b981' : prize.category === 'physical' ? '#f59e0b' : '#ec4899' }}>
+                            {prize.category.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1 line-clamp-2">{prize.description}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-yellow-400 flex items-center gap-1">
+                              <span>🏅</span> {pointsNeeded.toLocaleString()} pts
+                            </span>
+                            {!inStock && <span className="text-[10px] text-red-400">Out of stock</span>}
+                            {prize.shipping_required && <span className="text-[10px] text-gray-500">📦 Shipping</span>}
+                          </div>
+                          <button
+                            onClick={() => handleRedeemClick(prize)}
+                            disabled={!canAfford || !inStock || redeeming === prize.id}
+                            className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1"
+                            style={{ background: canAfford && inStock ? `linear-gradient(135deg,${PINK},#ff6a75)` : 'rgba(255,255,255,0.05)', color: canAfford && inStock ? 'white' : 'gray', cursor: canAfford && inStock ? 'pointer' : 'not-allowed' }}
+                          >
+                            {redeeming === prize.id ? '...' : 'Redeem'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Redemption History */}
+          {redemptions.length > 0 && (
+            <div className="mt-6">
+              <p className="text-xs font-bold tracking-widest mb-3" style={{ color: MUTED2 }}>YOUR REDEMPTIONS</p>
+              <div className="space-y-2">
+                {redemptions.slice(0, 5).map(red => (
+                  <div key={red.id} className="rounded-xl p-3 flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div>
+                      <p className="text-sm font-bold text-white">{red.prize_name}</p>
+                      <p className="text-xs text-gray-500">{new Date(red.requested_date).toLocaleDateString()}</p>
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold`} style={{ background: red.status === 'pending' ? 'rgba(245,158,11,0.2)' : red.status === 'approved' ? 'rgba(16,185,129,0.2)' : red.status === 'fulfilled' ? 'rgba(139,92,246,0.2)' : 'rgba(239,68,68,0.2)', color: red.status === 'pending' ? '#f59e0b' : red.status === 'approved' ? '#10b981' : red.status === 'fulfilled' ? '#8b5cf6' : '#ef4444' }}>
+                      {red.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
         ) : (
-          /* ── STORE TAB ── */
-          <>
+        /* ── STORE TAB ── */
+        <>
             {/* Featured banner */}
             {activeCategory === 'All' && (
               <div className="mb-5">
@@ -385,6 +573,101 @@ export default function GlowStore() {
         )}
       </div>
 
+      {/* Redeem Modal */}
+      {showRedeemModal && selectedPrize && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end" onClick={() => setShowRedeemModal(false)}>
+          <div
+            className="w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
+            style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#1a0a2e]">
+              <h3 className="text-lg font-bold">Redeem Prize</h3>
+              <button onClick={() => setShowRedeemModal(false)}><span className="text-2xl">×</span></button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              {/* Prize Preview */}
+              <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="flex items-center gap-3">
+                  {selectedPrize.image_url ? (
+                    <img src={selectedPrize.image_url} alt={selectedPrize.name} className="w-16 h-16 rounded-xl object-cover" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                      <Gift size={32} className="text-gray-600" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <p className="font-bold text-white">{selectedPrize.name}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{selectedPrize.retail_value}</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Points */}
+              <div className="rounded-2xl p-4" style={{ background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.2)' }}>
+                <p className="text-xs font-bold text-gray-400 mb-1">POINTS REQUIRED</p>
+                <p className="text-2xl font-bold text-yellow-400">{getPrizePoints(selectedPrize).toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-1">Your balance: {totalPoints.toLocaleString()}</p>
+              </div>
+              
+              {/* Shipping Address */}
+              {selectedPrize.shipping_required && (
+                <div>
+                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Shipping Address *</label>
+                  <textarea
+                    value={shippingAddress}
+                    onChange={e => setShippingAddress(e.target.value)}
+                    placeholder="Enter your full shipping address..."
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none resize-none min-h-24"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">We'll ship your prize to this address once approved.</p>
+                </div>
+              )}
+              
+              {/* Parental Approval Notice */}
+              {ageGroup === 'girls' && getPrizePoints(selectedPrize) >= 1000 && (
+                <div className="rounded-2xl p-4" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}>
+                  <div className="flex items-start gap-2">
+                    <AlertCircle size={16} className="text-amber-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-bold text-amber-400">Parental Approval Required</p>
+                      <p className="text-xs text-gray-400 mt-1">Since this prize is over 1000 points, a parent/guardian will need to approve before it can be sent to you.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Info */}
+              <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <p className="text-xs text-gray-400">
+                  <strong className="text-white">Note:</strong> Your points will be deducted immediately. Admin will review your request within 48 hours. If denied, points will be refunded.
+                </p>
+              </div>
+              
+              {/* Actions */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setShowRedeemModal(false)}
+                  className="py-3 rounded-2xl font-bold text-white text-sm"
+                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRedeemConfirm}
+                  disabled={redeeming === selectedPrize.id || (selectedPrize.shipping_required && !shippingAddress.trim())}
+                  className="py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
+                >
+                  {redeeming ? 'Processing...' : `Redeem 🎁`}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <BottomNav active="me" />
     </div>
   );

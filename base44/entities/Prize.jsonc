@@ -14,9 +14,14 @@
       "type": "string",
       "title": "Image URL"
     },
-    "points_cost": {
+    "points_cost_girls": {
       "type": "number",
-      "title": "Points Cost",
+      "title": "Points Cost (Girls 10-20 World)",
+      "default": 0
+    },
+    "points_cost_women": {
+      "type": "number",
+      "title": "Points Cost (Women 21+ World)",
       "default": 0
     },
     "category": {
@@ -61,7 +66,7 @@
     },
     "retail_value": {
       "type": "string",
-      "title": "Retail Value (e.g., '$10', '$25 Gift Card')"
+      "title": "Retail Value (e.g., '$10', '$25 Gift Card', 'Car', 'Scholarship')"
     },
     "created_by": {
       "type": "string",
@@ -74,7 +79,6 @@
   },
   "required": [
     "name",
-    "points_cost",
     "category"
   ]
 }

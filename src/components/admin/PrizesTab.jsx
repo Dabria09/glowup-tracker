@@ -25,7 +25,8 @@ export default function PrizesTab() {
     name: '',
     description: '',
     image_url: '',
-    points_cost: 0,
+    points_cost_girls: 0,
+    points_cost_women: 0,
     category: 'digital',
     stock_quantity: 999,
     is_active: true,
@@ -54,8 +55,8 @@ export default function PrizesTab() {
   };
 
   const savePrize = async () => {
-    if (!newPrize.name || !newPrize.points_cost) {
-      toast.error('Name and points cost are required');
+    if (!newPrize.name || (!newPrize.points_cost_girls && !newPrize.points_cost_women)) {
+      toast.error('Name and at least one points cost are required');
       return;
     }
 
@@ -80,7 +81,8 @@ export default function PrizesTab() {
       name: '',
       description: '',
       image_url: '',
-      points_cost: 0,
+      points_cost_girls: 0,
+      points_cost_women: 0,
       category: 'digital',
       stock_quantity: 999,
       is_active: true,
@@ -105,7 +107,8 @@ export default function PrizesTab() {
       name: prize.name,
       description: prize.description || '',
       image_url: prize.image_url || '',
-      points_cost: prize.points_cost,
+      points_cost_girls: prize.points_cost_girls || 0,
+      points_cost_women: prize.points_cost_women || 0,
       category: prize.category,
       stock_quantity: prize.stock_quantity || 999,
       is_active: prize.is_active,
@@ -174,7 +177,7 @@ export default function PrizesTab() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1 text-yellow-400 font-bold text-sm">
                     <Star size={14} />
-                    {prize.points_cost.toLocaleString()} pts
+                    {prize.age_group === 'women' ? prize.points_cost_women?.toLocaleString() : prize.points_cost_girls?.toLocaleString()} pts
                   </div>
                   <div className="text-xs text-gray-400">
                     {prize.stock_quantity >= 999 ? '∞ in stock' : `${prize.stock_quantity} left`}
@@ -304,27 +307,39 @@ export default function PrizesTab() {
                 </div>
               </div>
 
-              {/* Points & Retail Value */}
+              {/* Points Cost (World-Specific) */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Points Cost *</label>
+                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Points (Girls 10-20)</label>
                   <input
                     type="number"
-                    value={newPrize.points_cost}
-                    onChange={e => setNewPrize({ ...newPrize, points_cost: Number(e.target.value) })}
+                    value={newPrize.points_cost_girls}
+                    onChange={e => setNewPrize({ ...newPrize, points_cost_girls: Number(e.target.value) })}
                     placeholder="100"
                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Retail Value</label>
+                  <label className="text-sm font-semibold text-gray-300 mb-2 block">Points (Women 21+)</label>
                   <input
-                    value={newPrize.retail_value}
-                    onChange={e => setNewPrize({ ...newPrize, retail_value: e.target.value })}
-                    placeholder="e.g., $10"
+                    type="number"
+                    value={newPrize.points_cost_women}
+                    onChange={e => setNewPrize({ ...newPrize, points_cost_women: Number(e.target.value) })}
+                    placeholder="200"
                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none"
                   />
                 </div>
+              </div>
+
+              {/* Retail Value */}
+              <div>
+                <label className="text-sm font-semibold text-gray-300 mb-2 block">Retail Value</label>
+                <input
+                  value={newPrize.retail_value}
+                  onChange={e => setNewPrize({ ...newPrize, retail_value: e.target.value })}
+                  placeholder="e.g., $10, Car, Scholarship"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-500 outline-none"
+                />
               </div>
 
               {/* Stock */}

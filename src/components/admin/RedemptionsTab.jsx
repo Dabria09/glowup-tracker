@@ -198,6 +198,7 @@ export default function RedemptionsTab() {
                     <div className="text-right">
                       <p className="text-xs text-gray-400">Points</p>
                       <p className="text-sm font-bold text-yellow-400">{redemption.points_deducted}</p>
+                      <p className="text-[10px] text-gray-500">{redemption.user_world || 'Unknown'}</p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-xs font-semibold`} style={{ background: `${statusConfig.color}20`, color: statusConfig.color }}>
                       {statusConfig.label}
@@ -245,6 +246,7 @@ export default function RedemptionsTab() {
               <div className="rounded-2xl p-4" style={{ background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.2)' }}>
                 <p className="text-xs font-bold text-gray-400 mb-1">POINTS DEDUCTED</p>
                 <p className="text-2xl font-bold text-yellow-400">{selectedRedemption.points_deducted}</p>
+                <p className="text-xs text-gray-400 mt-1">User World: {selectedRedemption.user_world || 'Unknown'}</p>
               </div>
 
               {/* Shipping Address */}
