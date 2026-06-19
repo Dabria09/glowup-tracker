@@ -1,0 +1,49 @@
+{
+  "name": "MentorRankConfig",
+  "type": "object",
+  "properties": {
+    "rank_tier": {
+      "type": "string",
+      "title": "Rank Tier",
+      "enum": [
+        "seed",
+        "sprout",
+        "bloom",
+        "radiant",
+        "luminary"
+      ]
+    },
+    "min_sessions": {
+      "type": "number",
+      "title": "Minimum Sessions Required",
+      "default": 0
+    },
+    "min_rating": {
+      "type": "number",
+      "title": "Minimum Average Rating Required",
+      "default": 0
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    },
+    "updated_by": {
+      "type": "string",
+      "title": "Last Updated By (Admin Email)"
+    },
+    "updated_date": {
+      "type": "string",
+      "title": "Last Updated Date"
+    }
+  },
+  "required": [
+    "rank_tier",
+    "min_sessions",
+    "min_rating"
+  ]
+}

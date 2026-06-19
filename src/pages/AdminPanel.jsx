@@ -15,6 +15,7 @@ import MentorsAdminTab from '@/components/admin/MentorsAdminTab';
 import MentorActivityTab from '@/components/admin/MentorActivityTab';
 import MessagesAdminTab from '@/components/admin/MessagesAdminTab';
 import MentorInboxAdminTab from '@/components/admin/MentorInboxAdminTab';
+import MentorRankSettings from '@/components/admin/MentorRankSettings';
 import KitchenMentorsTab from '@/components/admin/KitchenMentorsTab';
 import VideoMonitorTab from '@/components/admin/VideoMonitorTab';
 import MatchesTab from '@/components/admin/MatchesTab';
@@ -44,6 +45,7 @@ const TABS = [
   { id: 'mentors',     label: 'Mentors',           icon: UserCheck },
   { id: 'messages',    label: 'Messages',          icon: MessageSquare },
   { id: 'mentor_inbox', label: 'Mentor Inbox',     icon: Inbox },
+  { id: 'mentor_ranks', label: 'Rank Settings',    icon: Crown },
   { id: 'mentor_activity', label: 'Mentor Activity', icon: TrendingUp },
   { id: 'kitchen',     label: 'Kitchen Mentors',   icon: ChefHat },
   { id: 'video',       label: 'Video',             icon: Video },
@@ -108,6 +110,7 @@ export default function AdminPanel() {
       case 'mentors':    return <MentorsAdminTab />;
       case 'messages':   return <MessagesAdminTab />;
       case 'mentor_inbox': return <MentorInboxAdminTab />;
+      case 'mentor_ranks': return <MentorRankSettings />;
       case 'mentor_activity': return <MentorActivityTab />;
       case 'kitchen':    return <KitchenMentorsTab />;
       case 'video':      return <VideoMonitorTab />;

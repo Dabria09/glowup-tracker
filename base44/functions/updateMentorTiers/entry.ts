@@ -9,6 +9,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
+    // Get rank configurations from database
+    const rankConfigs = await base44.entities.MentorRankConfig.filter({ is_active: true });
+    const tierThresholds = {};
+    rankConfigs.forEach(config => {
+      tierThresholds[config.rank_tier] = {
+        min_sessions: config.min_sessions || 0,
+        min_rating: config.min_rating || 0,
+      };
+    });
+    
     // Get all approved mentors
     const mentors = await base44.entities.Mentor.filter({ is_approved: true });
     
@@ -30,16 +40,21 @@ Deno.serve(async (req) => {
           ? ratedSessions.reduce((sum, s) => sum + s.rating, 0) / ratedSessions.length
           : 0;
         
-        // Determine tier
+        // Determine tier based on database thresholds
         let newTier = 'seed';
-        if (sessionsCount >= 31 && avgRating >= 4.8) {
-          newTier = 'luminary';
-        } else if (sessionsCount >= 16 && avgRating >= 4.5) {
-          newTier = 'radiant';
-        } else if (sessionsCount >= 6) {
-          newTier = 'bloom';
-        } else if (sessionsCount >= 3) {
-          newTier = 'sprout';
+        const tiers = ['luminary', 'radiant', 'bloom', 'sprout', 'seed'];
+        
+        for (const tier of tiers) {
+          const threshold = tierThresholds[tier];
+          if (!threshold) continue;
+          
+          const meetsSessions = sessionsCount >= threshold.min_sessions;
+          const meetsRating = avgRating >= threshold.min_rating;
+          
+          if (meetsSessions && meetsRating) {
+            newTier = tier;
+            break;
+          }
         }
         
         // Update if tier changed
