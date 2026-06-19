@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2 } from 'lucide-react';
+import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 
 import OverviewTab from '@/components/admin/OverviewTab';
@@ -28,6 +28,7 @@ import LevelsAdminTab from '@/components/admin/LevelsAdminTab';
 import PioneerNetworkTab from '@/components/admin/PioneerNetworkTab';
 import GlowPassAdminTab from '@/components/admin/GlowPassAdminTab';
 import DeleteUsersTab from '@/components/admin/DeleteUsersTab';
+import BannedWordsTab from '@/components/admin/BannedWordsTab';
 
 const TABS = [
   { id: 'overview',    label: 'Overview',         icon: BarChart2 },
@@ -53,7 +54,8 @@ const TABS = [
   { id: 'levels',      label: 'Glow Levels',        icon: Crown },
   { id: 'pioneer',     label: 'Pioneer Network',    icon: Crown },
   { id: 'glowpasses',  label: 'Glow Passes',        icon: Tag },
-  { id: 'deleteusers', label: '🗑️ Delete Users',    icon: Trash2 },
+  { id: 'deleteusers',  label: '🗑️ Delete Users',   icon: Trash2 },
+  { id: 'bannedwords',  label: '🚫 Banned Words',   icon: ShieldAlert },
 ];
 
 export default function AdminPanel() {
@@ -102,6 +104,7 @@ export default function AdminPanel() {
       case 'pioneer':    return <PioneerNetworkTab />;
       case 'glowpasses':   return <GlowPassAdminTab />;
       case 'deleteusers':  return <DeleteUsersTab />;
+      case 'bannedwords':  return <BannedWordsTab />;
       default:             return <OverviewTab />;
     }
   };
