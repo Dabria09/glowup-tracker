@@ -1,0 +1,31 @@
+{
+  "name": "DailyPollResponse",
+  "type": "object",
+  "properties": {
+    "poll_id": {
+      "type": "string",
+      "title": "Poll ID"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "choice": {
+      "type": "string",
+      "title": "Choice (a/b/c/d for multiple_choice, or 'text' for open_text)"
+    },
+    "text_response": {
+      "type": "string",
+      "title": "Text Response (for open_text/hybrid)"
+    },
+    "vote_date": {
+      "type": "string",
+      "title": "Vote Date (YYYY-MM-DD)"
+    }
+  },
+  "required": [
+    "poll_id",
+    "user_email",
+    "vote_date"
+  ]
+}

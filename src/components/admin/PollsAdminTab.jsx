@@ -5,7 +5,7 @@ import { Plus, Trash2, Edit3, BarChart2, Calendar, Upload, Copy, X } from 'lucid
 const CATEGORIES = ['Confidence','Friendships','Leadership','School','Bullying','Social Media','Relationships','Self-Esteem','Decision Making','Career Exploration','Money','Mental Wellness'];
 const AGE_GROUPS = ['All Ages', 'Girls 10-14', 'Teens 15-17', 'Teens 18-20', 'Women 21+'];
 
-const EMPTY = { question: '', category: 'Confidence', option_a: '', option_b: '', option_c: '', option_d: '', insight_a: '', insight_b: '', insight_c: '', insight_d: '', coaching_tip: '', points_awarded: 15, scheduled_date: '', age_group: 'All Ages', is_active: true };
+const EMPTY = { question: '', category: 'Confidence', response_type: 'multiple_choice', option_a: '', option_b: '', option_c: '', option_d: '', insight_a: '', insight_b: '', insight_c: '', insight_d: '', coaching_tip: '', open_text_prompt: '', points_awarded: 15, scheduled_date: '', age_group: 'All Ages', is_active: true };
 
 // Get default poll points from config
 const getDefaultPollPoints = (config) => {
@@ -55,7 +55,7 @@ export default function PollsAdminTab() {
     if (editId) {
       await base44.entities.DailyPoll.update(editId, form);
     } else {
-      await base44.entities.DailyPoll.create({ ...form, votes_a: 0, votes_b: 0, votes_c: 0, votes_d: 0 });
+      await base44.entities.DailyPoll.create({ ...form, votes_a: 0, votes_b: 0, votes_c: 0, votes_d: 0, open_text_response_count: 0 });
     }
     setForm(EMPTY);
     setEditId(null);
@@ -66,9 +66,9 @@ export default function PollsAdminTab() {
 
   const saveBulk = async () => {
     setSaving(true);
-    const validPolls = bulkPolls.filter(p => p.question && p.option_a && p.option_b);
+    const validPolls = bulkPolls.filter(p => p.question && (p.response_type === 'open_text' || (p.option_a && p.option_b)));
     for (const poll of validPolls) {
-      await base44.entities.DailyPoll.create({ ...poll, votes_a: 0, votes_b: 0, votes_c: 0, votes_d: 0 });
+      await base44.entities.DailyPoll.create({ ...poll, votes_a: 0, votes_b: 0, votes_c: 0, votes_d: 0, open_text_response_count: 0 });
     }
     setBulkPolls([{ ...EMPTY }]);
     setCreateMode('single');
@@ -223,15 +223,25 @@ export default function PollsAdminTab() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <input value={poll.question} onChange={(e) => updateBulkPoll(idx, 'question', e.target.value)} placeholder="Question *" className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
-                <select value={poll.category} onChange={(e) => updateBulkPoll(idx, 'category', e.target.value)} className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <select value={poll.category || 'Confidence'} onChange={(e) => updateBulkPoll(idx, 'category', e.target.value)} className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
                   {CATEGORIES.map(c => <option key={c} value={c} style={{ background: '#1a0a18' }}>{c}</option>)}
                 </select>
-                <input value={poll.option_a} onChange={(e) => updateBulkPoll(idx, 'option_a', e.target.value)} placeholder="Option A *" className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
-                <input value={poll.option_b} onChange={(e) => updateBulkPoll(idx, 'option_b', e.target.value)} placeholder="Option B *" className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
-                <input value={poll.option_c || ''} onChange={(e) => updateBulkPoll(idx, 'option_c', e.target.value)} placeholder="Option C (optional)" className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
-                <input value={poll.option_d || ''} onChange={(e) => updateBulkPoll(idx, 'option_d', e.target.value)} placeholder="Option D (optional)" className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
-                <input type="date" value={poll.scheduled_date} onChange={(e) => updateBulkPoll(idx, 'scheduled_date', e.target.value)} className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', colorScheme: 'dark' }} />
-                <select value={poll.age_group} onChange={(e) => updateBulkPoll(idx, 'age_group', e.target.value)} className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <select value={poll.response_type || 'multiple_choice'} onChange={(e) => updateBulkPoll(idx, 'response_type', e.target.value)} className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                  <option value="multiple_choice">Multiple Choice</option>
+                  <option value="open_text">Open Text</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+                {poll.response_type !== 'open_text' && (
+                  <>
+                    <input value={poll.option_a || ''} onChange={(e) => updateBulkPoll(idx, 'option_a', e.target.value)} placeholder="Option A" className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
+                    <input value={poll.option_b || ''} onChange={(e) => updateBulkPoll(idx, 'option_b', e.target.value)} placeholder="Option B" className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
+                  </>
+                )}
+                {poll.response_type !== 'multiple_choice' && (
+                  <input value={poll.open_text_prompt || ''} onChange={(e) => updateBulkPoll(idx, 'open_text_prompt', e.target.value)} placeholder="Text prompt..." className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
+                )}
+                <input type="date" value={poll.scheduled_date || ''} onChange={(e) => updateBulkPoll(idx, 'scheduled_date', e.target.value)} className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', colorScheme: 'dark' }} />
+                <select value={poll.age_group || 'All Ages'} onChange={(e) => updateBulkPoll(idx, 'age_group', e.target.value)} className="text-sm text-white rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
                   {AGE_GROUPS.map(ag => <option key={ag} value={ag} style={{ background: '#1a0a18' }}>{ag}</option>)}
                 </select>
               </div>
@@ -254,24 +264,42 @@ export default function PollsAdminTab() {
       {showForm && createMode === 'single' && (
         <div className="rounded-2xl p-4 mb-6 space-y-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
           <h3 className="text-sm font-bold text-white mb-2">{editId ? 'Edit Poll' : 'Create New Poll'}</h3>
-          <div>
-            <p className="text-xs text-gray-400 mb-1">Category</p>
-            <select value={form.category} onChange={f('category')} className="w-full text-sm text-white rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
-              {CATEGORIES.map(c => <option key={c} value={c} style={{ background: '#1a0a18' }}>{c}</option>)}
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Category</p>
+              <select value={form.category} onChange={f('category')} className="w-full text-sm text-white rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                {CATEGORIES.map(c => <option key={c} value={c} style={{ background: '#1a0a18' }}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Response Type</p>
+              <select value={form.response_type} onChange={f('response_type')} className="w-full text-sm text-white rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <option value="multiple_choice" style={{ background: '#1a0a18' }}>Multiple Choice (A/B/C/D)</option>
+                <option value="open_text" style={{ background: '#1a0a18' }}>Open Text Only</option>
+                <option value="hybrid" style={{ background: '#1a0a18' }}>Hybrid (Choices + Text)</option>
+              </select>
+            </div>
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-1">Question *</p>
             <textarea value={form.question} onChange={f('question')} rows={3} placeholder="If someone said someone was talking about you, would you..." className="w-full text-sm text-white rounded-xl p-2.5 resize-none" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {['a','b','c','d'].map(letter => (
-              <div key={letter}>
-                <p className="text-xs text-gray-400 mb-1">Option {letter.toUpperCase()} *</p>
-                <input value={form[`option_${letter}`]} onChange={f(`option_${letter}`)} placeholder={`Option ${letter.toUpperCase()}`} className="w-full text-sm text-white rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
-              </div>
-            ))}
-          </div>
+          {form.response_type !== 'open_text' && (
+            <div className="grid grid-cols-2 gap-3">
+              {['a','b','c','d'].map(letter => (
+                <div key={letter}>
+                  <p className="text-xs text-gray-400 mb-1">Option {letter.toUpperCase()} {form.response_type === 'hybrid' ? '(optional)' : '*'}</p>
+                  <input value={form[`option_${letter}`]} onChange={f(`option_${letter}`)} placeholder={`Option ${letter.toUpperCase()}`} className="w-full text-sm text-white rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
+                </div>
+              ))}
+            </div>
+          )}
+          {form.response_type !== 'multiple_choice' && (
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Open Text Prompt *</p>
+              <textarea value={form.open_text_prompt} onChange={f('open_text_prompt')} rows={2} placeholder="Share your thoughts..." className="w-full text-sm text-white rounded-xl p-2.5 resize-none" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
+            </div>
+          )}
           <p className="text-xs font-bold text-pink-400 mt-2">Insights (shown after voting)</p>
           <div className="grid grid-cols-2 gap-3">
             {['a','b','c','d'].map(letter => (
@@ -306,7 +334,7 @@ export default function PollsAdminTab() {
             <input type="checkbox" id="poll_active" checked={form.is_active} onChange={e => setForm(prev => ({ ...prev, is_active: e.target.checked }))} />
             <label htmlFor="poll_active" className="text-sm text-gray-300">Active (visible to users)</label>
           </div>
-          <button onClick={save} disabled={saving || !form.question || !form.option_a || !form.option_b}
+          <button onClick={save} disabled={saving || !form.question || (form.response_type !== 'open_text' && (!form.option_a || !form.option_b)) || (form.response_type !== 'multiple_choice' && !form.open_text_prompt)}
             className="w-full py-3 rounded-xl font-bold text-white text-sm"
             style={{ background: saving ? '#555' : 'linear-gradient(135deg,#ec4899,#a855f7)', opacity: saving ? 0.7 : 1 }}>
             {saving ? 'Saving...' : editId ? 'Update Poll' : 'Create Poll'}
