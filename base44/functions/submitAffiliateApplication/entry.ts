@@ -14,7 +14,8 @@ Deno.serve(async (req) => {
       total_followers, 
       primary_platform, 
       promotion_plan, 
-      previous_campaigns 
+      previous_campaigns,
+      agrees_to_disclosure
     } = await req.json();
 
     // Check if user already has an application
@@ -47,6 +48,7 @@ Deno.serve(async (req) => {
       status: 'pending',
       affiliate_code,
       submitted_date: new Date().toISOString(),
+      disclosure_agreed: agrees_to_disclosure || false,
     });
 
     return Response.json({ 

@@ -19,6 +19,7 @@ export default function AffiliatePartner() {
     primary_platform: 'TikTok',
     promotion_plan: '',
     previous_campaigns: '',
+    agrees_to_disclosure: false,
   });
   const [submitting, setSubmitting] = useState(false);
   const [existingApp, setExistingApp] = useState(null);
@@ -39,6 +40,7 @@ export default function AffiliatePartner() {
     if (formData.social_platforms.length === 0) { toast.error('Add at least one platform'); return; }
     if (!formData.total_followers || formData.total_followers < 0) { toast.error('Enter follower count'); return; }
     if (!formData.promotion_plan.trim()) { toast.error('Describe your promotion plan'); return; }
+    if (!formData.agrees_to_disclosure) { toast.error('You must agree to the disclosure requirement'); return; }
 
     setSubmitting(true);
     try {
@@ -49,6 +51,7 @@ export default function AffiliatePartner() {
         primary_platform: formData.primary_platform,
         promotion_plan: formData.promotion_plan,
         previous_campaigns: formData.previous_campaigns,
+        agrees_to_disclosure: true,
       });
 
       if (response.data.success) {
@@ -277,6 +280,26 @@ export default function AffiliatePartner() {
                 placeholder="Tell us about any previous brand campaigns you've done..."
                 rows={3} className="w-full rounded-xl px-4 py-3 text-sm text-white resize-none"
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} />
+            </div>
+
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
+              <p className="text-xs font-bold text-amber-400 mb-2">⚠️ Disclosure Requirement</p>
+              <p className="text-xs text-gray-300 mb-3">
+                As a GGU Affiliate Partner, you <strong>must</strong> clearly disclose your paid partnership in all promotional content.
+                This is required by FTC guidelines and GGU brand standards.
+              </p>
+              <div className="space-y-2 text-xs text-gray-400">
+                <p>✅ Use <strong>#GGUPartner</strong> or <strong>#ad</strong> in social media posts</p>
+                <p>✅ Include "Paid partnership with Girls Glowing Up™" in video descriptions</p>
+                <p>✅ Disclose verbally at the start of video content</p>
+              </div>
+              <label className="flex items-start gap-3 mt-4 cursor-pointer">
+                <input type="checkbox" checked={formData.agrees_to_disclosure} onChange={(e) => setFormData(prev => ({ ...prev, agrees_to_disclosure: e.target.checked }))}
+                  className="mt-0.5 w-4 h-4 rounded" />
+                <span className="text-xs text-gray-300">
+                  <strong>I agree to disclose my paid partnership with GGU in all promotional content</strong> using clear language like #GGUPartner, #ad, or "Paid partnership." I understand that failure to disclose may result in termination from the Affiliate Program.
+                </span>
+              </label>
             </div>
 
             <button onClick={handleSubmit} disabled={submitting}

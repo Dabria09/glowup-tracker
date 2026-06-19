@@ -82,6 +82,11 @@
     "submitted_date": {
       "type": "string",
       "title": "Submitted Date"
+    },
+    "disclosure_agreed": {
+      "type": "boolean",
+      "title": "Agreed to Disclosure Requirement",
+      "default": false
     }
   },
   "required": [
@@ -89,6 +94,7 @@
     "full_name",
     "social_platforms",
     "total_followers",
+    "primary_platform",
     "promotion_plan"
   ]
 }
