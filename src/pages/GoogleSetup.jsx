@@ -137,6 +137,12 @@ export default function GoogleSetup() {
             return;
           }
           
+          if (mentorApplication && mentorApplication.status !== 'rejected') {
+            console.log('[GoogleSetup] Returning mentor applicant detected, redirecting to mentor-dashboard');
+            window.location.href = "/mentor-dashboard";
+            return;
+          }
+          
           if (isMentor) {
             saveMentorOAuthPrefill(buildOAuthPrefill(u, { dateOfBirth: dobSource }));
             window.location.href = "/mentor-dashboard";
