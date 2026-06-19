@@ -168,7 +168,7 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
   };
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+    <div data-mentor-id={app.id} className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
       {/* Card Header */}
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
@@ -603,22 +603,60 @@ export default function MentorsAdminTab() {
   const [newsletter, setNewsletter] = useState({ subject: '', body: '' });
   const [matches, setMatches] = useState([]);
   const [groups, setGroups] = useState([]);
-  const [showAssign, setShowAssign] = useState(null); // app.id if assigning
+  const [showAssign, setShowAssign] = useState(null);
   const [assignForm, setAssignForm] = useState({ mentee_email: '', group_id: '', goal: '' });
+  const [flaggedMentors, setFlaggedMentors] = useState([]);
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
     setLoading(true);
     try {
-      const [apps, m, g] = await Promise.all([
+      const [apps, m, g, sessions] = await Promise.all([
         base44.entities.MentorApplication.list('-created_date'),
         base44.entities.MentorshipProgress.list('-created_date'),
         base44.entities.ClassGroup.filter({ is_active: true }, '-created_date'),
+        base44.entities.MentorSession.filter({ status: 'completed' }, '-session_date'),
       ]);
       setApplications(apps);
       setMatches(m);
       setGroups(g);
+      
+      // Calculate flagged mentors (low ratings or safety concerns)
+      const mentorStats = {};
+      sessions.forEach(s => {
+        if (!mentorStats[s.mentor_email]) {
+          mentorStats[s.mentor_email] = { sessions: [], ratings: [], safetyFlags: 0 };
+        }
+        mentorStats[s.mentor_email].sessions.push(s);
+        if (s.rating > 0) mentorStats[s.mentor_email].ratings.push(s.rating);
+        if (s.feedback && /safety|concern|inappropriate|uncomfortable/i.test(s.feedback)) {
+          mentorStats[s.mentor_email].safetyFlags++;
+        }
+      });
+      
+      const flagged = apps.filter(a => {
+        const stats = mentorStats[a.user_email];
+        if (!stats) return false;
+        const avgRating = stats.ratings.length > 0 
+          ? stats.ratings.reduce((sum, r) => sum + r, 0) / stats.ratings.length 
+          : 0;
+        // Flag if: avg rating < 3.5 with 3+ reviews, OR has safety flags
+        return (stats.ratings.length >= 3 && avgRating < 3.5) || stats.safetyFlags > 0;
+      }).map(a => {
+        const stats = mentorStats[a.user_email];
+        const avgRating = stats.ratings.length > 0 
+          ? stats.ratings.reduce((sum, r) => sum + r, 0) / stats.ratings.length 
+          : 0;
+        return {
+          ...a,
+          _avgRating: Math.round(avgRating * 10) / 10,
+          _reviewCount: stats.ratings.length,
+          _safetyFlags: stats.safetyFlags,
+          _totalSessions: stats.sessions.length,
+        };
+      });
+      setFlaggedMentors(flagged);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -667,6 +705,63 @@ export default function MentorsAdminTab() {
 
   return (
     <div className="space-y-4">
+      {/* Performance Alerts */}
+      {flaggedMentors.length > 0 && (
+        <div className="rounded-2xl p-4 border-2" style={{ background: 'rgba(239,68,68,0.08)', border: '2px solid rgba(239,68,68,0.35)' }}>
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)' }}>
+                  <span className="text-lg">⚠️</span>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-red-400">Mentors Needing Review</p>
+                  <p className="text-[10px] text-gray-400">{flaggedMentors.length} mentor{flaggedMentors.length !== 1 ? 's' : ''} flagged for low ratings or safety concerns</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {flaggedMentors.slice(0, 3).map(fm => (
+                  <div key={fm.id} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <div className="flex-1">
+                      <p className="text-xs text-white font-semibold">{fm.full_name}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {fm._avgRating > 0 && fm._avgRating < 3.5 && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.2)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                            {fm._avgRating}★ ({fm._reviewCount} reviews)
+                          </span>
+                        )}
+                        {fm._safetyFlags > 0 && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.2)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+                            🚨 {fm._safetyFlags} safety flag{fm._safetyFlags !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const card = document.querySelector(`[data-mentor-id="${fm.id}"]`);
+                        if (card) {
+                          const expandBtn = card.querySelector('button[onClick*="setExpanded"]');
+                          if (expandBtn) expandBtn.click();
+                          setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+                        }
+                      }}
+                      className="text-[10px] px-3 py-1.5 rounded-full font-bold text-white"
+                      style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)' }}
+                    >
+                      Review
+                    </button>
+                  </div>
+                ))}
+                {flaggedMentors.length > 3 && (
+                  <p className="text-[10px] text-gray-500 text-center">+ {flaggedMentors.length - 3} more</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Track summary + Tier Update */}
       <div className="flex gap-3">
         <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)' }}>
