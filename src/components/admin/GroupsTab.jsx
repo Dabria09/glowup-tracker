@@ -71,32 +71,28 @@ export default function GroupsTab() {
         <input value={form.organization} onChange={e => setForm({ ...form, organization: e.target.value })} placeholder="School or organization name" className={inputCls} />
         <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description (optional)" className={inputCls} />
         {saveError && <p className="text-xs text-red-400">{saveError}</p>}
-        {saveSuccess && <p className="text-xs text-emerald-400 font-semibold">{saveSuccess}</p>}
         <button onClick={create} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}>
           {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Create Group &amp; Generate Code</>}
         </button>
       </div>
 
       {newlyCreated && (
-        <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(59,130,246,0.12)', border: '2px solid rgba(59,130,246,0.45)' }}>
+        <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(16,185,129,0.12)', border: '2px solid rgba(16,185,129,0.45)' }}>
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-blue-300 tracking-wider uppercase">✅ Group Created — Share This Code!</p>
+            <p className="text-xs font-bold text-emerald-400 tracking-wider">✅ GROUP CREATED — SHARE THIS CODE</p>
             <button onClick={() => setNewlyCreated(null)} className="text-gray-500 hover:text-gray-300"><X size={14} /></button>
           </div>
           <p className="text-sm text-white font-semibold">{newlyCreated.group_name}</p>
           <div className="flex items-center gap-3">
-            <span className="text-3xl font-black tracking-widest text-white px-4 py-3 rounded-xl flex-1 text-center" style={{ background: 'rgba(59,130,246,0.25)', border: '1px solid rgba(59,130,246,0.5)', letterSpacing: '0.25em' }}>
-              {newlyCreated.join_code}
-            </span>
+            <span className="text-3xl font-black tracking-widest text-emerald-300" style={{ fontFamily: 'monospace' }}>{newlyCreated.join_code}</span>
             <button
               onClick={() => { navigator.clipboard.writeText(newlyCreated.join_code); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-              className="flex flex-col items-center gap-1 px-4 py-3 rounded-xl text-xs font-bold transition"
-              style={{ background: copied ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.2)', border: `1px solid ${copied ? 'rgba(16,185,129,0.5)' : 'rgba(59,130,246,0.4)'}`, color: copied ? '#34d399' : '#60a5fa' }}>
-              {copied ? <Check size={18} /> : <Copy size={18} />}
-              {copied ? 'Copied!' : 'Copy'}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition"
+              style={{ background: copied ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: copied ? '#34d399' : '#fff' }}>
+              {copied ? <><Check size={13} /> Copied!</> : <><Copy size={13} /> Copy Code</>}
             </button>
           </div>
-          <p className="text-xs text-gray-400">Share this code with the teacher so students can join. It also appears in the group list below.</p>
+          <p className="text-xs text-gray-400">Share this code with the teacher so students can join the group.</p>
         </div>
       )}
 
