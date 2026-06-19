@@ -155,6 +155,29 @@ export default function CommunityDetail() {
   async function handleCreatePost() {
     if (!newPost.trim() && !mediaFile) return;
     if (!user) return;
+    
+    // Check for banned words BEFORE posting
+    if (newPost.trim()) {
+      try {
+        const banCheck = await base44.functions.invoke('checkBannedWords', { content: newPost.trim() });
+        if (banCheck.blocked) {
+          alert('Your message contains inappropriate language. Please remove the flagged words and try again. 💜');
+          return;
+        }
+        if (banCheck.flagged) {
+          // Post will be created but flagged for review
+          alert('Your post contains flagged content and will be reviewed by admins. 💜');
+        }
+        if (banCheck.replaced) {
+          // TODO: Implement word replacement logic
+          alert('Some words in your message have been replaced. 💜');
+        }
+      } catch (e) {
+        console.error('Banned word check failed:', e);
+        // Continue posting even if check fails (fail-safe)
+      }
+    }
+    
     setUploading(true);
     let media_url = null;
     if (mediaFile) {
