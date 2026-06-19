@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Mail, Phone, MapPin, BookOpen, Briefcase, GraduationCap, Star, Users, Heart, MessageSquare, Plus, Link2 } from 'lucide-react';
 
 const STATUS_FILTERS = ['Pending', 'Approved', 'Rejected', 'All'];
+const RANK_FILTERS = ['All', 'Luminary', 'Radiant', 'Bloom', 'Sprout', 'Seed'];
 
 const ADULT_CHECKLIST_KEYS = [
   { key: 'checklist_identity_verified', label: 'Identity Verified' },
@@ -595,7 +596,8 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
 
 export default function MentorsAdminTab() {
   const [applications, setApplications] = useState([]);
-  const [filter, setFilter] = useState('Pending');
+  const [statusFilter, setStatusFilter] = useState('Pending');
+  const [rankFilter, setRankFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
   const [newsletter, setNewsletter] = useState({ subject: '', body: '' });
@@ -650,7 +652,14 @@ export default function MentorsAdminTab() {
 
 
 
-  const filtered = filter === 'All' ? applications : applications.filter(a => a.status === filter.toLowerCase());
+  const filtered = applications.filter(a => {
+    if (statusFilter !== 'All' && a.status !== statusFilter.toLowerCase()) return false;
+    if (statusFilter === 'Approved' && rankFilter !== 'All') {
+      const mentorTier = a.mentor_tier || 'seed';
+      if (mentorTier !== rankFilter.toLowerCase()) return false;
+    }
+    return true;
+  });
   const teenCount = applications.filter(a => a.mentor_track === 'teen').length;
   const adultCount = applications.filter(a => a.mentor_track !== 'teen').length;
 
@@ -737,22 +746,35 @@ export default function MentorsAdminTab() {
         )}
       </div>
 
-      {/* Filters */}
+      {/* Status Filters */}
       <div className="flex gap-2 overflow-x-auto">
         {STATUS_FILTERS.map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition ${filter === f ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-            style={filter === f ? { background: 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}>
+          <button key={f} onClick={() => setStatusFilter(f)}
+            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition ${statusFilter === f ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+            style={statusFilter === f ? { background: 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}>
             {f}
           </button>
         ))}
       </div>
 
+      {/* Rank Filters (Approved mentors only) */}
+      {statusFilter === 'Approved' && (
+        <div className="flex gap-2 overflow-x-auto">
+          {RANK_FILTERS.map(r => (
+            <button key={r} onClick={() => setRankFilter(r)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${rankFilter === r ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+              style={rankFilter === r ? { background: 'linear-gradient(135deg,#a855f7,#ec4899)' } : {}}>
+              {r === 'All' ? 'All Ranks' : `🌟 ${r}`}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" /></div>
       ) : filtered.length === 0 ? (
         <div className="p-8 rounded-2xl text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <p className="text-sm text-gray-400">No {filter.toLowerCase()} applications.</p>
+          <p className="text-sm text-gray-400">No {statusFilter.toLowerCase()} applications.</p>
         </div>
       ) : (
         <div className="space-y-3">
