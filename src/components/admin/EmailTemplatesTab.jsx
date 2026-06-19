@@ -237,7 +237,7 @@ export default function EmailTemplatesTab() {
       const data = await base44.entities.EmailTemplate.list('-updated_date');
       setTemplates(data);
       if (data.length === 0) {
-        await seedDefaults();
+        await seedDefaults(); // Define before use
       }
     } catch (e) {
       console.error('Failed to load templates:', e);

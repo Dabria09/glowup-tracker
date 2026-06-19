@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Star, Settings, Save, X, RotateCcw, Plus, Trash2 } from 'lucide-react';
+import { Star, Settings, Save, X, RotateCcw, Plus, Trash2, Crown } from 'lucide-react';
 
 const RANK_ICONS = {
   seed: '🌱',
@@ -18,15 +18,48 @@ const RANK_COLORS = {
   luminary: { color: '#a855f7', bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)' },
 };
 
-export default function MentorRankSettings({ onClose, onRefresh }) {
+export default function MentorRankSettings() {
   const [configs, setConfigs] = useState([]);
   const [editedConfigs, setEditedConfigs] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     loadConfigs();
   }, []);
+
+  // If not showing modal, render a button to open it
+  if (!showModal) {
+    return (
+      <div className="pb-10">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-white">Mentor Rank Requirements</h2>
+            <p className="text-xs text-gray-400">Configure session counts and rating thresholds for each tier</p>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white"
+            style={{ background: 'linear-gradient(135deg,#a855f7,#ec4899)' }}
+          >
+            <Settings size={16} /> Configure Ranks
+          </button>
+        </div>
+        <div className="text-center py-16 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <Crown size={48} className="text-purple-400 mx-auto mb-4" />
+          <p className="text-sm text-gray-400 mb-4">Configure mentor rank requirements and thresholds</p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-6 py-3 rounded-full text-sm font-bold text-white"
+            style={{ background: 'linear-gradient(135deg,#a855f7,#ec4899)' }}
+          >
+            Open Rank Settings
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const loadConfigs = async () => {
     try {
@@ -64,8 +97,7 @@ export default function MentorRankSettings({ onClose, onRefresh }) {
       await base44.functions.invoke('updateMentorTiers', {});
       
       alert('✅ Rank requirements saved! Mentor tiers are being recalculated.');
-      onRefresh?.();
-      onClose?.();
+      setShowModal(false);
     } catch (e) {
       console.error('Save failed:', e);
       alert('Failed to save: ' + e.message);
@@ -191,7 +223,7 @@ export default function MentorRankSettings({ onClose, onRefresh }) {
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">Configure session counts and rating thresholds for each tier</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white">
             <X size={20} />
           </button>
         </div>
