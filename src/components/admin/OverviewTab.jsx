@@ -1,10 +1,24 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Users, Activity, CheckCircle, Zap, BookOpen, TrendingUp } from 'lucide-react';
+import { Users, Activity, CheckCircle, Zap, BookOpen, TrendingUp, Star } from 'lucide-react';
+
+// Convert any date/ISO string to a LOCAL YYYY-MM-DD key (matches how activity
+// is recorded in the app, which uses the user's local date — not UTC).
+const localDateKey = (d) => {
+  const dt = new Date(d);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const day = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+// Turn an action key like "avatar_customized" into "Avatar Customized"
+const prettyAction = (a) => a.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
 export default function OverviewTab() {
   const [stats, setStats] = useState({ totalUsers: 0, activeToday: 0, activeWeek: 0, totalCheckIns: 0, totalPoints: 0, diaryEntries: 0 });
   const [topMoods, setTopMoods] = useState([]);
+  const [mostUsedFeatures, setMostUsedFeatures] = useState([]);
   const [dailyCheckIns, setDailyCheckIns] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,16 +35,16 @@ export default function OverviewTab() {
         const checkIns = diary.filter(e => e.tags && e.tags.includes('daily-checkin'));
 
         const allUsers = usersRes.data?.users || [];
-        const today = new Date().toISOString().split('T')[0];
+        const todayKey = localDateKey(new Date());
         const weekAgoMs = Date.now() - 7 * 86400000;
 
-        // Active = any activity in PointsHistory (most comprehensive signal)
+        // Active = any activity in PointsHistory (most comprehensive signal).
+        // Compare on LOCAL date keys so timezone offsets don't shift activity into the wrong day.
         const todayActive = new Set(
-          pointsHistory.filter(p => p.created_date && p.created_date.startsWith(today)).map(p => p.user_email)
+          pointsHistory.filter(p => p.created_date && localDateKey(p.created_date) === todayKey).map(p => p.user_email)
         );
-        const weekActive = new Set(
-          pointsHistory.filter(p => p.created_date && new Date(p.created_date).getTime() >= weekAgoMs).map(p => p.user_email)
-        );
+        const weekHistory = pointsHistory.filter(p => p.created_date && new Date(p.created_date).getTime() >= weekAgoMs);
+        const weekActive = new Set(weekHistory.map(p => p.user_email));
 
         // Sum all points from PointsHistory (no 50-record cap risk)
         const totalPts = pointsHistory.reduce((s, p) => s + (p.points || 0), 0);
@@ -44,21 +58,23 @@ export default function OverviewTab() {
           diaryEntries: diary.length,
         });
 
-        // Activity breakdown from PointsHistory actions
-        const moodMap = {};
-        pointsHistory.forEach(p => {
-          if (p.action) moodMap[p.action] = (moodMap[p.action] || 0) + 1;
-        });
-        const sorted = Object.entries(moodMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        setTopMoods(sorted);
+        // Top Activities THIS WEEK — only actions from the last 7 days
+        const weekMap = {};
+        weekHistory.forEach(p => { if (p.action) weekMap[p.action] = (weekMap[p.action] || 0) + 1; });
+        setTopMoods(Object.entries(weekMap).sort((a, b) => b[1] - a[1]).slice(0, 5));
 
-        // Daily active users last 7 days (from PointsHistory)
+        // Most Used Features — ALL-TIME usage count per feature/action
+        const allMap = {};
+        pointsHistory.forEach(p => { if (p.action) allMap[p.action] = (allMap[p.action] || 0) + 1; });
+        setMostUsedFeatures(Object.entries(allMap).sort((a, b) => b[1] - a[1]).slice(0, 6));
+
+        // Daily active users last 7 days (from PointsHistory), bucketed by LOCAL date
         const days = [];
         for (let i = 6; i >= 0; i--) {
           const d = new Date(Date.now() - i * 86400000);
-          const ds = d.toISOString().split('T')[0];
+          const ds = localDateKey(d);
           const uniqueUsers = new Set(
-            pointsHistory.filter(p => p.created_date && p.created_date.startsWith(ds)).map(p => p.user_email)
+            pointsHistory.filter(p => p.created_date && localDateKey(p.created_date) === ds).map(p => p.user_email)
           );
           days.push({ date: ds, count: uniqueUsers.size, label: d.toLocaleDateString('en-US', { weekday: 'short' }) });
         }
@@ -107,7 +123,7 @@ export default function OverviewTab() {
           <div className="space-y-2">
             {topMoods.map(([mood, count]) => (
               <div key={mood} className="flex items-center gap-2">
-                <span className="text-xs text-gray-300 w-24 capitalize">{mood}</span>
+                <span className="text-xs text-gray-300 w-24 truncate">{prettyAction(mood)}</span>
                 <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
                   <div className="h-full bg-pink-500 rounded-full" style={{ width: `${(count / topMoods[0][1]) * 100}%` }} />
                 </div>
@@ -133,8 +149,23 @@ export default function OverviewTab() {
       </div>
 
       <div className="p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-        <p className="text-sm font-bold text-white mb-1 flex items-center gap-2">⭐ Most Used Features (This Week)</p>
-        <p className="text-xs text-gray-500">Activity tracked via check-ins, diary, and glow points.</p>
+        <p className="text-sm font-bold text-white mb-3 flex items-center gap-2"><Star size={14} className="text-amber-400" /> Most Used Features (All-Time)</p>
+        {mostUsedFeatures.length === 0 ? (
+          <p className="text-xs text-gray-500">No feature activity recorded yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {mostUsedFeatures.map(([feature, count], idx) => (
+              <div key={feature} className="flex items-center gap-3">
+                <span className="text-xs font-bold text-gray-500 w-4">{idx + 1}</span>
+                <span className="text-xs text-gray-300 flex-1 truncate">{prettyAction(feature)}</span>
+                <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden max-w-[120px]">
+                  <div className="h-full rounded-full" style={{ width: `${(count / mostUsedFeatures[0][1]) * 100}%`, background: 'linear-gradient(90deg,#f59e0b,#ec4899)' }} />
+                </div>
+                <span className="text-xs font-semibold text-gray-400 w-8 text-right">{count}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
