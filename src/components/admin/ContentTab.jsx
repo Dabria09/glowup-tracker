@@ -161,8 +161,8 @@ export default function ContentTab() {
   };
 
   const addQuote = () => withSave(async () => {
-    if (!newQuote.quote_text.trim()) { setSaveError('Quote text is required.'); return; }
-    if (newQuote.quote_text.length > QUOTE_MAX) { setSaveError(`Quote must be ${QUOTE_MAX} characters or less.`); return; }
+    if (!newQuote.quote_text.trim()) throw new Error('Quote text is required.');
+    if (newQuote.quote_text.length > QUOTE_MAX) throw new Error(`Quote must be ${QUOTE_MAX} characters or less.`);
     await base44.entities.AdminQuote.create({ ...newQuote, is_active: true, is_featured: false });
     setNewQuote({ quote_text: '', author: '', category: 'general' });
     setShowPreview(false);
@@ -175,7 +175,7 @@ export default function ContentTab() {
   };
 
   const addTip = () => withSave(async () => {
-    if (!newTip.tip_text.trim()) { setSaveError('Tip text is required.'); return; }
+    if (!newTip.tip_text.trim()) throw new Error('Tip text is required.');
     const payload = { ...newTip };
     if (!payload.scheduled_date) delete payload.scheduled_date;
     await base44.entities.AdminGlowTip.create(payload);
@@ -193,7 +193,7 @@ export default function ContentTab() {
   });
 
   const addMsg = () => withSave(async () => {
-    if (!newMsg.title.trim() || !newMsg.content.trim()) { setSaveError('Title and message are required.'); return; }
+    if (!newMsg.title.trim() || !newMsg.content.trim()) throw new Error('Title and message are required.');
     await base44.entities.MsGlowMessage.create(newMsg);
     setNewMsg({ title: '', content: '', message_type: 'written' });
     loadAll();
@@ -261,8 +261,8 @@ export default function ContentTab() {
               </div>
             )}
 
-            {saveError && sub === 'Quotes' && <p className="text-xs text-red-400">{saveError}</p>}
-            {saveSuccess && sub === 'Quotes' && <p className="text-xs text-emerald-400 font-semibold">{saveSuccess}</p>}
+            {saveError && <p className="text-xs text-red-400">{saveError}</p>}
+            {saveSuccess && <p className="text-xs text-emerald-400 font-semibold">{saveSuccess}</p>}
 
             <div className="flex gap-2">
               <button onClick={addQuote} disabled={saving} className="flex-1 py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
@@ -357,7 +357,8 @@ export default function ContentTab() {
                 className="w-4 h-4 accent-pink-500" />
               <span className="text-sm text-white">⭐ Feature this tip (shows in Today's Glow Tip)</span>
             </label>
-            {saveError && sub === 'Glow Tips' && <p className="text-xs text-red-400">{saveError}</p>}
+            {saveError && <p className="text-xs text-red-400">{saveError}</p>}
+            {saveSuccess && <p className="text-xs text-emerald-400 font-semibold">{saveSuccess}</p>}
             <div className="flex gap-2">
               {editingTip ? (
                 <>
@@ -424,7 +425,8 @@ export default function ContentTab() {
             </div>
             <input value={newMsg.title} onChange={e => setNewMsg({ ...newMsg, title: e.target.value })} placeholder="Message title..." className={inputCls} />
             <textarea value={newMsg.content} onChange={e => setNewMsg({ ...newMsg, content: e.target.value })} placeholder="Your message to the girls..." className={inputCls} rows={4} />
-            {saveError && sub === 'Ms. Glow Live' && <p className="text-xs text-red-400">{saveError}</p>}
+            {saveError && <p className="text-xs text-red-400">{saveError}</p>}
+            {saveSuccess && <p className="text-xs text-emerald-400 font-semibold">{saveSuccess}</p>}
             <button onClick={addMsg} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
               {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Send size={16} /> Post Message</>}
             </button>
