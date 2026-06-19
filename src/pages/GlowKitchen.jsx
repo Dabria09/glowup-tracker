@@ -333,8 +333,8 @@ export default function GlowKitchen() {
   };
 
   useEffect(() => {
-    // Track page view
-    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Glow Kitchen', path: '/glow-kitchen' } });
+    // Track page view with metadata
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Glow Kitchen', path: '/glow-kitchen' } });
     
     loadData();
   }, []);

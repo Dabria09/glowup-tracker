@@ -154,8 +154,8 @@ export default function Glow() {
   }, []);
 
   useEffect(() => {
-    // Track page view
-    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Glow', path: '/glow' } });
+    // Track page view with metadata
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Glow', path: '/glow' } });
     
     const load = async () => {
       try {

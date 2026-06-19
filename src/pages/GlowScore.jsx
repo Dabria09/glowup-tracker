@@ -41,8 +41,8 @@ export default function GlowScore() {
   const [expandedTier, setExpandedTier] = useState(null);
 
   useEffect(() => {
-    // Track page view
-    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Glow Score', path: '/glow-score' } });
+    // Track page view with metadata
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Glow Score', path: '/glow-score' } });
     
     base44.auth.me().then(async (u) => {
       setUser(u);

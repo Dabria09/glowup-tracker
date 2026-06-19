@@ -30,8 +30,8 @@ export default function CareerExploration() {
   const [savedCareerIds, setSavedCareerIds] = useState([]);
 
   useEffect(() => {
-    // Track page view
-    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Careers', path: '/careers' } });
+    // Track page view with metadata
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Careers', path: '/careers' } });
     
     base44.auth.me().then(u => {
       setUser(u);

@@ -239,8 +239,8 @@ export default function Me() {
 
   // Sync context profile into local state whenever it changes
   useEffect(() => {
-    // Track page view
-    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Me', path: '/me' } });
+    // Track page view with metadata
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Me', path: '/me' } });
     
     if (ctxProfile) {
       setProfile(ctxProfile);

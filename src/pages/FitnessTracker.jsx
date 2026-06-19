@@ -60,8 +60,8 @@ export default function FitnessTracker() {
   const [streak, setStreak] = useState(0);
 
   useEffect(() => {
-    // Track page view
-    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Fitness Tracker', path: '/fitness-tracker' } });
+    // Track page view with metadata
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Fitness Tracker', path: '/fitness-tracker' } });
     
     base44.auth.me().then(async (u) => {
       setUser(u);

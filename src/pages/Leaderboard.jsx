@@ -28,8 +28,8 @@ export default function Leaderboard() {
   const [circle, setCircle] = useState([]);
   
   useEffect(() => {
-    // Track page view
-    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Leaderboard', path: '/leaderboard' } });
+    // Track page view with metadata
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Leaderboard', path: '/leaderboard' } });
     
     base44.auth.me().then(async (u) => {
       setUser(u);

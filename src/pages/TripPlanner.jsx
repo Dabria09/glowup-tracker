@@ -35,8 +35,8 @@ export default function TripPlanner() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    // Track page view
-    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Trip Planner', path: '/trip-planner' } });
+    // Track page view with metadata
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Trip Planner', path: '/trip-planner' } });
     
     base44.auth.me().then(async (u) => {
       setUser(u);
