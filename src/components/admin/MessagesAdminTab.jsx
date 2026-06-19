@@ -388,6 +388,77 @@ export default function MessagesAdminTab() {
           ))}
         </div>
       )}
+
+      {/* Action Modal */}
+      {showActionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="w-full max-w-md rounded-2xl p-5" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                {showActionModal === 'warn' && <Mail size={18} className="text-yellow-400" />}
+                {showActionModal === 'escalate' && <Flag size={18} className="text-purple-400" />}
+                {showActionModal === 'ban' && <Ban size={18} className="text-red-400" />}
+                {showActionModal === 'clear' && <CheckCircle size={18} className="text-green-400" />}
+                {showActionModal === 'warn' ? 'Send Warning' : showActionModal === 'escalate' ? 'Escalate to Support' : showActionModal === 'ban' ? 'Ban Users' : 'Mark as Reviewed'}
+              </h3>
+              <button onClick={() => { setShowActionModal(null); setActionNote(''); }} className="text-gray-400 hover:text-white">
+                <XCircle size={20} />
+              </button>
+            </div>
+
+            {showActionModal !== 'clear' && (
+              <div className="mb-4">
+                <p className="text-xs text-gray-400 mb-2">
+                  {showActionModal === 'warn' && 'This will send a warning notification to both participants.'}
+                  {showActionModal === 'escalate' && 'This will create a support ticket for further review.'}
+                  {showActionModal === 'ban' && '⚠️ This will ban both users for 30 days. This action is logged.'}
+                </p>
+                <label className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-2 block">Admin Note *</label>
+                <textarea
+                  value={actionNote}
+                  onChange={e => setActionNote(e.target.value)}
+                  placeholder="Document the reason for this action..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none text-sm resize-none"
+                  rows={4}
+                />
+              </div>
+            )}
+
+            {showActionModal === 'clear' && (
+              <div className="mb-4 p-4 rounded-xl" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                <p className="text-sm text-green-400">✅ Marking this conversation as reviewed will remove the flag but keep all messages intact.</p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowActionModal(null); setActionNote(''); }}
+                disabled={processing}
+                className="flex-1 py-3 rounded-xl font-bold text-white text-sm disabled:opacity-40"
+                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleModerationAction(showActionModal)}
+                disabled={processing || (!actionNote.trim() && showActionModal !== 'clear')}
+                className="flex-1 py-3 rounded-xl font-bold text-white text-sm disabled:opacity-40"
+                style={{
+                  background: showActionModal === 'warn' ? 'linear-gradient(135deg,#f59e0b,#d97706)' :
+                              showActionModal === 'escalate' ? 'linear-gradient(135deg,#a855f7,#ec4899)' :
+                              showActionModal === 'ban' ? 'linear-gradient(135deg,#ef4444,#dc2626)' :
+                              'linear-gradient(135deg,#10b981,#059669)',
+                }}
+              >
+                {processing ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin mx-auto" /> :
+                 showActionModal === 'warn' ? 'Send Warning' :
+                 showActionModal === 'escalate' ? 'Escalate' :
+                 showActionModal === 'ban' ? 'Ban Users' : 'Mark Reviewed'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
