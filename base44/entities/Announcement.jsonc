@@ -23,6 +23,10 @@
       "type": "string",
       "title": "Group ID (if specific)"
     },
+    "target_group_name": {
+      "type": "string",
+      "title": "Target Group Name (denormalized)"
+    },
     "scheduled_date": {
       "type": "string",
       "title": "Scheduled Date"
