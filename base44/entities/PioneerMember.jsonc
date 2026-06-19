@@ -1,0 +1,36 @@
+{
+  "name": "PioneerMember",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "pioneer_number": {
+      "type": "number",
+      "title": "Pioneer Number (Signup Order)"
+    },
+    "tier": {
+      "type": "string",
+      "title": "Tier",
+      "enum": [
+        "founding",
+        "pioneer",
+        "early_adopter"
+      ]
+    },
+    "granted_date": {
+      "type": "string",
+      "title": "Granted Date"
+    },
+    "badge_earned": {
+      "type": "string",
+      "title": "Badge Earned"
+    }
+  },
+  "required": [
+    "user_email",
+    "pioneer_number",
+    "tier"
+  ]
+}

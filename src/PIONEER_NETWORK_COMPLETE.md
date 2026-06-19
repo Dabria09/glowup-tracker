@@ -15,7 +15,7 @@ Two-track Pioneer Network system with automatic Founding Member tracking and app
 **Requirements:**
 1. Signup order (automatic tracking)
 2. Onboarding complete
-3. At least 1 Daily Check-in within 14 days of signup
+3. At least 1 Daily Check-in within 7 days of signup
 
 ### Implementation
 - **Entity:** `PioneerMember` (already exists)
@@ -137,7 +137,7 @@ Two-track Pioneer Network system with automatic Founding Member tracking and app
 ### Track 1 (Founding Members)
 - [ ] Sign up new test user
 - [ ] Complete onboarding
-- [ ] Complete Daily Check-in
+- [ ] Complete Daily Check-in within 7 days
 - [ ] Run `checkFoundingMemberEligibility` function
 - [ ] Verify PioneerMember record created
 - [ ] Verify badge added to profile

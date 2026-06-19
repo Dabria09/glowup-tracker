@@ -53,15 +53,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check for at least 1 DailyCheckIn within 14 days of signup
+    // Check for at least 1 DailyCheckIn within 7 days of signup
     const signupDate = new Date(allUsers[userIndex].created_date);
-    const fourteenDaysLater = new Date(signupDate);
-    fourteenDaysLater.setDate(fourteenDaysLater.getDate() + 14);
+    const sevenDaysLater = new Date(signupDate);
+    sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
     
-    const checkins = await base44.entities.DailyCheckIn.filter({ user_email: user.email });
-    const hasEarlyCheckin = checkins.some(c => {
-      const checkinDate = new Date(c.created_date);
-      return checkinDate <= fourteenDaysLater;
+    const diaryEntries = await base44.entities.DiaryEntry.filter({ user_email: user.email });
+    const hasEarlyCheckin = diaryEntries.some(e => {
+      if (!e.tags || !e.tags.includes('daily-checkin-')) return false;
+      const checkinDate = new Date(e.created_date);
+      return checkinDate <= sevenDaysLater;
     });
 
     if (!hasEarlyCheckin) {
@@ -69,7 +70,7 @@ Deno.serve(async (req) => {
         eligible: false, 
         reason: 'no_early_checkin',
         pioneer_number: pioneerNumber,
-        message: 'Complete a Daily Check-in within 14 days of signup to qualify'
+        message: 'Complete a Daily Check-in within 7 days of signup to qualify'
       });
     }
 

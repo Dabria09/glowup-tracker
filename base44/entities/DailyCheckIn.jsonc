@@ -1,0 +1,38 @@
+{
+  "name": "DailyCheckIn",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "mood": {
+      "type": "string",
+      "title": "Mood"
+    },
+    "confidence_level": {
+      "type": "number",
+      "title": "Confidence Level (1-10)"
+    },
+    "stress_level": {
+      "type": "number",
+      "title": "Stress Level (1-10)"
+    },
+    "goals": {
+      "type": "string",
+      "title": "Today's Goals"
+    },
+    "affirmation": {
+      "type": "string",
+      "title": "Daily Affirmation"
+    },
+    "check_in_date": {
+      "type": "string",
+      "title": "Check-in Date (YYYY-MM-DD)"
+    }
+  },
+  "required": [
+    "user_email",
+    "check_in_date"
+  ]
+}

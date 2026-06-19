@@ -161,7 +161,7 @@ export default function FoundingMembersAdminTab() {
       <div className="mt-4 rounded-2xl p-4" style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}>
         <p className="text-xs font-bold text-blue-400 mb-2">ℹ️ How Founding Member Status Works</p>
         <ul className="space-y-1 text-xs text-gray-400">
-          <li>• <strong>Founding Pioneer (1-100):</strong> First 100 users to complete onboarding + 1 check-in within 14 days</li>
+          <li>• <strong>Founding Pioneer (1-100):</strong> First 100 users to complete onboarding + 1 check-in within 7 days</li>
           <li>• <strong>Pioneer (101-500):</strong> Next 400 users with same requirements</li>
           <li>• <strong>Early Adopter (501-1000):</strong> Next 500 users with same requirements</li>
           <li>• Status granted automatically via backend automation</li>
