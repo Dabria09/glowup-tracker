@@ -43,6 +43,14 @@
         "cancelled"
       ],
       "default": "scheduled"
+    },
+    "recording_url": {
+      "type": "string",
+      "title": "Recording URL"
+    },
+    "recording_duration": {
+      "type": "number",
+      "title": "Recording Duration (seconds)"
     }
   },
   "required": [

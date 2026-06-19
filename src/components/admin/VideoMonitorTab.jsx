@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Video, Eye } from 'lucide-react';
+import { Video, Eye, Play, ExternalLink } from 'lucide-react';
 
 export default function VideoMonitorTab() {
   const [sessions, setSessions] = useState([]);
@@ -39,14 +39,30 @@ export default function VideoMonitorTab() {
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(59,130,246,0.2)' }}>
                   <Video size={18} className="text-blue-400" />
                 </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-white text-sm">{s.session_topic || 'Mentorship Session'}</p>
-                  <p className="text-xs text-gray-400">{s.mentor_email} ↔ {s.mentee_email}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-white text-sm">{s.topic || 'Mentorship Session'}</p>
+                  <p className="text-xs text-gray-400 truncate">{s.mentor_email} ↔ {s.mentee_email}</p>
                   <p className="text-xs text-gray-500">{s.session_date ? new Date(s.session_date).toLocaleDateString() : ''}</p>
                 </div>
-                <span className={`text-[10px] px-2 py-1 rounded-full font-bold ${s.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                  {s.status || 'scheduled'}
-                </span>
+                <div className="flex flex-col items-end gap-2">
+                  <span className={`text-[10px] px-2 py-1 rounded-full font-bold ${s.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                    {s.status || 'scheduled'}
+                  </span>
+                  {s.status === 'completed' && s.recording_url && (
+                    <a
+                      href={s.recording_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] px-3 py-1.5 rounded-full font-bold text-white flex items-center gap-1 transition hover:opacity-90"
+                      style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}
+                    >
+                      <Play size={10} /> View Recording
+                    </a>
+                  )}
+                  {s.status === 'completed' && !s.recording_url && (
+                    <span className="text-[9px] text-gray-500 px-2 py-1">Recording pending</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
