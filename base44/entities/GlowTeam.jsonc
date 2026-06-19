@@ -65,6 +65,42 @@
       "type": "number",
       "title": "Challenges Completed",
       "default": 0
+    },
+    "status": {
+      "type": "string",
+      "title": "Moderation Status",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "reported",
+        "banned"
+      ],
+      "default": "pending"
+    },
+    "age_group": {
+      "type": "string",
+      "title": "Age Group"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "title": "Rejection Reason"
+    },
+    "rejected_by": {
+      "type": "string",
+      "title": "Rejected By (Admin Email)"
+    },
+    "rejected_date": {
+      "type": "string",
+      "title": "Rejected Date"
+    },
+    "approved_by": {
+      "type": "string",
+      "title": "Approved By (Admin Email)"
+    },
+    "approved_date": {
+      "type": "string",
+      "title": "Approved Date"
     }
   },
   "required": [
