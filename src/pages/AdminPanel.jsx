@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell, Inbox, X, ChevronRight, FileWarning, Mail, UserPlus } from 'lucide-react';
+import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell, Inbox, X, ChevronRight, FileWarning, Mail, UserPlus, DollarSign } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 
 import OverviewTab from '@/components/admin/OverviewTab';
@@ -32,6 +32,7 @@ import PioneerNetworkTab from '@/components/admin/PioneerNetworkTab';
 import GlowPassAdminTab from '@/components/admin/GlowPassAdminTab';
 import DeleteUsersTab from '@/components/admin/DeleteUsersTab';
 import BannedWordsTab from '@/components/admin/BannedWordsTab';
+import AffiliatesAdminTab from '@/components/admin/AffiliatesAdminTab';
 
 const TABS = [
   { id: 'overview',    label: 'Overview',         icon: BarChart2 },
@@ -62,6 +63,7 @@ const TABS = [
   { id: 'glowpasses',  label: 'Glow Passes',        icon: Tag },
   { id: 'deleteusers',  label: '🗑️ Delete Users',   icon: Trash2 },
   { id: 'bannedwords',  label: '🚫 Banned Words',   icon: ShieldAlert },
+  { id: 'affiliates',  label: '💰 Affiliates',   icon: DollarSign },
 ];
 
 export default function AdminPanel() {
@@ -144,6 +146,7 @@ export default function AdminPanel() {
       case 'glowpasses':   return <GlowPassAdminTab />;
       case 'deleteusers':  return <DeleteUsersTab />;
       case 'bannedwords':  return <BannedWordsTab />;
+      case 'affiliates':   return <AffiliatesAdminTab />;
       default:             return <OverviewTab />;
     }
   };

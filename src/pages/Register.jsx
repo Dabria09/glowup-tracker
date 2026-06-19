@@ -24,6 +24,8 @@ export default function Register() {
   const [pendingAge, setPendingAge] = useState(null);
 
   const isLinkFlow = new URLSearchParams(window.location.search).get("link") === "true";
+  const urlParams = new URLSearchParams(window.location.search);
+  const referralCode = urlParams.get("ref");
 
   const handleRegister = async () => {
     setError("");
@@ -89,6 +91,18 @@ export default function Register() {
         await linkGirlAccountToMentor(savedRecord || currentUser);
         window.location.href = "/onboarding";
         return;
+      }
+
+      // Track affiliate referral if code was used
+      if (referralCode) {
+        try {
+          await base44.functions.invoke('processAffiliateSignup', {
+            affiliate_code: referralCode,
+            new_user_email: email,
+          });
+        } catch (e) {
+          console.error('Failed to process affiliate referral:', e);
+        }
       }
 
       // Send to onboarding to pick username and agree to terms

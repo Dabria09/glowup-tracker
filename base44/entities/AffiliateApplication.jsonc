@@ -1,0 +1,94 @@
+{
+  "name": "AffiliateApplication",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "full_name": {
+      "type": "string",
+      "title": "Full Name"
+    },
+    "social_platforms": {
+      "type": "string",
+      "title": "Social Platforms (JSON array)"
+    },
+    "total_followers": {
+      "type": "number",
+      "title": "Total Combined Followers"
+    },
+    "primary_platform": {
+      "type": "string",
+      "title": "Primary Platform"
+    },
+    "promotion_plan": {
+      "type": "string",
+      "title": "Promotion Plan"
+    },
+    "previous_campaigns": {
+      "type": "string",
+      "title": "Previous Campaigns"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "title": "Application Status",
+      "default": "pending"
+    },
+    "affiliate_code": {
+      "type": "string",
+      "title": "Affiliate Code (unique)"
+    },
+    "commission_rate": {
+      "type": "number",
+      "title": "Commission Rate ($ per signup)",
+      "default": 0
+    },
+    "signups_driven": {
+      "type": "number",
+      "title": "Signups Driven",
+      "default": 0
+    },
+    "total_earned": {
+      "type": "number",
+      "title": "Total Earned ($)",
+      "default": 0
+    },
+    "approved_by": {
+      "type": "string",
+      "title": "Approved By (Admin Email)"
+    },
+    "approved_date": {
+      "type": "string",
+      "title": "Approved Date"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "title": "Rejection Reason"
+    },
+    "rejected_by": {
+      "type": "string",
+      "title": "Rejected By (Admin Email)"
+    },
+    "rejected_date": {
+      "type": "string",
+      "title": "Rejected Date"
+    },
+    "submitted_date": {
+      "type": "string",
+      "title": "Submitted Date"
+    }
+  },
+  "required": [
+    "user_email",
+    "full_name",
+    "social_platforms",
+    "total_followers",
+    "promotion_plan"
+  ]
+}

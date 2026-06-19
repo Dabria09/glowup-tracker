@@ -120,6 +120,7 @@ import AdminQAChecklist from './pages/AdminQAChecklist';
 import DirectMessages from './pages/DirectMessages';
 import GlowPass from './pages/GlowPass';
 import PioneerNetwork from './pages/PioneerNetwork';
+import AffiliatePartner from './pages/AffiliatePartner';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -257,6 +258,7 @@ const AuthenticatedApp = () => {
           <Route path="/messages" element={<DirectMessages />} />
           <Route path="/glow-pass" element={<GlowPass />} />
           <Route path="/pioneer-network" element={<PioneerNetwork />} />
+          <Route path="/affiliate-partner" element={<AffiliatePartner />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

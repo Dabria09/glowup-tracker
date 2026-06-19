@@ -1,0 +1,51 @@
+{
+  "name": "Referral",
+  "type": "object",
+  "properties": {
+    "referrer_email": {
+      "type": "string",
+      "title": "Referrer Email"
+    },
+    "referred_email": {
+      "type": "string",
+      "title": "Referred Email"
+    },
+    "referral_code": {
+      "type": "string",
+      "title": "Referral Code Used"
+    },
+    "referral_type": {
+      "type": "string",
+      "title": "Referral Type",
+      "enum": [
+        "pioneer",
+        "affiliate"
+      ],
+      "default": "pioneer"
+    },
+    "referred_date": {
+      "type": "string",
+      "title": "Referred Date"
+    },
+    "friend_qualified": {
+      "type": "boolean",
+      "title": "Friend Qualified (for Pioneer track)",
+      "default": false
+    },
+    "bonus_awarded": {
+      "type": "boolean",
+      "title": "Bonus Awarded",
+      "default": false
+    },
+    "affiliate_commission_paid": {
+      "type": "boolean",
+      "title": "Affiliate Commission Paid",
+      "default": false
+    }
+  },
+  "required": [
+    "referrer_email",
+    "referred_email",
+    "referral_code"
+  ]
+}
