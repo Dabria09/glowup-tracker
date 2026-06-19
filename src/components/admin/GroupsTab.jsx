@@ -15,6 +15,8 @@ export default function GroupsTab() {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [newlyCreated, setNewlyCreated] = useState(null); // { group_name, join_code }
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -33,9 +35,9 @@ export default function GroupsTab() {
     try {
       const code = generateCode();
       await base44.entities.ClassGroup.create({ ...form, join_code: code });
+      setNewlyCreated({ group_name: form.group_name, join_code: code });
+      setCopied(false);
       setForm({ group_name: '', organization: '', description: '' });
-      setSaveSuccess('Group created! ✅');
-      setTimeout(() => setSaveSuccess(''), 3000);
       load();
     } catch (e) {
       setSaveError(e.message || 'Failed to create group. Please try again.');
@@ -74,6 +76,29 @@ export default function GroupsTab() {
           {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Create Group &amp; Generate Code</>}
         </button>
       </div>
+
+      {newlyCreated && (
+        <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(59,130,246,0.12)', border: '2px solid rgba(59,130,246,0.45)' }}>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-blue-300 tracking-wider uppercase">✅ Group Created — Share This Code!</p>
+            <button onClick={() => setNewlyCreated(null)} className="text-gray-500 hover:text-gray-300"><X size={14} /></button>
+          </div>
+          <p className="text-sm text-white font-semibold">{newlyCreated.group_name}</p>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl font-black tracking-widest text-white px-4 py-3 rounded-xl flex-1 text-center" style={{ background: 'rgba(59,130,246,0.25)', border: '1px solid rgba(59,130,246,0.5)', letterSpacing: '0.25em' }}>
+              {newlyCreated.join_code}
+            </span>
+            <button
+              onClick={() => { navigator.clipboard.writeText(newlyCreated.join_code); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+              className="flex flex-col items-center gap-1 px-4 py-3 rounded-xl text-xs font-bold transition"
+              style={{ background: copied ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.2)', border: `1px solid ${copied ? 'rgba(16,185,129,0.5)' : 'rgba(59,130,246,0.4)'}`, color: copied ? '#34d399' : '#60a5fa' }}>
+              {copied ? <Check size={18} /> : <Copy size={18} />}
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+          <p className="text-xs text-gray-400">Share this code with the teacher so students can join. It also appears in the group list below.</p>
+        </div>
+      )}
 
       {loading ? <div className="flex justify-center py-4"><div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" /></div> :
         groups.length === 0 ? <p className="text-center text-sm text-gray-500 py-4">No groups yet. Create one above.</p> : (
