@@ -55,6 +55,22 @@
         "other"
       ],
       "default": "question"
+    },
+    "priority": {
+      "type": "string",
+      "title": "Priority",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "internal_notes": {
+      "type": "string",
+      "title": "Internal Admin Notes (mentor cannot see)",
+      "default": ""
     }
   },
   "required": [

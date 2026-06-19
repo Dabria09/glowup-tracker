@@ -9,14 +9,24 @@ const STATUS_OPTIONS = [
   { id: 'dismissed', label: '❌ Dismissed', color: '#6b7280' },
 ];
 
+const PRIORITY_META = {
+  low: { label: 'Low', color: '#6b7280', bg: 'rgba(107,113,128,0.15)', border: 'rgba(107,113,128,0.3)', icon: '📝' },
+  medium: { label: 'Medium', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.3)', icon: '📌' },
+  high: { label: 'High', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)', icon: '⚠️' },
+  urgent: { label: '🚨 URGENT', color: '#ef4444', bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', icon: '🚨' },
+};
+
 export default function MentorInboxAdminTab() {
   const [messages, setMessages] = useState([]);
   const [selectedMsg, setSelectedMsg] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
   const [filter, setFilter] = useState('all'); // all | pending | in_progress | resolved
+  const [priorityFilter, setPriorityFilter] = useState('all'); // all | low | medium | high | urgent
   const [loading, setLoading] = useState(true);
   const [mentors, setMentors] = useState({});
+  const [internalNote, setInternalNote] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -69,16 +79,44 @@ export default function MentorInboxAdminTab() {
   };
 
   const filtered = messages.filter(m => {
-    if (!m.is_admin_message) return false; // only show admin-directed messages
+    if (!m.is_admin_message) return false;
     if (filter !== 'all' && m.status !== filter) return false;
+    if (priorityFilter !== 'all' && m.priority !== priorityFilter) return false;
     return true;
   });
+
+  const saveInternalNote = async () => {
+    if (!internalNote.trim() || !selectedMsg) return;
+    setSavingNote(true);
+    try {
+      const me = await base44.auth.me();
+      const currentNotes = selectedMsg.internal_notes || '';
+      const timestamp = new Date().toLocaleString();
+      const newNote = `${currentNotes ? currentNotes + '\n\n' : ''}[${timestamp}] ${me.email}: ${internalNote.trim()}`;
+      await base44.entities.MentorMessage.update(selectedMsg.id, { internal_notes: newNote });
+      setInternalNote('');
+      load();
+    } catch (e) {
+      console.error(e);
+    }
+    setSavingNote(false);
+  };
+
+  const updatePriority = async (msgId, newPriority) => {
+    await base44.entities.MentorMessage.update(msgId, { priority: newPriority });
+    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, priority: newPriority } : m));
+    if (selectedMsg?.id === msgId) {
+      setSelectedMsg(prev => ({ ...prev, priority: newPriority }));
+    }
+  };
 
   const stats = {
     total: filtered.length,
     pending: filtered.filter(m => m.status === 'pending').length,
     inProgress: filtered.filter(m => m.status === 'in_progress').length,
     resolved: filtered.filter(m => m.status === 'resolved').length,
+    urgent: filtered.filter(m => m.priority === 'urgent').length,
+    high: filtered.filter(m => m.priority === 'high').length,
   };
 
   const timeAgo = (dateStr) => {
@@ -131,7 +169,7 @@ export default function MentorInboxAdminTab() {
       </div>
 
       {/* Status Filter */}
-      <div className="flex gap-2 overflow-x-auto">
+      <div className="flex gap-2 overflow-x-auto mb-2">
         {STATUS_OPTIONS.map(s => (
           <button
             key={s.id}
@@ -142,6 +180,23 @@ export default function MentorInboxAdminTab() {
             {s.label}
           </button>
         ))}
+      </div>
+
+      {/* Priority Filter */}
+      <div className="flex gap-2 overflow-x-auto">
+        {['all', 'urgent', 'high', 'medium', 'low'].map(p => {
+          const meta = p === 'all' ? { label: 'All Priorities', color: '#6b7280' } : PRIORITY_META[p];
+          return (
+            <button
+              key={p}
+              onClick={() => setPriorityFilter(p)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${priorityFilter === p ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+              style={priorityFilter === p ? { background: meta.color, border: `1px solid ${meta.color}` } : { border: `1px solid ${meta.color}40` }}
+            >
+              {p === 'all' ? 'All' : `${meta.icon} ${meta.label}`}
+            </button>
+          );
+        })}
       </div>
 
       {loading ? (
@@ -192,21 +247,69 @@ export default function MentorInboxAdminTab() {
             </div>
           ))}
 
-          {/* Status Update */}
-          <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <p className="text-xs font-bold text-gray-400 mb-2">Update Status</p>
-            <div className="flex gap-2 flex-wrap">
-              {STATUS_OPTIONS.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => updateStatus(selectedMsg.id, s.id)}
-                  className={`px-4 py-2 rounded-full text-xs font-semibold transition ${selectedMsg.status === s.id ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-                  style={selectedMsg.status === s.id ? { background: s.color, border: `1px solid ${s.color}` } : { border: `1px solid ${s.color}40` }}
-                >
-                  {s.label}
-                </button>
-              ))}
+          {/* Priority & Status Updates */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Priority Selector */}
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <p className="text-xs font-bold text-gray-400 mb-2">🚨 Priority Level</p>
+              <div className="flex flex-col gap-2">
+                {Object.entries(PRIORITY_META).map(([key, meta]) => (
+                  <button
+                    key={key}
+                    onClick={() => updatePriority(selectedMsg.id, key)}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${selectedMsg.priority === key ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+                    style={selectedMsg.priority === key ? { background: meta.color, border: `1px solid ${meta.color}` } : { border: `1px solid ${meta.color}40` }}
+                  >
+                    <span>{meta.icon}</span>
+                    <span>{meta.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Status Update */}
+            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <p className="text-xs font-bold text-gray-400 mb-2">Update Status</p>
+              <div className="flex flex-col gap-2">
+                {STATUS_OPTIONS.map(s => (
+                  <button
+                    key={s.id}
+                    onClick={() => updateStatus(selectedMsg.id, s.id)}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold transition ${selectedMsg.status === s.id ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+                    style={selectedMsg.status === s.id ? { background: s.color, border: `1px solid ${s.color}` } : { border: `1px solid ${s.color}40` }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Internal Admin Notes */}
+          <div className="rounded-2xl p-4" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.3)' }}>
+            <p className="text-xs font-bold text-purple-400 mb-2 flex items-center gap-1">
+              👁️ Internal Admin Notes (mentor cannot see)
+            </p>
+            {selectedMsg.internal_notes && (
+              <div className="mb-3 p-3 rounded-xl bg-black/30 max-h-32 overflow-y-auto">
+                <p className="text-xs text-gray-300 whitespace-pre-wrap">{selectedMsg.internal_notes}</p>
+              </div>
+            )}
+            <textarea
+              value={internalNote}
+              onChange={e => setInternalNote(e.target.value)}
+              placeholder="Add internal note for other admins..."
+              className={inputCls}
+              rows={3}
+            />
+            <button
+              onClick={saveInternalNote}
+              disabled={!internalNote.trim() || savingNote}
+              className="w-full mt-3 py-2.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40"
+              style={{ background: 'linear-gradient(135deg,#a855f7,#ec4899)' }}
+            >
+              {savingNote ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><CheckCircle size={16} /> Save Note</>}
+            </button>
           </div>
 
           {/* Reply Form */}
@@ -247,11 +350,16 @@ export default function MentorInboxAdminTab() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <p className="text-sm font-bold text-white truncate">{msg.subject}</p>
                     {msg.status === 'pending' && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }}>
                         ⏳ New
+                      </span>
+                    )}
+                    {msg.priority && msg.priority !== 'medium' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: PRIORITY_META[msg.priority].bg, color: PRIORITY_META[msg.priority].color, border: `1px solid ${PRIORITY_META[msg.priority].border}` }}>
+                        {PRIORITY_META[msg.priority].icon} {PRIORITY_META[msg.priority].label}
                       </span>
                     )}
                   </div>
