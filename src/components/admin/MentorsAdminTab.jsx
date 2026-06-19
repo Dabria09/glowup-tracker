@@ -631,6 +631,7 @@ export default function MentorsAdminTab() {
   const [showAssign, setShowAssign] = useState(null);
   const [assignForm, setAssignForm] = useState({ mentee_email: '', group_id: '', goal: '' });
   const [flaggedMentors, setFlaggedMentors] = useState([]);
+  const [updatingTiers, setUpdatingTiers] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -828,18 +829,28 @@ export default function MentorsAdminTab() {
         </div>
         <button
           onClick={async () => {
+            if (updatingTiers) return;
+            setUpdatingTiers(true);
             try {
               const res = await base44.functions.invoke('updateMentorTiers', {});
               alert(`✅ ${res.data?.message || 'Mentor tiers updated!'}`);
               load();
             } catch (e) {
-              alert('Error: ' + e.message);
+              console.error('Update tiers error:', e);
+              alert('Error: ' + (e.message || 'Failed to update tiers. Check console for details.'));
+            } finally {
+              setUpdatingTiers(false);
             }
           }}
-          className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}
+          disabled={updatingTiers}
+          className="flex-1 rounded-2xl p-3 text-center hover:opacity-80 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}
         >
-          <div className="text-lg font-black" style={{ color: '#a855f7' }}>🔄</div>
-          <div className="text-[10px] font-bold" style={{ color: 'rgba(168,85,247,0.7)' }}>Update Tiers</div>
+          {updatingTiers ? (
+            <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-1" />
+          ) : (
+            <div className="text-lg font-black" style={{ color: '#a855f7' }}>🔄</div>
+          )}
+          <div className="text-[10px] font-bold" style={{ color: 'rgba(168,85,247,0.7)' }}>{updatingTiers ? 'Updating...' : 'Update Tiers'}</div>
         </button>
       </div>
 
