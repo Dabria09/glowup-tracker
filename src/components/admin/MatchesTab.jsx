@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, User, Crown } from 'lucide-react';
 
 const STATUS_FILTERS = ['All', 'Active', 'Paused', 'Completed', 'Removed'];
 
@@ -10,14 +10,22 @@ export default function MatchesTab() {
   const [loading, setLoading] = useState(true);
   const [showAssign, setShowAssign] = useState(false);
   const [form, setForm] = useState({ mentor_email: '', mentee_email: '', goal: '' });
+  const [approvedMentors, setApprovedMentors] = useState([]);
+  const [mentees, setMentees] = useState([]);
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
     setLoading(true);
     try {
-      const m = await base44.entities.MentorshipProgress.list('-created_date');
+      const [m, mentorApps, users] = await Promise.all([
+        base44.entities.MentorshipProgress.list('-created_date'),
+        base44.entities.MentorApplication.filter({ status: 'approved' }, '-approved_date'),
+        base44.entities.User.list(),
+      ]);
       setMatches(m);
+      setApprovedMentors(mentorApps);
+      setMentees(users.filter(u => u.role !== 'admin'));
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -60,10 +68,46 @@ export default function MatchesTab() {
             <p className="font-semibold text-white text-sm">Assign New Match</p>
             <button onClick={() => setShowAssign(false)}><X size={16} className="text-gray-400" /></button>
           </div>
-          <input value={form.mentor_email} onChange={e => setForm({ ...form, mentor_email: e.target.value })} placeholder="Mentor email..." className={inputCls} />
-          <input value={form.mentee_email} onChange={e => setForm({ ...form, mentee_email: e.target.value })} placeholder="Mentee email..." className={inputCls} />
-          <input value={form.goal} onChange={e => setForm({ ...form, goal: e.target.value })} placeholder="Program goal..." className={inputCls} />
-          <button onClick={assign} className="w-full py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg,#10b981,#059669)' }}>
+          <div>
+            <label className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-2 block">Mentor *</label>
+            <select
+              value={form.mentor_email}
+              onChange={e => setForm({ ...form, mentor_email: e.target.value })}
+              className={inputCls}
+            >
+              <option value="">Select approved mentor...</option>
+              {approvedMentors.map(m => (
+                <option key={m.id} value={m.user_email} style={{ background: '#1a0a2e' }}>
+                  {m.full_name} ({m.user_email})
+                </option>
+              ))}
+            </select>
+            {approvedMentors.length === 0 && (
+              <p className="text-[10px] text-yellow-400 mt-1">⚠️ No approved mentors yet — approve applications in Mentors tab first</p>
+            )}
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-2 block">Mentee *</label>
+            <select
+              value={form.mentee_email}
+              onChange={e => setForm({ ...form, mentee_email: e.target.value })}
+              className={inputCls}
+            >
+              <option value="">Select mentee...</option>
+              {mentees.map(u => (
+                <option key={u.id} value={u.email} style={{ background: '#1a0a2e' }}>
+                  {u.full_name || u.email.split('@')[0]} ({u.email})
+                </option>
+              ))}
+            </select>
+          </div>
+          <input value={form.goal} onChange={e => setForm({ ...form, goal: e.target.value })} placeholder="Program goal (optional)..." className={inputCls} />
+          <button
+            onClick={assign}
+            disabled={!form.mentor_email.trim() || !form.mentee_email.trim()}
+            className="w-full py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-40"
+            style={{ background: 'linear-gradient(135deg,#10b981,#059669)' }}
+          >
             Create Match
           </button>
         </div>
