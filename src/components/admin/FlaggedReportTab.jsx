@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { AlertTriangle, TrendingUp, FileText, RefreshCw } from 'lucide-react';
+import { AlertTriangle, TrendingUp, FileText, RefreshCw, Download } from 'lucide-react';
 
 export default function FlaggedReportTab() {
   const [loading, setLoading] = useState(true);
@@ -10,6 +10,7 @@ export default function FlaggedReportTab() {
   const [bySource, setBySource] = useState({ shoutout: 0, community: 0 });
   const [byCategory, setByCategory] = useState({});
   const [recentFlags, setRecentFlags] = useState([]);
+  const [allFlaggedItems, setAllFlaggedItems] = useState([]);
 
   const load = async () => {
     setLoading(true);
@@ -70,7 +71,33 @@ export default function FlaggedReportTab() {
     // Dedup flagged items (one entry per post per word), show recent 20
     flaggedItems.sort((a, b) => new Date(b.date) - new Date(a.date));
     setRecentFlags(flaggedItems.slice(0, 20));
+    setAllFlaggedItems(flaggedItems);
     setLoading(false);
+  };
+
+  const exportCSV = () => {
+    const headers = ['Date', 'Time', 'Source', 'User Email', 'Triggered Word', 'Category', 'Content'];
+    const rows = allFlaggedItems.map(f => {
+      const date = new Date(f.date);
+      return [
+        date.toLocaleDateString(),
+        date.toLocaleTimeString(),
+        f.source,
+        f.email,
+        f.triggeredWord,
+        f.category,
+        `"${f.content.replace(/"/g, '""')}"`
+      ].join(',');
+    });
+    
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ggu-flagged-content-${timeRange}d-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   useEffect(() => { load(); }, [timeRange]);
@@ -117,7 +144,11 @@ export default function FlaggedReportTab() {
               </button>
             ))}
           </div>
-          <button onClick={load} className="p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white transition">
+          {/* Export button */}
+          <button onClick={exportCSV} className="flex items-center gap-1 px-3 py-2 rounded-full text-xs font-semibold text-white transition" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+            <Download size={12} /> Export
+          </button>
+          <button onClick={load} className="p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white transition" title="Refresh data from database">
             <RefreshCw size={14} />
           </button>
         </div>
