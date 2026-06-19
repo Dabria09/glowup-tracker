@@ -56,6 +56,14 @@
     "agora_channel_id": {
       "type": "string",
       "title": "Agora Channel ID"
+    },
+    "last_accessed_by": {
+      "type": "string",
+      "title": "Last Accessed By"
+    },
+    "last_accessed_at": {
+      "type": "string",
+      "title": "Last Accessed At"
     }
   },
   "required": [

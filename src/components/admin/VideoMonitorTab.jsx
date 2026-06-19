@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Video, Play, ExternalLink, Users, AlertTriangle, X } from 'lucide-react';
+import MentorVideoSession from '@/components/mentorship/MentorVideoSession';
 
 const STATUS_META = {
   scheduled: { label: 'Scheduled', color: '#3b82f6', bg: 'rgba(59,130,246,0.2)' },
@@ -23,16 +24,28 @@ export default function VideoMonitorTab() {
   const [showFlagModal, setShowFlagModal] = useState(null);
   const [flagForm, setFlagForm] = useState({ reason: 'inappropriate', description: '' });
   const [flagging, setFlagging] = useState(false);
+  const [activeSession, setActiveSession] = useState(null);
+  const [user, setUser] = useState(null);
+
+  const load = async () => {
+    try {
+      const s = await base44.entities.MentorSession.list('-session_date', 50);
+      setSessions(s);
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const s = await base44.entities.MentorSession.list('-session_date', 50);
-        setSessions(s);
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    };
     load();
+    const loadUser = async () => {
+      try {
+        const u = await base44.auth.me();
+        setUser(u);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadUser();
   }, []);
 
   const handleViewRecording = (session) => {
@@ -44,20 +57,13 @@ export default function VideoMonitorTab() {
   };
 
   const handleJoinSession = async (session) => {
-    if (!session.agora_channel_id) {
-      alert('This session does not have a video channel.');
-      return;
-    }
-    try {
-      const token = await base44.functions.invoke('generateAgoraToken', {
-        channelName: session.agora_channel_id,
-        uid: 0,
-        role: 'admin',
-      });
-      window.open(`/video-session?channel=${session.agora_channel_id}&token=${token.data?.token}`, '_blank');
-    } catch (e) {
-      alert('Failed to join session: ' + e.message);
-    }
+    if (!user) return;
+    setActiveSession(session);
+  };
+
+  const handleLeaveSession = () => {
+    setActiveSession(null);
+    load();
   };
 
   const handleFlagSession = async () => {
@@ -140,7 +146,7 @@ export default function VideoMonitorTab() {
                             <Play size={12} /> View Recording
                           </button>
                         )}
-                        {(s.status === 'live' || s.status === 'scheduled') && s.agora_channel_id && (
+                        {(s.status === 'live' || s.status === 'scheduled') && user && (
                           <button
                             onClick={() => handleJoinSession(s)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white transition hover:opacity-90"
@@ -168,6 +174,11 @@ export default function VideoMonitorTab() {
           </div>
         )
       }
+
+      {/* Active Video Session */}
+      {activeSession && user && (
+        <MentorVideoSession session={activeSession} user={user} onLeave={handleLeaveSession} />
+      )}
 
       {/* Flag Session Modal */}
       {showFlagModal && (
