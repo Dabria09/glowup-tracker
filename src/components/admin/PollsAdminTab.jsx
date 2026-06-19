@@ -3,8 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { Plus, Trash2, Edit3, BarChart2 } from 'lucide-react';
 
 const CATEGORIES = ['Confidence','Friendships','Leadership','School','Bullying','Social Media','Relationships','Self-Esteem','Decision Making','Career Exploration','Money','Mental Wellness'];
+const AGE_GROUPS = ['All Ages', 'Girls 10-14', 'Teens 15-17', 'Teens 18-20', 'Women 21+'];
 
-const EMPTY = { question: '', category: 'Confidence', option_a: '', option_b: '', option_c: '', option_d: '', insight_a: '', insight_b: '', insight_c: '', insight_d: '', coaching_tip: '', points_awarded: 15, scheduled_date: '', is_active: true };
+const EMPTY = { question: '', category: 'Confidence', option_a: '', option_b: '', option_c: '', option_d: '', insight_a: '', insight_b: '', insight_c: '', insight_d: '', coaching_tip: '', points_awarded: 15, scheduled_date: '', age_group: 'All Ages', is_active: true };
 
 // Get default poll points from config
 const getDefaultPollPoints = (config) => {
@@ -147,6 +148,13 @@ export default function PollsAdminTab() {
             </div>
           </div>
 
+          <div>
+            <p className="text-xs text-gray-400 mb-1">Age Group Target</p>
+            <select value={form.age_group} onChange={f('age_group')} className="w-full text-sm text-white rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
+              {AGE_GROUPS.map(ag => <option key={ag} value={ag} style={{ background: '#1a0a18' }}>{ag}</option>)}
+            </select>
+          </div>
+
           <div className="flex items-center gap-2">
             <input type="checkbox" id="poll_active" checked={form.is_active} onChange={e => setForm(prev => ({ ...prev, is_active: e.target.checked }))} />
             <label htmlFor="poll_active" className="text-sm text-gray-300">Active (visible to users)</label>
@@ -176,10 +184,11 @@ export default function PollsAdminTab() {
             <div key={poll.id} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${poll.is_active ? 'rgba(236,72,153,0.3)' : 'rgba(255,255,255,0.08)'}` }}>
               <div className="flex items-start gap-3">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(236,72,153,0.15)', color: '#ec4899' }}>{poll.category}</span>
                     {poll.scheduled_date && <span className="text-xs text-gray-500">📅 {poll.scheduled_date}</span>}
-                    {!poll.is_active && <span className="text-xs text-gray-600 font-bold">INACTIVE</span>}
+                    {poll.age_group && poll.age_group !== 'All Ages' && <span className="text-xs text-purple-400 font-semibold">👥 {poll.age_group}</span>}
+                    {!poll.is_active && <span className="text-xs text-gray-600 font-bold">ARCHIVED</span>}
                   </div>
                   <p className="text-sm text-white font-semibold">{poll.question}</p>
                   <div className="flex items-center gap-3 mt-1.5">

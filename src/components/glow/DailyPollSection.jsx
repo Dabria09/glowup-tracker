@@ -24,7 +24,7 @@ const CATEGORY_COLORS = {
   'Mental Wellness': '#8b5cf6',
 };
 
-export default function DailyPollSection({ userEmail, onPointsAwarded }) {
+export default function DailyPollSection({ userEmail, userAgeGroup, onPointsAwarded }) {
   const [poll, setPoll] = useState(null);
   const [myVote, setMyVote] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,22 +36,37 @@ export default function DailyPollSection({ userEmail, onPointsAwarded }) {
   useEffect(() => {
     if (!userEmail) return;
     loadPoll();
-  }, [userEmail]);
+  }, [userEmail, userAgeGroup]);
 
   const loadPoll = async () => {
     setLoading(true);
     try {
-      // Try today's scheduled poll first, then latest active, then any poll at all
-      let polls = await base44.entities.DailyPoll.filter({ scheduled_date: todayStr, is_active: true }).catch(() => []);
-      if (!polls.length) polls = await base44.entities.DailyPoll.filter({ is_active: true }, '-created_date', 1).catch(() => []);
-      if (!polls.length) {
-        // Last resort: list all and filter client-side
-        const all = await base44.entities.DailyPoll.list('-created_date', 10).catch(() => []);
-        polls = all.filter(p => p.is_active !== false).slice(0, 1);
+      // Get all active polls
+      let allPolls = await base44.entities.DailyPoll.filter({ is_active: true }, '-scheduled_date').catch(() => []);
+      
+      // Filter by age group
+      let polls = allPolls.filter(p => {
+        if (!p.age_group || p.age_group === 'All Ages') return true;
+        if (!userAgeGroup) return true;
+        // Map user age group to poll age groups
+        if (userAgeGroup === 'girls_10_20') {
+          return ['Girls 10-14', 'Teens 15-17', 'Teens 18-20', 'All Ages'].includes(p.age_group);
+        }
+        if (userAgeGroup === 'women_21_plus') {
+          return ['Women 21+', 'All Ages'].includes(p.age_group);
+        }
+        return true;
+      });
+      
+      // Prioritize: today's scheduled → latest active
+      let todaysPolls = polls.filter(p => p.scheduled_date === todayStr);
+      if (todaysPolls.length === 0) {
+        todaysPolls = polls.slice(0, 1);
       }
-      if (!polls.length) { setLoading(false); return; }
+      
+      if (!todaysPolls.length) { setLoading(false); return; }
 
-      const p = polls[0];
+      const p = todaysPolls[0];
       setPoll(p);
       setTotalVotes((p.votes_a || 0) + (p.votes_b || 0) + (p.votes_c || 0) + (p.votes_d || 0));
 

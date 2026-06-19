@@ -93,6 +93,18 @@
       "type": "number",
       "title": "Votes D",
       "default": 0
+    },
+    "age_group": {
+      "type": "string",
+      "title": "Age Group Target",
+      "enum": [
+        "All Ages",
+        "Girls 10-14",
+        "Teens 15-17",
+        "Teens 18-20",
+        "Women 21+"
+      ],
+      "default": "All Ages"
     }
   },
   "required": [
