@@ -11,6 +11,9 @@ const TYPE_META = {
   reaction:     { emoji: '✨', label: 'reacted to your Glow Link', color: '#a855f7' },
   profile_view: { emoji: '👀', label: 'viewed your Glow Link', color: '#3b82f6' },
   shoutout:     { emoji: '📣', label: 'shouted you out', color: '#f59e0b' },
+  level_up:     { emoji: '🎉', label: 'you leveled up!', color: '#fbbf24' },
+  moderation_alert: { emoji: '🚨', label: 'safety alert', color: '#ef4444' },
+  system:       { emoji: '⚙️', label: 'system update', color: '#6b7280' },
 };
 
 function timeAgo(dateStr) {
@@ -35,8 +38,9 @@ export default function Notifications() {
 
   const DEFAULT_PREFS = {
     follow: true, reaction: true, profile_view: true, shoutout: true,
+    level_up: true, moderation_alert: true, system: true,
     comment: true, challenge: true, mentorship: true, community: true,
-    team: true, squad: true, announcement: true, system: true,
+    team: true, squad: true, announcement: true,
   };
   const [prefs, setPrefs] = useState(() => {
     try { return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem('ggu_notif_prefs') || '{}') }; }
@@ -44,18 +48,20 @@ export default function Notifications() {
   });
 
   const PREF_LABELS = [
-    { key: 'follow',       label: 'New followers',           emoji: '💜' },
-    { key: 'reaction',     label: 'Reactions on your posts', emoji: '✨' },
-    { key: 'comment',      label: 'Comments on your posts',  emoji: '💬' },
-    { key: 'profile_view', label: 'Profile views',           emoji: '👀' },
-    { key: 'shoutout',     label: 'Shout outs',              emoji: '📣' },
-    { key: 'team',         label: 'Team activity',           emoji: '🏆' },
-    { key: 'squad',        label: 'Squad activity',          emoji: '👑' },
-    { key: 'challenge',    label: 'Challenge reminders',     emoji: '🔥' },
-    { key: 'mentorship',   label: 'Mentorship updates',      emoji: '🎓' },
-    { key: 'community',    label: 'Community Hub activity',  emoji: '🌸' },
-    { key: 'announcement', label: 'Announcements',           emoji: '📢' },
-    { key: 'system',       label: 'System updates',          emoji: '⚙️' },
+    { key: 'level_up',       label: 'Level up celebrations',   emoji: '🎉' },
+    { key: 'follow',         label: 'New followers',           emoji: '💜' },
+    { key: 'reaction',       label: 'Reactions on your posts', emoji: '✨' },
+    { key: 'comment',        label: 'Comments on your posts',  emoji: '💬' },
+    { key: 'profile_view',   label: 'Profile views',           emoji: '👀' },
+    { key: 'shoutout',       label: 'Shout outs',              emoji: '📣' },
+    { key: 'moderation_alert', label: 'Safety alerts',         emoji: '🚨' },
+    { key: 'team',           label: 'Team activity',           emoji: '🏆' },
+    { key: 'squad',          label: 'Squad activity',          emoji: '👑' },
+    { key: 'challenge',      label: 'Challenge reminders',     emoji: '🔥' },
+    { key: 'mentorship',     label: 'Mentorship updates',      emoji: '🎓' },
+    { key: 'community',      label: 'Community Hub activity',  emoji: '🌸' },
+    { key: 'announcement',   label: 'Announcements',           emoji: '📢' },
+    { key: 'system',         label: 'System updates',          emoji: '⚙️' },
   ];
 
   const togglePref = (key) => {
@@ -223,11 +229,22 @@ export default function Notifications() {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-white leading-snug">
-                        <span style={{ color: meta.color }}>@{notif.actor_username || 'Someone'}</span>
-                        {' '}{meta.label}
+                        {notif.type === 'level_up' || notif.type === 'moderation_alert' || notif.type === 'system' ? (
+                          <span>{meta.label}</span>
+                        ) : (
+                          <>
+                            <span style={{ color: meta.color }}>@{notif.actor_username || 'Someone'}</span>
+                            {' '}{meta.label}
+                          </>
+                        )}
                       </p>
                       {notif.message && (
                         <p className="text-xs text-gray-500 mt-0.5 truncate">{notif.message}</p>
+                      )}
+                      {notif.priority && (
+                        <p className="text-[10px] font-bold mt-0.5 capitalize" style={{ color: notif.priority === 'urgent' ? '#ef4444' : notif.priority === 'high' ? '#f97316' : '#a855f7' }}>
+                          {notif.priority} priority
+                        </p>
                       )}
                       <p className="text-[10px] text-gray-600 mt-1">{timeAgo(notif.created_date)}</p>
                     </div>
