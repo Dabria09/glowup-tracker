@@ -1,8 +1,22 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Inbox, AlertTriangle, Clock, CheckCircle, X, ChevronLeft, MessageCircle, Shield, AlertCircle, Flag } from 'lucide-react';
+import { Send, Inbox, AlertTriangle, Clock, CheckCircle, X, ChevronLeft, MessageCircle, Shield, AlertCircle, Flag, Search } from 'lucide-react';
 
 const STATUS_FILTERS = ['All', 'Open', 'In Progress', 'Resolved', 'Closed'];
+
+const CATEGORY_META = {
+  bug: { label: '🐛 Bug', color: '#3b82f6' },
+  account: { label: '👤 Account', color: '#10b981' },
+  content: { label: '📝 Content', color: '#8b5cf6' },
+  billing: { label: '💳 Billing', color: '#f59e0b' },
+  safety_concern: { label: '🚨 Safety Concern', color: '#ef4444' },
+  technical_issue: { label: '💻 Technical Issue', color: '#6366f1' },
+  feedback: { label: '💡 Feedback', color: '#14b8a6' },
+  feature_request: { label: '✨ Feature Request', color: '#a855f7' },
+  accessibility: { label: '♿ Accessibility', color: '#06b6d4' },
+  privacy: { label: '🔒 Privacy', color: '#ec4899' },
+  other: { label: '📋 Other', color: '#6b7280' },
+};
 
 const STATUS_COLORS = {
   open: { bg: 'rgba(59,130,246,0.2)', text: 'text-blue-400', border: 'rgba(59,130,246,0.3)' },
@@ -18,14 +32,7 @@ const PRIORITY_META = {
   urgent: { label: '🚨 URGENT', color: '#ef4444', bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', icon: '🚨' },
 };
 
-const CATEGORY_META = {
-  bug: { label: '🐛 Bug', color: '#3b82f6' },
-  account: { label: '👤 Account', color: '#10b981' },
-  content: { label: '📝 Content', color: '#8b5cf6' },
-  billing: { label: '💳 Billing', color: '#f59e0b' },
-  safety_concern: { label: '🚨 Safety Concern', color: '#ef4444' },
-  other: { label: '📋 Other', color: '#6b7280' },
-};
+
 
 const SAFETY_KEYWORDS = [
   'harassment', 'threat', 'hurt', 'danger', 'unsafe', 'scared', 'afraid',
@@ -47,6 +54,7 @@ export default function SupportTab() {
   const [showEscalateModal, setShowEscalateModal] = useState(false);
   const [escalationReason, setEscalationReason] = useState('');
   const [escalating, setEscalating] = useState(false);
+  const [searchEmail, setSearchEmail] = useState('');
 
   useEffect(() => { load(); }, []);
 
@@ -171,6 +179,7 @@ export default function SupportTab() {
     if (filterKey && t.status !== filterKey) return false;
     if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
     if (categoryFilter !== 'all' && t.category !== categoryFilter) return false;
+    if (searchEmail && !t.user_email?.toLowerCase().includes(searchEmail.toLowerCase())) return false;
     return true;
   });
 
@@ -267,8 +276,25 @@ export default function SupportTab() {
         })}
       </div>
 
+      {/* Search by Email */}
+      <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <Search size={15} className="text-gray-500 flex-shrink-0" />
+        <input
+          value={searchEmail}
+          onChange={e => setSearchEmail(e.target.value)}
+          placeholder="Search by user email..."
+          className="flex-1 bg-transparent text-sm text-white placeholder-gray-600 outline-none"
+        />
+        {searchEmail && (
+          <button onClick={() => setSearchEmail('')} className="text-gray-500 hover:text-white">
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
+      {/* Category Filters */}
       <div className="flex gap-2 overflow-x-auto">
-        {['all', 'safety_concern', 'bug', 'account', 'content', 'billing', 'other'].map(c => {
+        {['all', 'safety_concern', 'bug', 'account', 'content', 'billing', 'technical_issue', 'feedback', 'feature_request', 'accessibility', 'privacy', 'other'].map(c => {
           const meta = c === 'all' ? { label: 'All Categories', color: '#6b7280' } : CATEGORY_META[c];
           return (
             <button
@@ -281,6 +307,16 @@ export default function SupportTab() {
             </button>
           );
         })}
+      </div>
+      <div className="rounded-xl p-3" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
+        <p className="text-[10px] font-bold text-purple-400 mb-2">📋 Available Categories</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {Object.entries(CATEGORY_META).map(([key, meta]) => (
+            <div key={key} className="flex items-center gap-2">
+              <span className="text-xs">{meta.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {loading ? (

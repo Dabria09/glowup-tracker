@@ -27,6 +27,11 @@
         "content",
         "billing",
         "safety_concern",
+        "technical_issue",
+        "feedback",
+        "feature_request",
+        "accessibility",
+        "privacy",
         "other"
       ],
       "default": "other"
@@ -74,6 +79,15 @@
       "type": "string",
       "title": "Safety Keywords Detected (JSON array)",
       "default": "[]"
+    },
+    "admin_replies": {
+      "type": "string",
+      "title": "Admin Replies (JSON array)",
+      "default": "[]"
+    },
+    "last_admin_reply": {
+      "type": "string",
+      "title": "Last Admin Reply Date"
     }
   },
   "required": [
