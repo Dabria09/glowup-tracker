@@ -10,7 +10,7 @@ const IN_PERSON_FILTERS = ['All', 'In-Person Approved'];
 const MENTOR_TYPE_FILTERS = ['All', 'Teen', 'Adult', 'Kitchen'];
 
 const ADULT_CHECKLIST_KEYS = [
-  { key: 'checklist_identity_verified', label: 'Identity Verified' },
+  { key: 'checklist_identity_verified', label: '✅ ID Verified (Admin Confirmed)' },
   { key: 'checklist_background_cleared', label: 'Background Check Cleared' },
   { key: 'checklist_interview_completed', label: 'Interview Completed' },
   { key: 'checklist_lesson_passed', label: 'GGU Mentor Lesson Passed' },
@@ -118,6 +118,12 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
   const toggleChecklistItem = async (key, currentValue) => {
     setSaving(true);
     const updates = { [key]: !currentValue };
+    // Track who verified the ID and when
+    if (key === 'checklist_identity_verified' && !currentValue) {
+      const me = await base44.auth.me();
+      updates.id_verified_by = me.email;
+      updates.id_verified_date = new Date().toISOString();
+    }
     // If final_approved is being checked, also flip the application status
     if (key === 'checklist_final_approved' && !currentValue) {
       updates.status = 'approved';
@@ -497,8 +503,30 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
 
                 {/* ID Verification */}
                 {(app.id_document_url || app.face_photo_url) && (
-                  <div className="rounded-xl p-3" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
-                    <p className="text-[10px] font-bold text-purple-400 mb-3">🆔 ID VERIFICATION DOCUMENTS</p>
+                  <div className="rounded-xl p-3" style={{ background: app.checklist_identity_verified ? 'rgba(74,222,128,0.08)' : 'rgba(168,85,247,0.08)', border: `1px solid ${app.checklist_identity_verified ? 'rgba(74,222,128,0.3)' : 'rgba(168,85,247,0.25)'}` }}>
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex-1">
+                        <p className="text-[10px] font-bold mb-1" style={{ color: app.checklist_identity_verified ? '#4ade80' : '#c084fc' }}>
+                          🆔 ID VERIFICATION DOCUMENTS
+                        </p>
+                        <p className="text-[9px] text-gray-400">Review uploaded ID and face photo before verifying</p>
+                      </div>
+                      <button
+                        onClick={() => toggleChecklistItem('checklist_identity_verified', app.checklist_identity_verified)}
+                        disabled={saving}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 ${
+                          app.checklist_identity_verified
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/40'
+                            : 'bg-white/5 text-gray-400 border border-white/10 hover:border-purple-400'
+                        }`}
+                      >
+                        {app.checklist_identity_verified ? (
+                          <><CheckCircle size={12} /> Verified</>
+                        ) : (
+                          <><span>Mark as Verified</span></>
+                        )}
+                      </button>
+                    </div>
                     <div className="space-y-3">
                       {app.id_document_url && (
                         <div>
@@ -519,6 +547,13 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
                         </div>
                       )}
                     </div>
+                    {app.checklist_identity_verified && (
+                      <div className="mt-3 p-2 rounded-lg bg-green-500/10 border border-green-500/20">
+                        <p className="text-[10px] text-green-400 font-semibold flex items-center gap-1">
+                          <CheckCircle size={10} /> ID verified by admin on {app.updated_date ? new Date(app.updated_date).toLocaleDateString() : 'review'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 

@@ -216,8 +216,24 @@
     },
     "checklist_identity_verified": {
       "type": "boolean",
-      "title": "Identity Verified",
+      "title": "Identity Verified (Admin Confirmed)",
       "default": false
+    },
+    "id_verified_by": {
+      "type": "string",
+      "title": "ID Verified By (Admin Email)"
+    },
+    "id_verified_date": {
+      "type": "string",
+      "title": "ID Verified Date"
+    },
+    "id_document_url": {
+      "type": "string",
+      "title": "ID Document URL (Government/School ID)"
+    },
+    "face_photo_url": {
+      "type": "string",
+      "title": "Face Photo URL (Headshot)"
     },
     "checklist_background_cleared": {
       "type": "boolean",
@@ -335,14 +351,6 @@
     "in_person_approved_by": {
       "type": "string",
       "title": "In-Person Approved By (Email)"
-    },
-    "id_document_url": {
-      "type": "string",
-      "title": "ID Document URL (Government/School ID)"
-    },
-    "face_photo_url": {
-      "type": "string",
-      "title": "Face Photo URL (Headshot)"
     }
   },
   "required": [
