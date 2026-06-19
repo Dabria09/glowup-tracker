@@ -83,6 +83,14 @@ export default function AdminPanel() {
   const [pendingItems, setPendingItems] = useState({ reports: [], messages: [], applications: [] });
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    const highlightParam = params.get('highlight');
+    
+    if (tabParam && TABS.some(t => t.id === tabParam)) {
+      setActiveTab(tabParam);
+    }
+    
     const load = async () => {
       try {
         const u = await base44.auth.me();
@@ -110,7 +118,7 @@ export default function AdminPanel() {
       }
     };
     load();
-  }, []);
+  }, [navigate]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#080810' }}>
