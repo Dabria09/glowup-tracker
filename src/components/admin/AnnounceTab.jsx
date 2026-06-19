@@ -109,14 +109,35 @@ export default function AnnounceTab() {
             ))}
           </div>
           {(editingId ? editForm?.send_to : form.send_to) === 'specific_group' && (
-            <div className="mt-3">
-              <select value={editingId ? editForm.group_id : form.group_id} onChange={e => editingId ? setEditForm({ ...editForm, group_id: e.target.value }) : setForm({ ...form, group_id: e.target.value })} className={inputCls}>
-                <option value="" style={{ background: '#1a0a2e' }}>Select a group...</option>
-                {groups.map(g => (
-                  <option key={g.id} value={g.id} style={{ background: '#1a0a2e' }}>{g.group_name} {g.organization ? `— ${g.organization}` : ''}</option>
-                ))}
-              </select>
-              {groups.length === 0 && <p className="text-[10px] text-red-400 mt-1">No active groups found. Create a group first in the Groups tab.</p>}
+            <div className="mt-3 space-y-2">
+              {groups.length === 0 ? (
+                <p className="text-xs text-red-400 px-1">No active groups found. Create a group first in the Groups tab.</p>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {groups.map(g => {
+                    const currentGroupId = editingId ? editForm.group_id : form.group_id;
+                    const isSelected = currentGroupId === g.id;
+                    return (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => editingId ? setEditForm({ ...editForm, group_id: g.id }) : setForm({ ...form, group_id: g.id })}
+                        className="w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold transition"
+                        style={isSelected
+                          ? { background: 'linear-gradient(135deg,rgba(236,72,153,0.3),rgba(168,85,247,0.3))', border: '1px solid rgba(236,72,153,0.6)', color: '#fff' }
+                          : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#d1d5db' }}
+                      >
+                        <span>{g.group_name}</span>
+                        {g.organization && <span className="text-gray-500 font-normal"> — {g.organization}</span>}
+                        {isSelected && <span className="float-right text-pink-400">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {!(editingId ? editForm.group_id : form.group_id) && groups.length > 0 && (
+                <p className="text-[10px] text-amber-400 px-1">Select a group above to target this announcement.</p>
+              )}
             </div>
           )}
         </div>
