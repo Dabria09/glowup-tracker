@@ -109,6 +109,7 @@ export default function GlowStore() {
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [selectedPrize, setSelectedPrize] = useState(null);
   const [shippingAddress, setShippingAddress] = useState('');
+  const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -129,6 +130,7 @@ export default function GlowStore() {
         setPointsRecord(pts[0]);
       }
       if (profile.length > 0) {
+        setUserProfile(profile[0]);
         try { setOwnedItems(JSON.parse(profile[0].owned_store_items || '[]')); } catch { setOwnedItems([]); }
         try { setEquippedItems(JSON.parse(profile[0].equipped_store_items || '[]')); } catch { setEquippedItems([]); }
       }
@@ -189,6 +191,15 @@ export default function GlowStore() {
     return ageGroup === 'women' ? (prize.points_cost_women || prize.points_cost_girls || 0) : (prize.points_cost_girls || 0);
   };
 
+  const canRedeemPhysical = () => {
+    // Check if user is eligible for physical rewards (paid subscriber or school code user)
+    const isPaidSubscriber = userProfile?.is_paid_subscriber === true && 
+      userProfile?.subscription_tier !== 'free' && 
+      (!userProfile?.subscription_expires || new Date(userProfile.subscription_expires) > new Date());
+    const isSchoolCodeUser = userProfile?.joined_via_code && userProfile?.school_code_verified === true;
+    return isPaidSubscriber || isSchoolCodeUser;
+  };
+
   const handleRedeemClick = (prize) => {
     const pointsNeeded = getPrizePoints(prize);
     if (totalPoints < pointsNeeded) {
@@ -197,6 +208,11 @@ export default function GlowStore() {
     }
     if (prize.stock_quantity <= 0) {
       showToast("Sorry, this prize is out of stock!", 'error');
+      return;
+    }
+    // Check eligibility for physical rewards
+    if (prize.shipping_required && !canRedeemPhysical()) {
+      showToast("Physical rewards are only available for paid subscribers and school code users. ✨", 'error');
       return;
     }
     setSelectedPrize(prize);
@@ -625,6 +641,25 @@ export default function GlowStore() {
                 </div>
               )}
               
+              {/* Eligibility Notice for Physical Rewards */}
+              {selectedPrize.shipping_required && (
+                <div className="rounded-2xl p-4" style={{ background: canRedeemPhysical() ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)', border: `1px solid ${canRedeemPhysical() ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}` }}>
+                  <div className="flex items-start gap-2">
+                    {canRedeemPhysical() ? <Check size={16} className="text-emerald-400 mt-0.5 flex-shrink-0" /> : <AlertCircle size={16} className="text-amber-400 mt-0.5 flex-shrink-0" />}
+                    <div>
+                      <p className={`text-sm font-bold ${canRedeemPhysical() ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {canRedeemPhysical() ? '✓ Eligible for Physical Rewards' : 'Physical Rewards Eligibility Required'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {canRedeemPhysical() 
+                          ? 'You qualify for physical prize redemptions as a paid subscriber or school code user.' 
+                          : 'Physical rewards are only available for paid subscribers and school code users. Upgrade your subscription or join with a school code to unlock.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Parental Approval Notice */}
               {ageGroup === 'girls' && getPrizePoints(selectedPrize) >= 1000 && (
                 <div className="rounded-2xl p-4" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}>
@@ -656,11 +691,11 @@ export default function GlowStore() {
                 </button>
                 <button
                   onClick={handleRedeemConfirm}
-                  disabled={redeeming === selectedPrize.id || (selectedPrize.shipping_required && !shippingAddress.trim())}
+                  disabled={redeeming === selectedPrize.id || (selectedPrize.shipping_required && (!shippingAddress.trim() || !canRedeemPhysical()))}
                   className="py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-40"
                   style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}
                 >
-                  {redeeming ? 'Processing...' : `Redeem 🎁`}
+                  {redeeming ? 'Processing...' : selectedPrize.shipping_required && !canRedeemPhysical() ? 'Not Eligible' : `Redeem 🎁`}
                 </button>
               </div>
             </div>
