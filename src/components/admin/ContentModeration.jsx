@@ -121,6 +121,64 @@ export default function ContentModeration() {
     toast.success('Post removed');
   };
 
+  const banUser = async (email, username) => {
+    if (!email || !confirm(`Ban user "${username}"? They will be logged out and unable to access the app.`)) return;
+    const me = await base44.auth.me();
+    try {
+      await base44.entities.BannedUser.create({
+        user_email: email,
+        username: username || '',
+        banned_by: me.email,
+        banned_date: new Date().toISOString(),
+        reason: 'Content moderation',
+        is_active: true,
+      });
+      toast.success(`User ${username} banned`);
+    } catch (e) {
+      toast.error('Failed to ban: ' + e.message);
+    }
+  };
+
+  const resolveReport = async (report, removeContent = false) => {
+    if (!report.id) return;
+    const me = await base44.auth.me();
+    try {
+      if (removeContent && report.reported_content_id) {
+        if (report.content_type === 'shoutout') {
+          await base44.entities.ShoutOut.delete(report.reported_content_id);
+        } else if (report.content_type === 'community_post') {
+          await base44.entities.CommunityPost.delete(report.reported_content_id);
+        }
+      }
+      await base44.entities.ContentReport.update(report.id, {
+        status: 'resolved',
+        reviewed_by: me.email,
+        reviewed_date: new Date().toISOString(),
+        resolution_notes: removeContent ? 'Content removed' : 'Resolved by admin',
+      });
+      setReported(prev => prev.map(r => r.id === report.id ? { ...r, status: 'resolved', reviewed_by: me.email } : r));
+      toast.success(removeContent ? 'Content removed & report resolved' : 'Report resolved');
+    } catch (e) {
+      toast.error('Failed: ' + e.message);
+    }
+  };
+
+  const dismissReport = async (report) => {
+    if (!report.id) return;
+    const me = await base44.auth.me();
+    try {
+      await base44.entities.ContentReport.update(report.id, {
+        status: 'dismissed',
+        reviewed_by: me.email,
+        reviewed_date: new Date().toISOString(),
+      });
+      setReported(prev => prev.map(r => r.id === report.id ? { ...r, status: 'dismissed', reviewed_by: me.email } : r));
+      toast.success('Report dismissed');
+    } catch (e) {
+      toast.error('Failed: ' + e.message);
+    }
+  };
+
   function timeAgo(dateStr) {
     if (!dateStr) return '';
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -187,6 +245,11 @@ export default function ContentModeration() {
                     style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
                     <CheckCircle size={11} /> Dismiss
                   </button>
+                  <button onClick={() => banUser(post.user_email || '', post.username || post.user_email?.split('@')[0] || 'User')}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-amber-400 hover:text-amber-300 transition"
+                    style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)' }}>
+                    <AlertTriangle size={11} /> Ban
+                  </button>
                 </div>
               </div>
             </div>
@@ -219,7 +282,38 @@ export default function ContentModeration() {
                   {report.status !== 'pending' && (
                     <p className="text-[10px] text-gray-500 mt-1">Status: <span className="capitalize">{report.status}</span>{report.reviewed_by ? ` · Reviewed by ${report.reviewed_by.split('@')[0]}` : ''}</p>
                   )}
+                  {report.reported_content_id && (
+                    <p className="text-[10px] text-gray-600 mt-0.5">Content ID: {report.reported_content_id}</p>
+                  )}
                 </div>
+                {report.status === 'pending' && (
+                  <div className="flex flex-col gap-1.5 flex-shrink-0">
+                    <button onClick={() => resolveReport(report, false)}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition"
+                      style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                      <CheckCircle size={11} /> Resolve
+                    </button>
+                    <button onClick={() => dismissReport(report)}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-gray-400 hover:text-gray-200 transition"
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <X size={11} /> Dismiss
+                    </button>
+                    {report.reported_content_id && (
+                      <>
+                        <button onClick={() => resolveReport(report, true)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-red-400 hover:text-red-300 transition"
+                          style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                          <Trash2 size={11} /> Remove + Resolve
+                        </button>
+                        <button onClick={() => banUser(report.reported_by || '', report.reported_by?.split('@')[0] || 'User')}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-amber-400 hover:text-amber-300 transition"
+                          style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)' }}>
+                          <AlertTriangle size={11} /> Ban User
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}
