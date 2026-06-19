@@ -4,8 +4,67 @@ import { Plus, Trash2, Send } from 'lucide-react';
 
 const SUB_TABS = ['Quotes', 'Glow Tips', 'Ms. Glow Live', 'Shout Outs'];
 
-const QUOTE_CATS = ['general', 'confidence', 'wellness', 'career', 'spiritual', 'relationships'];
-const TIP_CATS = ['confidence', 'money', 'school', 'relationships', 'wellness', 'mindset', 'career'];
+const QUOTE_CATS = [
+  'general',
+  // Five Pillars
+  'wellness',
+  'financial_literacy',
+  'mentorship',
+  'career_exploration',
+  'civic_education',
+  // Supporting themes
+  'confidence',
+  'spiritual',
+  'relationships',
+  'leadership',
+  'self_image',
+];
+
+const QUOTE_CAT_LABELS = {
+  general: 'General',
+  wellness: '💆 Wellness',
+  financial_literacy: '💰 Financial Literacy',
+  mentorship: '🤝 Mentorship',
+  career_exploration: '🚀 Career Exploration',
+  civic_education: '🗳️ Civic Education',
+  confidence: '✨ Confidence',
+  spiritual: '🙏 Spiritual',
+  relationships: '💞 Relationships',
+  leadership: '👑 Leadership',
+  self_image: '🪞 Self-Image',
+};
+
+const TIP_CATS = [
+  // Five Pillars
+  'wellness',
+  'financial_literacy',
+  'mentorship',
+  'career_exploration',
+  'civic_education',
+  // Supporting themes
+  'confidence',
+  'mindset',
+  'school',
+  'relationships',
+  'money',
+  'leadership',
+  'self_image',
+];
+
+const TIP_CAT_LABELS = {
+  wellness: '💆 Wellness',
+  financial_literacy: '💰 Financial Literacy',
+  mentorship: '🤝 Mentorship',
+  career_exploration: '🚀 Career Exploration',
+  civic_education: '🗳️ Civic Education',
+  confidence: '✨ Confidence',
+  mindset: '🧠 Mindset',
+  school: '📚 School',
+  relationships: '💞 Relationships',
+  money: '💵 Money',
+  leadership: '👑 Leadership',
+  self_image: '🪞 Self-Image',
+};
 const TIP_AGE_GROUPS = ['all', 'middle', 'early_high', 'older_high'];
 const TIP_AGE_LABELS = { all: 'All Ages', middle: 'Middle School (11–13)', early_high: 'Early High School (14–15)', older_high: 'Older High School (16–18)' };
 const MSG_TYPES = ['written', 'video', 'voice'];
@@ -112,7 +171,7 @@ export default function ContentTab() {
             <div className="grid grid-cols-2 gap-2">
               <input value={newQuote.author} onChange={e => setNewQuote({ ...newQuote, author: e.target.value })} placeholder="Author (optional)" className={inputCls} />
               <select value={newQuote.category} onChange={e => setNewQuote({ ...newQuote, category: e.target.value })} className={selectCls}>
-                {QUOTE_CATS.map(c => <option key={c} value={c}>{c}</option>)}
+                {QUOTE_CATS.map(c => <option key={c} value={c} style={{ background: '#1a0a2e' }}>{QUOTE_CAT_LABELS[c] || c}</option>)}
               </select>
             </div>
             {saveError && sub === 'Quotes' && <p className="text-xs text-red-400">{saveError}</p>}
@@ -151,7 +210,7 @@ export default function ContentTab() {
                 value={editingTip ? editingTip.category : newTip.category}
                 onChange={e => editingTip ? setEditingTip({ ...editingTip, category: e.target.value }) : setNewTip({ ...newTip, category: e.target.value })}
                 className={selectCls}>
-                {TIP_CATS.map(c => <option key={c} value={c} style={{ background: '#1a0a2e' }}>{c}</option>)}
+                {TIP_CATS.map(c => <option key={c} value={c} style={{ background: '#1a0a2e' }}>{TIP_CAT_LABELS[c] || c}</option>)}
               </select>
               <select
                 value={editingTip ? editingTip.age_group : newTip.age_group}
@@ -206,7 +265,7 @@ export default function ContentTab() {
                     <div className="flex-1">
                       <p className="text-sm text-white">{t.tip_text}</p>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className="text-[10px] text-purple-400 capitalize">{t.category}</span>
+                        <span className="text-[10px] text-purple-400">{TIP_CAT_LABELS[t.category] || t.category}</span>
                         <span className="text-[10px] text-blue-400">{TIP_AGE_LABELS[t.age_group] || t.age_group}</span>
                         {t.is_featured && <span className="text-[10px] text-yellow-400">⭐ Featured</span>}
                         {t.scheduled_date && <span className="text-[10px] text-gray-400">📅 {t.scheduled_date}</span>}
