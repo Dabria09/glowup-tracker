@@ -40,12 +40,15 @@ export default function EngagementTab() {
         weekHistory.forEach(p => { if (p.action) featureMap[p.action] = (featureMap[p.action] || 0) + 1; });
         setMostUsed(Object.entries(featureMap).sort((a, b) => b[1] - a[1]).slice(0, 6));
 
-        // Mood Distribution — from DailyTask (category field) for mood-specific data
-        const checkIns = await base44.entities.DailyTask.filter({ is_completed: true });
+        // Mood Distribution — from DiaryEntry records tagged 'daily-checkin' (mood field set by DailyCheckIn page)
+        const diaryEntries = await base44.entities.DiaryEntry.list('-created_date', 500);
         const weekAgoKey = localDateKey(new Date(weekAgoMs));
-        const weekCheckIns = checkIns.filter(c => c.completed_date && localDateKey(c.completed_date) >= weekAgoKey);
+        const weekCheckIns = diaryEntries.filter(e =>
+          e.tags && e.tags.includes('daily-checkin') &&
+          e.date && e.date >= weekAgoKey
+        );
         const moodMap = {};
-        weekCheckIns.forEach(c => { if (c.category) moodMap[c.category] = (moodMap[c.category] || 0) + 1; });
+        weekCheckIns.forEach(e => { if (e.mood) moodMap[e.mood] = (moodMap[e.mood] || 0) + 1; });
         setMoodDist(Object.entries(moodMap).sort((a, b) => b[1] - a[1]));
       } catch (e) { console.error(e); }
       setLoading(false);
