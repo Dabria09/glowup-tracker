@@ -169,8 +169,8 @@ export default function Discover() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    // Track page view with metadata
-    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Discover', path: '/discover' } });
+    // Track page view with metadata - main navigation screen
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Discover', path: '/discover', category: 'main_nav' } });
     
     base44.auth.me().then(async (u) => {
       const pts = await base44.entities.UserPoints.filter({ user_email: u.email });

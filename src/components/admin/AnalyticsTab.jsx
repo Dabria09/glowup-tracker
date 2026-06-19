@@ -115,10 +115,13 @@ export default function AnalyticsTab() {
   const maxDaily = Math.max(...dailyUsers.map(d => d.count), 1);
 
   const exportCSV = () => {
+    const selectedGroupName = selectedGroup !== 'all' ? (groups.find(g => g.id === selectedGroup)?.group_name || groups.find(g => g.id === selectedGroup)?.name || 'Group') : 'All Groups';
+    
     const rows = [
       ['Girls Glowing Up™ Analytics Report', '', ''],
       ['Generated:', new Date().toLocaleString(), ''],
       ['Period:', `Last ${range}`, ''],
+      ['Group Filter:', selectedGroupName, ''],
       ['', '', ''],
       ['=== SUMMARY METRICS ===', '', ''],
       ['Metric', 'Value', 'Trend vs Prior Period'],
@@ -146,7 +149,7 @@ export default function AnalyticsTab() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `GGU-Analytics-${range}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `GGU-Analytics-${selectedGroupName.replace(/[^a-z0-9]/gi, '-')}-${range}-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -163,7 +166,7 @@ export default function AnalyticsTab() {
             <option value="all" className="bg-gray-900">📊 All Groups (App-wide)</option>
             {groups.map(g => (
               <option key={g.id} value={g.id} className="bg-gray-900">
-                🏫 {g.name} ({g.member_count || 0} members)
+                🏫 {g.group_name || g.name} ({g.member_count || 0} members)
               </option>
             ))}
           </select>
@@ -184,7 +187,7 @@ export default function AnalyticsTab() {
         </button>
       </div>
       <p className="text-xs text-gray-400 mb-2">
-        {selectedGroup !== 'all' ? `🏫 ${groups.find(g => g.id === selectedGroup)?.name || 'Group'} · ` : ''}
+        {selectedGroup !== 'all' ? `🏫 ${groups.find(g => g.id === selectedGroup)?.group_name || groups.find(g => g.id === selectedGroup)?.name || 'Group'} · ` : ''}
         Data for last {range} vs previous {range}
       </p>
 

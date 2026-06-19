@@ -78,6 +78,9 @@ export default function TripDetail() {
   const [savePerWeek, setSavePerWeek] = useState('');
 
   useEffect(() => {
+    // Track page view - detail page
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Trip Detail', path: '/trip-planner/:id', category: 'detail_page' } });
+    
     base44.auth.me().then(async (u) => {
       setUser(u);
       const [t, d, e, p, a] = await Promise.all([

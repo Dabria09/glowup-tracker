@@ -535,8 +535,8 @@ export default function Dashboard() {
   useEffect(() => {localStorage.setItem('ggu_folders', JSON.stringify(folders));}, [folders]);
   useEffect(() => {localStorage.setItem('ggu_community_apps', JSON.stringify(communityIds));}, [communityIds]);
   useEffect(() => {
-    // Track page view with metadata
-    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Dashboard', path: '/dashboard' } });
+    // Track page view with metadata - main navigation screen
+    base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Dashboard', path: '/dashboard', category: 'main_nav' } });
   }, []);
 
   useEffect(() => {
