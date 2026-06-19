@@ -21,6 +21,8 @@ export default function ContentTab() {
   const [editingTip, setEditingTip] = useState(null);
   const [newMsg, setNewMsg] = useState({ title: '', content: '', message_type: 'written' });
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => { loadAll(); }, []);
 
@@ -38,37 +40,49 @@ export default function ContentTab() {
     setLoading(false);
   };
 
-  const addQuote = async () => {
-    if (!newQuote.quote_text.trim()) return;
+  const withSave = async (fn) => {
+    setSaving(true);
+    setSaveError('');
+    try {
+      await fn();
+    } catch (e) {
+      console.error(e);
+      setSaveError(e.message || 'Something went wrong. Please try again.');
+    }
+    setSaving(false);
+  };
+
+  const addQuote = () => withSave(async () => {
+    if (!newQuote.quote_text.trim()) { setSaveError('Quote text is required.'); return; }
     await base44.entities.AdminQuote.create(newQuote);
     setNewQuote({ quote_text: '', author: '', category: 'general' });
     loadAll();
-  };
+  });
 
-  const addTip = async () => {
-    if (!newTip.tip_text.trim()) return;
+  const addTip = () => withSave(async () => {
+    if (!newTip.tip_text.trim()) { setSaveError('Tip text is required.'); return; }
     const payload = { ...newTip };
     if (!payload.scheduled_date) delete payload.scheduled_date;
     await base44.entities.AdminGlowTip.create(payload);
     setNewTip({ tip_text: '', category: 'confidence', age_group: 'all', is_featured: false, scheduled_date: '' });
     loadAll();
-  };
+  });
 
-  const updateTip = async () => {
+  const updateTip = () => withSave(async () => {
     if (!editingTip) return;
     const payload = { ...editingTip };
     if (!payload.scheduled_date) delete payload.scheduled_date;
     await base44.entities.AdminGlowTip.update(editingTip.id, payload);
     setEditingTip(null);
     loadAll();
-  };
+  });
 
-  const addMsg = async () => {
-    if (!newMsg.title.trim() || !newMsg.content.trim()) return;
+  const addMsg = () => withSave(async () => {
+    if (!newMsg.title.trim() || !newMsg.content.trim()) { setSaveError('Title and message are required.'); return; }
     await base44.entities.MsGlowMessage.create(newMsg);
     setNewMsg({ title: '', content: '', message_type: 'written' });
     loadAll();
-  };
+  });
 
   const deleteShoutOut = async (id) => {
     await base44.entities.ShoutOut.delete(id);
@@ -94,15 +108,16 @@ export default function ContentTab() {
         <div className="space-y-4">
           <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
             <p className="font-bold text-white text-sm">Add New Quote</p>
-            <textarea value={newQuote.quote_text} onChange={e => setNewQuote({ ...newQuote, quote_text: e.target.value })} placeholder="Quote text..." className={inputCls} rows={3} />
+            <textarea value={newQuote.quote_text} onChange={e => { setSaveError(''); setNewQuote({ ...newQuote, quote_text: e.target.value }); }} placeholder="Quote text..." className={inputCls} rows={3} />
             <div className="grid grid-cols-2 gap-2">
               <input value={newQuote.author} onChange={e => setNewQuote({ ...newQuote, author: e.target.value })} placeholder="Author (optional)" className={inputCls} />
               <select value={newQuote.category} onChange={e => setNewQuote({ ...newQuote, category: e.target.value })} className={selectCls}>
                 {QUOTE_CATS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <button onClick={addQuote} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
-              <Plus size={16} /> Add Quote
+            {saveError && sub === 'Quotes' && <p className="text-xs text-red-400">{saveError}</p>}
+            <button onClick={addQuote} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+              {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Add Quote</>}
             </button>
           </div>
           {quotes.length === 0 ? <p className="text-center text-sm text-gray-500 py-4">No custom quotes yet.</p> : (
@@ -158,15 +173,18 @@ export default function ContentTab() {
                 className="w-4 h-4 accent-pink-500" />
               <span className="text-sm text-white">⭐ Feature this tip (shows in Today's Glow Tip)</span>
             </label>
+            {saveError && sub === 'Glow Tips' && <p className="text-xs text-red-400">{saveError}</p>}
             <div className="flex gap-2">
               {editingTip ? (
                 <>
-                  <button onClick={updateTip} className="flex-1 py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>Save Changes</button>
-                  <button onClick={() => setEditingTip(null)} className="px-4 py-3 rounded-2xl text-sm text-gray-400 bg-white/5">Cancel</button>
+                  <button onClick={updateTip} disabled={saving} className="flex-1 py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                    {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : 'Save Changes'}
+                  </button>
+                  <button onClick={() => { setEditingTip(null); setSaveError(''); }} className="px-4 py-3 rounded-2xl text-sm text-gray-400 bg-white/5">Cancel</button>
                 </>
               ) : (
-                <button onClick={addTip} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
-                  <Plus size={16} /> Add Glow Tip
+                <button onClick={addTip} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+                  {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Add Glow Tip</>}
                 </button>
               )}
             </div>
@@ -222,8 +240,9 @@ export default function ContentTab() {
             </div>
             <input value={newMsg.title} onChange={e => setNewMsg({ ...newMsg, title: e.target.value })} placeholder="Message title..." className={inputCls} />
             <textarea value={newMsg.content} onChange={e => setNewMsg({ ...newMsg, content: e.target.value })} placeholder="Your message to the girls..." className={inputCls} rows={4} />
-            <button onClick={addMsg} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
-              <Send size={16} /> Post Message
+            {saveError && sub === 'Ms. Glow Live' && <p className="text-xs text-red-400">{saveError}</p>}
+            <button onClick={addMsg} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+              {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Send size={16} /> Post Message</>}
             </button>
           </div>
           {messages.length === 0 ? <p className="text-center text-sm text-gray-500 py-4">No messages yet.</p> : (
