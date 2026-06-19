@@ -4,14 +4,7 @@
   "properties": {
     "rank_tier": {
       "type": "string",
-      "title": "Rank Tier",
-      "enum": [
-        "seed",
-        "sprout",
-        "bloom",
-        "radiant",
-        "luminary"
-      ]
+      "title": "Rank Tier"
     },
     "min_sessions": {
       "type": "number",

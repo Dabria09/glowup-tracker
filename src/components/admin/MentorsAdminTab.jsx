@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Mail, Phone, MapPin, BookOpen, Briefcase, GraduationCap, Star, Users, Heart, MessageSquare, Plus, Link2, ChefHat } from 'lucide-react';
+import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Mail, Phone, MapPin, BookOpen, Briefcase, GraduationCap, Star, Users, Heart, MessageSquare, Plus, Link2, ChefHat, Settings } from 'lucide-react';
+import MentorRankSettings from './MentorRankSettings';
 
 const STATUS_FILTERS = ['Pending', 'Approved', 'Rejected', 'All'];
 const RANK_FILTERS = ['All', 'Luminary', 'Radiant', 'Bloom', 'Sprout', 'Seed'];
@@ -625,6 +626,7 @@ export default function MentorsAdminTab() {
   const [mentorTypeFilter, setMentorTypeFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
+  const [showRankSettings, setShowRankSettings] = useState(false);
   const [newsletter, setNewsletter] = useState({ subject: '', body: '' });
   const [matches, setMatches] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -855,28 +857,38 @@ export default function MentorsAdminTab() {
       </div>
 
       {/* Rank Criteria Info */}
-      <div className="rounded-2xl p-4" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
-            <p className="text-sm font-bold text-purple-300 mb-2">🌟 Mentor Rank Progression</p>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-              {[
-                { tier: 'seed', label: 'Seed', req: '0-2 sessions', color: '#9ca3af' },
-                { tier: 'sprout', label: 'Sprout', req: '3-5 sessions', color: '#86efac' },
-                { tier: 'bloom', label: 'Bloom', req: '6-15 sessions', color: '#f472b6' },
-                { tier: 'radiant', label: 'Radiant', req: '16-30 + 4.5★', color: '#fbbf24' },
-                { tier: 'luminary', label: 'Luminary', req: '31+ + 4.8★', color: '#a855f7' },
-              ].map(r => (
-                <div key={r.tier} className="text-center rounded-xl p-2" style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${r.color}40` }}>
-                  <p className="text-xs font-bold" style={{ color: r.color }}>{r.label}</p>
-                  <p className="text-[9px] text-gray-400 mt-0.5">{r.req}</p>
-                </div>
-              ))}
-            </div>
-            <p className="text-[10px] text-gray-400 mt-2">
-              💡 Ranks update automatically based on completed sessions and average ratings. Manual refresh available above.
-            </p>
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
+        <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(168,85,247,0.2)' }}>
+          <div>
+            <p className="font-bold text-white text-sm flex items-center gap-2">🌟 Mentor Rank Progression</p>
+            <p className="text-xs text-gray-400 mt-0.5">Configure tier requirements and thresholds</p>
           </div>
+          <button
+            onClick={() => setShowRankSettings(true)}
+            className="px-3 py-1.5 rounded-full text-xs font-bold text-white flex items-center gap-1.5 transition hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg,#a855f7,#ec4899)', border: '1px solid rgba(168,85,247,0.4)' }}
+          >
+            <Settings size={12} /> Configure
+          </button>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+            {[
+              { tier: 'seed', label: 'Seed', req: '0-2 sessions', color: '#9ca3af' },
+              { tier: 'sprout', label: 'Sprout', req: '3-5 sessions', color: '#86efac' },
+              { tier: 'bloom', label: 'Bloom', req: '6-15 sessions', color: '#f472b6' },
+              { tier: 'radiant', label: 'Radiant', req: '16-30 + 4.5★', color: '#fbbf24' },
+              { tier: 'luminary', label: 'Luminary', req: '31+ + 4.8★', color: '#a855f7' },
+            ].map(r => (
+              <div key={r.tier} className="text-center rounded-xl p-2" style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${r.color}40` }}>
+                <p className="text-xs font-bold" style={{ color: r.color }}>{r.label}</p>
+                <p className="text-[9px] text-gray-400 mt-0.5">{r.req}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-gray-400 mt-3">
+            💡 Ranks update automatically based on completed sessions and average ratings. Tap Configure to adjust thresholds.
+          </p>
         </div>
       </div>
 
@@ -996,6 +1008,15 @@ export default function MentorsAdminTab() {
             <ApplicationCard key={app.id} app={app} onUpdate={load} matches={matches} groups={groups} setShowAssign={setShowAssign} setAssignForm={setAssignForm} />
           ))}
         </div>
+      )}
+
+      {/* Rank Settings Modal */}
+      {showRankSettings && (
+        <MentorRankSettings
+          isOpen={showRankSettings}
+          onClose={() => setShowRankSettings(false)}
+          onRefresh={load}
+        />
       )}
 
       {/* Assignment Modal */}
