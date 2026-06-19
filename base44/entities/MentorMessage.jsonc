@@ -1,0 +1,65 @@
+{
+  "name": "MentorMessage",
+  "type": "object",
+  "properties": {
+    "sender_email": {
+      "type": "string",
+      "title": "Sender Email"
+    },
+    "receiver_email": {
+      "type": "string",
+      "title": "Receiver Email"
+    },
+    "subject": {
+      "type": "string",
+      "title": "Subject"
+    },
+    "content": {
+      "type": "string",
+      "title": "Message Content"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "pending",
+        "in_progress",
+        "resolved",
+        "dismissed"
+      ],
+      "default": "pending"
+    },
+    "is_admin_message": {
+      "type": "boolean",
+      "title": "Is Admin-Directed",
+      "default": true
+    },
+    "is_admin_reply": {
+      "type": "boolean",
+      "title": "Is Admin Reply",
+      "default": false
+    },
+    "in_reply_to": {
+      "type": "string",
+      "title": "In Reply To (Message ID)"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "question",
+        "concern",
+        "technical_issue",
+        "safety_concern",
+        "feedback",
+        "other"
+      ],
+      "default": "question"
+    }
+  },
+  "required": [
+    "sender_email",
+    "subject",
+    "content"
+  ]
+}

@@ -11,7 +11,7 @@ import {
   loadMentorEntityByEmail,
 } from '@/lib/authRules';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2 } from 'lucide-react';
+import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2, Mail } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
 import MenteeDashboard from './MenteeDashboard';
 import ApplicationStatusTracker from './ApplicationStatusTracker';
@@ -245,9 +245,14 @@ export default function MentorDashboard() {
             <div style={{ fontSize: 11, color: '#f1b610', fontWeight: 600 }}>{tierLabel}</div>
           </div>
         </div>
-        <button onClick={() => setShowMenteeSearch(true)} style={{ padding: '7px 14px', borderRadius: 20, border: '1px solid rgba(241,182,16,0.35)', background: 'rgba(241,182,16,0.1)', color: '#f1b610', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-          Find Mentors
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => navigate('/mentor-contact-admin')} style={{ padding: '7px 14px', borderRadius: 20, border: '1px solid rgba(59,130,246,0.35)', background: 'rgba(59,130,246,0.1)', color: '#60a5fa', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Mail size={11} /> Contact Admin
+          </button>
+          <button onClick={() => setShowMenteeSearch(true)} style={{ padding: '7px 14px', borderRadius: 20, border: '1px solid rgba(241,182,16,0.35)', background: 'rgba(241,182,16,0.1)', color: '#f1b610', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+            Find Mentors
+          </button>
+        </div>
       </div>
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px 0' }}>

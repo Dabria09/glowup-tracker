@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell } from 'lucide-react';
+import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell, Inbox } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 
 import OverviewTab from '@/components/admin/OverviewTab';
@@ -14,6 +14,7 @@ import ContentModeration from '@/components/admin/ContentModeration';
 import MentorsAdminTab from '@/components/admin/MentorsAdminTab';
 import MentorActivityTab from '@/components/admin/MentorActivityTab';
 import MessagesAdminTab from '@/components/admin/MessagesAdminTab';
+import MentorInboxAdminTab from '@/components/admin/MentorInboxAdminTab';
 import KitchenMentorsTab from '@/components/admin/KitchenMentorsTab';
 import VideoMonitorTab from '@/components/admin/VideoMonitorTab';
 import MatchesTab from '@/components/admin/MatchesTab';
@@ -42,6 +43,7 @@ const TABS = [
   { id: 'moderation',  label: 'Moderation',        icon: Shield },
   { id: 'mentors',     label: 'Mentors',           icon: UserCheck },
   { id: 'messages',    label: 'Messages',          icon: MessageSquare },
+  { id: 'mentor_inbox', label: 'Mentor Inbox',     icon: Inbox },
   { id: 'mentor_activity', label: 'Mentor Activity', icon: TrendingUp },
   { id: 'kitchen',     label: 'Kitchen Mentors',   icon: ChefHat },
   { id: 'video',       label: 'Video',             icon: Video },
@@ -105,6 +107,7 @@ export default function AdminPanel() {
       case 'moderation': return <ContentModeration />;
       case 'mentors':    return <MentorsAdminTab />;
       case 'messages':   return <MessagesAdminTab />;
+      case 'mentor_inbox': return <MentorInboxAdminTab />;
       case 'mentor_activity': return <MentorActivityTab />;
       case 'kitchen':    return <KitchenMentorsTab />;
       case 'video':      return <VideoMonitorTab />;
