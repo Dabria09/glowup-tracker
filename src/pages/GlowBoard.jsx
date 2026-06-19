@@ -41,6 +41,8 @@ export default function GlowBoard() {
     description: '',
     category: 'Glow Style',
   });
+  const [featureSettings, setFeatureSettings] = useState(null);
+  const [featureLoading, setFeatureLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -51,14 +53,28 @@ export default function GlowBoard() {
           setUser(u);
         }
         
+        // Load feature settings
+        const settings = await base44.entities.GlowBoardSettings.list();
+        const activeSettings = settings[0] || { feature_enabled: true, accepting_submissions: true, require_approval: true };
+        setFeatureSettings(activeSettings);
+        
+        // Load posts - only approved if require_approval is true
         const allPosts = await base44.entities.GlowBoard.list();
-        const worldPosts = filterForWorld(allPosts);
+        let visiblePosts = allPosts;
+        
+        // If approval is required, only show approved posts
+        if (activeSettings.require_approval) {
+          visiblePosts = allPosts.filter(p => p.status === 'approved');
+        }
+        
+        const worldPosts = filterForWorld(visiblePosts);
         setPosts(worldPosts);
         setFilteredPosts(worldPosts);
       } catch (err) {
         console.error('Error loading glow board:', err);
       }
       setLoading(false);
+      setFeatureLoading(false);
     };
     
     loadData();
@@ -178,11 +194,30 @@ export default function GlowBoard() {
     }
   };
 
-  if (loading) return (
+  if (loading || featureLoading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#080810' }}>
       <div className="w-8 h-8 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" />
     </div>
   );
+
+  // Feature disabled check
+  if (featureSettings && !featureSettings.feature_enabled) {
+    return (
+      <div className="min-h-screen text-white pb-24 relative" style={{ backgroundColor: '#080810' }}>
+        <AppBackground />
+        <div className="relative z-10 px-4 pt-4 flex flex-col items-center justify-center min-h-[80vh] text-center">
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mb-6" style={{ background: 'rgba(239,68,68,0.15)', border: '2px solid rgba(239,68,68,0.3)' }}>
+            <span className="text-5xl">🚫</span>
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">Glow Board Temporarily Unavailable</h1>
+          <p className="text-gray-400 text-sm max-w-md">
+            {featureSettings.disabled_message || 'This feature is currently disabled. Please check back later!'}
+          </p>
+        </div>
+        <BottomNav active="discover" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-white pb-24 relative overflow-y-auto" style={{ backgroundColor: '#080810' }}>
@@ -207,13 +242,32 @@ export default function GlowBoard() {
             <h1 className="text-2xl font-bold">✨ The Glow Board</h1>
             <p className="text-xs text-gray-400">Your vision. Your vibe. Your future.</p>
           </div>
-          <button
-            onClick={() => setShowSubmitModal(true)}
-            className="px-4 py-2 rounded-full font-bold text-white text-sm bg-pink-500 hover:bg-pink-600 transition flex items-center gap-2"
-          >
-            <Plus size={16} /> Submit
-          </button>
+          {featureSettings?.accepting_submissions !== false && (
+            <button
+              onClick={() => setShowSubmitModal(true)}
+              className="px-4 py-2 rounded-full font-bold text-white text-sm bg-pink-500 hover:bg-pink-600 transition flex items-center gap-2"
+            >
+              <Plus size={16} /> Submit
+            </button>
+          )}
         </div>
+
+        {/* Submissions Paused Banner */}
+        {featureSettings?.accepting_submissions === false && (
+          <div className="mb-4 rounded-2xl p-4 border-2" style={{ background: 'rgba(245,158,11,0.08)', border: '2px solid rgba(245,158,11,0.35)' }}>
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.4)' }}>
+                <span className="text-lg">⏸️</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-amber-400">Submissions Temporarily Paused</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  New submissions are currently disabled. You can still browse and save existing posts.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Search */}
         <div className="relative mb-5">
@@ -347,8 +401,8 @@ export default function GlowBoard() {
 
       </div>
 
-      {/* Submit Modal */}
-      {showSubmitModal && (
+      {/* Submit Modal - Check if accepting submissions */}
+      {showSubmitModal && featureSettings?.accepting_submissions !== false && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end" onClick={() => setShowSubmitModal(false)}>
           <div
             className="w-full rounded-t-3xl flex flex-col max-h-[90vh] h-full"
