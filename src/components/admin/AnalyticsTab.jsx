@@ -24,7 +24,7 @@ export default function AnalyticsTab() {
   const [featureData, setFeatureData] = useState([]);
   const [topPages, setTopPages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [trendData, setTrendData] = useState({ dauTrend: 0, engagementTrend: 0 });
+  const [trendData, setTrendData] = useState({ dauTrend: 0, engagementTrend: 0, pageViewsTrend: 0 });
 
   useEffect(() => { load(); }, [range, selectedGroup]);
 
@@ -93,6 +93,11 @@ export default function AnalyticsTab() {
       });
       setTopPages(Object.entries(pageMap).sort((a, b) => b[1] - a[1]).slice(0, 5));
       
+      // Calculate page views trend
+      const currentPageViews = currentPoints.filter(p => p.action === 'page_view').length;
+      const previousPageViews = previousPoints.filter(p => p.action === 'page_view').length;
+      const pageViewsTrend = previousPageViews > 0 ? ((currentPageViews - previousPageViews) / previousPageViews) * 100 : currentPageViews > 0 ? 100 : 0;
+      
       // Calculate trends (current vs previous period)
       const currentDAU = currentPoints.reduce((set, p) => { set.add(p.user_email); return set; }, new Set()).size;
       const previousDAU = previousPoints.reduce((set, p) => { set.add(p.user_email); return set; }, new Set()).size;
@@ -102,7 +107,7 @@ export default function AnalyticsTab() {
       const previousEngagement = previousPoints.filter(p => p.action).length;
       const engagementTrend = previousEngagement > 0 ? ((currentEngagement - previousEngagement) / previousEngagement) * 100 : currentEngagement > 0 ? 100 : 0;
       
-      setTrendData({ dauTrend: Math.round(dauTrend * 10) / 10, engagementTrend: Math.round(engagementTrend * 10) / 10 });
+      setTrendData({ dauTrend: Math.round(dauTrend * 10) / 10, engagementTrend: Math.round(engagementTrend * 10) / 10, pageViewsTrend: Math.round(pageViewsTrend * 10) / 10 });
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -110,18 +115,38 @@ export default function AnalyticsTab() {
   const maxDaily = Math.max(...dailyUsers.map(d => d.count), 1);
 
   const exportCSV = () => {
-    const rows = [['Metric', 'Value', 'Trend']];
-    rows.push(['Daily Active Users (avg)', Math.round(dailyUsers.reduce((s, d) => s + d.count, 0) / (dailyUsers.length || 1)), trendData.dauTrend > 0 ? `+${trendData.dauTrend}%` : `${trendData.dauTrend}%`]);
-    rows.push(['Total Engagements', featureData.reduce((s, [, c]) => s + c, 0), trendData.engagementTrend > 0 ? `+${trendData.engagementTrend}%` : `${trendData.engagementTrend}%`]);
-    topPages.forEach(([page, count]) => rows.push(['Page View: ' + page, count, '']));
-    featureData.forEach(([action, count]) => rows.push(['Feature: ' + prettyAction(action), count, '']));
+    const rows = [
+      ['Girls Glowing Up™ Analytics Report', '', ''],
+      ['Generated:', new Date().toLocaleString(), ''],
+      ['Period:', `Last ${range}`, ''],
+      ['', '', ''],
+      ['=== SUMMARY METRICS ===', '', ''],
+      ['Metric', 'Value', 'Trend vs Prior Period'],
+      ['Daily Active Users (avg)', Math.round(dailyUsers.reduce((s, d) => s + d.count, 0) / (dailyUsers.length || 1)), trendData.dauTrend > 0 ? `+${trendData.dauTrend}%` : `${trendData.dauTrend}%`],
+      ['Total Engagements', featureData.reduce((s, [, c]) => s + c, 0), trendData.engagementTrend > 0 ? `+${trendData.engagementTrend}%` : `${trendData.engagementTrend}%`],
+      ['Total Page Views', topPages.reduce((s, [, c]) => s + c, 0), trendData.pageViewsTrend > 0 ? `+${trendData.pageViewsTrend}%` : `${trendData.pageViewsTrend}%`],
+      ['', '', ''],
+      ['=== TOP PAGES ===', '', ''],
+      ['Page Name', 'Views', ''],
+    ];
+    topPages.forEach(([page, count]) => rows.push([page, count, '']));
+    
+    rows.push(['', '', '']);
+    rows.push(['=== FEATURE ENGAGEMENT ===', '', '']);
+    rows.push(['Feature', 'Uses', '']);
+    featureData.forEach(([action, count]) => rows.push([prettyAction(action), count, '']));
+    
+    rows.push(['', '', '']);
+    rows.push(['=== DAILY ACTIVE USERS (Last 14 Days) ===', '', '']);
+    rows.push(['Date', 'Unique Users', '']);
+    dailyUsers.forEach(day => rows.push([day.date, day.count, '']));
     
     const csv = rows.map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `analytics-${range}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `GGU-Analytics-${range}-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -166,15 +191,23 @@ export default function AnalyticsTab() {
       {loading ? <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" /></div> : (
         <>
           <div className="p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="flex items-start gap-2 mb-3">
-              <BarChart2 size={14} className="text-pink-400 mt-0.5" />
-              <div>
-                <p className="text-sm font-bold text-white">Most Visited Pages</p>
-                <p className="text-[10px] text-gray-500 mt-0.5">
-                  Tracks in-app screens: Dashboard, Discover, Glow, Connect, Me, plus detail pages (e.g., Trip Detail, Community Detail). 
-                  Requires page_view tracking calls in each page component.
-                </p>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-start gap-2">
+                <BarChart2 size={14} className="text-pink-400 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-white">Most Visited Pages</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">
+                    Tracks in-app screens: Dashboard, Discover, Glow, Connect, Me, plus detail pages (e.g., Trip Detail, Community Detail). 
+                    Requires page_view tracking calls in each page component.
+                  </p>
+                </div>
               </div>
+              {topPages.length > 0 && (
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${trendData.pageViewsTrend >= 0 ? 'text-emerald-400' : 'text-red-400'}`} style={{ background: trendData.pageViewsTrend >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', border: `1px solid ${trendData.pageViewsTrend >= 0 ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
+                  {trendData.pageViewsTrend >= 0 ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
+                  {Math.abs(trendData.pageViewsTrend)}% vs prior {range}
+                </span>
+              )}
             </div>
             {topPages.length === 0 ? (
               <p className="text-xs text-gray-500">No page views recorded yet. Pages will appear here once users start visiting.</p>
