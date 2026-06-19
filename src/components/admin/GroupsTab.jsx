@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Copy, Users, Pencil, Trash2, Check, X, ChevronDown, ChevronUp, Archive, ArchiveRestore } from 'lucide-react';
+import { Plus, Copy, Users, Pencil, Trash2, Check, X, ChevronDown, ChevronUp, Archive, ArchiveRestore, ChevronRight } from 'lucide-react';
+import GroupDetailDashboard from './GroupDetailDashboard';
 
 function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -24,6 +25,7 @@ export default function GroupsTab() {
   const [members, setMembers] = useState({});
   const [membersLoading, setMembersLoading] = useState({});
   const [showArchived, setShowArchived] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState(null);
 
   useEffect(() => { load(); }, []);
 
@@ -122,6 +124,19 @@ export default function GroupsTab() {
 
   const inputCls = "w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-600 outline-none text-sm";
   const editInputCls = "w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none text-sm";
+
+  if (selectedGroup) {
+    return (
+      <GroupDetailDashboard
+        group={selectedGroup}
+        onBack={() => setSelectedGroup(null)}
+        onGroupUpdated={(updated) => {
+          setSelectedGroup(updated);
+          setGroups(prev => prev.map(g => g.id === updated.id ? { ...g, ...updated } : g));
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -250,11 +265,11 @@ export default function GroupsTab() {
                 ) : (
                   <>
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-white text-sm">{g.group_name}</p>
+                      <button className="flex-1 min-w-0 text-left group" onClick={() => setSelectedGroup(g)}>
+                        <p className="font-semibold text-white text-sm group-hover:text-purple-300 transition flex items-center gap-1">{g.group_name} <ChevronRight size={13} className="text-gray-600 group-hover:text-purple-400 transition" /></p>
                         {g.organization && <p className="text-xs text-gray-400">{g.organization}</p>}
                         {g.description && <p className="text-xs text-gray-500 mt-1">{g.description}</p>}
-                      </div>
+                      </button>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: 'rgba(59,130,246,0.2)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}>
                           {g.join_code}
@@ -270,7 +285,7 @@ export default function GroupsTab() {
                         }
                       </div>
                     </div>
-                    <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center justify-between mt-2" onClick={e => e.stopPropagation()}>
                       <button onClick={() => toggleMembers(g.id)} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition">
                         <Users size={11} />
                         <span>{members[g.id]?.length ?? g.member_count ?? 0} members</span>
