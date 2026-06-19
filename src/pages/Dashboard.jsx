@@ -535,6 +535,11 @@ export default function Dashboard() {
   useEffect(() => {localStorage.setItem('ggu_folders', JSON.stringify(folders));}, [folders]);
   useEffect(() => {localStorage.setItem('ggu_community_apps', JSON.stringify(communityIds));}, [communityIds]);
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Dashboard', path: '/dashboard' } });
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('ggu_widget_sizes', JSON.stringify(widgetSizes));
     // Also sync to UserProfile if profile exists
     if (profileId) {

@@ -30,9 +30,12 @@ export default function CareerExploration() {
   const [savedCareerIds, setSavedCareerIds] = useState([]);
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Careers', path: '/careers' } });
+    
     base44.auth.me().then(u => {
       setUser(u);
-      const saved = JSON.parse(localStorage.getItem(`ggu_careers_saved_${u.email}`) || '[]');
+      const saved = JSON.parse(localStorage.getItem(`glu_careers_saved_${u.email}`) || '[]');
       setSavedCareerIds(saved);
     }).catch(() => {});
   }, []);

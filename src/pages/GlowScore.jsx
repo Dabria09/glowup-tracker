@@ -41,6 +41,9 @@ export default function GlowScore() {
   const [expandedTier, setExpandedTier] = useState(null);
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Glow Score', path: '/glow-score' } });
+    
     base44.auth.me().then(async (u) => {
       setUser(u);
       const hist = await base44.entities.PointsHistory.filter({ user_email: u.email }, '-created_date', 200);

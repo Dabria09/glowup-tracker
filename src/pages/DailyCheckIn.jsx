@@ -84,6 +84,9 @@ export default function DailyCheckIn() {
   const todayKey = getTodayKey();
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Daily Check-in', path: '/daily-checkin' } });
+    
     base44.auth.me().then(async (u) => {
       setUser(u);
       const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });

@@ -31,6 +31,9 @@ export default function CommunityHub() {
   const [allCommunities, setAllCommunities] = useState([]);
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Community Hub', path: '/community-hub' } });
+    
     base44.auth.me().then(u => {
       setUser(u);
       // Fetch all communities

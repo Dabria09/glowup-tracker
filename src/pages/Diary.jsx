@@ -22,6 +22,9 @@ export default function Diary() {
   const [points, setPoints] = useState(0);
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Diary', path: '/diary' } });
+    
     base44.auth.me().then(async (u) => {
       setUser(u);
       const [data, pts] = await Promise.all([

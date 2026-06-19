@@ -41,6 +41,9 @@ export default function GlowTeams() {
   const [newTeam, setNewTeam] = useState({ name: '', description: '', category: 'Lifestyle & Vibes', emoji: '✨' });
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Glow Teams', path: '/glow-teams' } });
+    
     const loadData = async () => {
       // Load sample teams first for guest access
       setTeams(SAMPLE_TEAMS.map(t => ({ ...t, id: t.name })));

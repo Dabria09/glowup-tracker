@@ -59,6 +59,9 @@ export default function Mentorship() {
   const [selectedMentor, setSelectedMentor] = useState(null);
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Mentorship', path: '/mentorship' } });
+    
     loadData();
   }, []);
 

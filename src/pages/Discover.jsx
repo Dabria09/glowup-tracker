@@ -169,6 +169,9 @@ export default function Discover() {
   const { t } = useTranslation();
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Discover', path: '/discover' } });
+    
     base44.auth.me().then(async (u) => {
       const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
       if (pts.length) setTotalPoints(pts[0].total_points || 0);

@@ -35,6 +35,9 @@ export default function TripPlanner() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Trip Planner', path: '/trip-planner' } });
+    
     base44.auth.me().then(async (u) => {
       setUser(u);
       const data = await base44.entities.Trip.filter({ user_email: u.email });

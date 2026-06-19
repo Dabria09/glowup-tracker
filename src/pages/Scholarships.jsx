@@ -77,6 +77,9 @@ export default function Scholarships() {
   const [submittingWin, setSubmittingWin] = useState(false);
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Scholarships', path: '/scholarships' } });
+    
     base44.auth.me().then(async u => {
       setUser(u);
       const saved = JSON.parse(localStorage.getItem(`ggu_scholarships_saved_${u.email}`) || '[]');

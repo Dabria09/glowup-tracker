@@ -40,6 +40,9 @@ export default function MoneyTracker() {
   const tipIdx = new Date().getDay() % TIPS.length;
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Money Tracker', path: '/money-tracker' } });
+    
     base44.auth.me().then(u => {
       setUser(u);
       base44.entities.MoneyEntry.filter({ user_email: u.email }, '-created_date').then(setEntries);

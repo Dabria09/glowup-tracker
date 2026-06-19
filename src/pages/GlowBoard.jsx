@@ -45,6 +45,9 @@ export default function GlowBoard() {
   const [featureLoading, setFeatureLoading] = useState(true);
 
   useEffect(() => {
+    // Track page view
+    base44.analytics.track({ eventName: 'page_view', properties: { page: 'Glow Board', path: '/glow-board' } });
+    
     const loadData = async () => {
       try {
         const isAuth = await base44.auth.isAuthenticated();
