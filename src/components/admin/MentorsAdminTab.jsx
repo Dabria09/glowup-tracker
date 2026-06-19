@@ -234,25 +234,30 @@ export default function MentorsAdminTab() {
       </div>
 
       {/* Newsletter */}
-      <div className="p-4 rounded-2xl flex items-center justify-between" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)' }}>
-        <div>
-          <p className="font-bold text-white text-sm flex items-center gap-2">👑 Ms. Glow Newsletter</p>
-          <p className="text-xs text-gray-400 mt-0.5">Send a monthly newsletter to all approved mentors.</p>
-        </div>
-        <button onClick={() => setComposing(!composing)} className="px-3 py-1.5 rounded-full text-xs font-bold" style={{ background: 'rgba(251,191,36,0.2)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
-          Compose
-        </button>
-      </div>
-
-      {composing && (
-        <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <input value={newsletter.subject} onChange={e => setNewsletter({ ...newsletter, subject: e.target.value })} placeholder="Email subject..." className={inputCls} />
-          <textarea value={newsletter.body} onChange={e => setNewsletter({ ...newsletter, body: e.target.value })} placeholder="Newsletter body..." className={inputCls} rows={5} />
-          <button onClick={sendNewsletter} className="w-full py-3 rounded-2xl font-bold text-white text-sm" style={{ background: 'linear-gradient(135deg,#fbbf24,#f59e0b)' }}>
-            Send to All Approved Mentors
+      <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(251,191,36,0.3)' }}>
+        <div className="p-4 flex items-center justify-between" style={{ background: 'rgba(251,191,36,0.1)' }}>
+          <div>
+            <p className="font-bold text-white text-sm flex items-center gap-2">👑 Ms. Glow Newsletter</p>
+            <p className="text-xs text-gray-400 mt-0.5">Send a monthly newsletter to all approved mentors.</p>
+          </div>
+          <button onClick={() => setComposing(!composing)} className="px-3 py-1.5 rounded-full text-xs font-bold transition" style={{ background: composing ? 'rgba(251,191,36,0.4)' : 'rgba(251,191,36,0.2)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}>
+            {composing ? '✕ Close' : 'Compose'}
           </button>
         </div>
-      )}
+        {composing && (
+          <div className="p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.04)', borderTop: '1px solid rgba(251,191,36,0.2)' }}>
+            <p className="text-xs text-yellow-400 font-semibold">Recipients: {applications.filter(a => a.status === 'approved').length} approved mentor{applications.filter(a => a.status === 'approved').length !== 1 ? 's' : ''}</p>
+            <input value={newsletter.subject} onChange={e => setNewsletter({ ...newsletter, subject: e.target.value })} placeholder="Email subject..." className={inputCls} />
+            <textarea value={newsletter.body} onChange={e => setNewsletter({ ...newsletter, body: e.target.value })} placeholder="Newsletter body..." className={inputCls} rows={5} />
+            <button onClick={sendNewsletter} disabled={!newsletter.subject.trim() || applications.filter(a => a.status === 'approved').length === 0} className="w-full py-3 rounded-2xl font-bold text-white text-sm disabled:opacity-40" style={{ background: 'linear-gradient(135deg,#fbbf24,#f59e0b)' }}>
+              Send to All Approved Mentors
+            </button>
+            {applications.filter(a => a.status === 'approved').length === 0 && (
+              <p className="text-xs text-gray-500 text-center">No approved mentors yet — approve applications first.</p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto">
