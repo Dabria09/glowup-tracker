@@ -6,6 +6,12 @@ const CATEGORIES = ['Confidence','Friendships','Leadership','School','Bullying',
 
 const EMPTY = { question: '', category: 'Confidence', option_a: '', option_b: '', option_c: '', option_d: '', insight_a: '', insight_b: '', insight_c: '', insight_d: '', coaching_tip: '', points_awarded: 15, scheduled_date: '', is_active: true };
 
+// Get default poll points from config
+const getDefaultPollPoints = (config) => {
+  if (!config) return 15;
+  return config.daily_poll || config.daily_checkin || 15;
+};
+
 export default function PollsAdminTab() {
   const [polls, setPolls] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -14,13 +20,26 @@ export default function PollsAdminTab() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [pointsConfig, setPointsConfig] = useState(null);
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
     setLoading(true);
-    const data = await base44.entities.DailyPoll.list('-created_date', 50);
+    const [data, configList] = await Promise.all([
+      base44.entities.DailyPoll.list('-created_date', 50),
+      base44.entities.PointsConfig.list()
+    ]);
     setPolls(data);
+    // Parse points config JSON
+    if (configList && configList.length > 0) {
+      try {
+        const config = JSON.parse(configList[0].config_json);
+        setPointsConfig(config);
+      } catch (e) {
+        console.error('Failed to parse points config:', e);
+      }
+    }
     setLoading(false);
   };
 
@@ -114,7 +133,17 @@ export default function PollsAdminTab() {
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-1">Points Awarded</p>
-              <input type="number" value={form.points_awarded} onChange={f('points_awarded')} className="w-full text-sm text-white rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }} />
+              <input 
+                type="number" 
+                value={form.points_awarded} 
+                onChange={f('points_awarded')} 
+                className="w-full text-sm text-white rounded-xl p-2.5" 
+                style={{ background: pointsConfig?.daily_poll ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.08)', border: `1px solid ${pointsConfig?.daily_poll ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.15)'}` }} 
+                readOnly={!!pointsConfig?.daily_poll}
+              />
+              {pointsConfig?.daily_poll && (
+                <p className="text-[10px] text-green-400 mt-1">✨ Synced from Points Config</p>
+              )}
             </div>
           </div>
 
@@ -122,6 +151,12 @@ export default function PollsAdminTab() {
             <input type="checkbox" id="poll_active" checked={form.is_active} onChange={e => setForm(prev => ({ ...prev, is_active: e.target.checked }))} />
             <label htmlFor="poll_active" className="text-sm text-gray-300">Active (visible to users)</label>
           </div>
+
+          {pointsConfig && !pointsConfig.daily_poll && (
+            <div className="p-3 rounded-xl text-xs text-amber-300" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)' }}>
+              ⚠️ <strong>Warning:</strong> No "daily_poll" entry in Points Config. Add it to Points & Rewards to sync values automatically.
+            </div>
+          )}
 
           <button onClick={save} disabled={saving || !form.question || !form.option_a || !form.option_b}
             className="w-full py-3 rounded-xl font-bold text-white text-sm"
