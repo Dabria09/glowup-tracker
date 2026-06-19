@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Copy, Users, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Plus, Copy, Users, Pencil, Trash2, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -15,8 +15,11 @@ export default function GroupsTab() {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
-  const [newlyCreated, setNewlyCreated] = useState(null); // { group_name, join_code }
+  const [newlyCreated, setNewlyCreated] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
+  const [members, setMembers] = useState({}); // { [groupId]: [...] }
+  const [membersLoading, setMembersLoading] = useState({});
 
   useEffect(() => { load(); }, []);
 
@@ -49,6 +52,23 @@ export default function GroupsTab() {
     if (!confirm('Delete this group? This cannot be undone.')) return;
     await base44.entities.ClassGroup.delete(id);
     load();
+  };
+
+  const toggleMembers = async (groupId) => {
+    if (expandedId === groupId) { setExpandedId(null); return; }
+    setExpandedId(groupId);
+    if (members[groupId]) return; // already loaded
+    setMembersLoading(prev => ({ ...prev, [groupId]: true }));
+    try {
+      const result = await base44.entities.GroupMember.filter({ group_id: groupId }, '-joined_date');
+      setMembers(prev => ({ ...prev, [groupId]: result }));
+    } catch (e) { console.error(e); }
+    setMembersLoading(prev => ({ ...prev, [groupId]: false }));
+  };
+
+  const removeMember = async (groupId, memberId) => {
+    await base44.entities.GroupMember.delete(memberId);
+    setMembers(prev => ({ ...prev, [groupId]: prev[groupId].filter(m => m.id !== memberId) }));
   };
 
   const startEdit = (g) => { setEditingId(g.id); setEditForm({ group_name: g.group_name, organization: g.organization || '', description: g.description || '' }); };
@@ -128,9 +148,41 @@ export default function GroupsTab() {
                         <button onClick={() => deleteGroup(g.id)} className="text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
-                      <Users size={11} /> {g.member_count || 0} members
+                    <div className="flex items-center justify-between mt-2">
+                      <button onClick={() => toggleMembers(g.id)} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition">
+                        <Users size={11} />
+                        <span>{members[g.id]?.length ?? g.member_count ?? 0} members</span>
+                        {expandedId === g.id ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                      </button>
                     </div>
+
+                    {expandedId === g.id && (
+                      <div className="mt-3 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+                        {membersLoading[g.id] ? (
+                          <div className="flex justify-center py-4"><div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>
+                        ) : !members[g.id]?.length ? (
+                          <p className="text-xs text-gray-500 text-center py-4">No members have joined yet.</p>
+                        ) : (
+                          <div>
+                            <div className="px-3 py-2 flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{members[g.id].length} student{members[g.id].length !== 1 ? 's' : ''} joined</span>
+                            </div>
+                            {members[g.id].map(m => (
+                              <div key={m.id} className="flex items-center justify-between px-3 py-2" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div>
+                                  <p className="text-xs text-white font-medium">{m.display_name || m.username || m.user_email}</p>
+                                  {(m.display_name || m.username) && <p className="text-[10px] text-gray-500">{m.user_email}</p>}
+                                  {m.joined_date && <p className="text-[10px] text-gray-600">{new Date(m.joined_date).toLocaleDateString()}</p>}
+                                </div>
+                                <button onClick={() => removeMember(g.id, m.id)} className="text-red-400 hover:text-red-300 p-1" title="Remove from group">
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
               </div>

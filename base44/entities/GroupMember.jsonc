@@ -1,0 +1,34 @@
+{
+  "name": "GroupMember",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string",
+      "title": "Group ID"
+    },
+    "group_name": {
+      "type": "string",
+      "title": "Group Name"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "User Email"
+    },
+    "username": {
+      "type": "string",
+      "title": "Username"
+    },
+    "display_name": {
+      "type": "string",
+      "title": "Display Name"
+    },
+    "joined_date": {
+      "type": "string",
+      "title": "Joined Date"
+    }
+  },
+  "required": [
+    "group_id",
+    "user_email"
+  ]
+}
