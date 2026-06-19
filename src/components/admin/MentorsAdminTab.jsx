@@ -3,6 +3,22 @@ import { base44 } from '@/api/base44Client';
 import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Mail, Phone, MapPin, BookOpen, Briefcase, GraduationCap, Star, Users, Heart, MessageSquare, Plus, Link2, ChefHat, Settings } from 'lucide-react';
 import MentorRankSettings from './MentorRankSettings';
 
+const RANK_ICONS = {
+  seed: '🌱',
+  sprout: '🌿',
+  bloom: '🌸',
+  radiant: '✨',
+  luminary: '🌟',
+};
+
+const RANK_COLORS = {
+  seed: { color: '#9ca3af', bg: 'rgba(156,163,175,0.15)', border: 'rgba(156,163,175,0.3)' },
+  sprout: { color: '#86efac', bg: 'rgba(134,239,172,0.15)', border: 'rgba(134,239,172,0.3)' },
+  bloom: { color: '#f472b6', bg: 'rgba(244,114,182,0.15)', border: 'rgba(244,114,182,0.3)' },
+  radiant: { color: '#fbbf24', bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.3)' },
+  luminary: { color: '#a855f7', bg: 'rgba(168,85,247,0.15)', border: 'rgba(168,85,247,0.3)' },
+};
+
 const STATUS_FILTERS = ['Pending', 'Approved', 'Rejected', 'All'];
 const RANK_FILTERS = ['All', 'Luminary', 'Radiant', 'Bloom', 'Sprout', 'Seed'];
 const SESSION_TYPE_FILTERS = ['All', 'In-person', 'Video Call', 'Phone Call', 'Chat'];
@@ -27,7 +43,7 @@ const TEEN_CHECKLIST_KEYS = [
   { key: 'checklist_final_approved', label: 'Final Approval by Admin' },
 ];
 
-function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAssignForm }) {
+function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAssignForm, rankConfigs }) {
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('overview'); // 'overview' | 'details' | 'checklist'
@@ -79,17 +95,11 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
   };
 
   const RankProgress = ({ tier, sessionsCount, avgRating }) => {
-    const RANK_CRITERIA = [
-      { tier: 'seed', label: 'Seed', minSessions: 0, minRating: 0, desc: 'New mentor' },
-      { tier: 'sprout', label: 'Sprout', minSessions: 3, minRating: 0, desc: '3+ sessions' },
-      { tier: 'bloom', label: 'Bloom', minSessions: 6, minRating: 0, desc: '6+ sessions' },
-      { tier: 'radiant', label: 'Radiant', minSessions: 16, minRating: 4.5, desc: '16+ sessions, 4.5★' },
-      { tier: 'luminary', label: 'Luminary', minSessions: 31, minRating: 4.8, desc: '31+ sessions, 4.8★' },
-    ];
-    const currentIndex = RANK_CRITERIA.findIndex(r => r.tier === tier);
-    const nextRank = RANK_CRITERIA[currentIndex + 1];
-    const progress = nextRank
-      ? Math.min(100, (sessionsCount / nextRank.minSessions) * 100)
+    const sortedConfigs = [...rankConfigs].sort((a, b) => a.min_sessions - b.min_sessions);
+    const currentIndex = sortedConfigs.findIndex(r => r.rank_tier === tier);
+    const nextRank = sortedConfigs[currentIndex + 1];
+    const progress = nextRank && nextRank.min_sessions > 0
+      ? Math.min(100, (sessionsCount / nextRank.min_sessions) * 100)
       : 100;
 
     return (
@@ -101,12 +111,12 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
         {nextRank ? (
           <>
             <p className="text-[10px] text-gray-300 mb-1">
-              Next: <span className="font-semibold text-purple-300">{nextRank.label}</span> — {nextRank.desc}
+              Next: <span className="font-semibold text-purple-300">{nextRank.rank_tier.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span> — {nextRank.description}
             </p>
             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
               <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all" style={{ width: `${progress}%` }} />
             </div>
-            <p className="text-[9px] text-gray-500 mt-1">{Math.round(progress)}% to {nextRank.label}</p>
+            <p className="text-[9px] text-gray-500 mt-1">{Math.round(progress)}% to {nextRank.rank_tier.replace(/_/g, ' ')}</p>
           </>
         ) : (
           <p className="text-[10px] text-emerald-400">✅ Maximum rank achieved!</p>
@@ -696,21 +706,24 @@ export default function MentorsAdminTab() {
   const [assignForm, setAssignForm] = useState({ mentee_email: '', group_id: '', goal: '' });
   const [flaggedMentors, setFlaggedMentors] = useState([]);
   const [updatingTiers, setUpdatingTiers] = useState(false);
+  const [rankConfigs, setRankConfigs] = useState([]);
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
     setLoading(true);
     try {
-      const [apps, m, g, sessions] = await Promise.all([
+      const [apps, m, g, sessions, rankCfgs] = await Promise.all([
         base44.entities.MentorApplication.list('-created_date'),
         base44.entities.MentorshipProgress.list('-created_date'),
         base44.entities.ClassGroup.filter({ is_active: true }, '-created_date'),
         base44.entities.MentorSession.filter({ status: 'completed' }, '-session_date'),
+        base44.entities.MentorRankConfig.list('-min_sessions'),
       ]);
       setApplications(apps);
       setMatches(m);
       setGroups(g);
+      setRankConfigs(rankCfgs);
       
       // Calculate flagged mentors (low ratings or safety concerns)
       const mentorStats = {};
@@ -935,18 +948,18 @@ export default function MentorsAdminTab() {
         </div>
         <div className="p-4">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            {[
-              { tier: 'seed', label: 'Seed', req: '0-2 sessions', color: '#9ca3af' },
-              { tier: 'sprout', label: 'Sprout', req: '3-5 sessions', color: '#86efac' },
-              { tier: 'bloom', label: 'Bloom', req: '6-15 sessions', color: '#f472b6' },
-              { tier: 'radiant', label: 'Radiant', req: '16-30 + 4.5★', color: '#fbbf24' },
-              { tier: 'luminary', label: 'Luminary', req: '31+ + 4.8★', color: '#a855f7' },
-            ].map(r => (
-              <div key={r.tier} className="text-center rounded-xl p-2" style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${r.color}40` }}>
-                <p className="text-xs font-bold" style={{ color: r.color }}>{r.label}</p>
-                <p className="text-[9px] text-gray-400 mt-0.5">{r.req}</p>
-              </div>
-            ))}
+            {rankConfigs.length > 0 ? rankConfigs.sort((a, b) => a.min_sessions - b.min_sessions).map(cfg => {
+              const meta = RANK_COLORS[cfg.rank_tier] || { color: '#9ca3af' };
+              const icon = RANK_ICONS[cfg.rank_tier] || '🌱';
+              return (
+                <div key={cfg.id} className="text-center rounded-xl p-2" style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${meta.color}40` }}>
+                  <p className="text-xs font-bold" style={{ color: meta.color }}>{icon} {cfg.rank_tier.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                  <p className="text-[9px] text-gray-400 mt-0.5">{cfg.min_sessions}+ sessions{cfg.min_rating > 0 ? ` + ${cfg.min_rating}★` : ''}</p>
+                </div>
+              );
+            }) : (
+              <div className="col-span-5 text-center py-4 text-gray-500 text-xs">Loading rank configs...</div>
+            )}
           </div>
           <p className="text-[10px] text-gray-400 mt-3">
             💡 Ranks update automatically based on completed sessions and average ratings. Tap Configure to adjust thresholds.
@@ -1067,7 +1080,7 @@ export default function MentorsAdminTab() {
       ) : (
         <div className="space-y-3">
           {filtered.map(app => (
-            <ApplicationCard key={app.id} app={app} onUpdate={load} matches={matches} groups={groups} setShowAssign={setShowAssign} setAssignForm={setAssignForm} />
+            <ApplicationCard key={app.id} app={app} onUpdate={load} matches={matches} groups={groups} setShowAssign={setShowAssign} setAssignForm={setAssignForm} rankConfigs={rankConfigs} />
           ))}
         </div>
       )}

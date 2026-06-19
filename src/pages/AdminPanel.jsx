@@ -199,8 +199,8 @@ export default function AdminPanel() {
 
       {/* Notification Panel Modal */}
       {showNotificationPanel && (
-        <div className="fixed inset-0 z-50 flex items-start justify-end pt-16 pr-4" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowNotificationPanel(false)}>
-          <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-start justify-end pt-16 pr-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: '#1a0a2e', border: '1px solid rgba(255,255,255,0.1)' }}>
             {/* Header */}
             <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
               <div>
@@ -210,7 +210,7 @@ export default function AdminPanel() {
                 </h2>
                 <p className="text-xs text-gray-400 mt-0.5">{notificationCounts.total} pending items requiring attention</p>
               </div>
-              <button onClick={() => setShowNotificationPanel(false)} className="text-gray-400 hover:text-white">
+              <button onClick={() => { console.log('Closing notification panel'); setShowNotificationPanel(false); }} className="text-gray-400 hover:text-white">
                 <X size={20} />
               </button>
             </div>
