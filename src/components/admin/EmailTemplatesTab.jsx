@@ -373,23 +373,6 @@ export default function EmailTemplatesTab() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  async function seedDefaults() {
-    const me = await base44.auth.me();
-    for (const tpl of DEFAULT_TEMPLATES) {
-      try {
-        await base44.entities.EmailTemplate.create({
-          ...tpl,
-          created_by: me.email,
-          updated_by: me.email,
-          updated_date: new Date().toISOString(),
-        });
-      } catch (e) {
-        console.error('Failed to seed template:', tpl.template_key, e);
-      }
-    }
-    loadTemplates();
-  }
-
   if (loading) return <div className="flex justify-center py-16"><div className="w-6 h-6 border-4 border-purple-900 border-t-pink-500 rounded-full animate-spin" /></div>;
 
   return (
