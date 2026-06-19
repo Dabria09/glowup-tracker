@@ -4,6 +4,7 @@ import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Mail, Phone
 
 const STATUS_FILTERS = ['Pending', 'Approved', 'Rejected', 'All'];
 const RANK_FILTERS = ['All', 'Luminary', 'Radiant', 'Bloom', 'Sprout', 'Seed'];
+const SESSION_TYPE_FILTERS = ['All', 'In-person', 'Video Call', 'Phone Call', 'Chat'];
 
 const ADULT_CHECKLIST_KEYS = [
   { key: 'checklist_identity_verified', label: 'Identity Verified' },
@@ -598,6 +599,7 @@ export default function MentorsAdminTab() {
   const [applications, setApplications] = useState([]);
   const [statusFilter, setStatusFilter] = useState('Pending');
   const [rankFilter, setRankFilter] = useState('All');
+  const [sessionTypeFilter, setSessionTypeFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
   const [newsletter, setNewsletter] = useState({ subject: '', body: '' });
@@ -696,6 +698,7 @@ export default function MentorsAdminTab() {
       const mentorTier = a.mentor_tier || 'seed';
       if (mentorTier !== rankFilter.toLowerCase()) return false;
     }
+    if (sessionTypeFilter !== 'All' && a.session_type !== sessionTypeFilter) return false;
     return true;
   });
   const teenCount = applications.filter(a => a.mentor_track === 'teen').length;
@@ -862,6 +865,24 @@ export default function MentorsAdminTab() {
               {r === 'All' ? 'All Ranks' : `🌟 ${r}`}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Session Type Filter */}
+      <div className="flex gap-2 overflow-x-auto">
+        {SESSION_TYPE_FILTERS.map(t => (
+          <button key={t} onClick={() => setSessionTypeFilter(t)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${sessionTypeFilter === t ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+            style={sessionTypeFilter === t ? { background: t === 'In-person' ? 'linear-gradient(135deg,#10b981,#059669)' : 'linear-gradient(135deg,#3b82f6,#a855f7)' } : {}}>
+            {t === 'In-person' ? '📍 ' : t === 'Video Call' ? '📹 ' : t === 'Phone Call' ? '📞 ' : t === 'Chat' ? '💬 ' : ''}{t}
+          </button>
+        ))}
+      </div>
+      {sessionTypeFilter === 'In-person' && (
+        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)' }}>
+          <p className="text-xs text-emerald-400 font-semibold">
+            📍 Showing {filtered.length} in-person mentor{filtered.length !== 1 ? 's' : ''} — perfect for events &amp; community tables
+          </p>
         </div>
       )}
 
