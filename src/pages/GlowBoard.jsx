@@ -125,6 +125,17 @@ export default function GlowBoard() {
     if (!newPost.image_url.trim() || !newPost.category) return;
     
     try {
+      // Check if moderation is enabled
+      let status = 'pending'; // Default to pending
+      try {
+        const settings = await base44.entities.GlowBoardSettings.list();
+        if (settings.length > 0 && !settings[0].require_approval) {
+          status = 'approved';
+        }
+      } catch (e) {
+        console.error('Failed to check GlowBoard settings:', e);
+      }
+      
       await base44.entities.GlowBoard.create({
         user_email: user.email,
         username: user.full_name?.split('@')[0] || 'User',
@@ -136,6 +147,7 @@ export default function GlowBoard() {
         saves: 0,
         saved_by: '[]',
         age_group: ageGroup || undefined,
+        status: status,
       });
       
       await awardPoints(user.email, 'glow_board_post');

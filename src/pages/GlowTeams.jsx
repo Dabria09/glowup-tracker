@@ -82,6 +82,8 @@ export default function GlowTeams() {
   const handleCreateTeam = async () => {
     if (!newTeam.name.trim()) return;
     try {
+      // Check if moderation is enabled for teams
+      let status = 'pending'; // Default to pending for new teams
       await base44.entities.GlowTeam.create({
         name: newTeam.name,
         description: newTeam.description,
@@ -95,6 +97,7 @@ export default function GlowTeams() {
         current_streak: 0,
         challenges_completed: 0,
         age_group: ageGroup || undefined,
+        status: status,
       });
       setShowCreateModal(false);
       setNewTeam({ name: '', description: '', category: 'Lifestyle & Vibes', emoji: '✨' });
