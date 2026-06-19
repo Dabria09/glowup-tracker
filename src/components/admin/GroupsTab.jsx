@@ -10,6 +10,9 @@ export default function GroupsTab() {
   const [groups, setGroups] = useState([]);
   const [form, setForm] = useState({ group_name: '', organization: '', description: '' });
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState('');
 
   useEffect(() => { load(); }, []);
 
@@ -23,11 +26,19 @@ export default function GroupsTab() {
   };
 
   const create = async () => {
-    if (!form.group_name.trim()) return;
-    const code = generateCode();
-    await base44.entities.ClassGroup.create({ ...form, join_code: code });
-    setForm({ group_name: '', organization: '', description: '' });
-    load();
+    if (!form.group_name.trim()) { setSaveError('Group name is required.'); return; }
+    setSaving(true); setSaveError(''); setSaveSuccess('');
+    try {
+      const code = generateCode();
+      await base44.entities.ClassGroup.create({ ...form, join_code: code });
+      setForm({ group_name: '', organization: '', description: '' });
+      setSaveSuccess('Group created! ✅');
+      setTimeout(() => setSaveSuccess(''), 3000);
+      load();
+    } catch (e) {
+      setSaveError(e.message || 'Failed to create group. Please try again.');
+    }
+    setSaving(false);
   };
 
   const inputCls = "w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-600 outline-none text-sm";
@@ -39,8 +50,10 @@ export default function GroupsTab() {
         <input value={form.group_name} onChange={e => setForm({ ...form, group_name: e.target.value })} placeholder="Group name (e.g. Lincoln Middle — Period 3)" className={inputCls} />
         <input value={form.organization} onChange={e => setForm({ ...form, organization: e.target.value })} placeholder="School or organization name" className={inputCls} />
         <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Description (optional)" className={inputCls} />
-        <button onClick={create} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}>
-          <Plus size={16} /> Create Group &amp; Generate Code
+        {saveError && <p className="text-xs text-red-400">{saveError}</p>}
+        {saveSuccess && <p className="text-xs text-emerald-400 font-semibold">{saveSuccess}</p>}
+        <button onClick={create} disabled={saving} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#3b82f6,#a855f7)' }}>
+          {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Create Group &amp; Generate Code</>}
         </button>
       </div>
 
