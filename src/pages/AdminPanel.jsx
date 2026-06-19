@@ -12,6 +12,7 @@ import GroupsTab from '@/components/admin/GroupsTab';
 import AnnounceTab from '@/components/admin/AnnounceTab';
 import ContentModeration from '@/components/admin/ContentModeration';
 import MentorsAdminTab from '@/components/admin/MentorsAdminTab';
+import MentorActivityTab from '@/components/admin/MentorActivityTab';
 import KitchenMentorsTab from '@/components/admin/KitchenMentorsTab';
 import VideoMonitorTab from '@/components/admin/VideoMonitorTab';
 import MatchesTab from '@/components/admin/MatchesTab';
@@ -39,6 +40,7 @@ const TABS = [
   { id: 'announce',    label: 'Announce',          icon: Megaphone },
   { id: 'moderation',  label: 'Moderation',        icon: Shield },
   { id: 'mentors',     label: 'Mentors',           icon: UserCheck },
+  { id: 'mentor_activity', label: 'Mentor Activity', icon: TrendingUp },
   { id: 'kitchen',     label: 'Kitchen Mentors',   icon: ChefHat },
   { id: 'video',       label: 'Video',             icon: Video },
   { id: 'matches',     label: 'Matches',           icon: Link2 },
@@ -100,6 +102,7 @@ export default function AdminPanel() {
       case 'announce':   return <AnnounceTab />;
       case 'moderation': return <ContentModeration />;
       case 'mentors':    return <MentorsAdminTab />;
+      case 'mentor_activity': return <MentorActivityTab />;
       case 'kitchen':    return <KitchenMentorsTab />;
       case 'video':      return <VideoMonitorTab />;
       case 'matches':    return <MatchesTab />;
