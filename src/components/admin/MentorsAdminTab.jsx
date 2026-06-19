@@ -506,14 +506,21 @@ export default function MentorsAdminTab() {
   const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
   const [newsletter, setNewsletter] = useState({ subject: '', body: '' });
+  const [matches, setMatches] = useState([]);
+  const [showAssign, setShowAssign] = useState(null); // app.id if assigning
+  const [assignForm, setAssignForm] = useState({ mentee_email: '', group_id: '', goal: '' });
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
     setLoading(true);
     try {
-      const apps = await base44.entities.MentorApplication.list('-created_date');
+      const [apps, m] = await Promise.all([
+        base44.entities.MentorApplication.list('-created_date'),
+        base44.entities.MentorshipProgress.list('-created_date'),
+      ]);
       setApplications(apps);
+      setMatches(m);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -527,6 +534,26 @@ export default function MentorsAdminTab() {
     setComposing(false);
     setNewsletter({ subject: '', body: '' });
     alert(`Newsletter sent to ${approved.length} mentors!`);
+  };
+
+  const assignMentor = async (appId) => {
+    if (!assignForm.mentee_email.trim()) return;
+    const app = applications.find(a => a.id === appId);
+    await base44.entities.MentorshipProgress.create({
+      mentor_email: app.user_email,
+      mentee_email: assignForm.mentee_email,
+      goal: assignForm.goal || '',
+      group_id: assignForm.group_id || null,
+      progress_percentage: 0,
+      status: 'active',
+    });
+    setShowAssign(null);
+    setAssignForm({ mentee_email: '', group_id: '', goal: '' });
+    load();
+  };
+
+  const getMentorMatches = (mentorEmail) => {
+    return matches.filter(m => m.mentor_email === mentorEmail);
   };
 
   const filtered = filter === 'All' ? applications : applications.filter(a => a.status === filter.toLowerCase());
