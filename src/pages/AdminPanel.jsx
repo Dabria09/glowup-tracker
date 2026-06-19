@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert } from 'lucide-react';
+import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 
 import OverviewTab from '@/components/admin/OverviewTab';
@@ -63,13 +63,25 @@ export default function AdminPanel() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
+  const [pendingReports, setPendingReports] = useState(0);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
-      if (u.role !== 'admin') { navigate('/dashboard'); return; }
-      setUser(u);
-      setLoading(false);
-    }).catch(() => navigate('/dashboard'));
+    const load = async () => {
+      try {
+        const u = await base44.auth.me();
+        if (u.role !== 'admin') { navigate('/dashboard'); return; }
+        setUser(u);
+        
+        // Count pending reports
+        const reports = await base44.entities.ContentReport.filter({ status: 'pending' });
+        setPendingReports(reports.length);
+        
+        setLoading(false);
+      } catch (e) {
+        navigate('/dashboard');
+      }
+    };
+    load();
   }, []);
 
   if (loading) return (
@@ -123,9 +135,14 @@ export default function AdminPanel() {
               <h1 className="text-base font-bold leading-tight">GGU Admin Dashboard</h1>
               <p className="text-[10px] text-gray-400">Girls Glowing Up™</p>
             </div>
-            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
-              <Crown size={16} className="text-white" />
-            </div>
+            <button onClick={() => setActiveTab('moderation')} className="relative w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+              <Bell size={16} className="text-white" />
+              {pendingReports > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-[#080810]">
+                  {pendingReports > 9 ? '9+' : pendingReports}
+                </span>
+              )}
+            </button>
           </div>
 
           {/* Scrollable tab bar */}

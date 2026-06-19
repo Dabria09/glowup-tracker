@@ -13,7 +13,8 @@
         "follow",
         "reaction",
         "profile_view",
-        "shoutout"
+        "shoutout",
+        "moderation_alert"
       ],
       "default": "follow"
     },
@@ -41,6 +42,22 @@
       "type": "boolean",
       "title": "Is Read",
       "default": false
+    },
+    "priority": {
+      "type": "string",
+      "title": "Priority",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "metadata": {
+      "type": "string",
+      "title": "Metadata (JSON)",
+      "default": "{}"
     }
   },
   "required": [
