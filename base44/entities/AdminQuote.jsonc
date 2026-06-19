@@ -15,11 +15,16 @@
       "title": "Category",
       "enum": [
         "general",
-        "confidence",
         "wellness",
-        "career",
+        "financial_literacy",
+        "mentorship",
+        "career_exploration",
+        "civic_education",
+        "confidence",
         "spiritual",
-        "relationships"
+        "relationships",
+        "leadership",
+        "self_image"
       ],
       "default": "general"
     },
@@ -27,6 +32,11 @@
       "type": "boolean",
       "title": "Active",
       "default": true
+    },
+    "is_featured": {
+      "type": "boolean",
+      "title": "Featured",
+      "default": false
     }
   },
   "required": [

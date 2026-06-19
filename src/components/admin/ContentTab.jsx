@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Trash2, Send } from 'lucide-react';
+import { Plus, Trash2, Send, Eye, EyeOff, Star } from 'lucide-react';
+
+const QUOTE_MAX = 280;
 
 const SUB_TABS = ['Quotes', 'Glow Tips', 'Ms. Glow Live', 'Shout Outs'];
 
@@ -82,6 +84,8 @@ export default function ContentTab() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => { loadAll(); }, []);
 
@@ -99,11 +103,14 @@ export default function ContentTab() {
     setLoading(false);
   };
 
-  const withSave = async (fn) => {
+  const withSave = async (fn, successMsg = 'Saved! ✅') => {
     setSaving(true);
     setSaveError('');
+    setSaveSuccess('');
     try {
       await fn();
+      setSaveSuccess(successMsg);
+      setTimeout(() => setSaveSuccess(''), 3000);
     } catch (e) {
       console.error(e);
       setSaveError(e.message || 'Something went wrong. Please try again.');
@@ -155,10 +162,17 @@ export default function ContentTab() {
 
   const addQuote = () => withSave(async () => {
     if (!newQuote.quote_text.trim()) { setSaveError('Quote text is required.'); return; }
-    await base44.entities.AdminQuote.create(newQuote);
+    if (newQuote.quote_text.length > QUOTE_MAX) { setSaveError(`Quote must be ${QUOTE_MAX} characters or less.`); return; }
+    await base44.entities.AdminQuote.create({ ...newQuote, is_active: true, is_featured: false });
     setNewQuote({ quote_text: '', author: '', category: 'general' });
+    setShowPreview(false);
     loadAll();
-  });
+  }, 'Quote added! ✅');
+
+  const toggleQuoteField = async (q, field) => {
+    await base44.entities.AdminQuote.update(q.id, { [field]: !q[field] });
+    setQuotes(prev => prev.map(x => x.id === q.id ? { ...x, [field]: !x[field] } : x));
+  };
 
   const addTip = () => withSave(async () => {
     if (!newTip.tip_text.trim()) { setSaveError('Tip text is required.'); return; }
@@ -207,16 +221,49 @@ export default function ContentTab() {
 
       {sub === 'Quotes' && (
         <div className="space-y-4">
+          {/* Add form */}
           <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
             <p className="font-bold text-white text-sm">Add New Quote</p>
-            <textarea value={newQuote.quote_text} onChange={e => { setSaveError(''); setNewQuote({ ...newQuote, quote_text: e.target.value }); }} placeholder="Quote text..." className={inputCls} rows={3} />
+            <div className="relative">
+              <textarea
+                value={newQuote.quote_text}
+                onChange={e => { setSaveError(''); setSaveSuccess(''); setNewQuote({ ...newQuote, quote_text: e.target.value }); }}
+                placeholder="Quote text..."
+                className={inputCls}
+                rows={3}
+                maxLength={QUOTE_MAX}
+              />
+              <span className={`absolute bottom-2 right-3 text-[10px] ${newQuote.quote_text.length > QUOTE_MAX * 0.9 ? 'text-red-400' : 'text-gray-600'}`}>
+                {newQuote.quote_text.length}/{QUOTE_MAX}
+              </span>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <input value={newQuote.author} onChange={e => setNewQuote({ ...newQuote, author: e.target.value })} placeholder="Author (optional)" className={inputCls} />
               <select value={newQuote.category} onChange={e => setNewQuote({ ...newQuote, category: e.target.value })} className={selectCls}>
                 {QUOTE_CATS.map(c => <option key={c} value={c} style={{ background: '#1a0a2e' }}>{QUOTE_CAT_LABELS[c] || c}</option>)}
               </select>
             </div>
+
+            {/* Preview toggle */}
+            {newQuote.quote_text.trim() && (
+              <button onClick={() => setShowPreview(p => !p)} className="flex items-center gap-1.5 text-xs text-purple-400">
+                {showPreview ? <EyeOff size={13} /> : <Eye size={13} />}
+                {showPreview ? 'Hide Preview' : 'Preview how it looks in-app'}
+              </button>
+            )}
+            {showPreview && newQuote.quote_text.trim() && (
+              <div className="rounded-2xl p-4 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.25), rgba(236,72,153,0.15))', border: '1px solid rgba(168,85,247,0.35)' }}>
+                <p className="text-[10px] font-bold tracking-wider text-pink-400 mb-2">PREVIEW · How it appears to girls</p>
+                {newQuote.category && <span className="text-[10px] text-purple-300 mb-2 block">{QUOTE_CAT_LABELS[newQuote.category] || newQuote.category}</span>}
+                <p className="text-2xl font-bold text-purple-300 mb-2 leading-none opacity-60">"</p>
+                <p className="text-base font-bold text-white leading-relaxed mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>{newQuote.quote_text}</p>
+                {newQuote.author && <p className="text-xs text-pink-300 font-semibold">— {newQuote.author}</p>}
+              </div>
+            )}
+
             {saveError && sub === 'Quotes' && <p className="text-xs text-red-400">{saveError}</p>}
+            {saveSuccess && sub === 'Quotes' && <p className="text-xs text-emerald-400 font-semibold">{saveSuccess}</p>}
+
             <div className="flex gap-2">
               <button onClick={addQuote} disabled={saving} className="flex-1 py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
                 {saving ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <><Plus size={16} /> Add Quote</>}
@@ -228,16 +275,45 @@ export default function ContentTab() {
             </div>
             <p className="text-[10px] text-gray-600">CSV columns: <span className="text-gray-500">quote_text, author (optional), category (optional)</span></p>
           </div>
+
+          {/* Quote list */}
           {quotes.length === 0 ? <p className="text-center text-sm text-gray-500 py-4">No custom quotes yet.</p> : (
             <div className="space-y-2">
               {quotes.map(q => (
-                <div key={q.id} className="p-3 rounded-2xl flex items-start gap-2" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div className="flex-1">
-                    <p className="text-sm text-white">"{q.quote_text}"</p>
-                    {q.author && <p className="text-xs text-gray-400 mt-1">— {q.author}</p>}
-                    <span className="text-[10px] text-pink-400">{q.category}</span>
+                <div key={q.id} className="p-3 rounded-2xl flex items-start gap-2" style={{
+                  background: q.is_active === false ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.05)',
+                  border: `1px solid ${q.is_active === false ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.1)'}`,
+                  opacity: q.is_active === false ? 0.6 : 1,
+                }}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white leading-snug">"{q.quote_text}"</p>
+                    {q.author && <p className="text-xs text-gray-400 mt-0.5">— {q.author}</p>}
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="text-[10px] text-pink-400">{QUOTE_CAT_LABELS[q.category] || q.category}</span>
+                      {q.is_featured && <span className="text-[10px] text-yellow-400">⭐ Featured</span>}
+                      {q.is_active === false && <span className="text-[10px] text-gray-500">Inactive</span>}
+                    </div>
                   </div>
-                  <button onClick={() => base44.entities.AdminQuote.delete(q.id).then(loadAll)} className="text-red-400 hover:text-red-300"><Trash2 size={14} /></button>
+                  <div className="flex flex-col gap-1.5 flex-shrink-0 items-end">
+                    {/* Active toggle */}
+                    <button
+                      onClick={() => toggleQuoteField(q, 'is_active')}
+                      title={q.is_active === false ? 'Activate' : 'Deactivate'}
+                      className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full transition"
+                      style={{ background: q.is_active === false ? 'rgba(255,255,255,0.06)' : 'rgba(16,185,129,0.15)', border: `1px solid ${q.is_active === false ? 'rgba(255,255,255,0.1)' : 'rgba(16,185,129,0.35)'}`, color: q.is_active === false ? '#6b7280' : '#34d399' }}>
+                      {q.is_active === false ? <EyeOff size={10} /> : <Eye size={10} />}
+                      {q.is_active === false ? 'Off' : 'On'}
+                    </button>
+                    {/* Featured toggle */}
+                    <button
+                      onClick={() => toggleQuoteField(q, 'is_featured')}
+                      title={q.is_featured ? 'Unfeature' : 'Feature'}
+                      className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full transition"
+                      style={{ background: q.is_featured ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.06)', border: `1px solid ${q.is_featured ? 'rgba(251,191,36,0.4)' : 'rgba(255,255,255,0.1)'}`, color: q.is_featured ? '#fbbf24' : '#6b7280' }}>
+                      <Star size={10} /> {q.is_featured ? 'Featured' : 'Feature'}
+                    </button>
+                    <button onClick={() => base44.entities.AdminQuote.delete(q.id).then(loadAll)} className="text-red-400 hover:text-red-300 p-1"><Trash2 size={13} /></button>
+                  </div>
                 </div>
               ))}
             </div>
