@@ -9,44 +9,37 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin or moderator in any community
-    const userCommunities = await base44.entities.CommunityMember.filter({ 
-      user_email: user.email,
-      role: ['admin', 'moderator']
-    });
-
-    if (userCommunities.length === 0 && user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin or Moderator access required' }, { status: 403 });
+    // Only admins can view reported content
+    if (user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // Get all community IDs where user is admin/moderator
-    const communityIds = userCommunities.map(m => m.community_id);
+    // Fetch all pending/reviewed reports
+    const reports = await base44.entities.ContentReport.filter({}, '-created_date');
 
-    // Fetch all posts from those communities
-    let allPosts = [];
-    for (const commId of communityIds) {
-      const posts = await base44.entities.CommunityPost.filter({ community_id: commId }, '-created_date');
-      allPosts = [...allPosts, ...posts];
-    }
-
-    // If platform admin, get all posts
-    if (user.role === 'admin') {
-      allPosts = await base44.entities.CommunityPost.filter({}, '-created_date');
-    }
-
-    // Get community info for each post
-    const postsWithCommunity = await Promise.all(
-      allPosts.map(async (post) => {
-        const community = await base44.entities.Community.get(post.community_id);
+    // Enrich with content details
+    const enrichedReports = await Promise.all(
+      reports.map(async (report) => {
+        let content = null;
+        try {
+          if (report.content_type === 'shoutout') {
+            content = await base44.entities.ShoutOut.get(report.reported_content_id);
+          } else if (report.content_type === 'community_post') {
+            content = await base44.entities.CommunityPost.get(report.reported_content_id);
+          }
+        } catch (e) {
+          // Content may have been deleted - that's ok, show snapshot
+        }
+        
         return {
-          ...post,
-          community_name: community?.name || 'Unknown',
-          community_type: community?.type || 'unknown',
+          ...report,
+          content: content || null,
+          content_text: content?.content || content?.message || report.content_snapshot || 'Content unavailable',
         };
       })
     );
 
-    return Response.json({ posts: postsWithCommunity });
+    return Response.json({ reports: enrichedReports });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

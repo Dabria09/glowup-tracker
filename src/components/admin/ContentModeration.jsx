@@ -203,16 +203,22 @@ export default function ContentModeration() {
               <p className="text-gray-400 text-sm">No reported posts.</p>
             </div>
           )}
-          {reported.map((post, i) => (
-            <div key={i} className="rounded-2xl p-4" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+          {reported.map((report, i) => (
+            <div key={report.id || i} className="rounded-2xl p-4" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <AlertTriangle size={12} className="text-red-400 flex-shrink-0" />
                     <p className="text-xs font-bold text-red-400">REPORTED</p>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full capitalize" style={{ background: 'rgba(168,85,247,0.2)', color: '#a855f7' }}>{report.reason.replace('_', ' ')}</span>
+                    <span className="text-[10px] text-gray-500">{report.content_type === 'shoutout' ? '📢 Shout Out' : '💬 Community'}</span>
                   </div>
-                  <p className="text-sm text-gray-200 leading-relaxed">{post.content || post.message || 'No content'}</p>
-                  <p className="text-[10px] text-gray-500 mt-1">{post.user_email} · {timeAgo(post.created_date)}</p>
+                  <p className="text-sm text-gray-200 leading-relaxed">{report.content_text}</p>
+                  <p className="text-[10px] text-gray-500 mt-1">Reported by {report.reported_by?.split('@')[0]} · {timeAgo(report.created_date)}</p>
+                  {report.description && <p className="text-[10px] text-gray-400 mt-1 italic">"{report.description}"</p>}
+                  {report.status !== 'pending' && (
+                    <p className="text-[10px] text-gray-500 mt-1">Status: <span className="capitalize">{report.status}</span>{report.reviewed_by ? ` · Reviewed by ${report.reviewed_by.split('@')[0]}` : ''}</p>
+                  )}
                 </div>
               </div>
             </div>

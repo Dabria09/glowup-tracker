@@ -1,0 +1,72 @@
+{
+  "name": "ContentReport",
+  "type": "object",
+  "properties": {
+    "reported_content_id": {
+      "type": "string",
+      "title": "Reported Content ID"
+    },
+    "content_type": {
+      "type": "string",
+      "title": "Content Type",
+      "enum": [
+        "shoutout",
+        "community_post",
+        "comment"
+      ]
+    },
+    "content_snapshot": {
+      "type": "string",
+      "title": "Content Snapshot"
+    },
+    "reported_by": {
+      "type": "string",
+      "title": "Reporter Email"
+    },
+    "reason": {
+      "type": "string",
+      "title": "Reason",
+      "enum": [
+        "profanity",
+        "hate_speech",
+        "harassment",
+        "spam",
+        "inappropriate",
+        "other"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "title": "Additional Details"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "pending",
+        "reviewed",
+        "resolved",
+        "dismissed"
+      ],
+      "default": "pending"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "title": "Reviewed By (Admin Email)"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "title": "Reviewed Date"
+    },
+    "resolution_notes": {
+      "type": "string",
+      "title": "Resolution Notes"
+    }
+  },
+  "required": [
+    "reported_content_id",
+    "content_type",
+    "reported_by",
+    "reason"
+  ]
+}

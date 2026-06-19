@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppBackground from '@/components/AppBackground';
 import BottomNav from '@/components/BottomNav';
-import { ChevronLeft, Heart, Send, Image, X as XIcon } from 'lucide-react';
+import { ChevronLeft, Heart, Send, Image, X as XIcon, Flag } from 'lucide-react';
 import { toast } from 'sonner';
 import useAgeGroup from '@/lib/useAgeGroup';
 
@@ -225,17 +225,37 @@ export default function ShoutOuts() {
                     <Heart size={16} fill={liked ? 'currentColor' : 'none'} />
                     <span>{post.likes || 0}</span>
                   </button>
-                  {(post.user_email === user.email || user.role === 'admin') && (
-                    <button
-                      onClick={async () => {
-                        if (!window.confirm('Delete this shout out?')) return;
-                        await base44.entities.ShoutOut.delete(post.id);
-                        setPosts(prev => prev.filter(p => p.id !== post.id));
-                      }}
-                      className="text-gray-600 hover:text-red-400 transition text-xs">
-                      Delete
-                    </button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {post.user_email !== user.email && (
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Report this post for review?\n\nReason: Inappropriate content\n\nThis will send an anonymous report to GGU admins.`)) return;
+                          await base44.entities.ContentReport.create({
+                            reported_content_id: post.id,
+                            content_type: 'shoutout',
+                            content_snapshot: post.content,
+                            reported_by: user.email,
+                            reason: 'inappropriate',
+                            status: 'pending',
+                          });
+                          toast.success('Report submitted. Thank you for keeping GGU safe! 💜');
+                        }}
+                        className="text-gray-600 hover:text-amber-400 transition text-xs flex items-center gap-1">
+                        <Flag size={12} /> Report
+                      </button>
+                    )}
+                    {(post.user_email === user.email || user.role === 'admin') && (
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm('Delete this shout out?')) return;
+                          await base44.entities.ShoutOut.delete(post.id);
+                          setPosts(prev => prev.filter(p => p.id !== post.id));
+                        }}
+                        className="text-gray-600 hover:text-red-400 transition text-xs">
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
