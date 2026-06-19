@@ -34,6 +34,7 @@ import DeleteUsersTab from '@/components/admin/DeleteUsersTab';
 import BannedWordsTab from '@/components/admin/BannedWordsTab';
 import AffiliatesAdminTab from '@/components/admin/AffiliatesAdminTab';
 import FoundingMembersAdminTab from '@/components/admin/FoundingMembersAdminTab';
+import EmailTemplatesTab from '@/components/admin/EmailTemplatesTab';
 
 const TABS = [
   { id: 'overview',    label: 'Overview',         icon: BarChart2 },
@@ -66,6 +67,7 @@ const TABS = [
   { id: 'bannedwords',  label: '🚫 Banned Words',   icon: ShieldAlert },
   { id: 'affiliates',  label: '💰 Affiliates',   icon: DollarSign },
   { id: 'founding',  label: '👑 Founding',   icon: Trophy },
+  { id: 'email_templates',  label: '📧 Email Templates',   icon: Mail },
 ];
 
 export default function AdminPanel() {
@@ -158,6 +160,7 @@ export default function AdminPanel() {
       case 'bannedwords':  return <BannedWordsTab />;
       case 'affiliates':   return <AffiliatesAdminTab />;
       case 'founding':     return <FoundingMembersAdminTab />;
+      case 'email_templates': return <EmailTemplatesTab />;
       default:             return <OverviewTab />;
     }
   };

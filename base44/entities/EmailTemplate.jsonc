@@ -1,0 +1,85 @@
+{
+  "name": "EmailTemplate",
+  "type": "object",
+  "properties": {
+    "template_key": {
+      "type": "string",
+      "title": "Template Key (unique identifier)"
+    },
+    "name": {
+      "type": "string",
+      "title": "Template Name"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "subject": {
+      "type": "string",
+      "title": "Email Subject"
+    },
+    "from_name": {
+      "type": "string",
+      "title": "Sender Name",
+      "default": "Girls Glowing Up"
+    },
+    "body_template": {
+      "type": "string",
+      "title": "Email Body (HTML/Text with variables)"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "streak_reminder",
+        "moderation_alert",
+        "welcome",
+        "newsletter",
+        "parental_consent",
+        "mentor_application",
+        "session_reminder",
+        "achievement",
+        "password_reset",
+        "other"
+      ]
+    },
+    "is_active": {
+      "type": "boolean",
+      "title": "Active",
+      "default": true
+    },
+    "variables": {
+      "type": "string",
+      "title": "Available Variables (JSON array)",
+      "default": "[]"
+    },
+    "last_used_date": {
+      "type": "string",
+      "title": "Last Used Date"
+    },
+    "times_sent": {
+      "type": "number",
+      "title": "Times Sent",
+      "default": 0
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Created By (Admin Email)"
+    },
+    "updated_by": {
+      "type": "string",
+      "title": "Last Updated By (Admin Email)"
+    },
+    "updated_date": {
+      "type": "string",
+      "title": "Last Updated Date"
+    }
+  },
+  "required": [
+    "template_key",
+    "name",
+    "subject",
+    "body_template",
+    "category"
+  ]
+}
