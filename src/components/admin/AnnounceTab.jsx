@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Trash2 } from 'lucide-react';
+import { Send, Trash2, Pencil } from 'lucide-react';
 
 export default function AnnounceTab() {
   const [announcements, setAnnouncements] = useState([]);
   const [groups, setGroups] = useState([]);
   const [form, setForm] = useState({ title: '', body: '', send_to: 'all', group_id: '', scheduled_date: '' });
   const [sending, setSending] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState(null);
 
   useEffect(() => { load(); }, []);
 
@@ -51,28 +53,64 @@ export default function AnnounceTab() {
     setAnnouncements(prev => prev.filter(a => a.id !== id));
   };
 
+  const startEdit = (a) => {
+    setEditingId(a.id);
+    setEditForm({ title: a.title, body: a.body, send_to: a.send_to, group_id: a.group_id || '', scheduled_date: a.scheduled_date || '' });
+  };
+
+  const saveEdit = async () => {
+    if (!editForm.title.trim() || !editForm.body.trim()) return;
+    if (editForm.send_to === 'specific_group' && !editForm.group_id) { alert('Please select a group'); return; }
+    try {
+      const selectedGroup = groups.find(g => g.id === editForm.group_id);
+      await base44.entities.Announcement.update(editingId, {
+        title: editForm.title,
+        body: editForm.body,
+        send_to: editForm.send_to,
+        group_id: editForm.send_to === 'specific_group' ? editForm.group_id : null,
+        target_group_name: selectedGroup?.group_name || null,
+        scheduled_date: editForm.scheduled_date || null,
+        status: editForm.scheduled_date ? 'scheduled' : 'sent',
+      });
+      setEditingId(null);
+      setEditForm(null);
+      load();
+    } catch (e) { console.error(e); }
+  };
+
   const inputCls = "w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-600 outline-none text-sm";
+  const editInputCls = "w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none text-sm";
 
   return (
     <div className="space-y-5">
       <div className="p-4 rounded-2xl space-y-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-        <p className="font-bold text-white text-sm flex items-center gap-2">📣 New Announcement</p>
-        <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Announcement title..." className={inputCls} />
-        <textarea value={form.body} onChange={e => setForm({ ...form, body: e.target.value })} placeholder="Message body..." className={inputCls} rows={4} />
+        <p className="font-bold text-white text-sm flex items-center gap-2">{editingId ? '✏️ Edit Announcement' : '📣 New Announcement'}</p>
+        {editingId && editForm && (
+          <>
+            <input value={editForm.title} onChange={e => setEditForm({ ...editForm, title: e.target.value })} className={editInputCls} />
+            <textarea value={editForm.body} onChange={e => setEditForm({ ...editForm, body: e.target.value })} className={editInputCls} rows={4} />
+          </>
+        )}
+        {!editingId && (
+          <>
+            <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Announcement title..." className={inputCls} />
+            <textarea value={form.body} onChange={e => setForm({ ...form, body: e.target.value })} placeholder="Message body..." className={inputCls} rows={4} />
+          </>
+        )}
         <div>
           <p className="text-xs text-gray-400 mb-2">Send to:</p>
           <div className="flex gap-2">
             {['all', 'specific_group'].map(opt => (
-              <button key={opt} onClick={() => setForm({ ...form, send_to: opt, group_id: '' })}
-                className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${form.send_to === opt ? 'text-white' : 'text-gray-400 bg-white/5'}`}
-                style={form.send_to === opt ? { background: 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}>
+              <button key={opt} onClick={() => editingId ? setEditForm({ ...editForm, send_to: opt, group_id: '' }) : setForm({ ...form, send_to: opt, group_id: '' })}
+                className={`flex-1 py-2 rounded-full text-sm font-semibold transition ${(editingId ? editForm.send_to : form.send_to) === opt ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+                style={(editingId ? editForm.send_to : form.send_to) === opt ? { background: 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}>
                 {opt === 'all' ? 'All Users' : 'Specific Group'}
               </button>
             ))}
           </div>
-          {form.send_to === 'specific_group' && (
+          {(editingId ? editForm?.send_to : form.send_to) === 'specific_group' && (
             <div className="mt-3">
-              <select value={form.group_id} onChange={e => setForm({ ...form, group_id: e.target.value })} className={inputCls}>
+              <select value={editingId ? editForm.group_id : form.group_id} onChange={e => editingId ? setEditForm({ ...editForm, group_id: e.target.value }) : setForm({ ...form, group_id: e.target.value })} className={inputCls}>
                 <option value="" style={{ background: '#1a0a2e' }}>Select a group...</option>
                 {groups.map(g => (
                   <option key={g.id} value={g.id} style={{ background: '#1a0a2e' }}>{g.group_name} {g.organization ? `— ${g.organization}` : ''}</option>
@@ -84,11 +122,20 @@ export default function AnnounceTab() {
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-2">Schedule (optional — leave blank to send now):</p>
-          <input type="datetime-local" value={form.scheduled_date} onChange={e => setForm({ ...form, scheduled_date: e.target.value })} className={inputCls} />
+          <input type="datetime-local" value={editingId ? editForm?.scheduled_date : form.scheduled_date} onChange={e => editingId ? setEditForm({ ...editForm, scheduled_date: e.target.value }) : setForm({ ...form, scheduled_date: e.target.value })} className={inputCls} />
         </div>
-        <button onClick={send} disabled={sending} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-50" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
-          <Send size={16} /> {sending ? 'Sending...' : 'Send Now'}
-        </button>
+        {editingId ? (
+          <div className="flex gap-2">
+            <button onClick={saveEdit} disabled={sending} className="flex-1 py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-50" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+              <Pencil size={16} /> {sending ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button onClick={() => { setEditingId(null); setEditForm(null); }} className="px-4 py-3 rounded-2xl text-sm text-gray-400 bg-white/5">Cancel</button>
+          </div>
+        ) : (
+          <button onClick={send} disabled={sending} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-50" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
+            <Send size={16} /> {sending ? 'Sending...' : 'Send Now'}
+          </button>
+        )}
       </div>
 
       {announcements.length === 0 ? <p className="text-center text-sm text-gray-500 py-4">No announcements yet.</p> : (
@@ -99,6 +146,9 @@ export default function AnnounceTab() {
                 <p className="font-semibold text-white text-sm">{a.title}</p>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${a.status === 'sent' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{a.status}</span>
+                  {a.status === 'scheduled' && (
+                    <button onClick={() => startEdit(a)} className="text-blue-400 hover:text-blue-300 transition" title="Edit"><Pencil size={14} /></button>
+                  )}
                   <button onClick={() => deleteAnnouncement(a.id)} className="text-gray-500 hover:text-red-400 transition"><Trash2 size={14} /></button>
                 </div>
               </div>
