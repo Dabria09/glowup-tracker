@@ -11,8 +11,9 @@ const TABS = [
   { id: 'bannedwords', label: 'Banned Words' },
 ];
 
-const WORD_CATEGORIES = ['profanity', 'hate_speech', 'harassment', 'spam', 'other'];
-const CAT_COLORS = { profanity: '#ef4444', hate_speech: '#dc2626', harassment: '#f97316', spam: '#a855f7', other: '#6b7280' };
+const WORD_CATEGORIES = ['profanity', 'hate_speech', 'bullying', 'personal_info', 'spam', 'other'];
+const CAT_LABELS = { profanity: 'Profanity', hate_speech: 'Hate Speech', bullying: 'Bullying', personal_info: 'Personal Info', spam: 'Spam', other: 'Sexual / Other' };
+const CAT_COLORS = { profanity: '#ef4444', hate_speech: '#dc2626', bullying: '#f97316', personal_info: '#3b82f6', spam: '#a855f7', other: '#ec4899' };
 
 export default function ContentModeration() {
   const [activeTab, setActiveTab] = useState('reported');
@@ -22,6 +23,7 @@ export default function ContentModeration() {
   const [bannedWords, setBannedWords] = useState([]);
   const [newWord, setNewWord] = useState('');
   const [newWordCategory, setNewWordCategory] = useState('profanity');
+  const [saveSuccess, setSaveSuccess] = useState('');
   const [wordFilter, setWordFilter] = useState('all');
   const [addingWord, setAddingWord] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -88,6 +90,8 @@ export default function ContentModeration() {
     });
     setBannedWords(prev => [created, ...prev]);
     setNewWord('');
+    setSaveSuccess(`"${created.word}" added to ${CAT_LABELS[created.category] || created.category}`);
+    setTimeout(() => setSaveSuccess(''), 3000);
     setAddingWord(false);
     toast.success('Word added to blocklist');
   };
@@ -402,7 +406,7 @@ export default function ContentModeration() {
                 onChange={e => setNewWordCategory(e.target.value)}
                 className="bg-gray-900 border border-white/10 rounded-full px-3 py-2 text-xs text-white outline-none"
               >
-                {WORD_CATEGORIES.map(c => <option key={c} value={c} className="capitalize bg-gray-900">{c.replace('_', ' ')}</option>)}
+                {WORD_CATEGORIES.map(c => <option key={c} value={c} className="bg-gray-900">{CAT_LABELS[c]}</option>)}
               </select>
               <button
                 onClick={addBannedWord}
@@ -416,12 +420,17 @@ export default function ContentModeration() {
           </div>
 
           {/* Category filter */}
+          {saveSuccess && (
+            <div className="px-3 py-2 rounded-xl text-xs font-semibold text-emerald-400" style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)' }}>
+              ✅ {saveSuccess}
+            </div>
+          )}
           <div className="flex gap-2 overflow-x-auto pb-1">
             {['all', ...WORD_CATEGORIES].map(cat => (
               <button key={cat} onClick={() => setWordFilter(cat)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition ${wordFilter === cat ? 'text-white' : 'text-gray-400 bg-white/5'}`}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${wordFilter === cat ? 'text-white' : 'text-gray-400 bg-white/5'}`}
                 style={wordFilter === cat ? { background: CAT_COLORS[cat] || 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}>
-                {cat === 'all' ? 'All' : cat.replace('_', ' ')}
+                {cat === 'all' ? `All (${bannedWords.length})` : `${CAT_LABELS[cat]} (${bannedWords.filter(w => w.category === cat).length})`}
               </button>
             ))}
           </div>

@@ -17,7 +17,7 @@
         "spam",
         "other"
       ],
-      "default": "other"
+      "default": "profanity"
     },
     "is_active": {
       "type": "boolean",
