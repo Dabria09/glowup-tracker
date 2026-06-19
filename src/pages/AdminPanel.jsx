@@ -161,9 +161,9 @@ export default function AdminPanel() {
             </div>
             <button onClick={() => setActiveTab('moderation')} className="relative w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
               <Bell size={16} className="text-white" />
-              {notificationCounts.total > 0 && (
+              {notificationCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-[#080810]">
-                  {notificationCounts.total > 9 ? '9+' : notificationCounts.total}
+                  {notificationCount > 9 ? '9+' : notificationCount}
                 </span>
               )}
             </button>
