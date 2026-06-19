@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, ChefHat, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell, Inbox } from 'lucide-react';
+import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell, Inbox } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 
 import OverviewTab from '@/components/admin/OverviewTab';
@@ -161,9 +161,9 @@ export default function AdminPanel() {
             </div>
             <button onClick={() => setActiveTab('moderation')} className="relative w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
               <Bell size={16} className="text-white" />
-              {notificationCount > 0 && (
+              {notificationCounts.total > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-[#080810]">
-                  {notificationCount > 9 ? '9+' : notificationCount}
+                  {notificationCounts.total > 9 ? '9+' : notificationCounts.total}
                 </span>
               )}
             </button>
