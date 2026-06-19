@@ -55,14 +55,35 @@ export default function SupportTab() {
   const [escalationReason, setEscalationReason] = useState('');
   const [escalating, setEscalating] = useState(false);
   const [searchEmail, setSearchEmail] = useState('');
+  const [mentorAssignments, setMentorAssignments] = useState({});
+  const [groupMemberships, setGroupMemberships] = useState({});
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
     setLoading(true);
     try {
-      const t = await base44.entities.SupportTicket.list('-created_date');
+      const [t, matches, groups] = await Promise.all([
+        base44.entities.SupportTicket.list('-created_date'),
+        base44.entities.MentorshipProgress.list('-created_date'),
+        base44.entities.GroupMember.list('-joined_date'),
+      ]);
       setTickets(t);
+      
+      // Build mentor assignment map (mentee_email -> mentor_email)
+      const mentorMap = {};
+      matches.forEach(m => {
+        if (m.mentee_email) mentorMap[m.mentee_email] = m.mentor_email;
+      });
+      setMentorAssignments(mentorMap);
+      
+      // Build group membership map (user_email -> [group_names])
+      const groupMap = {};
+      groups.forEach(g => {
+        if (!groupMap[g.user_email]) groupMap[g.user_email] = [];
+        groupMap[g.user_email].push(g.group_name);
+      });
+      setGroupMemberships(groupMap);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -200,6 +221,16 @@ export default function SupportTab() {
     const hrs = Math.floor(mins / 60);
     if (hrs < 24) return `${hrs}h`;
     return `${Math.floor(hrs / 24)}d`;
+  };
+
+  const getTicketAge = (createdDate, status) => {
+    if (!createdDate) return null;
+    const diff = Date.now() - new Date(createdDate).getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    if (status === 'resolved' || status === 'closed') return null;
+    if (days >= 7) return { days, urgent: true, label: `${days}d open` };
+    if (days >= 3) return { days, urgent: false, label: `${days}d open` };
+    return null;
   };
 
   const inputCls = "w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-gray-600 outline-none text-sm";
@@ -352,8 +383,33 @@ export default function SupportTab() {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-400">{selectedTicket.user_email ? `User: ${selectedTicket.user_email}` : `User #${selectedTicket.id?.slice(0, 7)}`}</p>
-                <p className="text-[10px] text-gray-500 mt-0.5">{timeAgo(selectedTicket.created_date)} ago</p>
+                <div className="flex items-center gap-2 flex-wrap mt-1">
+                  <p className="text-xs text-gray-400">{selectedTicket.user_email ? `User: ${selectedTicket.user_email}` : `User #${selectedTicket.id?.slice(0, 7)}`}</p>
+                  {/* Mentor Assignment */}
+                  {mentorAssignments[selectedTicket.user_email] && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(168,85,247,0.2)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }}>
+                      👑 Mentor: {mentorAssignments[selectedTicket.user_email]?.split('@')[0]}
+                    </span>
+                  )}
+                  {/* Group Memberships */}
+                  {groupMemberships[selectedTicket.user_email]?.length > 0 && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(59,130,246,0.2)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}>
+                      📚 {groupMemberships[selectedTicket.user_email].join(', ')}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-[10px] text-gray-500">{timeAgo(selectedTicket.created_date)} ago</p>
+                  {(() => {
+                    const age = getTicketAge(selectedTicket.created_date, selectedTicket.status);
+                    if (!age) return null;
+                    return (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${age.urgent ? 'animate-pulse' : ''}`} style={{ background: age.urgent ? 'rgba(239,68,68,0.25)' : 'rgba(245,158,11,0.2)', color: age.urgent ? '#f87171' : '#fbbf24', border: `1px solid ${age.urgent ? 'rgba(239,68,68,0.4)' : 'rgba(245,158,11,0.3)'}` }}>
+                        ⏰ {age.label}
+                      </span>
+                    );
+                  })()}
+                </div>
               </div>
             </div>
             
@@ -546,13 +602,40 @@ export default function SupportTab() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400 truncate">
-                      {ticket.user_email?.split('@')[0]} · {ticket.description?.substring(0, 80) || 'No description'}
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <p className="text-xs text-gray-400 truncate">
+                        {ticket.user_email?.split('@')[0]}
+                      </p>
+                      {/* Mentor Assignment */}
+                      {mentorAssignments[ticket.user_email] && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'rgba(168,85,247,0.2)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }}>
+                          👑 {mentorAssignments[ticket.user_email]?.split('@')[0]}
+                        </span>
+                      )}
+                      {/* Group Memberships */}
+                      {groupMemberships[ticket.user_email]?.length > 0 && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'rgba(59,130,246,0.2)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}>
+                          📚 {groupMemberships[ticket.user_email][0]}{groupMemberships[ticket.user_email].length > 1 ? ` +${groupMemberships[ticket.user_email].length - 1}` : ''}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 truncate mt-1">
+                      {ticket.description?.substring(0, 80) || 'No description'}
                     </p>
-                    <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
                       <span className="text-[10px] text-gray-600 flex items-center gap-1">
                         <Clock size={8} /> {timeAgo(ticket.created_date)} ago
                       </span>
+                      {/* Ticket Age Warning */}
+                      {(() => {
+                        const age = getTicketAge(ticket.created_date, ticket.status);
+                        if (!age) return null;
+                        return (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1 ${age.urgent ? 'animate-pulse' : ''}`} style={{ background: age.urgent ? 'rgba(239,68,68,0.25)' : 'rgba(245,158,11,0.2)', color: age.urgent ? '#f87171' : '#fbbf24', border: `1px solid ${age.urgent ? 'rgba(239,68,68,0.4)' : 'rgba(245,158,11,0.3)'}` }}>
+                            ⏰ {age.label}
+                          </span>
+                        );
+                      })()}
                       {ticket.escalated_to_moderation && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'rgba(239,68,68,0.2)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
                           <Flag size={8} className="inline mr-1" />
