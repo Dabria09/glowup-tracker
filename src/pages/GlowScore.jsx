@@ -5,14 +5,11 @@ import { useUserContext } from '@/lib/UserContext';
 import { ChevronLeft, ChevronDown, Flame, Zap, Sparkles, Lock } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
-const STAGES = [
-  { id: 'seedling', name: 'Seedling', emoji: '🌱', minPoints: 0, maxPoints: 100, color: '#10b981', description: "You've started your journey. Every glow girl begins somewhere." },
-  { id: 'growing', name: 'Growing', emoji: '🌿', minPoints: 100, maxPoints: 250, color: '#14b8a6', description: "You're building momentum. Keep showing up for yourself!" },
-  { id: 'glowing', name: 'Glowing', emoji: '✨', minPoints: 250, maxPoints: 500, color: '#f59e0b', description: "You're shining bright! Your dedication is paying off." },
-  { id: 'blooming', name: 'Blooming', emoji: '🌸', minPoints: 500, maxPoints: 750, color: '#ec4899', description: "You're in full bloom! This is your season." },
-  { id: 'leveling_up', name: 'Leveling Up', emoji: '💎', minPoints: 750, maxPoints: 1000, color: '#a855f7', description: "You're reaching new heights. The crown awaits!" },
-  { id: 'glow_queen', name: 'Glow Queen', emoji: '👑', minPoints: 1000, maxPoints: Infinity, color: '#fbbf24', description: "You ARE the glow! You're inspiring others." },
-];
+// Color mapping for level emojis (fallback for dynamic levels)
+const EMOJI_COLORS = {
+  '🌱': '#10b981', '🌿': '#14b8a6', '🌷': '#ec4899', '🌸': '#f59e0b',
+  '✨': '#fbbf24', '⭐': '#a855f7', '💎': '#a855f7', '👑': '#fbbf24',
+};
 
 const MILESTONE_BADGES = [
   { id: 'first_glow',  name: 'First Glow',   emoji: '🌱', pts: 25,   tier: 'STARTER',   desc: 'You lit your first spark. The journey begins!', color: '#10b981' },
@@ -39,6 +36,9 @@ export default function GlowScore() {
   const [dayStreak, setDayStreak] = useState(0);
   const [activities, setActivities] = useState(0);
   const [expandedTier, setExpandedTier] = useState(null);
+  const [glowLevels, setGlowLevels] = useState([]);
+  const [currentLevel, setCurrentLevel] = useState(null);
+  const [loadingLevels, setLoadingLevels] = useState(true);
 
   useEffect(() => {
     // Track page view with metadata
@@ -62,15 +62,40 @@ export default function GlowScore() {
       }
       setDayStreak(streak);
     }).catch(() => setUser(null));
+
+    // Load Glow Levels from database
+    loadGlowLevels();
   }, []);
 
-  const currentStage = STAGES.find(s => totalPoints >= s.minPoints && totalPoints < s.maxPoints) || STAGES[0];
-  const nextStage = STAGES[STAGES.indexOf(currentStage) + 1];
-  const pointsInStage = totalPoints - currentStage.minPoints;
-  const pointsNeededForStage = currentStage.maxPoints === Infinity ? 1 : currentStage.maxPoints - currentStage.minPoints;
+  const loadGlowLevels = async () => {
+    try {
+      const levels = await base44.entities.GlowLevel.filter({ is_active: true }, 'level_number');
+      setGlowLevels(levels);
+      
+      // Find current level
+      let current = null;
+      for (const level of levels) {
+        if (totalPoints >= (level.min_points || 0) && totalPoints < (level.max_points || 999999)) {
+          current = level;
+          break;
+        }
+      }
+      if (!current && levels.length > 0) {
+        current = levels[levels.length - 1];
+      }
+      setCurrentLevel(current);
+    } catch (e) {
+      console.error('Failed to load glow levels:', e);
+    }
+    setLoadingLevels(false);
+  };
+
+  const stageIndex = currentLevel ? (currentLevel.level_number || 1) - 1 : 0;
+  const nextLevel = glowLevels.find(l => l.level_number === (currentLevel?.level_number || 0) + 1);
+  const pointsInStage = totalPoints - (currentLevel?.min_points || 0);
+  const pointsNeededForStage = (currentLevel?.max_points || 999999) >= 999999 ? 1 : (currentLevel?.max_points || 100) - (currentLevel?.min_points || 0);
   const stageProgress = Math.min(100, (pointsInStage / pointsNeededForStage) * 100);
-  const pointsUntilNext = nextStage ? nextStage.minPoints - totalPoints : 0;
-  const stageIndex = STAGES.indexOf(currentStage);
+  const pointsUntilNext = nextLevel ? (nextLevel.min_points || 0) - totalPoints : 0;
 
   const pointBreakdown = [
     { name: 'Glow Check-ins', icon: '✓', points: 10, percentage: 67, color: '#10b981' },
@@ -101,16 +126,16 @@ export default function GlowScore() {
         </div>
 
         {/* Main Stage Card */}
-        <div className="rounded-3xl p-6 mb-6 overflow-hidden relative" style={{ background: `linear-gradient(135deg, ${currentStage.color}20, ${currentStage.color}10)`, border: `1px solid ${currentStage.color}30` }}>
+        <div className="rounded-3xl p-6 mb-6 overflow-hidden relative" style={{ background: `linear-gradient(135deg, ${EMOJI_COLORS[currentLevel?.emoji] || '#ec4899'}20, ${EMOJI_COLORS[currentLevel?.emoji] || '#ec4899'}10)`, border: `1px solid ${EMOJI_COLORS[currentLevel?.emoji] || '#ec4899'}30` }}>
           <div className="relative z-10">
             <div className="flex items-start justify-between mb-6">
               <div>
-                <p className="text-sm text-gray-400 mb-1">Current Stage</p>
+                <p className="text-sm text-gray-400 mb-1">Current Level</p>
                 <div className="flex items-center gap-3">
-                  <span className="text-5xl">{currentStage.emoji}</span>
+                  <span className="text-5xl">{currentLevel?.emoji || '🌱'}</span>
                   <div>
-                    <h2 className="text-3xl font-bold text-white">{currentStage.name}</h2>
-                    <p className="text-xs text-gray-300 mt-1">{currentStage.description}</p>
+                    <h2 className="text-3xl font-bold text-white">{currentLevel?.name || 'Loading...'}</h2>
+                    <p className="text-xs text-gray-300 mt-1">{currentLevel?.description || 'Your glow journey...'}</p>
                   </div>
                 </div>
               </div>
@@ -121,14 +146,14 @@ export default function GlowScore() {
             </div>
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-300">{currentStage.name}</span>
-                <span className="text-xs font-semibold" style={{ color: currentStage.color }}>{nextStage ? nextStage.name : currentStage.name}</span>
+                <span className="text-xs font-semibold text-gray-300">{currentLevel?.name || 'Level'}</span>
+                <span className="text-xs font-semibold" style={{ color: EMOJI_COLORS[nextLevel?.emoji] || EMOJI_COLORS[currentLevel?.emoji] || '#ec4899' }}>{nextLevel ? nextLevel.name : 'Max Level'}</span>
               </div>
               <div className="h-3 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full rounded-full transition-all" style={{ width: `${stageProgress}%`, background: `linear-gradient(90deg, ${currentStage.color}, ${currentStage.color}80)` }} />
+                <div className="h-full rounded-full transition-all" style={{ width: `${stageProgress}%`, background: `linear-gradient(90deg, ${EMOJI_COLORS[currentLevel?.emoji] || '#ec4899'}, ${EMOJI_COLORS[currentLevel?.emoji] || '#ec4899'}80)` }} />
               </div>
               <p className="text-xs text-gray-400 mt-2">
-                {nextStage ? `${pointsUntilNext} points to ${nextStage.name}` : 'You are a Glow Queen! 👑'}
+                {nextLevel ? `${pointsUntilNext} points to ${nextLevel.name}` : 'You are a Glow Queen! 👑'}
               </p>
             </div>
           </div>
@@ -153,18 +178,22 @@ export default function GlowScore() {
           </div>
         </div>
 
-        {/* Your Glow Stage */}
+        {/* Your Glow Levels */}
         <div className="mb-8">
-          <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">YOUR GLOW STAGE</p>
+          <p className="text-xs font-bold tracking-widest text-gray-500 mb-4">YOUR GLOW LEVELS</p>
           <div className="grid grid-cols-3 gap-2">
-            {STAGES.map((stage, idx) => (
-              <div key={stage.id} className="rounded-2xl p-3 text-center transition-all cursor-pointer"
-                style={{ background: idx <= stageIndex ? `linear-gradient(135deg, ${stage.color}30, ${stage.color}15)` : 'rgba(255,255,255,0.05)', border: `1px solid ${idx <= stageIndex ? stage.color + '50' : 'rgba(255,255,255,0.1)'}`, opacity: idx <= stageIndex ? 1 : 0.5 }}>
-                <p className="text-2xl mb-1">{stage.emoji}</p>
-                <p className="text-xs font-semibold text-white">{stage.name}</p>
-                {idx === stageIndex && <div className="w-1.5 h-1.5 rounded-full mx-auto mt-2" style={{ backgroundColor: stage.color }} />}
-              </div>
-            ))}
+            {glowLevels.map((level, idx) => {
+              const isUnlocked = idx <= stageIndex;
+              const levelColor = EMOJI_COLORS[level.emoji] || '#ec4899';
+              return (
+                <div key={level.id} className="rounded-2xl p-3 text-center transition-all cursor-pointer"
+                  style={{ background: isUnlocked ? `linear-gradient(135deg, ${levelColor}30, ${levelColor}15)` : 'rgba(255,255,255,0.05)', border: `1px solid ${isUnlocked ? levelColor + '50' : 'rgba(255,255,255,0.1)'}`, opacity: isUnlocked ? 1 : 0.5 }}>
+                  <p className="text-2xl mb-1">{level.emoji}</p>
+                  <p className="text-xs font-semibold text-white">{level.name}</p>
+                  {idx === stageIndex && <div className="w-1.5 h-1.5 rounded-full mx-auto mt-2" style={{ backgroundColor: levelColor }} />}
+                </div>
+              );
+            })}
           </div>
         </div>
 

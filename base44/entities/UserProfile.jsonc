@@ -181,6 +181,18 @@
     "custom_bg_url": {
       "type": "string",
       "title": "Custom Profile Background URL"
+    },
+    "glow_level": {
+      "type": "string",
+      "title": "Current Glow Level Name"
+    },
+    "glow_level_number": {
+      "type": "number",
+      "title": "Glow Level Number"
+    },
+    "glow_level_emoji": {
+      "type": "string",
+      "title": "Glow Level Emoji"
     }
   },
   "required": [],

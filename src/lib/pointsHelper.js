@@ -238,6 +238,12 @@ export async function awardPoints(userEmail, action) {
         emoji: ACTION_META[action]?.emoji || '✨',
         points: pts, total_after: newTotal,
       });
+      // Sync Glow Level after points update
+      try {
+        await base44.functions.invoke('syncGlowLevel', {});
+      } catch (levelErr) {
+        console.warn('Failed to sync glow level:', levelErr);
+      }
       return newTotal;
     } else {
       const newTotal = pts;
@@ -252,6 +258,12 @@ export async function awardPoints(userEmail, action) {
         emoji: ACTION_META[action]?.emoji || '✨',
         points: pts, total_after: newTotal,
       });
+      // Sync Glow Level after points update
+      try {
+        await base44.functions.invoke('syncGlowLevel', {});
+      } catch (levelErr) {
+        console.warn('Failed to sync glow level:', levelErr);
+      }
       return newTotal;
     }
   } catch (err) {
