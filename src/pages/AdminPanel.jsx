@@ -16,7 +16,6 @@ import MentorActivityTab from '@/components/admin/MentorActivityTab';
 import MessagesAdminTab from '@/components/admin/MessagesAdminTab';
 import MentorInboxAdminTab from '@/components/admin/MentorInboxAdminTab';
 import MentorRankSettings from '@/components/admin/MentorRankSettings';
-import KitchenMentorsTab from '@/components/admin/KitchenMentorsTab';
 import VideoMonitorTab from '@/components/admin/VideoMonitorTab';
 import MatchesTab from '@/components/admin/MatchesTab';
 import SupportTab from '@/components/admin/SupportTab';
@@ -47,7 +46,6 @@ const TABS = [
   { id: 'mentor_inbox', label: 'Mentor Inbox',     icon: Inbox },
   { id: 'mentor_ranks', label: 'Rank Settings',    icon: Crown },
   { id: 'mentor_activity', label: 'Mentor Activity', icon: TrendingUp },
-  { id: 'kitchen',     label: 'Kitchen Mentors',   icon: ChefHat },
   { id: 'video',       label: 'Video',             icon: Video },
   { id: 'matches',     label: 'Matches',           icon: Link2 },
   { id: 'support',     label: 'Support',           icon: MessageSquare },
@@ -71,7 +69,12 @@ export default function AdminPanel() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
-  const [pendingReports, setPendingReports] = useState(0);
+  const [notificationCounts, setNotificationCounts] = useState({
+    contentReports: 0,
+    mentorMessages: 0,
+    mentorApplications: 0,
+    total: 0,
+  });
 
   useEffect(() => {
     const load = async () => {
@@ -80,9 +83,19 @@ export default function AdminPanel() {
         if (u.role !== 'admin') { navigate('/dashboard'); return; }
         setUser(u);
         
-        // Count pending reports
-        const reports = await base44.entities.ContentReport.filter({ status: 'pending' });
-        setPendingReports(reports.length);
+        // Count all notification sources
+        const [reports, messages, applications] = await Promise.all([
+          base44.entities.ContentReport.filter({ status: 'pending' }),
+          base44.entities.MentorMessage.filter({ is_admin_message: true, status: 'pending' }),
+          base44.entities.MentorApplication.filter({ status: 'pending' }),
+        ]);
+        
+        setNotificationCounts({
+          contentReports: reports.length,
+          mentorMessages: messages.length,
+          mentorApplications: applications.length,
+          total: reports.length + messages.length + applications.length,
+        });
         
         setLoading(false);
       } catch (e) {
@@ -112,7 +125,6 @@ export default function AdminPanel() {
       case 'mentor_inbox': return <MentorInboxAdminTab />;
       case 'mentor_ranks': return <MentorRankSettings />;
       case 'mentor_activity': return <MentorActivityTab />;
-      case 'kitchen':    return <KitchenMentorsTab />;
       case 'video':      return <VideoMonitorTab />;
       case 'matches':    return <MatchesTab />;
       case 'support':    return <SupportTab />;
