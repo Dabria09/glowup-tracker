@@ -26,6 +26,10 @@
     "badge_earned": {
       "type": "string",
       "title": "Badge Earned"
+    },
+    "badge_url": {
+      "type": "string",
+      "title": "Badge Image URL"
     }
   },
   "required": [

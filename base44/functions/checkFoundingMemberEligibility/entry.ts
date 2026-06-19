@@ -81,12 +81,19 @@ Deno.serve(async (req) => {
       early_adopter: 'Early Adopter'
     };
 
+    const badgeUrls = {
+      founding: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/ac2cd3922_generated_image.png',
+      pioneer: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/ac2cd3922_generated_image.png',
+      early_adopter: 'https://media.base44.com/images/public/6a0e12a89992f9565c11e330/ac2cd3922_generated_image.png'
+    };
+
     await base44.entities.PioneerMember.create({
       user_email: user.email,
       pioneer_number: pioneerNumber,
       tier: tier,
       granted_date: new Date().toISOString(),
       badge_earned: `${tier}_pioneer_badge`,
+      badge_url: badgeUrls[tier],
     });
 
     // Update user profile with glow_era and badge
@@ -94,6 +101,10 @@ Deno.serve(async (req) => {
       glow_era: tierLabels[tier],
       owned_store_items: JSON.stringify([
         ...(JSON.parse(profiles[0].owned_store_items || '[]')),
+        `${tier}_pioneer_badge`
+      ]),
+      equipped_store_items: JSON.stringify([
+        ...(JSON.parse(profiles[0].equipped_store_items || '[]')),
         `${tier}_pioneer_badge`
       ]),
     });
