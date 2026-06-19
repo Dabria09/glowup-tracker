@@ -116,8 +116,8 @@ export default function EngagementTab() {
       </div>
 
       <div className="p-4 rounded-2xl" style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)' }}>
-        <p className="text-sm font-bold text-white mb-2 flex items-center gap-2"><Activity size={14} className="text-purple-400" /> Engagement Insight</p>
-        <p className="text-xs text-gray-300 leading-relaxed">Girls who complete their first Glow Check-In are <span className="text-pink-400 font-bold">3× more likely</span> to return the next day. Encourage first-time check-ins through onboarding to maximize retention.</p>
+        <p className="text-sm font-bold text-white mb-1 flex items-center gap-2"><Activity size={14} className="text-purple-400" /> Engagement Tip <span className="text-[10px] font-normal text-purple-400 ml-1 px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(168,85,247,0.2)' }}>General guidance</span></p>
+        <p className="text-xs text-gray-300 leading-relaxed">Encouraging girls to complete their first Glow Check-In during onboarding is one of the most effective ways to drive early retention. First-time completers tend to return more consistently.</p>
       </div>
     </div>
   );
