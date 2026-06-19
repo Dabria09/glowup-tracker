@@ -42,6 +42,10 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
     return g ? g.group_name : null;
   };
 
+  // Calculate mentor stats from sessions (would need to be fetched from parent or via backend)
+  const sessionsCount = app.sessions_count || 0;
+  const avgRating = app.rating || 0;
+
   const InfoRow = ({ icon: Icon, label, value, color = '#9ca3af' }) => {
     if (!value) return null;
     return (
@@ -337,7 +341,7 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
 
                 {/* Rank Progression - Approved Mentors Only */}
                 {app.status === 'approved' && (
-                  <RankProgress tier={app.mentor_tier || 'seed'} sessionsCount={0} avgRating={0} />
+                  <RankProgress tier={app.mentor_tier || 'seed'} sessionsCount={sessionsCount} avgRating={avgRating} />
                 )}
 
 
@@ -654,7 +658,7 @@ export default function MentorsAdminTab() {
 
   return (
     <div className="space-y-4">
-      {/* Track summary */}
+      {/* Track summary + Tier Update */}
       <div className="flex gap-3">
         <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)' }}>
           <div className="text-lg font-black" style={{ color: '#4ade80' }}>{teenCount}</div>
@@ -663,6 +667,47 @@ export default function MentorsAdminTab() {
         <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(232,82,109,0.08)', border: '1px solid rgba(232,82,109,0.2)' }}>
           <div className="text-lg font-black" style={{ color: '#f48fb1' }}>{adultCount}</div>
           <div className="text-[10px] font-bold" style={{ color: 'rgba(244,143,177,0.7)' }}>Adult Mentors ✅</div>
+        </div>
+        <button
+          onClick={async () => {
+            try {
+              const res = await base44.functions.invoke('updateMentorTiers', {});
+              alert(`✅ ${res.data?.message || 'Mentor tiers updated!'}`);
+              load();
+            } catch (e) {
+              alert('Error: ' + e.message);
+            }
+          }}
+          className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}
+        >
+          <div className="text-lg font-black" style={{ color: '#a855f7' }}>🔄</div>
+          <div className="text-[10px] font-bold" style={{ color: 'rgba(168,85,247,0.7)' }}>Update Tiers</div>
+        </button>
+      </div>
+
+      {/* Rank Criteria Info */}
+      <div className="rounded-2xl p-4" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1">
+            <p className="text-sm font-bold text-purple-300 mb-2">🌟 Mentor Rank Progression</p>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+              {[
+                { tier: 'seed', label: 'Seed', req: '0-2 sessions', color: '#9ca3af' },
+                { tier: 'sprout', label: 'Sprout', req: '3-5 sessions', color: '#86efac' },
+                { tier: 'bloom', label: 'Bloom', req: '6-15 sessions', color: '#f472b6' },
+                { tier: 'radiant', label: 'Radiant', req: '16-30 + 4.5★', color: '#fbbf24' },
+                { tier: 'luminary', label: 'Luminary', req: '31+ + 4.8★', color: '#a855f7' },
+              ].map(r => (
+                <div key={r.tier} className="text-center rounded-xl p-2" style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${r.color}40` }}>
+                  <p className="text-xs font-bold" style={{ color: r.color }}>{r.label}</p>
+                  <p className="text-[9px] text-gray-400 mt-0.5">{r.req}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-gray-400 mt-2">
+              💡 Ranks update automatically based on completed sessions and average ratings. Manual refresh available above.
+            </p>
+          </div>
         </div>
       </div>
 
