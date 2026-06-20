@@ -11,8 +11,6 @@ import {
   clearAuthSession,
   clearDeletedAccountRecord,
   hasDeletedMentorEntityByEmail,
-  hasMentorAccount,
-  isMentorModeActive,
   isDeletedAccount,
   loadMentorApplicationByEmail,
   loadCurrentUserRecord,
@@ -58,9 +56,9 @@ export default function GoogleSetup() {
         const userRecord = await loadCurrentUserRecord(u);
         const mergedUser = { ...u, ...userRecord };
 
-        // Admins bypass all setup — go straight to dashboard
+        // Admins bypass setup, but keep the portal they used to sign in.
         if (mergedUser.role === 'admin') {
-          window.location.href = '/dashboard';
+          window.location.href = isMentor ? '/mentor-dashboard' : '/dashboard';
           return;
         }
 
@@ -104,7 +102,6 @@ export default function GoogleSetup() {
           } catch (updateErr) {
             console.warn('Failed to update mentor account_type:', updateErr);
           }
-          console.log('[GoogleSetup] Approved mentor detected, redirecting to mentor-dashboard');
           window.location.href = "/mentor-dashboard";
           return;
         }
@@ -117,7 +114,6 @@ export default function GoogleSetup() {
           } catch (updateErr) {
             console.warn('Failed to update mentor account_type:', updateErr);
           }
-          console.log('[GoogleSetup] Mentor application detected, redirecting to mentor-dashboard');
           window.location.href = "/mentor-dashboard";
           return;
         }
@@ -150,7 +146,6 @@ export default function GoogleSetup() {
             } catch (updateErr) {
               console.warn('Failed to update mentor account_type:', updateErr);
             }
-            console.log('[GoogleSetup] Returning mentor detected, redirecting to mentor-dashboard');
             window.location.href = "/mentor-dashboard";
             return;
           }
@@ -162,7 +157,6 @@ export default function GoogleSetup() {
             } catch (updateErr) {
               console.warn('Failed to update mentor account_type:', updateErr);
             }
-            console.log('[GoogleSetup] Returning mentor applicant detected, redirecting to mentor-dashboard');
             window.location.href = "/mentor-dashboard";
             return;
           }

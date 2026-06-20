@@ -364,9 +364,13 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     throw new Error("No account found. Please sign up to join the Sisterhood.");
   }
 
-  // Admins bypass all role checks and go straight to dashboard
+  // Admins bypass role checks, but keep the login portal intent.
   if (userRecord.role === 'admin' || currentUser.role === 'admin') {
-    return { user: currentUser, userRecord, route: '/dashboard' };
+    return {
+      user: currentUser,
+      userRecord,
+      route: expectedAccountType === ACCOUNT_TYPES.MENTOR ? '/mentor-dashboard' : '/dashboard',
+    };
   }
 
   const storedAccountType = getAccountType(userRecord);

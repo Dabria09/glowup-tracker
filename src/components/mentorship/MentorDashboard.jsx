@@ -11,7 +11,7 @@ import {
   loadMentorEntityByEmail,
 } from '@/lib/authRules';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2, Mail } from 'lucide-react';
+import { MessageCircle, CheckCircle, Star, Calendar, User, BookOpen, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2, Mail } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
 import MenteeDashboard from './MenteeDashboard';
 import ApplicationStatusTracker from './ApplicationStatusTracker';
@@ -51,7 +51,7 @@ export default function MentorDashboard() {
       try {
         const authUser = await base44.auth.me();
         const userRecord = await loadCurrentUserRecord(authUser);
-        if (!userRecord) {
+        if (!userRecord && authUser.role !== 'admin') {
           await clearAuthSession();
           window.location.href = '/mentor-login';
           return;
@@ -68,17 +68,16 @@ export default function MentorDashboard() {
         const isMentorAccount = Boolean(inferredMentorProfile || mentorApplication);
         
         // Build currentUser object first
-        currentUser = { ...authUser, ...userRecord };
+        currentUser = { ...authUser, ...(userRecord || {}) };
+        const isAdmin = currentUser.role === 'admin';
         
-        if (!isMentorAccount) {
+        if (!isMentorAccount && !isAdmin) {
           // Not a mentor account - redirect appropriately
           if (getAccountType(userRecord) === ACCOUNT_TYPES.GIRL) {
-            console.log('[MentorDashboard] User is a girl account, redirecting to /dashboard');
             window.location.href = '/dashboard';
             return;
           }
 
-          console.log('[MentorDashboard] Not a mentor account, redirecting to /mentor-login');
           await clearAuthSession();
           window.location.href = '/mentor-login';
           return;
@@ -92,7 +91,6 @@ export default function MentorDashboard() {
           // Update auth metadata
           try {
             await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'approved' });
-            console.log('[MentorDashboard] Updated auth metadata for approved mentor');
           } catch (updateErr) {
             console.warn('[MentorDashboard] Failed to update auth metadata:', updateErr);
           }
@@ -102,7 +100,6 @@ export default function MentorDashboard() {
           // Update auth metadata
           try {
             await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'pending' });
-            console.log('[MentorDashboard] Updated auth metadata for pending mentor applicant');
           } catch (updateErr) {
             console.warn('[MentorDashboard] Failed to update auth metadata:', updateErr);
           }
