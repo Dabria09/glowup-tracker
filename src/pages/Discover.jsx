@@ -131,36 +131,64 @@ const RECOMMENDED = [
 function AppIcon({ item }) {
   const navigate = useNavigate();
   const size = 76;
-  const br = 18;
+  const br = 20;
   return (
-    <div className="relative flex flex-col items-center gap-1.5 cursor-pointer group" onClick={() => item.route && navigate(item.route)}>
-      {item.badge &&
-      <span className={`absolute -top-1.5 left-1/2 -translate-x-1/2 z-20 text-[9px] font-bold px-2 py-0.5 rounded-full text-white shadow-lg ${item.badge === 'Live' ? 'bg-red-500' : 'bg-purple-600'}`}>
-          {item.badge}
-        </span>
-      }
-      <div className="relative group-hover:scale-95 transition-transform duration-200" style={{ width: size, height: size }}>
-        <div
-          style={{
-            position: 'absolute', inset: 0, borderRadius: br,
-            background: 'linear-gradient(135deg, rgba(236,72,153,0.6), rgba(168,85,247,0.6), rgba(251,191,36,0.4))',
-            padding: 1.5
+    <div
+      className="relative flex flex-col items-center gap-2 cursor-pointer group"
+      onClick={() => item.route && navigate(item.route)}
+      style={{ WebkitTapHighlightColor: 'transparent' }}
+    >
+      {item.badge && (
+        <span style={{
+          position: 'absolute', top: -6, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 20, fontSize: 9, fontWeight: 800, padding: '2px 7px',
+          borderRadius: 10, color: 'white', letterSpacing: '0.3px',
+          fontFamily: "'Outfit', sans-serif",
+          background: item.badge === 'Live'
+            ? 'linear-gradient(135deg,#ef4444,#dc2626)'
+            : 'linear-gradient(135deg,#a855f7,#7c3aed)',
+          boxShadow: item.badge === 'Live' ? '0 2px 10px rgba(239,68,68,0.5)' : '0 2px 10px rgba(168,85,247,0.5)',
+        }}>{item.badge}</span>
+      )}
+      <div
+        className="group-active:scale-90 transition-transform duration-150"
+        style={{ width: size, height: size, position: 'relative' }}
+      >
+        {/* Outer glow ring */}
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: br + 2,
+          background: 'linear-gradient(135deg, rgba(232,82,109,0.55), rgba(168,85,247,0.55), rgba(241,182,16,0.35))',
+          padding: 1.5,
+        }}>
+          <div style={{
+            width: '100%', height: '100%', borderRadius: br,
+            background: 'rgba(14,9,26,0.95)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden',
           }}>
-          
-          <div
-            className="w-full h-full flex items-center justify-center overflow-hidden"
-            style={{ borderRadius: br - 2, background: 'rgba(18,8,28,0.9)' }}>
-            
-            {item.image ?
-            <img src={item.image} alt={item.label} className="object-contain rounded-2xl" style={{ width: '85%', height: '85%' }} /> :
-            <span className="text-4xl drop-shadow-lg">{item.emoji}</span>
+            {item.image
+              ? <img src={item.image} alt={item.label} style={{ width: '86%', height: '86%', objectFit: 'contain' }} />
+              : <span style={{ fontSize: 32 }}>{item.emoji}</span>
             }
           </div>
         </div>
+        {/* Subtle inner shine */}
+        <div style={{
+          position: 'absolute', top: 2, left: 4, right: 4, height: '38%',
+          borderRadius: '50%',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.07), transparent)',
+          pointerEvents: 'none',
+        }} />
       </div>
-      <span className="text-[11px] text-center text-gray-300 leading-tight w-20">{item.label}</span>
-    </div>);
-
+      <span style={{
+        fontFamily: "'Outfit', sans-serif",
+        fontSize: 11, fontWeight: 500, textAlign: 'center',
+        color: 'rgba(255,255,255,0.7)', lineHeight: 1.3,
+        width: 76, display: '-webkit-box',
+        WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+      }}>{item.label}</span>
+    </div>
+  );
 }
 
 export default function Discover() {
@@ -169,9 +197,7 @@ export default function Discover() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    // Track page view with metadata - main navigation screen
     base44.analytics.track({ eventName: 'page_view', metadata: { page: 'Discover', path: '/discover', category: 'main_nav' } });
-    
     base44.auth.me().then(async (u) => {
       const pts = await base44.entities.UserPoints.filter({ user_email: u.email });
       if (pts.length) setTotalPoints(pts[0].total_points || 0);
@@ -180,70 +206,128 @@ export default function Discover() {
 
   const allItems = SECTIONS.flatMap((s) => s.items);
   const searchResults = search.trim().length > 1 ?
-  allItems.filter((i) => i.label.toLowerCase().includes(search.toLowerCase())) :
-  [];
+    allItems.filter((i) => i.label.toLowerCase().includes(search.toLowerCase())) : [];
 
   return (
-    <div className="min-h-screen text-white pb-24 overflow-x-hidden" style={{ backgroundColor: '#0d0d0d' }}>
-      {/* Points badge */}
-      <div className="flex justify-end px-4 pt-3">
-        <div className="flex items-center gap-1 backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs font-bold">
-          <span>🏅</span><span className="text-yellow-400">{totalPoints.toLocaleString()} pts</span>
-        </div>
+    <div className="min-h-screen text-white pb-28 overflow-x-hidden" style={{ background: 'var(--ggu-bg, #07050e)' }}>
+      {/* Ambient glows */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div style={{ position: 'absolute', width: 500, height: 500, top: -150, right: -150, background: 'radial-gradient(circle, rgba(168,85,247,0.12), transparent 70%)', filter: 'blur(80px)' }} />
+        <div style={{ position: 'absolute', width: 400, height: 400, bottom: '20%', left: -100, background: 'radial-gradient(circle, rgba(232,82,109,0.1), transparent 70%)', filter: 'blur(80px)' }} />
       </div>
 
-      <div className="px-4 pt-2 pb-4">
-        <h1 className="text-3xl font-bold text-white mb-4">{t('discover_title')}</h1>
+      <div className="relative z-10 px-4 pt-4 pb-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h1 style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: 28, fontWeight: 800,
+              background: 'linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              lineHeight: 1.1,
+            }}>{t('discover_title')}</h1>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 3, fontFamily: "'Outfit', sans-serif" }}>Everything in one place ✦</p>
+          </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            background: 'rgba(241,182,16,0.08)',
+            border: '1px solid rgba(241,182,16,0.25)',
+            borderRadius: 24, padding: '7px 14px',
+            boxShadow: '0 4px 20px rgba(241,182,16,0.1)',
+          }}>
+            <span style={{ fontSize: 14 }}>🏅</span>
+            <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 13, color: '#fdcd2d' }}>{totalPoints.toLocaleString()}</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif" }}>pts</span>
+          </div>
+        </div>
 
         {/* Search */}
-        <div className="relative mb-6">
-          <div className="flex items-center backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-4 py-3 gap-2">
-            <Search size={16} className="text-gray-500" />
+        <div className="relative mb-7">
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 20, padding: '13px 18px',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
+          }}>
+            <Search size={15} color="rgba(255,255,255,0.3)" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('discover_search')}
-              className="bg-transparent text-sm text-white placeholder-gray-500 outline-none flex-1" />
-            
+              placeholder={t('discover_search') || 'Search all features…'}
+              style={{
+                background: 'transparent', outline: 'none', flex: 1,
+                fontSize: 14, color: 'white',
+                fontFamily: "'Outfit', sans-serif",
+              }}
+              className="placeholder-white/20" />
           </div>
-          {searchResults.length > 0 &&
-          <div className="absolute top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-700 rounded-2xl overflow-hidden z-10 shadow-xl">
-              {searchResults.map((r) =>
-            <div key={r.id} className="px-4 py-3 text-sm text-gray-200 hover:bg-gray-800 cursor-pointer border-b border-gray-800 last:border-0">
-                  {r.emoji} {r.label}
+          {searchResults.length > 0 && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 8,
+              background: 'rgba(12,8,24,0.97)', border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 20, overflow: 'hidden', zIndex: 20,
+              boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(24px)',
+            }}>
+              {searchResults.slice(0, 8).map((r) => (
+                <div key={r.id} style={{
+                  padding: '12px 18px', fontSize: 13, color: 'rgba(255,255,255,0.8)',
+                  borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer',
+                  fontFamily: "'Outfit', sans-serif",
+                }} className="hover:bg-white/5 transition">
+                  {r.label}
                 </div>
-            )}
+              ))}
             </div>
-          }
+          )}
         </div>
 
-        {/* Recommended */}
+        {/* Featured pill */}
         <div className="mb-7">
-          <p className="text-xs font-bold tracking-widest text-gray-500 mb-3">{t('recommended')}</p>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: 12, fontFamily: "'Outfit', sans-serif" }}>
+            {t('recommended') || 'Featured'}
+          </p>
           <div className="grid grid-cols-2 gap-3">
-            {RECOMMENDED.map((r) =>
-            <div key={r.id} className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 cursor-pointer hover:bg-white/10 transition">
-                <p className="font-semibold text-sm mb-1">{r.icon} {r.title}</p>
-                <p className="text-gray-400 text-xs">{r.desc}</p>
+            {RECOMMENDED.map((r) => (
+              <div key={r.id} style={{
+                background: 'linear-gradient(135deg, rgba(232,82,109,0.12), rgba(168,85,247,0.08))',
+                border: '1px solid rgba(232,82,109,0.2)',
+                borderRadius: 20, padding: '16px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 20px rgba(232,82,109,0.08)',
+              }} className="hover:scale-[1.02] transition-transform">
+                <p style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 13, marginBottom: 4, color: 'white' }}>{r.icon} {r.title}</p>
+                <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{r.desc}</p>
               </div>
-            )}
+            ))}
           </div>
         </div>
 
         {/* Sections */}
-        {SECTIONS.map((section) =>
-        <div key={section.id} className="mb-8">
-            <h2 className="text-lg font-bold text-white mb-4">{t('discover_' + section.id) || section.title}</h2>
-            <div className="grid grid-cols-3 gap-x-3 gap-y-5">
-              {section.items.map((item) =>
-            <AppIcon key={item.id} item={item} />
-            )}
+        {SECTIONS.map((section) => (
+          <div key={section.id} className="mb-9">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <div style={{ height: 1, width: 24, background: 'linear-gradient(90deg, rgba(232,82,109,0.6), transparent)' }} />
+              <h2 style={{
+                fontFamily: "'Outfit', sans-serif",
+                fontSize: 15, fontWeight: 700,
+                color: 'rgba(255,255,255,0.85)',
+                letterSpacing: '0.2px',
+              }}>{t('discover_' + section.id) || section.title}</h2>
+            </div>
+            <div className="grid grid-cols-3 gap-x-3 gap-y-6">
+              {section.items.map((item) => (
+                <AppIcon key={item.id} item={item} />
+              ))}
             </div>
           </div>
-        )}
+        ))}
       </div>
 
       <BottomNav active="discover" />
-    </div>);
-
+    </div>
+  );
 }

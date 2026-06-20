@@ -396,16 +396,23 @@ function PagePickerModal({ title, currentIds, onSave, onClose }) {
 function FeaturedWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-    className="relative w-full rounded-[22px] overflow-hidden active:scale-[0.98] transition-all select-none text-left flex flex-col justify-end p-4"
-    style={{ aspectRatio: '2 / 1', background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
-      {app.image &&
-      <div className="absolute inset-0 flex items-center justify-end pr-5 pointer-events-none">
-        <div style={{ width: '42%', aspectRatio: '1/1' }}>
-          <AppIcon app={app} size="100%" />
+      className="relative w-full overflow-hidden active:scale-[0.98] transition-all select-none text-left flex flex-col justify-end"
+      style={{
+        aspectRatio: '2 / 1', borderRadius: 24, padding: '16px 18px',
+        background: 'linear-gradient(135deg, rgba(20,10,36,0.95) 0%, rgba(36,14,44,0.9) 100%)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)',
+      }}>
+      {/* subtle gradient overlay */}
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(232,82,109,0.08) 0%, transparent 60%)', borderRadius: 24, pointerEvents: 'none' }} />
+      {app.image && (
+        <div className="absolute inset-0 flex items-center justify-end pointer-events-none" style={{ paddingRight: 20 }}>
+          <div style={{ width: '40%', aspectRatio: '1/1' }}>
+            <AppIcon app={app} size="100%" />
+          </div>
         </div>
-      </div>
-      }
-      <p className="relative z-10 text-base font-bold text-white leading-tight drop-shadow">{app.label}</p>
+      )}
+      <p className="relative z-10 text-base font-bold text-white leading-tight" style={{ fontFamily: "'Outfit', sans-serif", textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{app.label}</p>
     </button>);
 }
 
@@ -413,41 +420,52 @@ function FeaturedWidget({ app, onNavigate }) {
 function MediumWidget({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-    className="relative w-full rounded-[22px] overflow-hidden active:scale-[0.98] transition-all select-none text-left flex flex-col justify-end p-3"
-    style={{ aspectRatio: '1 / 1', background: 'rgba(28,14,42,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
-      {app.image &&
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ paddingBottom: '28px' }}>
-        <div style={{ width: '58%', aspectRatio: '1/1' }}>
-          <AppIcon app={app} size="100%" />
+      className="relative w-full overflow-hidden active:scale-[0.98] transition-all select-none text-left flex flex-col justify-end"
+      style={{
+        aspectRatio: '1 / 1', borderRadius: 24, padding: '12px 14px',
+        background: 'linear-gradient(135deg, rgba(20,10,36,0.95) 0%, rgba(36,14,44,0.9) 100%)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)',
+      }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(168,85,247,0.07) 0%, transparent 60%)', borderRadius: 24, pointerEvents: 'none' }} />
+      {app.image && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ paddingBottom: 28 }}>
+          <div style={{ width: '58%', aspectRatio: '1/1' }}>
+            <AppIcon app={app} size="100%" />
+          </div>
         </div>
-      </div>
-      }
-      <p className="relative z-10 text-sm font-bold text-white leading-tight drop-shadow">{app.label}</p>
+      )}
+      <p className="relative z-10 text-sm font-bold text-white leading-tight" style={{ fontFamily: "'Outfit', sans-serif", textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{app.label}</p>
     </button>);
 }
 
 // ─── Small App Icon (4-col grid) ─────────────────────────────────────────────
 function SmallAppIcon({ app, onNavigate }) {
   return (
-    <button onClick={() => onNavigate(app.route)} className="ggu-icon-btn flex flex-col items-center gap-1.5 select-none active:scale-90 transition-transform w-full" style={{ padding: 0 }}>
+    <button onClick={() => onNavigate(app.route)} className="ggu-icon-btn flex flex-col items-center gap-2 select-none active:scale-90 transition-transform w-full" style={{ padding: 0 }}>
       <div className="w-full aspect-square" style={{ maxWidth: 64 }}>
         <AppIcon app={app} size={58} />
       </div>
-      <span className="text-[10px] text-center text-gray-300 leading-tight" style={{ maxWidth: 64 }}>{app.label}</span>
+      <span style={{
+        fontSize: 10, textAlign: 'center', lineHeight: 1.3, maxWidth: 64,
+        color: 'rgba(255,255,255,0.6)', fontFamily: "'Outfit', sans-serif", fontWeight: 500,
+        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+      }}>{app.label}</span>
     </button>);
-
 }
 
 // ─── Quick Chip ───────────────────────────────────────────────────────────────
 function QuickChip({ app, onNavigate }) {
   return (
     <button onClick={() => onNavigate(app.route)}
-    className="ggu-icon-btn flex flex-col items-center gap-1 flex-shrink-0 transition active:scale-90"
-    style={{ minWidth: 56, padding: '8px 4px' }}>
-      <AppIcon app={app} size={44} />
-      <span className="text-[9px] text-gray-400 text-center leading-tight" style={{ maxWidth: 58 }}>{app.label}</span>
+      className="ggu-icon-btn flex flex-col items-center gap-1.5 flex-shrink-0 transition active:scale-90"
+      style={{ minWidth: 60, padding: '8px 4px' }}>
+      <AppIcon app={app} size={46} />
+      <span style={{
+        fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center', lineHeight: 1.3,
+        maxWidth: 62, fontFamily: "'Outfit', sans-serif", fontWeight: 500,
+      }}>{app.label}</span>
     </button>);
-
 }
 
 // ─── Size Picker Modal ────────────────────────────────────────────────────────
@@ -776,14 +794,15 @@ export default function Dashboard() {
   const currentFolder = openFolder ? folders[openFolder] : null;
 
   return (
-    <div className="ggu-dashboard min-h-screen text-white pb-28 overflow-x-hidden relative" style={{ backgroundColor: '#08060e' }}>
+    <div className="ggu-dashboard min-h-screen text-white pb-28 overflow-x-hidden relative" style={{ backgroundColor: '#07050e' }}>
       <style>{DASH_STYLE}</style>
       {/* Background tint */}
-      <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundColor: bgColor, opacity: 0.1 }} />
+      <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundColor: bgColor, opacity: 0.08 }} />
       {/* Ambient glows */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute rounded-full" style={{ width: 400, height: 400, top: -100, left: -80, background: 'radial-gradient(circle, rgba(232,82,109,0.18), transparent 70%)', filter: 'blur(60px)' }} />
-        <div className="absolute rounded-full" style={{ width: 300, height: 300, top: '40%', right: -60, background: 'radial-gradient(circle, rgba(168,85,247,0.12), transparent 70%)', filter: 'blur(60px)' }} />
+        <div className="absolute rounded-full" style={{ width: 500, height: 500, top: -150, left: -120, background: 'radial-gradient(circle, rgba(232,82,109,0.22), transparent 70%)', filter: 'blur(80px)' }} />
+        <div className="absolute rounded-full" style={{ width: 400, height: 400, top: '35%', right: -80, background: 'radial-gradient(circle, rgba(168,85,247,0.15), transparent 70%)', filter: 'blur(80px)' }} />
+        <div className="absolute rounded-full" style={{ width: 300, height: 300, bottom: '10%', left: '20%', background: 'radial-gradient(circle, rgba(241,182,16,0.08), transparent 70%)', filter: 'blur(60px)' }} />
       </div>
       {(bgPattern !== 'none' || bgImage) &&
       <div className="fixed inset-0 pointer-events-none z-0" style={patternStyle(bgPattern, bgImage, bgImagePos)} />
@@ -795,87 +814,150 @@ export default function Dashboard() {
         <MentorModeToggle defaultMode="ggu" />
 
         {/* ── TOP STATUS BAR ─────────────────────────────────────── */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-2">
-          {worldInfo &&
-          <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold"
-          style={{ background: worldInfo.bgColor, border: `1px solid ${worldInfo.borderColor}`, color: worldInfo.color }}>
+        <div className="flex items-center justify-between px-5 pt-5 pb-1">
+          {worldInfo && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: worldInfo.bgColor,
+              border: `1px solid ${worldInfo.borderColor}`,
+              color: worldInfo.color,
+              borderRadius: 24, padding: '5px 12px',
+              fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 700,
+              boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+            }}>
               <span>{worldInfo.emoji}</span><span>{worldInfo.label}</span>
             </div>
-          }
+          )}
           <div className="flex-1" />
           <div className="flex items-center gap-2">
-            <button onClick={() => navigate('/glow-score')}
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold"
-            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)' }}>
-              <span>🏅</span><span className="text-yellow-400">{totalPoints.toLocaleString()}</span><span className="text-gray-500">pts</span>
+            <button onClick={() => navigate('/glow-score')} style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'rgba(241,182,16,0.08)',
+              border: '1px solid rgba(241,182,16,0.22)',
+              borderRadius: 24, padding: '7px 14px',
+              fontFamily: "'Outfit', sans-serif", fontSize: 12, fontWeight: 700,
+              backdropFilter: 'blur(16px)',
+              boxShadow: '0 4px 16px rgba(241,182,16,0.08)',
+            }}>
+              <span style={{ fontSize: 14 }}>🏅</span>
+              <span style={{ color: '#fdcd2d' }}>{totalPoints.toLocaleString()}</span>
+              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>pts</span>
             </button>
-            <button onClick={() => setShowCustomize(true)}
-            className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(12px)' }}>
-              <Settings size={14} className="text-gray-300" />
+            <button onClick={() => setShowCustomize(true)} style={{
+              width: 36, height: 36, borderRadius: 18,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(16px)',
+            }}>
+              <Settings size={15} color="rgba(255,255,255,0.5)" />
             </button>
           </div>
         </div>
 
         {/* ── GREETING & AVATAR ─────────────────────────────────── */}
-        <div className="flex items-center gap-4 px-5 pt-2 pb-4">
-          <button onClick={() => navigate('/avatar')} className="flex flex-col items-center gap-1 flex-shrink-0">
-            <UserAvatarDisplay profile={profileData} size={54} fallback={firstName[0]} showRing={true} />
-            <span className="text-[9px] text-gray-600 font-medium">My Avatar</span>
+        <div className="flex items-center gap-4 px-5 pt-4 pb-5">
+          <button onClick={() => navigate('/avatar')} className="flex flex-col items-center gap-1 flex-shrink-0 relative">
+            <div style={{
+              padding: 2,
+              background: 'linear-gradient(135deg, #e8526d, #a855f7, #f1b610)',
+              borderRadius: 999,
+              boxShadow: '0 0 20px rgba(232,82,109,0.4)',
+            }}>
+              <div style={{ background: '#07050e', borderRadius: 999, padding: 2 }}>
+                <UserAvatarDisplay profile={profileData} size={50} fallback={firstName[0]} showRing={false} />
+              </div>
+            </div>
+            <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)', fontFamily: "'Outfit', sans-serif", fontWeight: 500, marginTop: 2 }}>Avatar</span>
           </button>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] text-gray-500 font-medium">{greetingEmoji[greetingKey]} {t(greetingKey)}</p>
-            <h1 className="text-xl font-bold leading-tight truncate">Hey, {firstName} ✨</h1>
-            <p className="text-[11px] text-gray-500">@{username}</p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: "'Outfit', sans-serif", fontWeight: 500, marginBottom: 2 }}>
+              {greetingEmoji[greetingKey]} {t(greetingKey)}
+            </p>
+            <h1 style={{
+              fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 800,
+              lineHeight: 1.1, letterSpacing: '-0.3px',
+              background: 'linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.75) 100%)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>Hey, {firstName} ✨</h1>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontFamily: "'Outfit', sans-serif", marginTop: 2 }}>@{username}</p>
           </div>
-          <button onClick={async () => {if (window.confirm('Sign out?')) {await base44.auth.logout('/');}}}
-          className="text-[11px] font-semibold px-3 py-1.5 rounded-full flex-shrink-0"
-          style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+          <button onClick={async () => { if (window.confirm('Sign out?')) { await base44.auth.logout('/'); } }} style={{
+            fontSize: 11, fontWeight: 600, padding: '7px 13px', borderRadius: 20,
+            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+            color: '#f87171', fontFamily: "'Outfit', sans-serif", flexShrink: 0,
+          }}>
             Sign Out
           </button>
         </div>
 
         {/* ── DAILY GLOW CHECK-IN BANNER ────────────────────────── */}
         <div className="px-5 mb-5">
-          {checkedInToday ?
-          <div className="w-full flex items-center gap-4 px-4 py-4 rounded-[22px]"
-          style={{ background: 'linear-gradient(135deg, rgba(52,211,153,0.18), rgba(16,185,129,0.12))', border: '1px solid rgba(52,211,153,0.3)', backdropFilter: 'blur(16px)' }}>
-              <div className="w-12 h-12 rounded-[14px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(52,211,153,0.2)' }}>
-                <span className="text-2xl">✅</span>
+          {checkedInToday ? (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 16,
+              padding: '16px 20px', borderRadius: 24,
+              background: 'linear-gradient(135deg, rgba(52,211,153,0.12), rgba(16,185,129,0.07))',
+              border: '1px solid rgba(52,211,153,0.25)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 24px rgba(52,211,153,0.08)',
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                background: 'rgba(52,211,153,0.15)',
+                border: '1px solid rgba(52,211,153,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+              }}>✅</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#4ade80', fontFamily: "'Outfit', sans-serif", marginBottom: 3 }}>Daily Glow Check-In</p>
+                <p style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 15, color: 'white' }}>Checked in today ✨</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", marginTop: 2 }}>Back tomorrow for your next check-in</p>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold tracking-wider text-green-400 mb-0.5 uppercase">Daily Glow Check-In</p>
-                <p className="font-bold text-white text-[15px]">Checked in today ✨</p>
-                <p className="text-[11px] text-white/40">Come back tomorrow for your next check-in</p>
-              </div>
-              <span className="text-green-400 text-lg flex-shrink-0">🌟</span>
-            </div> :
-
-          <button onClick={() => navigate('/daily-checkin')}
-          className="w-full flex items-center gap-4 px-4 py-4 rounded-[22px] text-left active:scale-98 transition-all"
-          style={{ background: 'linear-gradient(135deg, rgba(139,44,170,0.6), rgba(232,82,109,0.5))', border: '1px solid rgba(232,82,109,0.35)', backdropFilter: 'blur(16px)', boxShadow: '0 8px 32px rgba(232,82,109,0.2)' }}>
-              <div className="w-12 h-12 rounded-[14px] overflow-hidden flex-shrink-0" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+              <span style={{ fontSize: 20, flexShrink: 0 }}>🌟</span>
+            </div>
+          ) : (
+            <button onClick={() => navigate('/daily-checkin')} style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 16,
+              padding: '16px 20px', borderRadius: 24, textAlign: 'left',
+              background: 'linear-gradient(135deg, rgba(110,30,140,0.7) 0%, rgba(200,50,80,0.55) 100%)',
+              border: '1px solid rgba(232,82,109,0.3)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 8px 40px rgba(232,82,109,0.22), inset 0 1px 0 rgba(255,255,255,0.1)',
+              cursor: 'pointer',
+            }} className="active:scale-[0.98] transition-transform">
+              <div style={{ width: 48, height: 48, borderRadius: 14, overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
                 <img src={MANUS + 'icon-glow-check-in_fe36a2ac.png'} className="w-full h-full object-cover" alt="check in" style={{ mixBlendMode: 'screen' }} />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold tracking-wider text-yellow-300 mb-0.5 uppercase">Daily Glow Check-In</p>
-                <p className="font-bold text-white text-[15px]">How are you glowing today?</p>
-                <p className="text-[11px] text-white/50">Tap to check in &amp; earn points ✨</p>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#fdcd2d', fontFamily: "'Outfit', sans-serif", marginBottom: 3 }}>Daily Glow Check-In</p>
+                <p style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: 'white' }}>How are you glowing today?</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit', sans-serif", marginTop: 2 }}>Tap to check in & earn points ✨</p>
               </div>
-              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>
-                <ChevronRight size={16} className="text-white" />
+              <div style={{
+                width: 32, height: 32, borderRadius: 16, flexShrink: 0,
+                background: 'rgba(255,255,255,0.12)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <ChevronRight size={16} color="white" />
               </div>
             </button>
-          }
+          )}
         </div>
 
         {/* ── SEARCH ───────────────────────────────────────────── */}
         <div className="px-5 mb-5 relative">
-          <button onClick={() => navigate('/search')}
-          className="w-full flex items-center gap-2.5 rounded-2xl px-4 py-3 text-left"
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
-            <Search size={15} className="text-gray-500 flex-shrink-0" />
-            <span className="text-sm text-gray-600">Search everything…</span>
+          <button onClick={() => navigate('/search')} style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+            borderRadius: 20, padding: '13px 18px', textAlign: 'left',
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.09)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+          }}>
+            <Search size={15} color="rgba(255,255,255,0.25)" style={{ flexShrink: 0 }} />
+            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, color: 'rgba(255,255,255,0.22)' }}>Search everything…</span>
           </button>
           {searchResults.length > 0 &&
           <div className="absolute top-full left-5 right-5 mt-1 rounded-2xl overflow-hidden z-20 shadow-2xl"
@@ -894,8 +976,12 @@ export default function Dashboard() {
         {/* ── QUICK ACCESS ─────────────────────────────────────── */}
         <div className="px-5 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase">Quick Access</p>
-            <button onClick={() => setShowQuickPicker(true)} className="flex items-center gap-1 text-[11px] text-pink-400 font-semibold"><Plus size={11} /> Customize</button>
+            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)' }}>Quick Access</p>
+            <button onClick={() => setShowQuickPicker(true)} style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              fontSize: 11, fontWeight: 600, color: '#e8526d',
+              fontFamily: "'Outfit', sans-serif",
+            }}><Plus size={11} /> Customize</button>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             {quickIds.map((id) => ALL_PAGES.find((p) => p.id === id)).filter(Boolean).map((app) =>
@@ -914,10 +1000,16 @@ export default function Dashboard() {
 
         {/* ── YOUR WORLD ───────────────────────────────────────── */}
         <div className="px-5 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase">Your World</p>
-            <button onClick={() => setEditMode((e) => !e)}
-            className={`text-[11px] font-semibold px-3 py-1 rounded-full transition ${editMode ? 'bg-pink-500 text-white' : "text-gray-400 border border-white/10"}`}>
+          <div className="flex items-center justify-between mb-4">
+            <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.22)' }}>Your World</p>
+            <button onClick={() => setEditMode((e) => !e)} style={{
+              fontSize: 11, fontWeight: 700, padding: '6px 14px', borderRadius: 20,
+              fontFamily: "'Outfit', sans-serif",
+              background: editMode ? 'linear-gradient(135deg,#e8526d,#a855f7)' : 'rgba(255,255,255,0.07)',
+              border: editMode ? 'none' : '1px solid rgba(255,255,255,0.1)',
+              color: editMode ? 'white' : 'rgba(255,255,255,0.4)',
+              boxShadow: editMode ? '0 4px 16px rgba(232,82,109,0.4)' : 'none',
+            }}>
               {editMode ? 'Done ✓' : 'Edit'}
             </button>
           </div>
@@ -1024,18 +1116,26 @@ export default function Dashboard() {
 
         {/* ── SOCIAL MEDIA (subtle, at bottom) ─────────────────── */}
         <div className="px-5 mb-6">
-          <p className="text-[11px] font-bold tracking-widest text-gray-600 uppercase mb-3">Follow Us</p>
-          <div className="rounded-[20px] overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="flex flex-wrap gap-2 p-3">
-              {SOCIAL.map((s) =>
-              <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold text-gray-400 hover:text-gray-200 transition"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <span>{s.icon}</span><span>{s.name}</span>
+          <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.18)', marginBottom: 12 }}>Follow Us</p>
+          <div style={{ borderRadius: 22, overflow: 'hidden', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: 14 }}>
+              {SOCIAL.map((s) => (
+                <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  borderRadius: 24, padding: '7px 12px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)',
+                  fontFamily: "'Outfit', sans-serif",
+                  textDecoration: 'none',
+                }}>
+                  <span style={{ fontSize: 13 }}>{s.icon}</span><span>{s.name}</span>
                 </a>
-              )}
+              ))}
             </div>
-            <p className="text-center text-[10px] text-gray-700 pb-3 px-4">Tapping opens the app — GGU is not affiliated with these platforms</p>
+            <p style={{ textAlign: 'center', fontSize: 10, color: 'rgba(255,255,255,0.12)', paddingBottom: 12, paddingLeft: 16, paddingRight: 16, fontFamily: "'Outfit', sans-serif" }}>
+              Tapping opens the app — GGU is not affiliated with these platforms
+            </p>
           </div>
         </div>
 

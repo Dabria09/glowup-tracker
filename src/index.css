@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Poppins:wght@400;500;600;700&family=Dancing+Script:wght@400;600;700&family=Caveat:wght@400;600&family=Patrick+Hand&family=Cinzel:wght@400;600&family=Great+Vibes&family=Space+Grotesk:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&family=Sora:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Poppins:wght@400;500;600;700&family=Dancing+Script:wght@400;600;700&family=Caveat:wght@400;600&family=Patrick+Hand&family=Cinzel:wght@400;600&family=Great+Vibes&family=Space+Grotesk:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&family=Sora:wght@600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -30,7 +30,7 @@
     --chart-3: 280 65% 60%;
     --chart-4: 173 58% 39%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     --sidebar-background: 340 40% 7%;
     --sidebar-foreground: 30 100% 90%;
     --sidebar-primary: 350 74% 61%;
@@ -42,6 +42,22 @@
     --font-poppins: 'Poppins', sans-serif;
     --font-inter: 'Inter', sans-serif;
     --font-playfair-display: 'Playfair Display', serif;
+    --font-outfit: 'Outfit', sans-serif;
+
+    /* Premium GGU Design Tokens */
+    --ggu-bg: #07050e;
+    --ggu-surface: rgba(255,255,255,0.04);
+    --ggu-surface-hover: rgba(255,255,255,0.07);
+    --ggu-border: rgba(255,255,255,0.08);
+    --ggu-border-accent: rgba(232,82,109,0.3);
+    --ggu-pink: #e8526d;
+    --ggu-pink-hot: #ff6a75;
+    --ggu-gold: #f1b610;
+    --ggu-gold-lt: #fdcd2d;
+    --ggu-purple: #a855f7;
+    --ggu-text-muted: rgba(255,255,255,0.4);
+    --ggu-glow-pink: 0 0 40px rgba(232,82,109,0.25);
+    --ggu-glow-gold: 0 0 40px rgba(241,182,16,0.2);
   }
 
   .dark {
