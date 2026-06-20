@@ -49,40 +49,13 @@ export default function Home() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(async u => {
+    base44.auth.me().then(u => {
       setUser(u);
-      // Honor a post-login redirect flag set before loginViaEmailPassword
-      // (which always hard-redirects to "/").
-      if (u) {
-        const postLoginRoute = localStorage.getItem('ggu_post_login_route');
-        if (postLoginRoute) {
-          localStorage.removeItem('ggu_post_login_route');
-          // For mentor dashboard redirects, verify the user actually has a mentor account (admins bypass)
-          if (postLoginRoute === '/mentor-dashboard') {
-            try {
-              const { loadMentorEntityByEmail } = await import('@/lib/authRules');
-              const mentorEntity = await loadMentorEntityByEmail(u.email);
-              if (!mentorEntity || mentorEntity.is_approved !== true) {
-                // No approved mentor account — log out and show error on mentor login page
-                await base44.auth.logout();
-                window.location.href = '/mentor-login?error=no_mentor_account';
-                return;
-              }
-            } catch {
-              // If check fails, allow the redirect to proceed
-            }
-          }
-          window.location.href = postLoginRoute;
-        }
-      }
+      // Don't auto-redirect here - let AppModeGate handle routing based on account_type
+      // This prevents redirect loops between Home, MentorDashboard, and Onboarding
     }).catch(() => setUser(null));
   }, []);
 
-  const handleMentorSignIn = () => {
-    if (user) { navigate('/mentor-dashboard'); }
-    else { base44.auth.redirectToLogin('/mentor-dashboard'); }
-  };
-  
   const handleClearSession = () => {
     localStorage.clear();
     sessionStorage.clear();
