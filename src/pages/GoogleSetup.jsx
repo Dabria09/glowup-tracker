@@ -98,6 +98,12 @@ export default function GoogleSetup() {
         
         if (mentorEntity && mentorEntity.is_approved === true) {
           // Approved mentor - ALWAYS go to mentor dashboard, even if they used community login
+          // Update account_type to ensure MentorDashboard doesn't redirect away
+          try {
+            await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'approved' });
+          } catch (updateErr) {
+            console.warn('Failed to update mentor account_type:', updateErr);
+          }
           console.log('[GoogleSetup] Approved mentor detected, redirecting to mentor-dashboard');
           window.location.href = "/mentor-dashboard";
           return;
@@ -105,6 +111,12 @@ export default function GoogleSetup() {
         
         if (mentorApplication && mentorApplication.status !== 'rejected') {
           // Pending mentor application - go to mentor dashboard (will show pending status)
+          // Update account_type to ensure MentorDashboard doesn't redirect away
+          try {
+            await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'pending' });
+          } catch (updateErr) {
+            console.warn('Failed to update mentor account_type:', updateErr);
+          }
           console.log('[GoogleSetup] Mentor application detected, redirecting to mentor-dashboard');
           window.location.href = "/mentor-dashboard";
           return;
@@ -132,12 +144,24 @@ export default function GoogleSetup() {
         if (dobSource && !isSignupIntent) {
           // Returning user via OAuth — ALWAYS check mentor status FIRST
           if (mentorEntity && mentorEntity.is_approved === true) {
+            // Update account_type to ensure MentorDashboard doesn't redirect away
+            try {
+              await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'approved' });
+            } catch (updateErr) {
+              console.warn('Failed to update mentor account_type:', updateErr);
+            }
             console.log('[GoogleSetup] Returning mentor detected, redirecting to mentor-dashboard');
             window.location.href = "/mentor-dashboard";
             return;
           }
           
           if (mentorApplication && mentorApplication.status !== 'rejected') {
+            // Update account_type to ensure MentorDashboard doesn't redirect away
+            try {
+              await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'pending' });
+            } catch (updateErr) {
+              console.warn('Failed to update mentor account_type:', updateErr);
+            }
             console.log('[GoogleSetup] Returning mentor applicant detected, redirecting to mentor-dashboard');
             window.location.href = "/mentor-dashboard";
             return;

@@ -66,28 +66,46 @@ export default function MentorDashboard() {
         const mentorApplication = await loadMentorApplicationByEmail(authUser.email);
         inferredMentorProfile = await loadMentorEntityByEmail(authUser.email);
         const isMentorAccount = Boolean(inferredMentorProfile || mentorApplication);
+        
+        // Build currentUser object first
+        currentUser = { ...authUser, ...userRecord };
+        
         if (!isMentorAccount) {
+          // Not a mentor account - redirect appropriately
           if (getAccountType(userRecord) === ACCOUNT_TYPES.GIRL) {
+            console.log('[MentorDashboard] User is a girl account, redirecting to /dashboard');
             window.location.href = '/dashboard';
             return;
           }
 
+          console.log('[MentorDashboard] Not a mentor account, redirecting to /mentor-login');
           await clearAuthSession();
           window.location.href = '/mentor-login';
           return;
         }
-
-        currentUser = { ...authUser, ...userRecord };
-        if (inferredMentorProfile && !currentUser.account_type) {
+        
+        // IS a mentor account - ensure account_type and mentor_status are set correctly
+        if (inferredMentorProfile && inferredMentorProfile.is_approved === true) {
           currentUser.account_type = ACCOUNT_TYPES.MENTOR;
-          currentUser.mentor_status = inferredMentorProfile.is_approved === true
-            ? 'approved'
-            : (currentUser.mentor_status || 'pending');
+          currentUser.mentor_status = 'approved';
           currentUser.mentor_type = currentUser.mentor_type || inferredMentorProfile.mentor_type || inferredMentorProfile.type;
-        }
-        if (mentorApplication && !currentUser.account_type) {
+          // Update auth metadata
+          try {
+            await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'approved' });
+            console.log('[MentorDashboard] Updated auth metadata for approved mentor');
+          } catch (updateErr) {
+            console.warn('[MentorDashboard] Failed to update auth metadata:', updateErr);
+          }
+        } else if (mentorApplication && mentorApplication.status !== 'rejected') {
           currentUser.account_type = ACCOUNT_TYPES.MENTOR;
           currentUser.mentor_status = mentorApplication.status === 'approved' ? 'approved' : 'pending';
+          // Update auth metadata
+          try {
+            await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'pending' });
+            console.log('[MentorDashboard] Updated auth metadata for pending mentor applicant');
+          } catch (updateErr) {
+            console.warn('[MentorDashboard] Failed to update auth metadata:', updateErr);
+          }
         }
         if (currentUser.account_type === ACCOUNT_TYPES.LINKED && currentUser.active_mode !== ACCOUNT_TYPES.MENTOR) {
           await base44.auth.updateMe({ active_mode: ACCOUNT_TYPES.MENTOR });
