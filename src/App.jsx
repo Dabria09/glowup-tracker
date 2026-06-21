@@ -73,6 +73,7 @@ import AdminLogs from './pages/AdminLogs';
 import GlowKitchen from './pages/GlowKitchen';
 import Mentorship from './pages/Mentorship';
 import MentorDashboard from './components/mentorship/MentorDashboard';
+import MentorReports from './pages/MentorReports';
 import MentorContactAdmin from './components/mentorship/MentorContactAdmin';
 import ParentDashboard from './pages/ParentDashboard';
 import GrowthMindset from './pages/GrowthMindset';
@@ -168,6 +169,7 @@ const AuthenticatedApp = () => {
       <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route path="/mentor-dashboard" element={<MentorDashboard />} />
+        <Route path="/mentor-reports" element={<MentorReports />} />
         <Route path="/mentor-contact-admin" element={<MentorContactAdmin />} />
         <Route element={<AppModeGate />}>
           <Route path="/dashboard" element={<Dashboard />} />

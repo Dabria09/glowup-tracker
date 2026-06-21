@@ -274,6 +274,9 @@ export default function MentorDashboard() {
           <button onClick={() => navigate('/mentor-contact-admin')} style={{ padding: '8px 14px', borderRadius: 22, border: '1px solid rgba(59,130,246,0.3)', background: 'rgba(59,130,246,0.08)', color: '#60a5fa', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, letterSpacing: '0.1px' }}>
             <Mail size={11} /> Contact Admin
           </button>
+          <button onClick={() => navigate('/mentor-reports')} style={{ padding: '8px 14px', borderRadius: 22, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.08)', color: '#c084fc', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, letterSpacing: '0.1px' }}>
+            📊 Reports
+          </button>
           <button onClick={() => setActiveTab('My Mentees')} style={{ padding: '8px 14px', borderRadius: 22, border: '1px solid rgba(241,182,16,0.3)', background: 'rgba(241,182,16,0.08)', color: '#f1b610', fontSize: 11, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.1px' }}>
             My Mentees
           </button>
