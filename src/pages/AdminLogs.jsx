@@ -30,7 +30,7 @@ export default function AdminLogs() {
       }
 
       const response = await base44.functions.invoke('getReportedPosts', {});
-      setPosts(response.data?.posts || response.data?.reports || []);
+      setPosts(response.data?.reports || response.data?.posts || []);
     } catch (error) {
       console.error('Error loading posts:', error);
       toast.error('Failed to load posts');

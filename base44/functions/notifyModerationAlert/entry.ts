@@ -25,6 +25,7 @@ Deno.serve(async (req) => {
     const emoji = priority === 'urgent' ? '🚨' : priority === 'high' ? '⚠️' : '📋';
     const urgencyText = priority === 'urgent' ? 'URGENT: ' : priority === 'high' ? 'High Priority: ' : '';
     
+    const reviewLink = `/admin?tab=moderation&highlight=${report.id}`;
     const notifications = admins.map(async (admin) => {
       // Create in-app notification
       await base44.asServiceRole.entities.Notification.create({
@@ -32,7 +33,7 @@ Deno.serve(async (req) => {
         type: 'moderation_alert',
         actor_email: report.reported_by || 'system',
         message: `${emoji} ${urgencyText}New ${report.content_type === 'shoutout' ? 'ShoutOut' : 'post'} reported for ${alertType.replace('_', ' ')}`,
-        link: '/admin#moderation',
+        link: reviewLink,
         is_read: false,
         priority,
         metadata: JSON.stringify({
@@ -71,7 +72,7 @@ Deno.serve(async (req) => {
   ` : ''}
   
   <div style="margin-top: 30px;">
-    <a href="https://app.girlsglowingup.com/admin#moderation" 
+    <a href="https://app.girlsglowingup.com${reviewLink}" 
        style="display: inline-block; background: linear-gradient(135deg, #e8526d, #a855f7); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
       Review Content →
     </a>
