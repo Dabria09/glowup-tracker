@@ -6,6 +6,19 @@ export const ACCOUNT_TYPES = {
   LINKED: "linked",
 };
 
+function getEmailCandidates(email) {
+  if (!email) return [];
+  const trimmed = String(email).trim();
+  const lower = trimmed.toLowerCase();
+  return [...new Set([trimmed, lower].filter(Boolean))];
+}
+
+export function isAdminUser(userRecord) {
+  return userRecord?.role === "admin" ||
+    userRecord?.is_admin === true ||
+    userRecord?.isAdmin === true;
+}
+
 export function calculateAge(dateOfBirth) {
   if (!dateOfBirth) return null;
   const birthDate = new Date(dateOfBirth);
@@ -288,25 +301,27 @@ export function isMentorModeActive(userRecord) {
 }
 
 export async function loadMentorEntityByEmail(email) {
-  if (!email) return null;
+  const emailCandidates = getEmailCandidates(email);
 
-  try {
-    const mentors = await base44.entities.Mentor.filter({ user_email: email });
-    const approvedMentor = mentors?.find(isApprovedMentorEntity);
-    if (approvedMentor) return approvedMentor;
-  } catch {}
+  for (const user_email of emailCandidates) {
+    try {
+      const mentors = await base44.entities.Mentor.filter({ user_email });
+      const approvedMentor = mentors?.find(isApprovedMentorEntity);
+      if (approvedMentor) return approvedMentor;
+    } catch {}
 
-  try {
-    const teenMentors = await base44.entities.TeenMentor.filter({ user_email: email });
-    const approvedTeenMentor = teenMentors?.find(isApprovedMentorEntity);
-    if (approvedTeenMentor) return approvedTeenMentor;
-  } catch {}
+    try {
+      const teenMentors = await base44.entities.TeenMentor.filter({ user_email });
+      const approvedTeenMentor = teenMentors?.find(isApprovedMentorEntity);
+      if (approvedTeenMentor) return approvedTeenMentor;
+    } catch {}
+  }
 
   return null;
 }
 
 export async function loadMentorApplicationByEmail(email) {
-  if (!email) return null;
+  const emailCandidates = getEmailCandidates(email);
 
   const sortLatest = (records) => [...records].sort((a, b) => {
     const bDate = new Date(b.submitted_date || b.created_date || 0).getTime();
@@ -314,33 +329,37 @@ export async function loadMentorApplicationByEmail(email) {
     return bDate - aDate;
   });
 
-  try {
-    const applications = await base44.entities.MentorApplication.filter({ user_email: email });
-    const activeApplication = sortLatest(applications || []).find(isActiveMentorApplication);
-    if (activeApplication) return activeApplication;
-  } catch {}
+  for (const user_email of emailCandidates) {
+    try {
+      const applications = await base44.entities.MentorApplication.filter({ user_email });
+      const activeApplication = sortLatest(applications || []).find(isActiveMentorApplication);
+      if (activeApplication) return activeApplication;
+    } catch {}
 
-  try {
-    const teenApplications = await base44.entities.TeenMentorApplication.filter({ user_email: email });
-    const activeTeenApplication = sortLatest(teenApplications || []).find(isActiveMentorApplication);
-    if (activeTeenApplication) return activeTeenApplication;
-  } catch {}
+    try {
+      const teenApplications = await base44.entities.TeenMentorApplication.filter({ user_email });
+      const activeTeenApplication = sortLatest(teenApplications || []).find(isActiveMentorApplication);
+      if (activeTeenApplication) return activeTeenApplication;
+    } catch {}
+  }
 
   return null;
 }
 
 export async function hasDeletedMentorEntityByEmail(email) {
-  if (!email) return false;
+  const emailCandidates = getEmailCandidates(email);
 
-  try {
-    const mentors = await base44.entities.Mentor.filter({ user_email: email });
-    if (mentors?.some(mentor => isDeletedAccount(mentor))) return true;
-  } catch {}
+  for (const user_email of emailCandidates) {
+    try {
+      const mentors = await base44.entities.Mentor.filter({ user_email });
+      if (mentors?.some(mentor => isDeletedAccount(mentor))) return true;
+    } catch {}
 
-  try {
-    const teenMentors = await base44.entities.TeenMentor.filter({ user_email: email });
-    if (teenMentors?.some(mentor => isDeletedAccount(mentor))) return true;
-  } catch {}
+    try {
+      const teenMentors = await base44.entities.TeenMentor.filter({ user_email });
+      if (teenMentors?.some(mentor => isDeletedAccount(mentor))) return true;
+    } catch {}
+  }
 
   return false;
 }
@@ -364,12 +383,12 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     throw new Error("No account found. Please sign up to join the Sisterhood.");
   }
 
-  // Admins bypass role checks, but keep the login portal intent.
-  if (userRecord.role === 'admin' || currentUser.role === 'admin') {
+  // Admins always start in the admin dashboard after authentication.
+  if (isAdminUser(userRecord) || isAdminUser(currentUser)) {
     return {
       user: currentUser,
       userRecord,
-      route: expectedAccountType === ACCOUNT_TYPES.MENTOR ? '/mentor-dashboard' : '/dashboard',
+      route: '/admin',
     };
   }
 

@@ -11,6 +11,7 @@ import {
   clearAuthSession,
   clearDeletedAccountRecord,
   hasDeletedMentorEntityByEmail,
+  isAdminUser,
   isDeletedAccount,
   loadMentorApplicationByEmail,
   loadCurrentUserRecord,
@@ -56,9 +57,9 @@ export default function GoogleSetup() {
         const userRecord = await loadCurrentUserRecord(u);
         const mergedUser = { ...u, ...userRecord };
 
-        // Admins bypass setup, but keep the portal they used to sign in.
-        if (mergedUser.role === 'admin') {
-          window.location.href = isMentor ? '/mentor-dashboard' : '/dashboard';
+        // Admins always start in the admin dashboard, regardless of portal.
+        if (isAdminUser(mergedUser)) {
+          window.location.href = '/admin';
           return;
         }
 
@@ -94,7 +95,7 @@ export default function GoogleSetup() {
         const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
         const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
         
-        if (mentorEntity && mentorEntity.is_approved === true) {
+        if (mentorEntity) {
           // Approved mentor - ALWAYS go to mentor dashboard, even if they used community login
           // Update account_type to ensure MentorDashboard doesn't redirect away
           try {
@@ -115,6 +116,12 @@ export default function GoogleSetup() {
             console.warn('Failed to update mentor account_type:', updateErr);
           }
           window.location.href = "/mentor-dashboard";
+          return;
+        }
+
+        if (isMentor && isSigninIntent) {
+          await clearAuthSession();
+          window.location.href = "/mentor-login?error=no_mentor_account";
           return;
         }
 
@@ -139,7 +146,7 @@ export default function GoogleSetup() {
         // If they already have a DOB set, skip this page
         if (dobSource && !isSignupIntent) {
           // Returning user via OAuth — ALWAYS check mentor status FIRST
-          if (mentorEntity && mentorEntity.is_approved === true) {
+          if (mentorEntity) {
             // Update account_type to ensure MentorDashboard doesn't redirect away
             try {
               await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'approved' });

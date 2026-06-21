@@ -12,6 +12,7 @@ import {
   clearAuthSession,
   hasDeletedMentorEntityByEmail,
   hasMentorAccount,
+  isAdminUser,
   isMentorModeActive,
   isDeletedAccount,
   loadMentorApplicationByEmail,
@@ -72,10 +73,10 @@ export default function Onboarding() {
           return;
         }
 
-        // Admins always go straight to dashboard — check BEFORE mentor checks
-        if (mergedUser.role === 'admin') {
-          console.log('[Onboarding] Admin user, redirecting to dashboard');
-          navigate('/dashboard', { replace: true });
+        // Admins always go straight to the admin dashboard — check BEFORE mentor checks
+        if (isAdminUser(mergedUser)) {
+          console.log('[Onboarding] Admin user, redirecting to admin dashboard');
+          navigate('/admin', { replace: true });
           return;
         }
 

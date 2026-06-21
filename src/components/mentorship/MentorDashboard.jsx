@@ -5,6 +5,7 @@ import {
   ACCOUNT_TYPES,
   clearAuthSession,
   getAccountType,
+  isAdminUser,
   isDeletedAccount,
   loadMentorApplicationByEmail,
   loadCurrentUserRecord,
@@ -51,7 +52,7 @@ export default function MentorDashboard() {
       try {
         const authUser = await base44.auth.me();
         const userRecord = await loadCurrentUserRecord(authUser);
-        if (!userRecord && authUser.role !== 'admin') {
+        if (!userRecord && !isAdminUser(authUser)) {
           await clearAuthSession();
           window.location.href = '/mentor-login';
           return;
@@ -69,7 +70,7 @@ export default function MentorDashboard() {
         
         // Build currentUser object first
         currentUser = { ...authUser, ...(userRecord || {}) };
-        const isAdmin = currentUser.role === 'admin';
+        const isAdmin = isAdminUser(currentUser);
         
         if (!isMentorAccount && !isAdmin) {
           // Not a mentor account - redirect appropriately
@@ -84,7 +85,7 @@ export default function MentorDashboard() {
         }
         
         // IS a mentor account - ensure account_type and mentor_status are set correctly
-        if (inferredMentorProfile && inferredMentorProfile.is_approved === true) {
+        if (inferredMentorProfile) {
           currentUser.account_type = ACCOUNT_TYPES.MENTOR;
           currentUser.mentor_status = 'approved';
           currentUser.mentor_type = currentUser.mentor_type || inferredMentorProfile.mentor_type || inferredMentorProfile.type;
