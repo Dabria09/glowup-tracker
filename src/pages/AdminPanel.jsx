@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell, Inbox, X, ChevronRight, FileWarning, Mail, UserPlus, DollarSign, Trophy } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
@@ -72,6 +72,7 @@ const TABS = [
 
 export default function AdminPanel() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
@@ -85,9 +86,8 @@ export default function AdminPanel() {
   const [pendingItems, setPendingItems] = useState({ reports: [], messages: [], applications: [] });
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
-    const highlightParam = params.get('highlight');
     
     if (tabParam && TABS.some(t => t.id === tabParam)) {
       setActiveTab(tabParam);
@@ -120,7 +120,20 @@ export default function AdminPanel() {
       }
     };
     load();
-  }, [navigate]);
+  }, [navigate, location.search]);
+
+  const openAdminNotification = (tab, highlightId = null) => {
+    const params = new URLSearchParams({ tab });
+    if (highlightId) params.set('highlight', highlightId);
+    navigate(`/admin?${params.toString()}`);
+    setActiveTab(tab);
+    setShowNotificationPanel(false);
+  };
+
+  const selectTab = (tab) => {
+    setActiveTab(tab);
+    navigate(tab === 'overview' ? '/admin' : `/admin?tab=${tab}`);
+  };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#080810' }}>
@@ -136,10 +149,10 @@ export default function AdminPanel() {
       case 'content':    return <ContentTab />;
       case 'groups':     return <GroupsTab />;
       case 'announce':   return <AnnounceTab />;
-      case 'moderation': return <ContentModeration />;
-      case 'mentors':    return <MentorsAdminTab />;
+      case 'moderation': return <ContentModeration key={location.search} />;
+      case 'mentors':    return <MentorsAdminTab key={location.search} />;
       case 'messages':   return <MessagesAdminTab />;
-      case 'mentor_inbox': return <MentorInboxAdminTab />;
+      case 'mentor_inbox': return <MentorInboxAdminTab key={location.search} />;
 
       case 'mentor_activity': return <MentorActivityTab />;
       case 'video':      return <VideoMonitorTab />;
@@ -197,7 +210,7 @@ export default function AdminPanel() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => selectTab(tab.id)}
                   className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition whitespace-nowrap ${isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200 bg-white/5'}`}
                   style={isActive ? { background: 'linear-gradient(135deg,#ec4899,#a855f7)' } : {}}
                 >
@@ -245,7 +258,7 @@ export default function AdminPanel() {
                       <p className="text-sm font-bold text-white">Content Reports</p>
                       <p className="text-xs text-gray-400">{pendingItems.reports.length} flagged posts/comments</p>
                     </div>
-                    <button onClick={() => { setShowNotificationPanel(false); setActiveTab('moderation'); }} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1">
+                    <button onClick={() => openAdminNotification('moderation')} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1">
                       View All <ChevronRight size={12} />
                     </button>
                   </div>
@@ -256,10 +269,7 @@ export default function AdminPanel() {
                         className="w-full text-left p-3 rounded-xl transition-colors hover:bg-white/5" 
                         style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
                         onClick={() => {
-                          const destination = `/admin?tab=moderation&highlight=${report.id}`;
-                          navigate(destination);
-                          setShowNotificationPanel(false);
-                          setActiveTab('moderation');
+                          openAdminNotification('moderation', report.id);
                         }}
                       >
                         <p className="text-xs text-white font-semibold capitalize">{report.content_type.replace('_', ' ')}</p>
@@ -282,17 +292,22 @@ export default function AdminPanel() {
                       <p className="text-sm font-bold text-white">Mentor Messages</p>
                       <p className="text-xs text-gray-400">{pendingItems.messages.length} messages from mentors</p>
                     </div>
-                    <button onClick={() => { setShowNotificationPanel(false); setActiveTab('mentor_inbox'); }} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1">
+                    <button onClick={() => openAdminNotification('mentor_inbox')} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1">
                       View All <ChevronRight size={12} />
                     </button>
                   </div>
                   <div className="space-y-2">
                     {pendingItems.messages.slice(0, 3).map(msg => (
-                      <div key={msg.id} className="p-3 rounded-xl" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}>
+                      <button
+                        key={msg.id}
+                        className="w-full text-left p-3 rounded-xl transition-colors hover:bg-white/5"
+                        style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}
+                        onClick={() => openAdminNotification('mentor_inbox', msg.id)}
+                      >
                         <p className="text-xs text-white font-semibold">{msg.subject}</p>
                         <p className="text-[10px] text-gray-400 mt-0.5">From: {msg.sender_email?.split('@')[0]}</p>
                         <p className="text-[10px] text-purple-400 mt-1 capitalize">{msg.category.replace('_', ' ')}</p>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -309,17 +324,22 @@ export default function AdminPanel() {
                       <p className="text-sm font-bold text-white">Mentor Applications</p>
                       <p className="text-xs text-gray-400">{pendingItems.applications.length} pending approvals</p>
                     </div>
-                    <button onClick={() => { setShowNotificationPanel(false); setActiveTab('mentors'); }} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1">
+                    <button onClick={() => openAdminNotification('mentors')} className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1">
                       View All <ChevronRight size={12} />
                     </button>
                   </div>
                   <div className="space-y-2">
                     {pendingItems.applications.slice(0, 3).map(app => (
-                      <div key={app.id} className="p-3 rounded-xl" style={{ background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)' }}>
+                      <button
+                        key={app.id}
+                        className="w-full text-left p-3 rounded-xl transition-colors hover:bg-white/5"
+                        style={{ background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)' }}
+                        onClick={() => openAdminNotification('mentors', app.id)}
+                      >
                         <p className="text-xs text-white font-semibold">{app.full_name}</p>
                         <p className="text-[10px] text-gray-400 mt-0.5">{app.user_email?.split('@')[0]}</p>
                         <p className="text-[10px] text-green-400 mt-1 capitalize">{app.mentor_track} track</p>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
