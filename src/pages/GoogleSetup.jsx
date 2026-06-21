@@ -56,9 +56,9 @@ export default function GoogleSetup() {
         const userRecord = await loadCurrentUserRecord(u);
         const mergedUser = { ...u, ...userRecord };
 
-        // Admins bypass setup, but keep the portal they used to sign in.
+        // Admins bypass setup and land in the admin area from any sign-in path.
         if (mergedUser.role === 'admin') {
-          window.location.href = isMentor ? '/mentor-dashboard' : '/dashboard';
+          window.location.href = '/admin';
           return;
         }
 

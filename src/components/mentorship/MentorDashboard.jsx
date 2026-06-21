@@ -69,6 +69,11 @@ export default function MentorDashboard() {
         
         // Build currentUser object first
         currentUser = { ...authUser, ...userRecord };
+
+        if (currentUser.role === 'admin') {
+          window.location.href = '/admin';
+          return;
+        }
         
         if (!isMentorAccount) {
           // Not a mentor account - redirect appropriately

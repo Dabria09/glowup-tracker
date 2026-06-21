@@ -311,8 +311,14 @@ export default function MentorRegister() {
     }
   };
 
-  const handleGoogleSignup = () => base44.auth.loginWithProvider("google", window.location.origin + "/google-setup?mentor=true&intent=signup");
-  const handleAppleSignup = () => base44.auth.loginWithProvider("apple", window.location.origin + "/google-setup?mentor=true&intent=signup");
+  const handleGoogleSignup = () => {
+    localStorage.setItem('ggu_oauth_flow', 'mentor');
+    base44.auth.loginWithProvider("google", window.location.origin + "/google-setup?mentor=true&intent=signup");
+  };
+  const handleAppleSignup = () => {
+    localStorage.setItem('ggu_oauth_flow', 'mentor');
+    base44.auth.loginWithProvider("apple", window.location.origin + "/google-setup?mentor=true&intent=signup");
+  };
 
   const handleSendParentConsent = async () => {
     const normalizedParentName = parentName.trim();

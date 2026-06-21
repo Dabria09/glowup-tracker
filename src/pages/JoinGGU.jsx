@@ -37,6 +37,20 @@ export default function JoinGGU() {
 
   const group = AGE_GROUPS.find(g => g.id === selectedGroup);
 
+  const saveJoinIntent = () => {
+    localStorage.setItem('ggu_join_intent', JSON.stringify({
+      selectedGroup,
+      glowPassCode: passValid === true ? passCode : '',
+      startedAt: new Date().toISOString(),
+    }));
+  };
+
+  const startCommunityGoogleAuth = (intent) => {
+    saveJoinIntent();
+    localStorage.setItem('ggu_oauth_flow', 'community');
+    base44.auth.loginWithProvider("google", `${window.location.origin}/google-setup?intent=${intent}`);
+  };
+
   const handlePassInput = async (val) => {
     const v = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
     setPassCode(v);
@@ -52,8 +66,12 @@ export default function JoinGGU() {
     }
   };
 
-  const signIn = () => base44.auth.redirectToLogin('/dashboard');
-  const createAccount = () => { setShowSuccess(true); setTimeout(() => base44.auth.redirectToLogin('/onboarding'), 1800); };
+  const signIn = () => startCommunityGoogleAuth('signin');
+  const mentorSignIn = () => navigate('/mentor-login');
+  const createAccount = () => {
+    setShowSuccess(true);
+    setTimeout(() => startCommunityGoogleAuth('signup'), 600);
+  };
 
   const dot = (s, active, done) => (
     <div key={s} className="rounded-full" style={{ width: 8, height: 8, background: done ? GOLD : active ? PINK : 'rgba(232,82,109,0.2)', border: `1px solid ${done ? GOLD : active ? PINK : 'rgba(232,82,109,0.3)'}`, boxShadow: active ? '0 0 8px rgba(232,82,109,0.6)' : 'none' }} />
@@ -95,7 +113,7 @@ export default function JoinGGU() {
               <button onClick={signIn} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg,${PINK_DEEP},${PINK} 40%,${PINK_HOT} 100%)`, color: 'white', fontFamily: '"Sora","Poppins",sans-serif', fontSize: 15, fontWeight: 800, padding: 16, borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: '0 8px 28px rgba(232,82,109,0.45)' }}>
                 ✦ Sign In with Google
               </button>
-              <button onClick={() => base44.auth.redirectToLogin('/mentorship')} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 mt-2.5" style={{ background: 'transparent', border: `2px solid rgba(241,182,16,0.4)`, color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 14, fontWeight: 700, padding: 13, borderRadius: 14, cursor: 'pointer' }}>
+              <button onClick={mentorSignIn} className="w-full flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 mt-2.5" style={{ background: 'transparent', border: `2px solid rgba(241,182,16,0.4)`, color: GOLD_LT, fontFamily: '"Sora","Poppins",sans-serif', fontSize: 14, fontWeight: 700, padding: 13, borderRadius: 14, cursor: 'pointer' }}>
                 🎓 Mentor Sign In → Mentor Hub
               </button>
               <div className="flex items-center gap-2.5 my-3.5" style={{ color: 'rgba(196,148,158,0.4)', fontSize: 11, letterSpacing: 1 }}>
@@ -208,7 +226,7 @@ export default function JoinGGU() {
               <span style={{ fontSize: 52, display: 'block', marginBottom: 13, filter: 'drop-shadow(0 0 16px rgba(241,182,16,0.8))' }}>👑</span>
               <h2 style={{ fontFamily: '"Playfair Display",serif', fontSize: 26, fontWeight: 900, marginBottom: 8 }}>Welcome to the <span style={{ background: `linear-gradient(135deg,${PINK_HOT},${GOLD})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Sisterhood!</span></h2>
               <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, marginBottom: 22 }}>{selectedGroup ? MSG[selectedGroup] : "Your journey to becoming your best self starts right now."}</p>
-              <p style={{ fontSize: 12, color: MUTED2 }}>Redirecting to sign in...</p>
+              <p style={{ fontSize: 12, color: MUTED2 }}>Redirecting to Google sign up...</p>
             </div>
           )}
         </div>

@@ -96,10 +96,12 @@ export default function MentorSignup() {
   };
 
   const handleApple = () => {
+    localStorage.setItem('ggu_oauth_flow', 'mentor');
     base44.auth.loginWithProvider("apple", window.location.origin + "/google-setup?mentor=true&intent=signup");
   };
 
   const handleGoogle = () => {
+    localStorage.setItem('ggu_oauth_flow', 'mentor');
     base44.auth.loginWithProvider("google", window.location.origin + "/google-setup?mentor=true&intent=signup");
   };
 

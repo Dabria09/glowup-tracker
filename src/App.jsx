@@ -160,6 +160,12 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/how-it-works" element={<HowItWorks />} />
+      <Route path="/guidelines" element={<Guidelines />} />
+      <Route path="/support" element={<Support />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route path="/mentor-dashboard" element={<MentorDashboard />} />
         <Route path="/mentor-contact-admin" element={<MentorContactAdmin />} />
@@ -234,10 +240,6 @@ const AuthenticatedApp = () => {
           <Route path="/my-goals" element={<MyGoals />} />
           <Route path="/ggu-academy" element={<GguAcademy />} />
           <Route path="/curriculum" element={<Curriculum />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/guidelines" element={<Guidelines />} />
-          <Route path="/support" element={<Support />} />
           <Route path="/points-settings" element={<PointsSettings />} />
           <Route path="/points-history" element={<PointsHistory />} />
           <Route path="/monthly-summary" element={<MonthlySummary />} />
@@ -251,8 +253,6 @@ const AuthenticatedApp = () => {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/search" element={<Search />} />
           <Route path="/glow" element={<Glow />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/saved-quotes" element={<SavedQuotes />} />
           <Route path="/saved-scholarships" element={<SavedScholarships />} />
           <Route path="/saved-careers" element={<SavedCareers />} />
