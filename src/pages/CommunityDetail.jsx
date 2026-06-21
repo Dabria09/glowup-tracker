@@ -356,16 +356,27 @@ export default function CommunityDetail() {
 
   async function handleReportPost(post) {
     if (!confirm(`Report this post for inappropriate content?\n\nCommunity admins will be notified to review this post.`)) return;
-    // Send email notification to community admins
-    const adminMembers = members.filter(m => m.role === 'admin');
-    for (const admin of adminMembers) {
-      await base44.integrations.Core.SendEmail({
-        to: admin.user_email,
-        subject: `Post Report in ${community.name}`,
-        body: `A post has been reported in ${community.name}.\n\nPost by: ${post.username}\nContent: ${post.content}\n\nPlease review and take appropriate action.`,
+    try {
+      const report = await base44.entities.ContentReport.create({
+        reported_content_id: post.id,
+        content_type: 'community_post',
+        content_snapshot: post.content,
+        reported_by: user.email,
+        reason: 'inappropriate',
+        description: `Community post reported in ${community.name}`,
+        status: 'pending',
       });
+
+      await base44.functions.invoke('notifyModerationAlert', {
+        report,
+        alertType: 'inappropriate',
+      });
+
+      alert('Thank you for helping keep our community safe. GGU admins have been notified. 💜');
+    } catch (error) {
+      console.error('Failed to report post:', error);
+      alert('Report failed. Please try again.');
     }
-    alert('Thank you for helping keep our community safe. Admins have been notified. 💜');
   }
 
   if (!community) {

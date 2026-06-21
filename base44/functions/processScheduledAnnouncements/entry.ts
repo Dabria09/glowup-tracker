@@ -31,30 +31,33 @@ Deno.serve(async (req) => {
         
         if (announcement.send_to === 'all') {
           // Get all users
-          const allUsers = await base44.entities.User.list();
+          const allUsers = await base44.asServiceRole.entities.User.list();
           recipients = allUsers.map(u => ({ email: u.email, full_name: u.full_name }));
         } else if (announcement.send_to === 'specific_group' && announcement.group_id) {
           // Get group members
-          const members = await base44.entities.GroupMember.filter({ group_id: announcement.group_id });
+          const members = await base44.asServiceRole.entities.GroupMember.filter({ group_id: announcement.group_id });
           recipients = members.map(m => ({ email: m.user_email, full_name: m.display_name || m.username || m.user_email }));
         }
+
+        const uniqueRecipients = [...new Map(recipients.filter(r => r.email).map(r => [r.email.toLowerCase(), r])).values()];
         
         // Create notification for each recipient
-        for (const recipient of recipients) {
-          await base44.entities.Notification.create({
+        for (const recipient of uniqueRecipients) {
+          await base44.asServiceRole.entities.Notification.create({
             recipient_email: recipient.email,
             type: 'announcement',
             actor_email: announcement.sent_by,
             actor_username: 'GGU Admin',
-            title: announcement.title,
-            message: announcement.body,
+            message: `${announcement.title}: ${announcement.body}`,
+            link: '/notifications',
             is_read: false,
-            created_date: now.toISOString(),
+            priority: 'medium',
+            metadata: JSON.stringify({ announcement_id: announcement.id }),
           });
         }
         
         // Update announcement status
-        await base44.entities.Announcement.update(announcement.id, {
+        await base44.asServiceRole.entities.Announcement.update(announcement.id, {
           status: 'sent',
           sent_date: now.toISOString(),
         });

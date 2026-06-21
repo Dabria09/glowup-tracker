@@ -109,6 +109,20 @@ export default function Notifications() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
+  const openNotification = async (notif) => {
+    if (!notif.is_read) {
+      setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n));
+      try {
+        await base44.entities.Notification.update(notif.id, { is_read: true });
+      } catch {
+        setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, is_read: false } : n));
+        return;
+      }
+    }
+
+    if (notif.link) navigate(notif.link);
+  };
+
   return (
     <div className="min-h-screen text-white pb-28" style={{ backgroundColor: '#0d0608' }}>
       {/* Ambient glow */}
@@ -205,7 +219,7 @@ export default function Notifications() {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04 }}
-                    onClick={() => notif.link && navigate(notif.link)}
+                    onClick={() => openNotification(notif)}
                     className="w-full flex items-center gap-3 p-4 rounded-3xl text-left transition active:scale-98"
                     style={{
                       background: isUnread

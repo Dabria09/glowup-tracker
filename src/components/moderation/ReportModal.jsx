@@ -8,7 +8,7 @@ const REASONS = [
   { value: 'harassment', label: '😠 Harassment', desc: 'Targeted abuse or intimidation' },
   { value: 'hate_speech', label: '💔 Hate Speech', desc: 'Discriminatory or harmful language' },
   { value: 'inappropriate', label: '🚫 Inappropriate', desc: 'Not suitable for minors' },
-  { value: 'bullying', label: '👊 Bullying', desc: 'Mean-spirited or hurtful behavior' },
+  { value: 'bullying', reportValue: 'harassment', label: '👊 Bullying', desc: 'Mean-spirited or hurtful behavior' },
   { value: 'other', label: '📝 Other', desc: 'Different reason' },
 ];
 
@@ -26,14 +26,21 @@ export default function ReportModal({ onClose, contentType, contentId, contentTe
     setSubmitting(true);
     setError('');
     try {
-      await base44.entities.ContentReport.create({
+      const me = await base44.auth.me();
+      const reportReason = REASONS.find(reason => reason.value === selectedReason)?.reportValue || selectedReason;
+      const report = await base44.entities.ContentReport.create({
         reported_content_id: contentId,
         content_type: contentType,
-        reason: selectedReason,
+        reason: reportReason,
         description: description.trim(),
+        reported_by: me.email,
         reported_user_email: reportedUserEmail,
         content_snapshot: contentText,
         status: 'pending',
+      });
+      await base44.functions.invoke('notifyModerationAlert', {
+        report,
+        alertType: reportReason,
       });
       toast.success('Report submitted. Thank you for helping keep GGU safe! 🛡️');
       onClose();
