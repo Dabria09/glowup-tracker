@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, Crown } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import BrandLogo from "@/components/BrandLogo";
+import { ACCOUNT_TYPES, completeEmailPasswordSignIn } from "@/lib/authRules";
 
 
 
@@ -31,8 +32,12 @@ export default function MentorLogin() {
     try {
       localStorage.setItem('ggu_oauth_flow', 'mentor');
       localStorage.setItem('ggu_post_login_route', '/mentor-dashboard');
-      await base44.auth.loginViaEmailPassword(email.trim(), password);
-      // loginViaEmailPassword hard-redirects to "/" — Home.jsx will handle the mentor check
+      const result = await completeEmailPasswordSignIn({
+        email,
+        password,
+        expectedAccountType: ACCOUNT_TYPES.MENTOR,
+      });
+      window.location.href = result.route || '/mentor-dashboard';
     } catch (err) {
       localStorage.removeItem('ggu_oauth_flow');
       localStorage.removeItem('ggu_post_login_route');
