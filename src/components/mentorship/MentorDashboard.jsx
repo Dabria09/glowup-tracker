@@ -11,9 +11,8 @@ import {
   loadMentorEntityByEmail,
 } from '@/lib/authRules';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, CheckCircle, Clock, Star, Calendar, User, BookOpen, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2, Mail } from 'lucide-react';
+import { MessageCircle, CheckCircle, Star, Calendar, User, BookOpen, Sparkles, Award, LogOut, Trash2, Crown, Camera, Loader2, Mail } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
-import MenteeDashboard from './MenteeDashboard';
 import ApplicationStatusTracker from './ApplicationStatusTracker';
 import MentorLesson from './MentorLesson';
 import MentorInbox from './MentorInbox';
@@ -69,6 +68,11 @@ export default function MentorDashboard() {
         
         // Build currentUser object first
         currentUser = { ...authUser, ...userRecord };
+
+        if (currentUser.role === 'admin') {
+          window.location.href = '/admin';
+          return;
+        }
         
         if (!isMentorAccount) {
           // Not a mentor account - redirect appropriately

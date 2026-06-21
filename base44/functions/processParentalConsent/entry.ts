@@ -7,14 +7,18 @@ Deno.serve(async (req) => {
     
     // This endpoint can be called without authentication (from email links)
     const url = new URL(req.url);
-    const token = url.searchParams.get('token');
-    const action = url.searchParams.get('action'); // 'approve' or 'decline'
+    let body: Record<string, unknown> = {};
+    if ((req.headers.get('content-type') || '').includes('application/json')) {
+      body = await req.json().catch(() => ({}));
+    }
+    const token = url.searchParams.get('token') || String(body.token || '');
+    const action = url.searchParams.get('action') || String(body.action || 'status'); // 'status', 'approve', or 'decline'
     
     if (!token || !action) {
       return Response.json({ error: 'Invalid request' }, { status: 400 });
     }
     
-    if (action !== 'approve' && action !== 'decline') {
+    if (!['status', 'approve', 'decline'].includes(action)) {
       return Response.json({ error: 'Invalid action' }, { status: 400 });
     }
     
@@ -22,25 +26,43 @@ Deno.serve(async (req) => {
     const consents = await sr.entities.ParentConsent.filter({ id: token });
     
     if (consents.length === 0) {
-      return Response.json({ error: 'Invalid or expired consent link' }, { status: 404 });
+      return Response.json(
+        { error: 'Invalid or expired consent link' },
+        { status: action === 'status' ? 200 : 404 }
+      );
     }
     
     const consent = consents[0];
     
+    const publicConsent = {
+      teen_name: consent.teen_name,
+      parent_name: consent.parent_name,
+      consent_given: consent.consent_given,
+    };
+
     // Check if already responded
     if (typeof consent.consent_given === 'boolean') {
       return Response.json({ 
-        error: 'This consent request has already been responded to',
+        ...publicConsent,
         already_responded: true,
-        consent_given: consent.consent_given
-      }, { status: 400 });
+      });
     }
     
     // Check if expired
     const now = new Date();
     const expiresDate = consent.consent_expires_date ? new Date(consent.consent_expires_date) : null;
     if (expiresDate && now > expiresDate) {
-      return Response.json({ error: 'This consent link has expired (14 days)' }, { status: 400 });
+      return Response.json(
+        { error: 'This consent link has expired (14 days)' },
+        { status: action === 'status' ? 200 : 400 }
+      );
+    }
+
+    if (action === 'status') {
+      return Response.json({
+        ...publicConsent,
+        ready_to_respond: true,
+      });
     }
     
     // Update consent record
@@ -145,7 +167,9 @@ Deno.serve(async (req) => {
     return Response.json({ 
       success: true,
       action: action,
-      teen_name: consent.teen_name
+      teen_name: consent.teen_name,
+      parent_name: consent.parent_name,
+      consent_given: action === 'approve',
     });
   } catch (error) {
     console.error('Error processing parental consent:', error);

@@ -10,9 +10,7 @@ import NewUserTour from '@/components/NewUserTour';
 import {
   calculateGirlAgeGroup,
   clearAuthSession,
-  hasDeletedMentorEntityByEmail,
   hasMentorAccount,
-  isMentorModeActive,
   isDeletedAccount,
   loadMentorApplicationByEmail,
   loadCurrentUserRecord,
@@ -20,6 +18,14 @@ import {
 } from '@/lib/authRules';
 
 const STEPS_MINOR   = ['dob', 'username', 'parental', 'agreement', 'complete'];
+
+const readJoinIntent = () => {
+  try {
+    return JSON.parse(localStorage.getItem('ggu_join_intent') || 'null');
+  } catch {
+    return null;
+  }
+};
 
 export default function Onboarding() {
   console.log('[Onboarding Component] Rendering...');
@@ -72,10 +78,10 @@ export default function Onboarding() {
           return;
         }
 
-        // Admins always go straight to dashboard — check BEFORE mentor checks
+        // Admins always go straight to the admin area — check BEFORE mentor checks
         if (mergedUser.role === 'admin') {
-          console.log('[Onboarding] Admin user, redirecting to dashboard');
-          navigate('/dashboard', { replace: true });
+          console.log('[Onboarding] Admin user, redirecting to admin');
+          navigate('/admin', { replace: true });
           return;
         }
 
@@ -113,6 +119,7 @@ export default function Onboarding() {
           return;
         }
 
+        const joinIntent = readJoinIntent();
         setUser(mergedUser);
         const calculated = calculateGirlAgeGroup(mergedUser.date_of_birth);
         setData(prev => ({
@@ -121,6 +128,7 @@ export default function Onboarding() {
           date_of_birth: mergedUser.date_of_birth || prev.date_of_birth,
           age: typeof mergedUser.age === 'number' ? mergedUser.age : (calculated.age ?? prev.age),
           age_group: mergedUser.age_group || calculated.ageGroup || prev.age_group,
+          stage: joinIntent?.selectedGroup || prev.stage,
         }));
         
         // Check hard ban on this email
@@ -189,6 +197,9 @@ export default function Onboarding() {
       parental_consent_given: false,
       parental_consent_sent: data.age < 13,
     };
+    if (data.stage) {
+      profileData.stage = data.stage;
+    }
     if (data.age < 13) {
       profileData.parent_email = data.parent_email;
       profileData.parent_name = data.parent_name;
@@ -208,6 +219,7 @@ export default function Onboarding() {
       if (data.username) {
         await base44.auth.updateMe({ username: data.username }).catch(() => {});
       }
+      localStorage.removeItem('ggu_join_intent');
       if (data.age < 13) {
         await base44.functions.invoke('sendParentalConsent', {
           context: 'girl',

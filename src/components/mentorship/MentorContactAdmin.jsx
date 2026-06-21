@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Send, Inbox, HelpCircle, AlertCircle, MessageCircle, X } from 'lucide-react';
+import {
+  ACCOUNT_TYPES,
+  clearAuthSession,
+  isDeletedAccount,
+  loadCurrentUserRecord,
+  loadMentorApplicationByEmail,
+  loadMentorEntityByEmail,
+} from '@/lib/authRules';
+import { Send, Inbox, MessageCircle, X } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'question', label: '❓ General Question', emoji: '❓' },
@@ -12,6 +21,7 @@ const CATEGORIES = [
 ];
 
 export default function MentorContactAdmin() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,13 +33,48 @@ export default function MentorContactAdmin() {
 
   useEffect(() => {
     const init = async () => {
-      const u = await base44.auth.me();
-      setUser(u);
-      await loadMessages(u.email);
-      setLoading(false);
+      try {
+        const authUser = await base44.auth.me();
+        const userRecord = await loadCurrentUserRecord(authUser);
+        const u = { ...authUser, ...(userRecord || {}) };
+
+        if (!userRecord || isDeletedAccount(u)) {
+          await clearAuthSession();
+          navigate('/mentor-login', { replace: true });
+          return;
+        }
+
+        if (u.role === 'admin') {
+          navigate('/admin', { replace: true });
+          return;
+        }
+
+        const [mentorEntity, mentorApplication] = await Promise.all([
+          loadMentorEntityByEmail(u.email),
+          loadMentorApplicationByEmail(u.email),
+        ]);
+        const hasMentorPathAccess = Boolean(
+          mentorEntity ||
+          (mentorApplication && mentorApplication.status !== 'rejected') ||
+          u.account_type === ACCOUNT_TYPES.MENTOR ||
+          (u.account_type === ACCOUNT_TYPES.LINKED && u.active_mode === ACCOUNT_TYPES.MENTOR)
+        );
+
+        if (!hasMentorPathAccess) {
+          navigate('/dashboard', { replace: true });
+          return;
+        }
+
+        setUser(u);
+        await loadMessages(u.email);
+        setLoading(false);
+      } catch {
+        await clearAuthSession();
+        navigate('/mentor-login', { replace: true });
+      }
     };
     init();
-  }, []);
+  }, [navigate]);
 
   const loadMessages = async (email) => {
     const allMsgs = await base44.entities.MentorMessage.filter({ sender_email: email }, '-created_date');

@@ -192,7 +192,8 @@ export default function AppModeGate() {
 
   // Security Routing Gates
   const isMentorPath = location.pathname.startsWith("/mentor-");
-  const isGirlPath = ["/dashboard", "/discover", "/glow", "/connect", "/me"].some(p => location.pathname.startsWith(p));
+  const isAdminPath = ["/admin", "/admin-logs", "/admin-qa", "/points-settings"].some(p => location.pathname.startsWith(p));
+  const isGirlPath = !isMentorPath && !isAdminPath;
 
   if (mentorModeActive && isGirlPath) return <Navigate to="/mentor-dashboard" replace />;
   if (user.account_type === "girl" && isMentorPath && user.role !== "admin") return <Navigate to="/dashboard" replace />;
