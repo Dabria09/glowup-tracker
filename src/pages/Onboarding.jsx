@@ -11,6 +11,7 @@ import {
   calculateGirlAgeGroup,
   clearAuthSession,
   hasMentorAccount,
+  isAdminUser,
   isDeletedAccount,
   loadMentorApplicationByEmail,
   loadCurrentUserRecord,
@@ -28,7 +29,6 @@ const readJoinIntent = () => {
 };
 
 export default function Onboarding() {
-  console.log('[Onboarding Component] Rendering...');
   const [hardBanned, setHardBanned] = useState(null);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -51,36 +51,27 @@ export default function Onboarding() {
       return;
     }
 
-    console.log('[Onboarding] 🔍 INIT - mentor param:', isFromMentorSignup, 'URL:', window.location.search);
-    
     const initAuth = async () => {
       try {
-        console.log('[Onboarding] Checking auth status...');
         const authed = await base44.auth.isAuthenticated();
-        console.log('[Onboarding] Auth status:', authed);
         
         if (!authed) {
-          console.log('[Onboarding] Not authenticated, redirecting to login...');
           base44.auth.redirectToLogin('/onboarding' + (isFromMentorSignup ? '?mentor=true' : ''));
           return;
         }
         
-        console.log('[Onboarding] Getting user info...');
         const u = await base44.auth.me();
-        console.log('[Onboarding] User:', u);
         const userRecord = await loadCurrentUserRecord(u);
         const mergedUser = { ...u, ...userRecord };
 
         if (isDeletedAccount(mergedUser)) {
-          console.log('[Onboarding] Deleted account detected, clearing session');
           await clearAuthSession();
           navigate('/login', { replace: true });
           return;
         }
 
         // Admins always go straight to the admin area — check BEFORE mentor checks
-        if (mergedUser.role === 'admin') {
-          console.log('[Onboarding] Admin user, redirecting to admin');
+        if (isAdminUser(mergedUser)) {
           navigate('/admin', { replace: true });
           return;
         }
@@ -94,7 +85,6 @@ export default function Onboarding() {
             const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
             const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
             if (mentorEntity || mentorApplication) {
-              console.log('[Onboarding] Confirmed mentor account, redirecting to mentor dashboard');
               navigate('/mentor-dashboard', { replace: true });
               return;
             }
@@ -106,15 +96,11 @@ export default function Onboarding() {
         try {
           const profiles = await base44.entities.UserProfile.filter({ user_email: mergedUser.email });
           hasCompleteProfile = profiles.length > 0 && profiles[0].onboarding_complete;
-          console.log('[Onboarding] Profile check:', { complete: hasCompleteProfile, count: profiles.length });
-        } catch (profileErr) {
-          console.log('[Onboarding] Profile check skipped:', profileErr.message);
-        }
+        } catch {}
 
         // If the user already has a complete profile, send them straight to dashboard
         // This prevents returning users from getting stuck here
         if (!isFromMentorSignup && hasCompleteProfile) {
-          console.log('[Onboarding] Already onboarded, redirecting to dashboard');
           navigate('/dashboard', { replace: true });
           return;
         }
@@ -135,27 +121,19 @@ export default function Onboarding() {
         try {
           const activeBans = await base44.entities.BannedUser.filter({ user_email: mergedUser.email, ban_type: 'hard', is_active: true });
           if (activeBans.length) { 
-            console.log('[Onboarding] User is banned:', activeBans[0]);
             setHardBanned(activeBans[0]); 
             return; 
           }
-        } catch (banErr) {
-          console.log('[Onboarding] Ban check skipped:', banErr.message);
-        }
+        } catch {}
         
         if (isFromMentorSignup) {
-          console.log('[Onboarding] 🔥 FORCING mentor flow from URL param - will NOT redirect to dashboard');
           setIsMentorFlow(true);
           // If user already has a complete profile AND is already a mentor, skip to mentor dashboard
           if (hasCompleteProfile && hasMentorAccount(mergedUser)) {
-            console.log('[Onboarding] Already a mentor with complete profile, redirecting to mentor dashboard');
             navigate('/mentor-dashboard', { replace: true });
             return;
           }
-          console.log('[Onboarding] ✅ MENTOR FLOW - proceeding to mentor application');
         }
-        
-        console.log('[Onboarding] Initialization complete, showing onboarding');
       } catch (err) {
         console.error('[Onboarding] Auth error:', err);
         alert('Auth error: ' + err.message);
@@ -175,11 +153,6 @@ export default function Onboarding() {
   const steps = hasDob ? computedSteps.filter(s => s !== 'dob') : computedSteps;
   const currentStep = steps[stepIndex];
   
-  // Debug: log step transitions
-  useEffect(() => {
-    console.log('[Onboarding] Step changed:', { stepIndex, currentStep, steps, isMentorFlow, data });
-  }, [stepIndex, currentStep, steps, isMentorFlow, data]);
-
   const next = () => setStepIndex(i => i + 1);
   const back = () => setStepIndex(i => i - 1);
 
@@ -269,7 +242,6 @@ export default function Onboarding() {
   }
 
   if (!user) {
-    console.log('[Onboarding] Waiting for user object...');
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'radial-gradient(ellipse at top, #0f0520 0%, #1a0a18 50%, #0d0610 100%)' }}>
         <div className="text-center">

@@ -5,6 +5,7 @@ import {
   ACCOUNT_TYPES,
   getAccountType,
   hasMentorAccount,
+  isAdminUser,
   isMentorModeActive,
   isDeletedAccount,
   loadCurrentUserRecord,
@@ -34,7 +35,7 @@ export default function AppModeGate() {
       const u = { ...authUser, ...(userRecord || {}) };
 
       // Admins skip ALL mentor/onboarding processing — return immediately
-      if (u.role === "admin") {
+      if (isAdminUser(u)) {
         setUser(u);
         return;
       }
@@ -45,9 +46,8 @@ export default function AppModeGate() {
       const explicitlyGirl = u.account_type === ACCOUNT_TYPES.GIRL;
       if (!hasMentorAccount(u) && !explicitlyGirl) {
         mentorEntity = await loadMentorEntityByEmail(u.email);
-        // loadMentorEntityByEmail already only returns APPROVED mentors
-        // Only promote to mentor account type if genuinely approved
-        if (mentorEntity && mentorEntity.is_approved === true) {
+        // loadMentorEntityByEmail already only returns approved mentors.
+        if (mentorEntity) {
           u.account_type = ACCOUNT_TYPES.MENTOR;
           u.mentor_status = "approved";
           u.mentor_type = u.mentor_type || mentorEntity.mentor_type || mentorEntity.type;
@@ -73,7 +73,7 @@ export default function AppModeGate() {
       if (!explicitlyGirl && hasMentorAccount(u) && u.mentor_status !== "approved") {
         try {
           mentorEntity = mentorEntity || await loadMentorEntityByEmail(u.email);
-          if (mentorEntity?.is_approved === true) {
+          if (mentorEntity) {
             await base44.auth.updateMe({ mentor_status: "approved" });
             u.mentor_status = "approved";
           }
@@ -118,7 +118,11 @@ export default function AppModeGate() {
   }
 
   // Admins always get full access — skip ALL role/mentor/onboarding gates
-  if (user.role === "admin") {
+  if (isAdminUser(user)) {
+    if (location.pathname === "/dashboard") {
+      return <Navigate to="/admin" replace />;
+    }
+
     return (
       <div className="min-h-screen bg-[#0d0608] text-white relative z-10">
         <Outlet />

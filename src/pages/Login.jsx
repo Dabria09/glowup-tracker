@@ -26,16 +26,6 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      // Check if this email has a mentor account BEFORE attempting sign-in
-      // If it does, redirect to mentor login instead of blocking
-      const { loadMentorEntityByEmail } = await import('@/lib/authRules');
-      const mentorEntity = await loadMentorEntityByEmail(email.trim());
-      if (mentorEntity && mentorEntity.is_approved === true) {
-        await base44.auth.logout();
-        window.location.href = `/mentor-login?error=${encodeURIComponent("This email is registered as a mentor account. Please use Mentor Sign In.")}`;
-        return;
-      }
-      
       const result = await completeEmailPasswordSignIn({
         email,
         password,
@@ -101,16 +91,6 @@ export default function Login() {
             variant="outline"
             className="w-full h-12 text-sm font-medium bg-white/5 border-white/10 hover:bg-white/10 text-white"
             onClick={async () => {
-              // Pre-check if email has mentor account (for users who might confuse login portals)
-              const tempEmail = email.trim();
-              if (tempEmail) {
-                const { loadMentorEntityByEmail } = await import('@/lib/authRules');
-                const mentorEntity = await loadMentorEntityByEmail(tempEmail).catch(() => null);
-                if (mentorEntity && mentorEntity.is_approved === true) {
-                  setError("This email is registered as a mentor account. Please use Mentor Sign In.");
-                  return;
-                }
-              }
               localStorage.setItem('ggu_oauth_flow', 'community');
               base44.auth.loginWithProvider("google", window.location.origin + "/google-setup?intent=signin");
             }}

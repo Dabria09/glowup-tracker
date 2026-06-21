@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { isAdminUser, loadCurrentUserRecord } from '@/lib/authRules';
 import { ChevronLeft, BarChart2, Users, TrendingUp, FileText, Building2, Megaphone, Shield, UserCheck, Video, Link2, MessageSquare, Image, Crown, Settings, Activity, Tag, AlertTriangle, Trash2, ShieldAlert, Bell, Inbox, X, ChevronRight, FileWarning, Mail, UserPlus, DollarSign, Trophy } from 'lucide-react';
 import AppBackground from '@/components/AppBackground';
 
@@ -95,9 +96,11 @@ export default function AdminPanel() {
     
     const load = async () => {
       try {
-        const u = await base44.auth.me();
-        if (u.role !== 'admin') { navigate('/dashboard'); return; }
-        setUser(u);
+        const authUser = await base44.auth.me();
+        const userRecord = await loadCurrentUserRecord(authUser);
+        const mergedUser = { ...authUser, ...(userRecord || {}) };
+        if (!isAdminUser(mergedUser)) { navigate('/dashboard'); return; }
+        setUser(mergedUser);
         
         // Count all notification sources
         const [reports, messages, applications] = await Promise.all([
