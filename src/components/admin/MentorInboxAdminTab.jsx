@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Inbox, AlertCircle, Clock, CheckCircle, X, ChevronLeft, MessageCircle } from 'lucide-react';
+import { Send, Inbox, Clock, CheckCircle, ChevronLeft, MessageCircle } from 'lucide-react';
 
 const STATUS_OPTIONS = [
   { id: 'pending', label: '⏳ Pending', color: '#f59e0b' },
@@ -27,6 +27,7 @@ export default function MentorInboxAdminTab() {
   const [mentors, setMentors] = useState({});
   const [internalNote, setInternalNote] = useState('');
   const [savingNote, setSavingNote] = useState(false);
+  const highlightId = new URLSearchParams(window.location.search).get('highlight');
 
   useEffect(() => { load(); }, []);
 
@@ -35,6 +36,14 @@ export default function MentorInboxAdminTab() {
     try {
       const allMsgs = await base44.entities.MentorMessage.list('-created_date');
       setMessages(allMsgs);
+      if (highlightId) {
+        const highlightedMsg = allMsgs.find(m => m.id === highlightId);
+        if (highlightedMsg) {
+          setFilter('all');
+          setPriorityFilter('all');
+          setSelectedMsg(highlightedMsg);
+        }
+      }
 
       // Fetch mentor profiles
       const mentorEmails = [...new Set(allMsgs.map(m => m.sender_email))];

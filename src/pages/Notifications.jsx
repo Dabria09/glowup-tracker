@@ -13,8 +13,11 @@ const TYPE_META = {
   shoutout:     { emoji: '📣', label: 'shouted you out', color: '#f59e0b' },
   level_up:     { emoji: '🎉', label: 'you leveled up!', color: '#fbbf24' },
   moderation_alert: { emoji: '🚨', label: 'safety alert', color: '#ef4444' },
+  announcement: { emoji: '📢', label: 'GGU announcement', color: '#ec4899' },
   system:       { emoji: '⚙️', label: 'system update', color: '#6b7280' },
 };
+
+const SYSTEM_STYLE_TYPES = new Set(['level_up', 'moderation_alert', 'system', 'announcement']);
 
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -132,7 +135,7 @@ export default function Notifications() {
               </span>
             )}
           </h1>
-          <p className="text-[11px] text-gray-500">Follows &amp; Glow Link activity</p>
+          <p className="text-[11px] text-gray-500">Updates, announcements &amp; Glow Link activity</p>
         </div>
         <button onClick={() => setShowSettings(s => !s)}
           className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0"
@@ -231,7 +234,7 @@ export default function Notifications() {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-white leading-snug">
-                        {notif.type === 'level_up' || notif.type === 'moderation_alert' || notif.type === 'system' ? (
+                        {SYSTEM_STYLE_TYPES.has(notif.type) ? (
                           <span>{meta.label}</span>
                         ) : (
                           <>

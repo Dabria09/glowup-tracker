@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Mail, Phone, MapPin, BookOpen, Briefcase, GraduationCap, Star, Users, Heart, MessageSquare, Plus, Link2, ChefHat, Settings } from 'lucide-react';
+import { CheckCircle, XCircle, ChevronDown, ChevronUp, Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Users, Heart, MessageSquare, Link2 } from 'lucide-react';
 import MentorRankSettings from './MentorRankSettings';
 
 const RANK_ICONS = {
@@ -43,10 +43,19 @@ const TEEN_CHECKLIST_KEYS = [
   { key: 'checklist_final_approved', label: 'Final Approval by Admin' },
 ];
 
-function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAssignForm, rankConfigs }) {
+function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAssignForm, rankConfigs, highlighted = false }) {
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('overview'); // 'overview' | 'details' | 'checklist'
+
+  useEffect(() => {
+    if (!highlighted) return;
+    setExpanded(true);
+    setTimeout(() => {
+      const card = document.querySelector(`[data-mentor-id="${app.id}"]`);
+      card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+  }, [highlighted, app.id]);
 
   const isTeenTrack = app.mentor_track === 'teen';
   const checklist = isTeenTrack ? TEEN_CHECKLIST_KEYS : ADULT_CHECKLIST_KEYS;
@@ -202,7 +211,15 @@ function ApplicationCard({ app, onUpdate, matches, groups, setShowAssign, setAss
   };
 
   return (
-    <div data-mentor-id={app.id} className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+    <div
+      data-mentor-id={app.id}
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: highlighted ? 'rgba(236,72,153,0.1)' : 'rgba(255,255,255,0.05)',
+        border: highlighted ? '2px solid rgba(236,72,153,0.75)' : '1px solid rgba(255,255,255,0.1)',
+        boxShadow: highlighted ? '0 0 24px rgba(236,72,153,0.25)' : 'none',
+      }}
+    >
       {/* Card Header */}
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
@@ -708,8 +725,22 @@ export default function MentorsAdminTab() {
   const [flaggedMentors, setFlaggedMentors] = useState([]);
   const [updatingTiers, setUpdatingTiers] = useState(false);
   const [rankConfigs, setRankConfigs] = useState([]);
+  const highlightId = new URLSearchParams(window.location.search).get('highlight');
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (!highlightId || applications.length === 0) return;
+    const highlightedApp = applications.find(app => app.id === highlightId);
+    if (!highlightedApp) return;
+
+    const status = highlightedApp.status?.replace(/^\w/, c => c.toUpperCase());
+    setStatusFilter(STATUS_FILTERS.includes(status) ? status : 'All');
+    setRankFilter('All');
+    setSessionTypeFilter('All');
+    setInPersonFilter('All');
+    setMentorTypeFilter('All');
+  }, [highlightId, applications]);
 
   const load = async () => {
     setLoading(true);
@@ -1047,7 +1078,7 @@ export default function MentorsAdminTab() {
       ) : (
         <div className="space-y-3">
           {filtered.map(app => (
-            <ApplicationCard key={app.id} app={app} onUpdate={load} matches={matches} groups={groups} setShowAssign={setShowAssign} setAssignForm={setAssignForm} rankConfigs={rankConfigs} />
+            <ApplicationCard key={app.id} app={app} onUpdate={load} matches={matches} groups={groups} setShowAssign={setShowAssign} setAssignForm={setAssignForm} rankConfigs={rankConfigs} highlighted={app.id === highlightId} />
           ))}
         </div>
       )}
