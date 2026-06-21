@@ -10,9 +10,7 @@ import NewUserTour from '@/components/NewUserTour';
 import {
   calculateGirlAgeGroup,
   clearAuthSession,
-  hasDeletedMentorEntityByEmail,
   hasMentorAccount,
-  isMentorModeActive,
   isDeletedAccount,
   loadMentorApplicationByEmail,
   loadCurrentUserRecord,

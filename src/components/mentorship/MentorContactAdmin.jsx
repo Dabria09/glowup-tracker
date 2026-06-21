@@ -9,7 +9,7 @@ import {
   loadMentorApplicationByEmail,
   loadMentorEntityByEmail,
 } from '@/lib/authRules';
-import { Send, Inbox, HelpCircle, AlertCircle, MessageCircle, X } from 'lucide-react';
+import { Send, Inbox, MessageCircle, X } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'question', label: '❓ General Question', emoji: '❓' },
