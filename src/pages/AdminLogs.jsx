@@ -23,20 +23,14 @@ export default function AdminLogs() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Check if user has moderator/admin permissions
-      const memberships = await base44.entities.CommunityMember.filter({ 
-        user_email: currentUser.email,
-        role: ['admin', 'moderator']
-      });
-
-      if (memberships.length === 0 && currentUser.role !== 'admin') {
-        toast.error('Access denied. Moderators and admins only.');
+      if (currentUser.role !== 'admin') {
+        toast.error('Access denied. Admins only.');
         navigate('/dashboard');
         return;
       }
 
       const response = await base44.functions.invoke('getReportedPosts', {});
-      setPosts(response.data.posts || []);
+      setPosts(response.data?.posts || response.data?.reports || []);
     } catch (error) {
       console.error('Error loading posts:', error);
       toast.error('Failed to load posts');
@@ -45,10 +39,23 @@ export default function AdminLogs() {
     }
   }
 
-  async function handleDeletePost(postId) {
+  async function handleDeletePost(post) {
     try {
-      await base44.entities.CommunityPost.delete(postId);
-      setPosts(prev => prev.filter(p => p.id !== postId));
+      const entityByType = {
+        community_post: base44.entities.CommunityPost,
+        shoutout: base44.entities.ShoutOut,
+        video_session: base44.entities.MentorSession,
+      };
+      const targetEntity = entityByType[post.content_type] || base44.entities.CommunityPost;
+      await targetEntity.delete(post.reported_content_id || post.id);
+      if (post.reported_content_id && post.id) {
+        await base44.entities.ContentReport.update(post.id, {
+          status: 'removed',
+          reviewed_by: user?.email,
+          reviewed_date: new Date().toISOString(),
+        }).catch(() => {});
+      }
+      setPosts(prev => prev.filter(p => p.id !== post.id));
       setShowDeleteConfirm(false);
       setSelectedPost(null);
       toast.success('Post removed successfully');
@@ -72,6 +79,10 @@ export default function AdminLogs() {
     return true;
   });
 
+  const getDisplayName = (post) => post.username || post.reported_by?.split('@')[0] || 'Reported content';
+  const getDisplayLabel = (post) => post.community_name || post.content_label || post.content_type?.replace('_', ' ') || 'Report';
+  const getDisplayText = (post) => post.content || post.content_text || post.description || 'Content unavailable';
+
   const stats = {
     total: posts.length,
     today: posts.filter(p => {
@@ -79,7 +90,7 @@ export default function AdminLogs() {
       const today = new Date();
       return postDate.toDateString() === today.toDateString();
     }).length,
-    communities: new Set(posts.map(p => p.community_id)).size,
+    communities: new Set(posts.map(p => p.community_id || p.content_type).filter(Boolean)).size,
   };
 
   if (loading) {
@@ -180,19 +191,19 @@ export default function AdminLogs() {
                     <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                       <span className="text-xs font-bold text-white">
-                        {post.username?.[0]?.toUpperCase() || 'U'}
+                        {getDisplayName(post)?.[0]?.toUpperCase() || 'R'}
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white">{post.username}</p>
+                      <p className="text-sm font-semibold text-white">{getDisplayName(post)}</p>
                       <p className="text-xs text-gray-500">
-                        {new Date(post.created_date).toLocaleDateString()} • {post.community_name}
+                        {new Date(post.created_date).toLocaleDateString()} • {getDisplayLabel(post)}
                       </p>
                     </div>
                   </div>
                   <Flag size={16} className="text-gray-500" />
                 </div>
-                <p className="text-sm text-gray-200 line-clamp-2 mb-3">{post.content}</p>
+                <p className="text-sm text-gray-200 line-clamp-2 mb-3">{getDisplayText(post)}</p>
                 <div className="flex items-center gap-4 text-xs text-gray-500">
                   <span className="flex items-center gap-1">
                     <MessageCircle size={12} /> {post.likes || 0} likes
@@ -221,20 +232,20 @@ export default function AdminLogs() {
                 <div className="w-10 h-10 rounded-full flex items-center justify-center"
                   style={{ background: 'linear-gradient(135deg, #ec4899, #a855f7)' }}>
                   <span className="text-sm font-bold text-white">
-                    {selectedPost.username?.[0]?.toUpperCase() || 'U'}
+                    {getDisplayName(selectedPost)?.[0]?.toUpperCase() || 'R'}
                   </span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-white">{selectedPost.username}</p>
+                  <p className="text-sm font-semibold text-white">{getDisplayName(selectedPost)}</p>
                   <p className="text-xs text-gray-400">
-                    {new Date(selectedPost.created_date).toLocaleString()} • {selectedPost.community_name}
+                    {new Date(selectedPost.created_date).toLocaleString()} • {getDisplayLabel(selectedPost)}
                   </p>
                 </div>
               </div>
 
               {/* Post Content */}
               <div className="rounded-xl p-4 mb-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <p className="text-sm text-white whitespace-pre-wrap">{selectedPost.content}</p>
+                <p className="text-sm text-white whitespace-pre-wrap">{getDisplayText(selectedPost)}</p>
               </div>
 
               {/* Stats */}
@@ -290,7 +301,7 @@ export default function AdminLogs() {
                 Cancel
               </button>
               <button
-                onClick={() => handleDeletePost(selectedPost.id)}
+                onClick={() => handleDeletePost(selectedPost)}
                 className="flex-1 py-3.5 rounded-xl font-bold text-white"
                 style={{ background: 'rgba(239,68,68,0.3)', border: '1px solid rgba(239,68,68,0.5)' }}
               >

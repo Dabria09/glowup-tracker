@@ -383,7 +383,7 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     throw new Error("No account found. Please sign up to join the Sisterhood.");
   }
 
-  // Admins always start in the admin dashboard after authentication.
+  // Admins bypass member/mentor portal checks and land in the admin area.
   if (isAdminUser(userRecord) || isAdminUser(currentUser)) {
     return {
       user: currentUser,

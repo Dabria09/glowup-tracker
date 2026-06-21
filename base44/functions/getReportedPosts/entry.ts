@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       })
     );
 
-    return Response.json({ reports: enrichedReports });
+    return Response.json({ reports: enrichedReports, posts: enrichedReports });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

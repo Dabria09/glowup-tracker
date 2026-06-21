@@ -57,7 +57,7 @@ export default function GoogleSetup() {
         const userRecord = await loadCurrentUserRecord(u);
         const mergedUser = { ...u, ...userRecord };
 
-        // Admins always start in the admin dashboard, regardless of portal.
+        // Admins bypass setup and land in the admin area from any sign-in path.
         if (isAdminUser(mergedUser)) {
           window.location.href = '/admin';
           return;

@@ -7,6 +7,7 @@ export default function AnnounceTab() {
   const [groups, setGroups] = useState([]);
   const [form, setForm] = useState({ title: '', body: '', send_to: 'all', group_id: '', scheduled_date: '' });
   const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState(null);
 
@@ -23,14 +24,54 @@ export default function AnnounceTab() {
     } catch (e) { console.error(e); }
   };
 
+  const uniqueEmails = (emails) => [...new Set(emails.filter(Boolean).map(email => email.trim().toLowerCase()))];
+
+  const getNotificationRecipients = async (announcement) => {
+    if (announcement.send_to === 'specific_group') {
+      const members = await base44.entities.GroupMember.filter({ group_id: announcement.group_id });
+      return uniqueEmails(members.map(member => member.user_email));
+    }
+
+    const res = await base44.functions.invoke('getAdminUsers', {});
+    return uniqueEmails((res.data?.users || []).map(user => user.email));
+  };
+
+  const createAnnouncementNotifications = async (announcement, senderEmail) => {
+    const recipients = await getNotificationRecipients(announcement);
+    if (recipients.length === 0) return { recipients: 0, created: 0, failed: 0 };
+
+    const notificationPayloads = recipients.map(email => ({
+      recipient_email: email,
+      type: 'announcement',
+      actor_email: senderEmail,
+      actor_username: 'GGU Admin',
+      message: `${announcement.title}: ${announcement.body}`,
+      link: '/notifications',
+      priority: 'medium',
+      metadata: JSON.stringify({ announcement_id: announcement.id }),
+    }));
+
+    let created = 0;
+    let failed = 0;
+    for (let i = 0; i < notificationPayloads.length; i += 10) {
+      const batch = notificationPayloads.slice(i, i + 10);
+      const results = await Promise.allSettled(batch.map(payload => base44.entities.Notification.create(payload)));
+      created += results.filter(result => result.status === 'fulfilled').length;
+      failed += results.filter(result => result.status === 'rejected').length;
+    }
+
+    return { recipients: recipients.length, created, failed };
+  };
+
   const send = async () => {
     if (!form.title.trim() || !form.body.trim()) return;
     if (form.send_to === 'specific_group' && !form.group_id) { alert('Please select a group'); return; }
     setSending(true);
+    setSendResult('');
     try {
       const user = await base44.auth.me();
       const selectedGroup = groups.find(g => g.id === form.group_id);
-      await base44.entities.Announcement.create({
+      const announcement = await base44.entities.Announcement.create({
         title: form.title,
         body: form.body,
         send_to: form.send_to,
@@ -41,9 +82,26 @@ export default function AnnounceTab() {
         sent_date: new Date().toISOString(),
         status: form.scheduled_date ? 'scheduled' : 'sent',
       });
+
+      if (form.scheduled_date) {
+        setSendResult('Announcement scheduled; no immediate notifications were sent.');
+      } else {
+        const notificationResult = await createAnnouncementNotifications(announcement, user.email);
+        if (notificationResult.recipients === 0) {
+          setSendResult('Announcement saved, but no notification recipients were found.');
+        } else if (notificationResult.failed > 0) {
+          setSendResult(`Announcement saved. ${notificationResult.created}/${notificationResult.recipients} notifications created; ${notificationResult.failed} failed.`);
+        } else {
+          setSendResult(`Announcement sent and ${notificationResult.created} notification${notificationResult.created === 1 ? '' : 's'} created.`);
+        }
+      }
+
       setForm({ title: '', body: '', send_to: 'all', group_id: '', scheduled_date: '' });
       load();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      setSendResult(`Announcement failed: ${e.message || 'Unknown error'}`);
+    }
     setSending(false);
   };
 
@@ -156,6 +214,11 @@ export default function AnnounceTab() {
           <button onClick={send} disabled={sending} className="w-full py-3 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 disabled:opacity-50" style={{ background: 'linear-gradient(135deg,#ec4899,#a855f7)' }}>
             <Send size={16} /> {sending ? 'Sending...' : 'Send Now'}
           </button>
+        )}
+        {sendResult && (
+          <p className={`text-xs px-1 ${sendResult.toLowerCase().includes('failed') ? 'text-red-400' : 'text-green-400'}`}>
+            {sendResult}
+          </p>
         )}
       </div>
 

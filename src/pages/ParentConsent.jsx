@@ -12,6 +12,8 @@ export default function ParentConsent() {
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
 
+  const getFunctionData = (result) => result?.data || result || {};
+
   useEffect(() => {
     if (!token) {
       setError('Invalid consent link');
@@ -22,32 +24,25 @@ export default function ParentConsent() {
     // Fetch consent status
     const checkConsent = async () => {
       try {
-        const consents = await base44.entities.ParentConsent.filter({ id: token });
-        if (consents.length === 0) {
-          setError('Invalid or expired consent link');
+        const result = await base44.functions.invoke('processParentalConsent', {
+          token,
+          action: 'status',
+        });
+        const consent = getFunctionData(result);
+
+        if (consent.error) {
+          setError(consent.error);
           setLoading(false);
           return;
         }
 
-        const consent = consents[0];
-        
-        // Check if already responded
-        if (typeof consent.consent_given === 'boolean') {
+        if (consent.already_responded) {
           setResponse({
             already_responded: true,
             consent_given: consent.consent_given,
             teen_name: consent.teen_name,
             parent_name: consent.parent_name,
           });
-          setLoading(false);
-          return;
-        }
-
-        // Check if expired
-        const now = new Date();
-        const expiresDate = consent.consent_expires_date ? new Date(consent.consent_expires_date) : null;
-        if (expiresDate && now > expiresDate) {
-          setError('This consent link has expired (14 days from sending)');
           setLoading(false);
           return;
         }
@@ -69,14 +64,15 @@ export default function ParentConsent() {
 
   const handleRespond = async (action) => {
     try {
-      const res = await fetch(`/functions/processParentalConsent?token=${token}&action=${action}`);
-      const data = await res.json();
+      const result = await base44.functions.invoke('processParentalConsent', { token, action });
+      const data = getFunctionData(result);
       
-      if (res.ok) {
+      if (data.success || data.already_responded) {
         setResponse({
           already_responded: true,
-          consent_given: action === 'approve',
+          consent_given: data.consent_given ?? action === 'approve',
           teen_name: data.teen_name,
+          parent_name: data.parent_name,
         });
       } else {
         setError(data.error || 'Failed to process response');
