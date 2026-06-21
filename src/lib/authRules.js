@@ -400,12 +400,13 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     await clearAuthSession();
     throw new Error("No account found. Please sign up to join the Sisterhood.");
   }
-  // Only count as having mentor access if there's an APPROVED mentor entity.
-  // A pending/rejected application alone does NOT grant mentor access.
+  // Approved mentor entities get full access; active applications stay in the
+  // mentor dashboard flow so applicants do not fall through to the GGU home.
   const hasMentorAccess = Boolean(mentorEntity);
+  const hasMentorApplication = Boolean(mentorApplication);
   const accountType = storedAccountType === ACCOUNT_TYPES.LINKED
     ? ACCOUNT_TYPES.LINKED
-    : (hasMentorAccess ? ACCOUNT_TYPES.MENTOR : (storedAccountType === ACCOUNT_TYPES.MENTOR ? ACCOUNT_TYPES.GIRL : storedAccountType));
+    : (hasMentorAccess || hasMentorApplication ? ACCOUNT_TYPES.MENTOR : (storedAccountType === ACCOUNT_TYPES.MENTOR ? ACCOUNT_TYPES.GIRL : storedAccountType));
   const isLinked = accountType === ACCOUNT_TYPES.LINKED;
 
   if (expectedAccountType === ACCOUNT_TYPES.MENTOR && accountType !== ACCOUNT_TYPES.MENTOR && !isLinked) {
