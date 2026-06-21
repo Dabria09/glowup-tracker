@@ -277,6 +277,8 @@ function App() {
   if (typeof window !== 'undefined') {
     const savedMode = localStorage.getItem('ggu_color_mode');
     if (savedMode === 'light') document.body.classList.add('light-mode');
+    const savedGlass = localStorage.getItem('ggu_glass_mode');
+    if (savedGlass === 'true') document.body.classList.add('glass-mode');
     const savedLang = localStorage.getItem('ggu_lang');
     if (savedLang) {
       document.documentElement.setAttribute('lang', savedLang);

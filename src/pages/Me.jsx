@@ -228,6 +228,14 @@ export default function Me() {
   const [postType, setPostType] = useState('Thought');
   const [posting, setPosting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [glassMode, setGlassMode] = useState(() => localStorage.getItem('ggu_glass_mode') === 'true');
+
+  const toggleGlassMode = (enabled) => {
+    setGlassMode(enabled);
+    localStorage.setItem('ggu_glass_mode', String(enabled));
+    if (enabled) document.body.classList.add('glass-mode');
+    else document.body.classList.remove('glass-mode');
+  };
   const [glowLinkCopied, setGlowLinkCopied] = useState(false);
   const [postMediaUrls, setPostMediaUrls] = useState([]);
   const [uploadingMedia, setUploadingMedia] = useState(false);
@@ -710,6 +718,24 @@ export default function Me() {
           <p style={{ fontSize: 11, color: MUTED2, marginTop: 8, lineHeight: 1.4 }}>
             Age restrictions protect younger members. If your stage is locked, it's based on your registered age.
           </p>
+        </div>
+
+        {/* ── Appearance: Glass Mode ──────────────────────────── */}
+        <div style={{ background: glassMode ? 'rgba(255,255,255,0.08)' : CARD, border: `1px solid ${glassMode ? 'rgba(255,255,255,0.18)' : BORDER}`, borderRadius: 18, padding: 16, marginBottom: 16, backdropFilter: glassMode ? 'blur(16px)' : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 16 }}>🔮</span>
+            <p style={{ fontWeight: 700, fontSize: 14, color: WHITE, margin: 0 }}>Glass Mode</p>
+          </div>
+          <p style={{ fontSize: 12, color: MUTED2, marginBottom: 12, lineHeight: 1.4 }}>Switch to a frosted-glass transparent style across the entire app. See the background glow shine through your cards.</p>
+          <button
+            onClick={() => toggleGlassMode(!glassMode)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 14, background: glassMode ? 'linear-gradient(135deg, rgba(232,82,109,0.2), rgba(168,85,247,0.15))' : 'rgba(255,255,255,0.05)', border: `1px solid ${glassMode ? PINK : BORDER}`, cursor: 'pointer' }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 600, color: glassMode ? '#fff' : MUTED }}>{glassMode ? 'Glass effect is ON' : 'Glass effect is OFF'}</span>
+            <div style={{ width: 44, height: 24, borderRadius: 12, background: glassMode ? `linear-gradient(135deg, ${PINK}, ${GOLD})` : 'rgba(255,255,255,0.15)', position: 'relative', transition: 'all 0.3s' }}>
+              <div style={{ position: 'absolute', top: 2, left: glassMode ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'left 0.3s', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }} />
+            </div>
+          </button>
         </div>
 
         {/* ── Sign Out ─────────────────────────────────────────── */}

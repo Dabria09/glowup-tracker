@@ -299,6 +299,98 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   GLASS MODE TOGGLE — frosted glass aesthetic across all cards
+══════════════════════════════════════════════════════════════════════ */
+body.glass-mode {
+  background: #07050e !important;
+}
+
+body.glass-mode::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 12%, rgba(232,82,109,0.18), transparent 45%),
+    radial-gradient(circle at 85% 45%, rgba(168,85,247,0.14), transparent 45%),
+    radial-gradient(circle at 45% 88%, rgba(241,182,16,0.12), transparent 50%);
+}
+
+/* Tailwind card backgrounds → frosted glass */
+body.glass-mode .bg-white\/5,
+body.glass-mode .bg-white\/10,
+body.glass-mode .bg-white\/20,
+body.glass-mode .bg-gray-800\/50,
+body.glass-mode .bg-gray-800 {
+  background-color: rgba(255,255,255,0.07) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-color: rgba(255,255,255,0.14) !important;
+}
+
+body.glass-mode .bg-gray-900,
+body.glass-mode .bg-gray-950,
+body.glass-mode .bg-gray-950\/95 {
+  background-color: rgba(10,5,14,0.45) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Inline rgba backgrounds (0.0x range) → glass */
+body.glass-mode [style*="rgba(255, 255, 255, 0.0"],
+body.glass-mode [style*="rgba(255,255,255,0.0"] {
+  background-color: rgba(255,255,255,0.08) !important;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+
+body.glass-mode [style*="rgba(255, 255, 255, 0.1"],
+body.glass-mode [style*="rgba(255,255,255,0.1"] {
+  background-color: rgba(255,255,255,0.1) !important;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+
+/* Solid dark inline cards → translucent + blur */
+body.glass-mode [style*="rgb(30, 13, 18)"],
+body.glass-mode [style*="rgb(30,13,18)"],
+body.glass-mode [style*="rgb(20, 10, 16)"],
+body.glass-mode [style*="rgb(20,10,16)"],
+body.glass-mode [style*="rgb(19, 8, 16)"],
+body.glass-mode [style*="rgb(19,8,16)"],
+body.glass-mode [style*="rgb(26, 5, 8)"],
+body.glass-mode [style*="rgb(26,5,8)"] {
+  background-color: rgba(255,255,255,0.06) !important;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+/* Deep page backgrounds → translucent */
+body.glass-mode [style*="rgb(13, 6, 8)"],
+body.glass-mode [style*="rgb(13,6,8)"],
+body.glass-mode [style*="rgb(7, 5, 14)"],
+body.glass-mode [style*="rgb(7,5,14)"] {
+  background-color: rgba(10,5,14,0.5) !important;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+/* Nav bars get glass treatment */
+body.glass-mode .fixed.bottom-0,
+body.glass-mode [class*="backdrop-blur"] {
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+}
+
+/* Smooth transition when toggling */
+body.glass-mode *,
+body.glass-mode *::before,
+body.glass-mode *::after {
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    GLOBAL MOBILE SAFE-AREA & SCROLL FIX
    All rules below are automatic — no per-page class needed.
    They target the Tailwind patterns already used throughout the app.
