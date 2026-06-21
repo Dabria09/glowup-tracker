@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle, XCircle, ChevronDown, ChevronUp, ChevronRight, Mail, Phone, MapPin, BookOpen, Briefcase, GraduationCap, Star, Users, Heart, MessageSquare, Plus, Link2, ChefHat, Settings } from 'lucide-react';
+import { CheckCircle, XCircle, ChevronDown, ChevronUp, Mail, Phone, MapPin, Briefcase, GraduationCap, Star, Users, Heart, MessageSquare, Link2 } from 'lucide-react';
 import MentorRankSettings from './MentorRankSettings';
 
 const RANK_ICONS = {

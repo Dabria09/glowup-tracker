@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Inbox, AlertCircle, Clock, CheckCircle, X, ChevronLeft, MessageCircle } from 'lucide-react';
+import { Send, Inbox, Clock, CheckCircle, ChevronLeft, MessageCircle } from 'lucide-react';
 
 const STATUS_OPTIONS = [
   { id: 'pending', label: '⏳ Pending', color: '#f59e0b' },
