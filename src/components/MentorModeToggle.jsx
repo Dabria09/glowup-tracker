@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { loadCurrentUserRecord } from '@/lib/authRules';
+import { isAdminUser, loadCurrentUserRecord } from '@/lib/authRules';
 import { Users, Sparkles } from 'lucide-react';
 
 export default function MentorModeToggle() {
@@ -9,14 +9,17 @@ export default function MentorModeToggle() {
   const location = useLocation();
   const [mode, setMode] = useState(() => localStorage.getItem('ggu_mentor_mode') || 'ggu');
   const [isMentor, setIsMentor] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const checkMentorStatus = async () => {
       try {
         const user = await base44.auth.me();
         const userRecord = await loadCurrentUserRecord(user);
-        const hasMentorAccess = userRecord?.account_type === 'mentor' ||
-          (userRecord?.account_type === 'linked' && userRecord?.active_mode === 'mentor');
+        const mergedUser = { ...user, ...(userRecord || {}) };
+        const hasMentorAccess = mergedUser.account_type === 'mentor' ||
+          (mergedUser.account_type === 'linked' && mergedUser.active_mode === 'mentor');
+        setIsAdmin(isAdminUser(mergedUser));
         setIsMentor(hasMentorAccess);
         
         // If user is a mentor and is on dashboard, redirect to mentor dashboard
@@ -42,6 +45,8 @@ export default function MentorModeToggle() {
     localStorage.setItem('ggu_mentor_mode', newMode);
     if (newMode === 'mentor') {
       navigate('/mentor-dashboard');
+    } else if (isAdmin) {
+      navigate('/admin');
     } else {
       navigate('/dashboard');
     }

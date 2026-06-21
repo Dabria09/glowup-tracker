@@ -19,6 +19,10 @@ export function isAdminUser(userRecord) {
     userRecord?.isAdmin === true;
 }
 
+export function getAdminSignInRoute(expectedAccountType) {
+  return expectedAccountType === ACCOUNT_TYPES.MENTOR ? "/mentor-dashboard" : "/admin";
+}
+
 export function calculateAge(dateOfBirth) {
   if (!dateOfBirth) return null;
   const birthDate = new Date(dateOfBirth);
@@ -372,6 +376,13 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
 
   const userRecord = await loadCurrentUserRecord(currentUser);
   if (!userRecord) {
+    if (isAdminUser(currentUser)) {
+      return {
+        user: currentUser,
+        userRecord: currentUser,
+        route: getAdminSignInRoute(expectedAccountType),
+      };
+    }
     await clearAuthSession();
     throw new Error(expectedAccountType === ACCOUNT_TYPES.MENTOR
       ? "No mentor account found with this email. Please apply to become a mentor."
@@ -383,12 +394,12 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     throw new Error("No account found. Please sign up to join the Sisterhood.");
   }
 
-  // Admins bypass member/mentor portal checks and land in the admin area.
+  // Admins bypass member/mentor validation; mentor sign-ins still open the mentor portal.
   if (isAdminUser(userRecord) || isAdminUser(currentUser)) {
     return {
       user: currentUser,
       userRecord,
-      route: '/admin',
+      route: getAdminSignInRoute(expectedAccountType),
     };
   }
 

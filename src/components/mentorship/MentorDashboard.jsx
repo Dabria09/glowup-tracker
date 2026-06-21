@@ -217,6 +217,11 @@ export default function MentorDashboard() {
   };
 
   const handleGguToggle = async () => {
+    if (isAdminUser(user)) {
+      window.location.href = '/admin';
+      return;
+    }
+
     if (user?.account_type === 'linked') {
       await base44.auth.updateMe({ active_mode: 'girl' });
       window.location.href = '/dashboard';

@@ -10,6 +10,8 @@ import {
   calculateGirlAgeGroup,
   clearAuthSession,
   clearDeletedAccountRecord,
+  ACCOUNT_TYPES,
+  getAdminSignInRoute,
   hasDeletedMentorEntityByEmail,
   isAdminUser,
   isDeletedAccount,
@@ -57,9 +59,9 @@ export default function GoogleSetup() {
         const userRecord = await loadCurrentUserRecord(u);
         const mergedUser = { ...u, ...userRecord };
 
-        // Admins bypass setup and land in the admin area from any sign-in path.
+        // Admins bypass setup; mentor-intent sign-ins still land in the mentor portal.
         if (isAdminUser(mergedUser)) {
-          window.location.href = '/admin';
+          window.location.href = getAdminSignInRoute(isMentor ? ACCOUNT_TYPES.MENTOR : ACCOUNT_TYPES.GIRL);
           return;
         }
 
