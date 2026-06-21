@@ -14,6 +14,19 @@ const TABS = [
 const WORD_CATEGORIES = ['profanity', 'hate_speech', 'bullying', 'personal_info', 'spam', 'other'];
 const CAT_LABELS = { profanity: 'Profanity', hate_speech: 'Hate Speech', bullying: 'Bullying', personal_info: 'Personal Info', spam: 'Spam', other: 'Sexual / Other' };
 const CAT_COLORS = { profanity: '#ef4444', hate_speech: '#dc2626', bullying: '#f97316', personal_info: '#3b82f6', spam: '#a855f7', other: '#ec4899' };
+const CONTENT_LABELS = {
+  shoutout: '📢 Shout Out',
+  community_post: '💬 Community Post',
+  comment: '💬 Comment',
+  video_session: '🎥 Video Session',
+};
+
+const getContentLabel = (contentType) => CONTENT_LABELS[contentType] || contentType?.replace(/_/g, ' ') || 'Reported Content';
+
+const parseJson = (value) => {
+  try { return JSON.parse(value || '{}'); }
+  catch { return {}; }
+};
 
 export default function ContentModeration() {
   const [activeTab, setActiveTab] = useState('reported');
@@ -38,6 +51,38 @@ export default function ContentModeration() {
       setActiveTab('reported');
     }
 
+    const enrichReport = async (report) => {
+      let content = null;
+      try {
+        if (report.content_type === 'shoutout') {
+          content = await base44.entities.ShoutOut.get(report.reported_content_id);
+        } else if (report.content_type === 'community_post') {
+          content = await base44.entities.CommunityPost.get(report.reported_content_id);
+        } else if (report.content_type === 'video_session') {
+          content = await base44.entities.MentorSession.get(report.reported_content_id);
+        }
+      } catch {
+        // Content may have been deleted; keep the report visible with its snapshot.
+      }
+
+      let contentText = report.content_snapshot || report.description || 'Content unavailable';
+      if (content) {
+        if (report.content_type === 'video_session') {
+          const snapshot = parseJson(report.content_snapshot);
+          contentText = `Session: ${content.topic || 'Mentorship'} | ${snapshot.mentor || content.mentor_email || 'Mentor'} ↔ ${snapshot.mentee || content.mentee_email || 'Mentee'} | ${content.session_date ? new Date(content.session_date).toLocaleString() : ''}`;
+        } else {
+          contentText = content.content || content.message || contentText;
+        }
+      }
+
+      return {
+        ...report,
+        content,
+        content_text: contentText,
+        content_label: getContentLabel(report.content_type),
+      };
+    };
+
     const load = async () => {
       const [so, cp, bw] = await Promise.all([
         base44.entities.ShoutOut.list('-created_date', 50),
@@ -47,8 +92,8 @@ export default function ContentModeration() {
 
       let rep = [];
       try {
-        const res = await base44.functions.invoke('getReportedPosts', {});
-        rep = res.data?.posts || [];
+        const pendingReports = await base44.entities.ContentReport.filter({ status: 'pending' }, '-created_date', 100);
+        rep = await Promise.all(pendingReports.map(enrichReport));
       } catch {}
 
       setShoutouts(so);
