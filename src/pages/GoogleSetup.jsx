@@ -90,39 +90,55 @@ export default function GoogleSetup() {
           return;
         }
 
-        // CRITICAL: ALWAYS check for mentor account FIRST - regardless of isMentor flag
-        // This prevents mentors from accidentally entering the community app
+        // Check for mentor records — but respect the login flow (community vs mentor).
+        // A linked account (both mentor + community) signing in via the COMMUNITY login
+        // must land in the community dashboard, not the mentor dashboard.
         const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
         const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
-        
-        if (mentorEntity) {
-          // Approved mentor - ALWAYS go to mentor dashboard, even if they used community login
-          // Update account_type to ensure MentorDashboard doesn't redirect away
-          try {
-            await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'approved' });
-          } catch (updateErr) {
-            console.warn('Failed to update mentor account_type:', updateErr);
-          }
-          window.location.href = "/mentor-dashboard";
-          return;
-        }
-        
-        if (mentorApplication && mentorApplication.status !== 'rejected') {
-          // Pending mentor application - go to mentor dashboard (will show pending status)
-          // Update account_type to ensure MentorDashboard doesn't redirect away
-          try {
-            await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'pending' });
-          } catch (updateErr) {
-            console.warn('Failed to update mentor account_type:', updateErr);
-          }
-          window.location.href = "/mentor-dashboard";
-          return;
-        }
+        const hasMentorRecords = Boolean(mentorEntity) || (mentorApplication && mentorApplication.status !== 'rejected');
 
-        if (isMentor && isSigninIntent) {
-          await clearAuthSession();
-          window.location.href = "/mentor-login?error=no_mentor_account";
-          return;
+        if (isMentor) {
+          // Mentor login flow — send to mentor dashboard if they have mentor records
+          if (mentorEntity) {
+            try { await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'approved' }); } catch (e) {}
+            window.location.href = "/mentor-dashboard";
+            return;
+          }
+          if (mentorApplication && mentorApplication.status !== 'rejected') {
+            try { await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'pending' }); } catch (e) {}
+            window.location.href = "/mentor-dashboard";
+            return;
+          }
+          // No mentor account found
+          if (isSigninIntent) {
+            await clearAuthSession();
+            window.location.href = "/mentor-login?error=no_mentor_account";
+            return;
+          }
+          // Signup intent — fall through to DOB form
+        } else {
+          // Community login flow — never force a linked/girl user to the mentor dashboard
+          let communityProfile = null;
+          try {
+            const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+            communityProfile = profiles?.[0] || null;
+          } catch {}
+          const hasCommunityAccount = Boolean(communityProfile) ||
+            mergedUser.account_type === 'girl' ||
+            mergedUser.account_type === 'linked';
+
+          // Pure mentor account (no community profile) trying to use community login — block
+          if (hasMentorRecords && !hasCommunityAccount) {
+            await clearAuthSession();
+            window.location.href = "/mentor-login";
+            return;
+          }
+
+          // Linked account — ensure active_mode is 'girl' so they land in the community
+          if (mergedUser.account_type === 'linked' && mergedUser.active_mode !== 'girl') {
+            try { await base44.auth.updateMe({ active_mode: 'girl' }); } catch (e) {}
+          }
+          // Girl/linked accounts fall through to DOB / onboarding / dashboard logic below
         }
 
         // Check UserProfile for DOB + onboarding status (more reliable than auth me() for OAuth users)
@@ -145,36 +161,15 @@ export default function GoogleSetup() {
 
         // If they already have a DOB set, skip this page
         if (dobSource && !isSignupIntent) {
-          // Returning user via OAuth — ALWAYS check mentor status FIRST
-          if (mentorEntity) {
-            // Update account_type to ensure MentorDashboard doesn't redirect away
-            try {
-              await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'approved' });
-            } catch (updateErr) {
-              console.warn('Failed to update mentor account_type:', updateErr);
-            }
-            window.location.href = "/mentor-dashboard";
-            return;
-          }
-          
-          if (mentorApplication && mentorApplication.status !== 'rejected') {
-            // Update account_type to ensure MentorDashboard doesn't redirect away
-            try {
-              await base44.auth.updateMe({ account_type: 'mentor', mentor_status: 'pending' });
-            } catch (updateErr) {
-              console.warn('Failed to update mentor account_type:', updateErr);
-            }
-            window.location.href = "/mentor-dashboard";
-            return;
-          }
-          
+          // Returning user via OAuth — mentor redirects already handled above.
           if (isMentor) {
             saveMentorOAuthPrefill(buildOAuthPrefill(u, { dateOfBirth: dobSource }));
             window.location.href = "/mentor-dashboard";
           } else {
             // Ensure account_type is explicitly 'girl' so AppModeGate never
-            // misclassifies this community user as a mentor.
-            if (mergedUser.account_type !== 'girl') {
+            // misclassifies this community user as a mentor. Preserve 'linked'
+            // accounts so the mentor↔community toggle keeps working.
+            if (mergedUser.account_type !== 'girl' && mergedUser.account_type !== 'linked') {
               try {
                 await base44.auth.updateMe({ account_type: 'girl' });
               } catch {}
