@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import {
-  ArrowLeft, Users, MessageCircle, Star, Calendar, TrendingUp, Award, Sparkles,
+  ArrowLeft, Users, MessageCircle, Star, Calendar, TrendingUp, Award, Sparkles, Activity,
 } from 'lucide-react';
 import MentorBottomNav from '@/components/mentorship/MentorBottomNav';
 
@@ -63,36 +63,51 @@ export default function MentorReports() {
     return dateStr && new Date(dateStr) >= monthStart;
   }).length;
 
-  // ── Weekly trend (last 4 weeks) ─────────────────────────────────────────
-  const weeks = [];
-  for (let i = 3; i >= 0; i--) {
-    const end = new Date(now);
-    end.setDate(now.getDate() - i * 7);
-    const start = new Date(end);
-    start.setDate(end.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
-    const endBound = new Date(end);
-    endBound.setHours(23, 59, 59, 999);
+  // ── Daily trend (last 30 days) ──────────────────────────────────────────
+  const days = [];
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(now.getDate() - 29);
+  thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    const weekSessions = completedSessions.filter((s) => {
+  // Track unique mentees seen up to each day (cumulative growth)
+  const menteesSeen = new Set();
+
+  for (let i = 0; i < 30; i++) {
+    const day = new Date(thirtyDaysAgo);
+    day.setDate(thirtyDaysAgo.getDate() + i);
+    const dayStart = new Date(day);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(day);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const daySessions = completedSessions.filter((s) => {
       if (!s.session_date) return false;
       const d = new Date(s.session_date);
-      return d >= start && d <= endBound;
+      return d >= dayStart && d <= dayEnd;
     }).length;
 
-    const weekQuestions = myAnsweredQuestions.filter((q) => {
+    const dayQuestions = myAnsweredQuestions.filter((q) => {
       const responses = parseArr(q.mentor_responses);
       const myResp = responses.find((r) => r && r.mentor_email === user?.email);
       const dateStr = myResp?.answered_date || q.answered_date;
       if (!dateStr) return false;
       const d = new Date(dateStr);
-      return d >= start && d <= endBound;
+      return d >= dayStart && d <= dayEnd;
     }).length;
 
-    weeks.push({
-      label: `${start.getMonth() + 1}/${start.getDate()}`,
-      Sessions: weekSessions,
-      Answers: weekQuestions,
+    // Add any mentees from sessions on or before this day
+    completedSessions.forEach((s) => {
+      if (s.mentee_email && s.session_date) {
+        const d = new Date(s.session_date);
+        if (d <= dayEnd) menteesSeen.add(s.mentee_email);
+      }
+    });
+
+    days.push({
+      label: `${day.getMonth() + 1}/${day.getDate()}`,
+      Sessions: daySessions,
+      Answers: dayQuestions,
+      Mentees: menteesSeen.size,
     });
   }
 
@@ -142,7 +157,7 @@ export default function MentorReports() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, background: 'linear-gradient(135deg, rgba(232,82,109,0.15), rgba(241,182,16,0.1))', border: '1px solid rgba(232,82,109,0.25)' }}>
           <TrendingUp size={13} color="#f1b610" />
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#f1b610' }}>Last 4 Weeks</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#f1b610' }}>Last 30 Days</span>
         </div>
       </div>
 
@@ -165,28 +180,53 @@ export default function MentorReports() {
           ))}
         </div>
 
-        {/* ── Weekly Activity Chart ── */}
+        {/* ── Daily Activity Line Graph (last 30 days) ── */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: 20, marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-            <Sparkles size={14} color="#e8526d" />
-            <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Weekly Activity</span>
+            <Activity size={14} color="#e8526d" />
+            <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Daily Activity · Last 30 Days</span>
           </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={weeks} barGap={6} barCategoryGap="20%">
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={days} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontFamily: 'Outfit' }} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} tickLine={false} />
+              <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontFamily: 'Outfit' }} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} tickLine={false} interval={4} />
               <YAxis allowDecimals={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontFamily: 'Outfit' }} axisLine={false} tickLine={false} width={28} />
               <Tooltip
                 contentStyle={{ background: 'rgba(15,8,20,0.95)', border: '1px solid rgba(232,82,109,0.3)', borderRadius: 12, fontFamily: 'Outfit', fontSize: 12 }}
                 labelStyle={{ color: '#fff', fontWeight: 700 }}
                 itemStyle={{ color: 'rgba(255,255,255,0.8)' }}
-                cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                cursor={{ stroke: 'rgba(255,255,255,0.15)', strokeWidth: 1 }}
               />
               <Legend wrapperStyle={{ fontSize: 11, fontFamily: 'Outfit', paddingTop: 8 }} iconType="circle" />
-              <Bar dataKey="Sessions" fill="#e8526d" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="Answers" fill="#f1b610" radius={[6, 6, 0, 0]} />
-            </BarChart>
+              <Line type="monotone" dataKey="Sessions" stroke="#e8526d" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#e8526d' }} />
+              <Line type="monotone" dataKey="Answers" stroke="#f1b610" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#f1b610' }} />
+            </LineChart>
           </ResponsiveContainer>
+        </div>
+
+        {/* ── Mentee Growth Line Graph (cumulative, last 30 days) ── */}
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, padding: 20, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
+            <Users size={14} color="#a855f7" />
+            <span style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Mentee Count · Cumulative Growth</span>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={days} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontFamily: 'Outfit' }} axisLine={{ stroke: 'rgba(255,255,255,0.1)' }} tickLine={false} interval={4} />
+              <YAxis allowDecimals={false} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11, fontFamily: 'Outfit' }} axisLine={false} tickLine={false} width={28} />
+              <Tooltip
+                contentStyle={{ background: 'rgba(15,8,20,0.95)', border: '1px solid rgba(168,85,247,0.3)', borderRadius: 12, fontFamily: 'Outfit', fontSize: 12 }}
+                labelStyle={{ color: '#fff', fontWeight: 700 }}
+                itemStyle={{ color: 'rgba(255,255,255,0.8)' }}
+                cursor={{ stroke: 'rgba(255,255,255,0.15)', strokeWidth: 1 }}
+              />
+              <Line type="monotone" dataKey="Mentees" stroke="#a855f7" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#a855f7' }} />
+            </LineChart>
+          </ResponsiveContainer>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 12, textAlign: 'center' }}>
+            Tracks unique mentees you've helped through completed sessions over the last 30 days.
+          </p>
         </div>
 
         {/* ── Category Breakdown ── */}
