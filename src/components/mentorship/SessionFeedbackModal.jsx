@@ -41,6 +41,31 @@ export default function SessionFeedbackModal({ isOpen, onClose, session, mentorN
         });
       }
 
+      // Award mentor milestone badges based on updated stats
+      try {
+        const uniqueMentees = new Set(allSessions.map(s => s.mentee_email).filter(Boolean));
+        const sessionCount = allSessions.length;
+        const avg = ratedSessions.length > 0 ? ratedSessions.reduce((sum, s) => sum + s.rating, 0) / ratedSessions.length : 0;
+        const existingBadges = await base44.entities.MentorshipBadge.filter({ user_email: session.mentor_email });
+        const have = (id) => existingBadges.some(b => b.badge_id === id);
+        const award = (id, name, icon, tier) =>
+          base44.entities.MentorshipBadge.create({
+            user_email: session.mentor_email,
+            badge_id: id, badge_name: name, badge_icon: icon,
+            badge_tier: tier, earned_date: new Date().toISOString(),
+          });
+        if (sessionCount >= 1 && !have('first_session')) await award('first_session', 'First Steps', '🌱', 'bronze');
+        if (sessionCount >= 5 && !have('five_sessions')) await award('five_sessions', 'Getting Started', '🌿', 'bronze');
+        if (sessionCount >= 10 && !have('ten_sessions')) await award('ten_sessions', 'Dedicated', '🌸', 'silver');
+        if (sessionCount >= 20 && !have('twenty_sessions')) await award('twenty_sessions', 'Committed', '✨', 'silver');
+        if (sessionCount >= 50 && !have('fifty_sessions')) await award('fifty_sessions', 'Legendary', '👑', 'gold');
+        if (uniqueMentees.size >= 5 && !have('helper')) await award('helper', 'Helper', '🤝', 'bronze');
+        if (uniqueMentees.size >= 20 && !have('community_pillar')) await award('community_pillar', 'Community Pillar', '🏛️', 'gold');
+        if (sessionCount >= 10 && avg >= 4.5 && !have('mentor_champion')) await award('mentor_champion', 'Mentor Champion', '🏆', 'gold');
+        if (sessionCount >= 10 && avg === 5 && !have('perfect_rating')) await award('perfect_rating', 'Perfectionist', '💯', 'gold');
+        if (sessionCount >= 100 && avg >= 4.8 && !have('super_mentor')) await award('super_mentor', 'Super Mentor', '🦸', 'platinum');
+      } catch (_) {}
+
       // Auto-award 'First Review' badge if this is their first rating
       try {
         const existing = await base44.entities.MentorshipBadge.filter({ user_email: session.mentee_email, badge_id: 'first_review' });

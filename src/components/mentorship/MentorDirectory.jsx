@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Search, Star, Video, Phone, MessageCircle, MapPin } from 'lucide-react';
+import { Search, Star, Video, Phone, MessageCircle, MapPin, Award } from 'lucide-react';
 import ConnectionRequestModal from './ConnectionRequestModal';
 import ChatModal from './ChatModal';
 import ReviewsSection from './ReviewsSection';
+import BadgesSection from './BadgesSection';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '✨' },
@@ -28,6 +29,7 @@ export default function MentorDirectory({ mentors, user }) {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
+  const [showBadges, setShowBadges] = useState(false);
 
   const filteredMentors = mentors.filter(mentor => {
     const categories = JSON.parse(mentor.categories || '[]');
@@ -53,6 +55,11 @@ export default function MentorDirectory({ mentors, user }) {
   const handleViewReviews = (mentor) => {
     setSelectedMentor(mentor);
     setShowReviews(true);
+  };
+
+  const handleViewBadges = (mentor) => {
+    setSelectedMentor(mentor);
+    setShowBadges(true);
   };
 
   return (
@@ -175,6 +182,13 @@ export default function MentorDirectory({ mentors, user }) {
                         <Star size={14} /> Reviews
                       </button>
                       <button
+                        onClick={() => handleViewBadges(mentor)}
+                        className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
+                        style={{ background: 'rgba(255,205,50,0.12)', border: '1px solid rgba(255,205,50,0.3)' }}
+                      >
+                        <Award size={14} /> Badges
+                      </button>
+                      <button
                         onClick={() => handleStartChat(mentor)}
                         className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2"
                         style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
@@ -237,6 +251,27 @@ export default function MentorDirectory({ mentors, user }) {
               user={user}
               onReviewSubmitted={() => {}}
             />
+          </div>
+        </div>
+      )}
+      {showBadges && selectedMentor && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end"
+          style={{ background: 'rgba(0,0,0,0.7)' }}
+          onClick={() => setShowBadges(false)}
+        >
+          <div
+            className="w-full max-h-[80vh] overflow-y-auto rounded-t-3xl p-6"
+            style={{ background: '#1a0a30' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-white text-lg">🏅 Badges for {selectedMentor.full_name}</h2>
+              <button onClick={() => setShowBadges(false)}>
+                <span className="text-2xl text-gray-400">×</span>
+              </button>
+            </div>
+            <BadgesSection mentorEmail={selectedMentor.user_email} isMentor={false} />
           </div>
         </div>
       )}

@@ -13,9 +13,12 @@ const BADGE_CONFIG = {
   early_adopter: { name: 'Early Adopter', icon: '🚀', tier: 'bronze', description: 'Joined mentorship program in first month' },
   helper: { name: 'Helper', icon: '🤝', tier: 'bronze', description: 'Helped 5+ different mentees' },
   wisdom_keeper: { name: 'Wisdom Keeper', icon: '📚', tier: 'silver', description: 'Shared 20+ resources' },
+  community_pillar: { name: 'Community Pillar', icon: '🏛️', tier: 'gold', description: 'Mentored 20+ different mentees' },
+  mentor_champion: { name: 'Mentor Champion', icon: '🏆', tier: 'gold', description: '10+ sessions with 4.5+ rating' },
+  top_responder: { name: 'Top Responder', icon: '⚡', tier: 'silver', description: 'Consistently quick responses' },
 };
 
-export default function BadgesSection({ user, isMentor }) {
+export default function BadgesSection({ user, isMentor, mentorEmail }) {
   const [badges, setBadges] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +28,9 @@ export default function BadgesSection({ user, isMentor }) {
 
   const loadBadges = async () => {
     try {
-      const userBadges = await base44.entities.MentorshipBadge.filter({ user_email: user.email });
+      const targetEmail = mentorEmail || user?.email;
+      if (!targetEmail) { setLoading(false); return; }
+      const userBadges = await base44.entities.MentorshipBadge.filter({ user_email: targetEmail });
       setBadges(userBadges);
       setLoading(false);
     } catch (error) {
@@ -66,8 +71,8 @@ export default function BadgesSection({ user, isMentor }) {
       {badges.length === 0 ? (
         <div className="text-center py-8">
           <Award size={40} className="mx-auto mb-3 text-gray-600" />
-          <p className="text-sm text-gray-400 mb-2">No badges earned yet</p>
-          <p className="text-xs text-gray-500">Complete sessions and achieve milestones to earn badges!</p>
+          <p className="text-sm text-gray-400 mb-2">{isMentor ? 'No badges earned yet' : 'No badges yet'}</p>
+          <p className="text-xs text-gray-500">{isMentor ? 'Complete sessions and achieve milestones to earn badges!' : 'This mentor will earn badges as they reach milestones.'}</p>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-3">
