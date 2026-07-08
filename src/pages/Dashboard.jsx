@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import useAgeGroup from '@/lib/useAgeGroup';
 import useTranslation from '@/lib/useTranslation';
 import { base44 } from '@/api/base44Client';
+import { loadCurrentUserRecord } from '@/lib/authRules';
 import { useNavigate } from 'react-router-dom';
 import { useUserContext } from '@/lib/UserContext';
 import { Search, X, Plus, Check, ChevronRight, Settings } from 'lucide-react';
@@ -505,6 +506,25 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const { worldInfo } = useAgeGroup();
   const { totalPoints, profile: ctxProfile, username: ctxUsername } = useUserContext();
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      const user = await base44.auth.me();
+      if (!user) { window.location.href = '/'; return; }
+      try {
+        const userRecord = await loadCurrentUserRecord(user);
+        if (!userRecord) { window.location.href = '/'; return; }
+        if (userRecord.account_type === 'mentor') {
+          window.location.href = '/mentor-dashboard';
+          return;
+        }
+      } catch {
+        window.location.href = '/';
+      }
+    };
+    checkAccess();
+  }, []);
+
   const [user, setUser] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [profileData, setProfileData] = useState(null);

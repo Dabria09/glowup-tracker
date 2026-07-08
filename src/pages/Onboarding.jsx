@@ -10,12 +10,10 @@ import NewUserTour from '@/components/NewUserTour';
 import {
   calculateGirlAgeGroup,
   clearAuthSession,
-  hasMentorAccount,
   isAdminUser,
   isDeletedAccount,
-  loadMentorApplicationByEmail,
   loadCurrentUserRecord,
-  loadMentorEntityByEmail,
+  saveCurrentUserRecord,
 } from '@/lib/authRules';
 
 const STEPS_MINOR   = ['dob', 'username', 'parental', 'agreement', 'complete'];
@@ -34,7 +32,7 @@ export default function Onboarding() {
   const [user, setUser] = useState(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [showTour, setShowTour] = useState(false);
-  const [isMentorFlow, setIsMentorFlow] = useState(false);
+  const [completionRoute, setCompletionRoute] = useState('/dashboard');
   const [data, setData] = useState({
     date_of_birth: '', age: null, age_group: '',
     username: '', parent_name: '', parent_email: '',
@@ -76,22 +74,16 @@ export default function Onboarding() {
           return;
         }
 
-        if (!isFromMentorSignup) {
-          // Only redirect to mentor dashboard if account_type is explicitly mentor
-          // Never redirect based on a pending or rejected mentor application alone
-          // This prevents girl accounts with old mentor applications from being 
-          // incorrectly routed to the mentor dashboard
-          if (mergedUser.account_type === 'mentor') {
-            const mentorEntity = await loadMentorEntityByEmail(mergedUser.email);
-            const mentorApplication = await loadMentorApplicationByEmail(mergedUser.email);
-            if (mentorEntity || mentorApplication) {
-              navigate('/mentor-dashboard', { replace: true });
-              return;
-            }
-          }
+        // Self-heal girl accounts corrupted to mentor by the old onboarding step
+        if (!isFromMentorSignup && mergedUser.account_type === 'mentor') {
+          try {
+            await base44.auth.updateMe({ account_type: 'girl' });
+            await saveCurrentUserRecord(mergedUser, { account_type: 'girl' });
+            mergedUser.account_type = 'girl';
+          } catch {}
         }
 
-        // Check if user already has a complete profile FIRST — fast exit before any mentor checks
+        // Check if user already has a complete profile FIRST
         let hasCompleteProfile = false;
         try {
           const profiles = await base44.entities.UserProfile.filter({ user_email: mergedUser.email });
@@ -126,14 +118,6 @@ export default function Onboarding() {
           }
         } catch {}
         
-        if (isFromMentorSignup) {
-          setIsMentorFlow(true);
-          // If user already has a complete profile AND is already a mentor, skip to mentor dashboard
-          if (hasCompleteProfile && hasMentorAccount(mergedUser)) {
-            navigate('/mentor-dashboard', { replace: true });
-            return;
-          }
-        }
       } catch (err) {
         console.error('[Onboarding] Auth error:', err);
         alert('Auth error: ' + err.message);
@@ -145,7 +129,6 @@ export default function Onboarding() {
 
   const update = (patch) => setData(prev => ({ ...prev, ...patch }));
 
-  // Skip mentor choice step if user is already in mentor flow
   const hasDob = Boolean(data.date_of_birth && data.age !== null && data.age_group);
   const computedSteps = data.age !== null && data.age < 13
     ? STEPS_MINOR
@@ -188,10 +171,17 @@ export default function Onboarding() {
       } else {
         await base44.entities.UserProfile.create(profileData);
       }
-      // Sync username to auth token so it's consistent everywhere in the app
-      if (data.username) {
-        await base44.auth.updateMe({ username: data.username }).catch(() => {});
-      }
+      // Girl onboarding must never leave account_type as mentor
+      await base44.auth.updateMe({
+        account_type: 'girl',
+        ...(data.username ? { username: data.username } : {}),
+      }).catch(() => {});
+      await saveCurrentUserRecord(user, {
+        account_type: 'girl',
+        age: data.age,
+        age_group: data.age_group,
+        date_of_birth: data.date_of_birth,
+      }).catch(() => {});
       localStorage.removeItem('ggu_join_intent');
       if (data.age < 13) {
         await base44.functions.invoke('sendParentalConsent', {
@@ -210,13 +200,20 @@ export default function Onboarding() {
       return;
     }
 
+    const ageGroupRoutes = {
+      glow_girls: '/dashboard',
+      glow_teens: '/dashboard',
+      glow_women: '/dashboard',
+    };
+    const completionRoute = ageGroupRoutes[data.age_group] || '/dashboard';
+
     if (data.age < 13) {
-      navigate('/dashboard');
+      window.location.href = completionRoute;
       return;
     }
 
-    // For non-mentors, show the tour then go to dashboard
     setShowTour(true);
+    setCompletionRoute(completionRoute);
   };
 
   const progressSteps = steps.filter(s => s !== 'complete');
@@ -292,7 +289,7 @@ export default function Onboarding() {
         )}
       </div>
 
-      {showTour && <NewUserTour onComplete={() => { setShowTour(false); navigate('/dashboard'); }} />}
+      {showTour && <NewUserTour onComplete={() => { setShowTour(false); window.location.href = completionRoute; }} />}
     </div>
   );
 }

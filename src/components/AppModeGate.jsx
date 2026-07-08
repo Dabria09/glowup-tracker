@@ -8,6 +8,7 @@ import {
   isAdminUser,
   isMentorModeActive,
   isDeletedAccount,
+  loadMentorApplicationByEmail,
   loadCurrentUserRecord,
   loadMentorEntityByEmail,
 } from "@/lib/authRules";
@@ -78,6 +79,17 @@ export default function AppModeGate() {
             u.mentor_status = "approved";
           }
         } catch {}
+      }
+
+      // Self-heal girl accounts corrupted to mentor by the old onboarding step
+      if (u.account_type === ACCOUNT_TYPES.MENTOR) {
+        mentorEntity = mentorEntity || await loadMentorEntityByEmail(u.email);
+        const mentorApplication = await loadMentorApplicationByEmail(u.email);
+        const hasRealMentorRecords = Boolean(mentorEntity) || Boolean(mentorApplication);
+        if (!hasRealMentorRecords) {
+          await base44.auth.updateMe({ account_type: ACCOUNT_TYPES.GIRL }).catch(() => {});
+          u.account_type = ACCOUNT_TYPES.GIRL;
+        }
       }
 
       setUser(u);
