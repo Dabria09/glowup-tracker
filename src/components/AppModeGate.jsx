@@ -54,6 +54,22 @@ export default function AppModeGate() {
         }
       }
 
+      // Self-heal: stale "mentor" account_type with no actual mentor entity → treat as girl
+      if (u.account_type === ACCOUNT_TYPES.MENTOR && !mentorEntity) {
+        mentorEntity = await loadMentorEntityByEmail(u.email);
+        if (!mentorEntity) {
+          u.account_type = ACCOUNT_TYPES.GIRL;
+          u.mentor_status = null;
+          await Promise.all([
+            base44.auth.updateMe({ account_type: "girl" }).catch(() => {}),
+            base44.entities.User.update(u.id, { account_type: "girl" }).catch(() => {}),
+          ]);
+        } else {
+          u.mentor_status = "approved";
+          u.mentor_type = u.mentor_type || mentorEntity.mentor_type || mentorEntity.type;
+        }
+      }
+
       // Sync onboarding_complete and parental consent from UserProfile into the user object
       if (getAccountType(u) === ACCOUNT_TYPES.GIRL && u.role !== "admin") {
         try {
@@ -119,10 +135,6 @@ export default function AppModeGate() {
 
   // Admins always get full access — skip ALL role/mentor/onboarding gates
   if (isAdminUser(user)) {
-    if (location.pathname === "/dashboard") {
-      return <Navigate to="/admin" replace />;
-    }
-
     return (
       <div className="min-h-screen bg-[#0d0608] text-white relative z-10">
         <Outlet />

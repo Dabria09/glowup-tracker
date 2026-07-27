@@ -383,12 +383,12 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
     throw new Error("No account found. Please sign up to join the Sisterhood.");
   }
 
-  // Admins bypass member/mentor portal checks and land in the admin area.
+  // Admins bypass member/mentor portal checks — let them enter the community app.
   if (isAdminUser(userRecord) || isAdminUser(currentUser)) {
     return {
       user: currentUser,
       userRecord,
-      route: '/admin',
+      route: '/dashboard',
     };
   }
 
@@ -457,6 +457,7 @@ export async function completeEmailPasswordSignIn({ email, password, expectedAcc
   // Self-heal: if account_type was corrupted to "mentor" but no real mentor records exist, fix it
   if (!hasMentorAccess && storedAccountType === ACCOUNT_TYPES.MENTOR) {
     await base44.auth.updateMe({ account_type: "girl" }).catch(() => {});
+    try { await base44.entities.User.update(currentUser.id, { account_type: "girl" }); } catch {}
   }
 
   const { age, ageGroup, profile } = await syncGirlAgeMetadata(userRecord, currentUser);

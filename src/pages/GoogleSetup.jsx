@@ -57,9 +57,9 @@ export default function GoogleSetup() {
         const userRecord = await loadCurrentUserRecord(u);
         const mergedUser = { ...u, ...userRecord };
 
-        // Admins bypass setup and land in the admin area from any sign-in path.
+        // Admins bypass setup and land in the community app from any sign-in path.
         if (isAdminUser(mergedUser)) {
-          window.location.href = '/admin';
+          window.location.href = '/dashboard';
           return;
         }
 
