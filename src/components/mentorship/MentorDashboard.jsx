@@ -23,6 +23,27 @@ const TABS = ['Overview', 'Inbox', 'My Mentees', 'Sessions', 'Lesson', 'Profile'
 
 export default function MentorDashboard() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      const user = await base44.auth.me();
+      if (!user) { window.location.href = '/'; return; }
+      try {
+        const userRecord = await loadCurrentUserRecord(user);
+        const isMentorAccount =
+          userRecord?.account_type === 'mentor' ||
+          (userRecord?.account_type === 'linked' && userRecord?.active_mode === 'mentor');
+        if (!userRecord || !isMentorAccount) {
+          window.location.href = '/dashboard';
+          return;
+        }
+      } catch {
+        window.location.href = '/';
+      }
+    };
+    checkAccess();
+  }, []);
+
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [questions, setQuestions] = useState([]);
