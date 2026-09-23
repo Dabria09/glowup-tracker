@@ -1,0 +1,37 @@
+{
+  "name": "Sync Squad Points on Activity",
+  "description": "Whenever a user earns points (fitness, diary, check-ins, etc.), recalculate and update their GlowSquad total points for the leaderboard.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "PointsHistory"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "sync_squad_points_on_activity",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "syncSquadPoints",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "syncSquadPoints"
+  }
+}
